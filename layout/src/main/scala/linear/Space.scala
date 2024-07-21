@@ -5,11 +5,18 @@ import cats.*
 import cats.syntax.all.{*, given}
 import scala.math.Numeric.Implicits.given
 
-// TODO Сделать за линейное время
 def spaceBetweenElements[T: Numeric](starts: List[T], sizes: List[T]): List[T] =
-  for
-    i <- (1 until starts.length).toList
-  yield starts(i) - starts(i - 1) - sizes(i - 1)
+  def helper(previousEnd: T, starts : List[(T, T)]) : List[T] =
+    starts match
+      case (start, size) :: others =>
+        (start - previousEnd) :: helper(start + size, others)
+      case Nil =>
+        Nil
+    end match
+  end helper
+  
+  assume(starts.size == sizes.size && starts.nonEmpty)
+  helper(starts.head + sizes.head, starts.tail.zip(sizes.tail))
 end spaceBetweenElements
 
 def spaceAroundElements[T: Numeric](starts: List[T], sizes: List[T], space : T): List[T] =
