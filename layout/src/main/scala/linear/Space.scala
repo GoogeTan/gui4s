@@ -2,7 +2,8 @@ package me.katze.gui4s.layout
 package linear
 
 import cats.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.given
+
 import scala.math.Numeric.Implicits.given
 
 def spaceBetweenElements[T: Numeric](starts: List[T], sizes: List[T]): List[T] =
@@ -21,7 +22,8 @@ end spaceBetweenElements
 
 def spaceAroundElements[T: Numeric](starts: List[T], sizes: List[T], space : T): List[T] =
   val between = spaceBetweenElements(starts, sizes)
-  starts.head :: between ++ List(space - sizes.last - starts.last)
+  val endGap = space - (sizes.last + starts.last)
+  (starts.head :: between) :+ endGap
 end spaceAroundElements
 
 def minimalRequiredSpace[T: Numeric](widgets: List[T]): T = widgets.sum

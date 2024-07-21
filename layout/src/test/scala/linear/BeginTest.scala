@@ -21,7 +21,12 @@ class BeginTest extends AnyFlatSpec:
 
   "placeBeginMany" should "have zero space between" in:
     val widgets = List(2, 2, 2)
-    assert(spaceBetweenElements(placeBeginMany(widgets), widgets).forall(_ == 0))
+    assert(
+      spaceBetweenElements(
+        placeBeginMany(widgets), 
+        widgets
+      ).forall(_ == 0)
+    )
 
   "placeBeginMany with one element" should "be 0" in:
     assert(placeBeginMany(List(2)) == List(0))

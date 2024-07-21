@@ -3,6 +3,6 @@ package linear
 
 def placeSpaceAround[T : Fractional](sizes : List[T], space : T) : List[T] =
   val zero = Fractional[T].zero
-  val result = placeSpaceBetween(zero :: sizes.appended(zero), space)
+  val result = placeSpaceBetween((zero :: sizes) :+ (zero), space)
   result.drop(1).dropRight(1)
 end placeSpaceAround
