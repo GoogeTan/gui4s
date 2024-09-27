@@ -1,44 +1,55 @@
 package me.katze.gui4s.example
 
 import draw.*
-import place.ApplicationBounds
-import root.{RootPlacedWidget, RootWidgetFree}
-import update.*
+import update.ApplicationRequest
 
 import cats.*
 import cats.effect.*
-import cats.effect.kernel.Concurrent
-import cats.effect.std.Queue
-import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.widget.impl.WidgetLibraryImpl
-import me.katze.gui4s.widget.library.{LabelDraw, LabelLibrary, LabelPlacement, WidgetLibrary}
+import me.katze.gui4s.widget.impl.{StatefulWidgetLibraryImpl, WidgetLibraryImpl}
+import me.katze.gui4s.widget.library.{LabelDraw, LabelLibrary, LabelPlacement, StatefulLibrary}
 import me.katze.gui4s.widget.placeable.Placeable
-import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 
-class Library[F[+_] : Monad, MU](api : SimpleDrawApi[F]) extends WidgetLibraryImpl[F, F[Unit], Bounds[MU]] with LabelLibrary[Unit]:
+class SimpleDrawApiLibrary[F[+_] : Monad, MU](api : SimpleDrawApi[F]) extends StatefulWidgetLibraryImpl[F, F[Unit], Bounds[MU]] with LabelLibrary with StatefulLibrary:
+  override type LabelPlacementMeta = Unit
+
   override def textIsPlaceable: LabelPlacement[Placeable[Bounds[MU], Unit]] = _ => _ => ()
 
-  override def textDraw: LabelDraw[F[Unit], Unit] = (text, _) => api.text(50, 50, text, TextStyle(18, 0, 400))
-end Library
+  override def textDraw: LabelDraw[F[Unit], Unit] = (text, _) => api.text(0, 10, text, TextStyle(18, 0, 400))
+end SimpleDrawApiLibrary
 
-
-object ExampleApp extends IOApp:
-  override def run(args: List[String]): IO[ExitCode] =
+trait SwingApp extends IOApp:
+  type Library <: WidgetLibraryImpl[IO, IO[Unit], Bounds[Int]]
+  
+  final override def run(args: List[String]): IO[ExitCode] =
     for
       swing <- initSwing
-      lib = Library[IO, Int](swing.graphics)
+      lib = createLibrary(swing.graphics)
       code <- runWidget(lib)(
-        lib.label("123213534634346435456343456"),
+        app(lib),
         drawLoopExceptionHandler,
         swing.graphics,
       )(using summon, SwingProcessRequest(swing), SwingApplicationBounds(swing))
     yield code
   end run
+  
+  def createLibrary(drawApi : SimpleDrawApi[IO]) : Library
 
   def drawLoopExceptionHandler(exception: Throwable): IO[Option[ExitCode]] =
     IO.println(s"Error in draw loop: $exception").map(_ => Some(ExitCode.Error))
   end drawLoopExceptionHandler
+
+  def app(api : Library) : api.Widget[ApplicationRequest]
+
+
+object ExampleApp extends SwingApp:
+  override def app(api: Library): api.Widget[ApplicationRequest] =
+    api.label("12345")
+  end app
+
+  override type Library = SimpleDrawApiLibrary[IO, Int]
+  
+  override def createLibrary(drawApi: SimpleDrawApi[IO]) = SimpleDrawApiLibrary(drawApi)
 end ExampleApp
 
 

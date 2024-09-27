@@ -3,7 +3,8 @@ package library
 
 import cats.Monad
 
-trait LabelLibrary[LabelPlacementMeta] extends DrawOnlyWidgetLibrary:
+trait LabelLibrary extends DrawOnlyWidgetLibrary:
+  type LabelPlacementMeta
   given textDraw : LabelDraw[Draw, LabelPlacementMeta]
   given textIsPlaceable : LabelPlacement[PlacementEffect[LabelPlacementMeta]]
 

@@ -9,7 +9,9 @@ import me.katze.gui4s.widget.placeable.Placeable
 import me.katze.gui4s.widget.stateful.*
 import me.katze.gui4s.widget.{*, given}
 
-object lib extends WidgetLibraryImpl[IO, StateMonad[Int, String], Null] with StatefulLibrary with LabelLibrary[Unit]:
+object lib extends WidgetLibraryImpl[IO, StateMonad[Int, String], Null] with StatefulLibrary with LabelLibrary:
+  override type LabelPlacementMeta = Unit
+  
   override def statefulFabric[
     RaiseableEvent, HandleableEvent >: TaskFinished,
     ChildRaiseableEvent, ChildHandleableEvent >: HandleableEvent
