@@ -35,6 +35,7 @@ class WidgetLibraryImpl[F[+_] : Monad, DrawIn, Bounds] extends WidgetLibrary:
                                   alive      : Set[Path]
                                 ): Set[Path] = 
       preWidget.filterDeadPaths(currentPath, alive)
+    end filterDeadPaths
   end Magic
 
   final override def constructRealWidget[RaisableEvent, HandleableEvent](

@@ -18,7 +18,7 @@ type DrawLoop[F[+_], -Widget] = F[Widget] => F[ExitCode]
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).
  */
-type UpdateLoop[F[+_], Widget[_], DownEvent] = (Widget[DownEvent], Widget[DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
+type UpdateLoop[F[+_], Widget[_, _], UpEvent, DownEvent] = (Widget[UpEvent, DownEvent], Widget[UpEvent, DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
 
 /**
  * Каррированная версия MonadError.
@@ -34,13 +34,14 @@ type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
  */
 def applicationLoop[
   F[+_] : Concurrent, 
+  UpEvent,
   DownEvent, 
-  WidgetPlaced[_],
-  WidgetFree[T] <: Placeable[F, WidgetPlaced[T]]
+  WidgetPlaced[_, _],
+  WidgetFree[A, B] <: RootPlaceable[F, ? <: WidgetPlaced[A, B]]
 ](
-    freeRoot: WidgetFree[DownEvent],
-    drawLoop: DrawLoop[F, WidgetPlaced[DownEvent]],
-    updateLoop: UpdateLoop[F, WidgetPlaced, DownEvent]
+    freeRoot: WidgetFree[UpEvent, DownEvent],
+    drawLoop: DrawLoop[F, WidgetPlaced[UpEvent, DownEvent]],
+    updateLoop: UpdateLoop[F, WidgetPlaced, UpEvent, DownEvent]
 ): F[ApplicationControl[F, DownEvent]] =
 
   for
@@ -77,17 +78,17 @@ def drawLoop[
     .map(_.get)
 end drawLoop
 
-trait Placeable[+F[+_], +T]:
+trait RootPlaceable[+F[+_], +T]:
   def place() : F[T]
 
 def updateLoop[
                 F[+_] : ProcessRequest : Monad,
-                PlacedWidget[A] <: EventConsumer[FreeWidget[A], F, A, ApplicationRequest],
-                FreeWidget[A] <: Placeable[F, PlacedWidget[A]],
+                PlacedWidget <: EventConsumer[FreeWidget, F, ApplicationRequest, DownEvent],
+                FreeWidget <: RootPlaceable[F, ? <: PlacedWidget],
                 DownEvent
               ](
-                initial: PlacedWidget[DownEvent],
-                pushNew: PlacedWidget[DownEvent] => F[Unit],
+                initial: PlacedWidget,
+                pushNew: PlacedWidget => F[Unit],
                 nextEvent: F[DownEvent],
               ) : F[ExitCode] =
   Monad[F].tailRecM(initial)(updateStep(_, nextEvent, pushNew))
@@ -103,14 +104,14 @@ end updateLoop
  */
 def updateStep[
               F[+_] : Monad : ProcessRequest,
-              PlacedWidget[A] <: EventConsumer[FreeWidget[A], F, A, ApplicationRequest],
-              FreeWidget[A] <: Placeable[F, PlacedWidget[A]],
+              PlacedWidget <: EventConsumer[FreeWidget, F, ApplicationRequest, DownEvent],
+              FreeWidget <: RootPlaceable[F, PlacedWidget],
               DownEvent
             ](
-                widget: PlacedWidget[DownEvent],
+                widget: PlacedWidget,
                 waitForTheNextEvent: F[DownEvent],
-                pushNew: PlacedWidget[DownEvent] => F[Unit]
-            ): F[Either[PlacedWidget[DownEvent], ExitCode]] =
+                pushNew: PlacedWidget => F[Unit]
+            ): F[Either[PlacedWidget, ExitCode]] =
   for
     event  <- waitForTheNextEvent
     processResult <- widget.processEvent(event)

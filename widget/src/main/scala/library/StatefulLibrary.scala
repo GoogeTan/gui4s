@@ -25,7 +25,7 @@ trait StatefulLibrary extends WidgetLibrary:
                                                           name: String,
                                                           initialState: T,
                                                           eventHandler: (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ChildEvent, ParentEvent],
-                                                       )(
+                                                        )(
                                                           renderState: T => Widget[ChildEvent]
                                                         )(
                                                           using RichTypeChecker[ChildEvent], RichTypeChecker[(T, T)]
