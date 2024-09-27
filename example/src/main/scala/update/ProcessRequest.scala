@@ -3,8 +3,8 @@ package update
 
 import cats.effect.ExitCode
 
-trait ProcessRequest[F[_]]:
-  extension (request: ApplicationRequest)
+trait ProcessRequest[+F[_], -UpEvent]:
+  extension (request: UpEvent)
     def process: F[Option[ExitCode]]
   end extension
 end ProcessRequest

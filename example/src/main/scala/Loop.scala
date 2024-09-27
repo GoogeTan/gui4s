@@ -25,9 +25,12 @@ type UpdateLoop[F[+_], Widget[_, _], UpEvent, DownEvent] = (Widget[UpEvent, Down
  */
 type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
 
+trait RootPlaceable[+F[+_], +T]:
+  def place() : F[T]
+
 /**
  * Запускает в отдельных потоках обновление виджета и его отрисовку.
- * @param freeRoot дерево виджетов
+ * @param initialWidget дерево виджетов
  * @param drawLoop Цикл отрисовки приложения. Например, может рисовать на экран, рендерить в html и тому подобное.
  * @param updateLoop цикл обновления дерева виджетов приложения.
  * @tparam DownEvent Тип событий, которые умеет обрабатывать виджет.
@@ -36,17 +39,17 @@ def applicationLoop[
   F[+_] : Concurrent, 
   UpEvent,
   DownEvent, 
-  WidgetPlaced[_, _],
-  WidgetFree[A, B] <: RootPlaceable[F, ? <: WidgetPlaced[A, B]]
+  RootWidgetPlaced[_, _],
+  RootWidgetFree[A, B] <: RootPlaceable[F, RootWidgetPlaced[A, B]]
 ](
-    freeRoot: WidgetFree[UpEvent, DownEvent],
-    drawLoop: DrawLoop[F, WidgetPlaced[UpEvent, DownEvent]],
-    updateLoop: UpdateLoop[F, WidgetPlaced, UpEvent, DownEvent]
+    initialWidget : Queue[F, DownEvent] => RootWidgetFree[UpEvent, DownEvent],
+    drawLoop      : DrawLoop[F, RootWidgetPlaced[UpEvent, DownEvent]],
+    updateLoop    : UpdateLoop[F, RootWidgetPlaced, UpEvent, DownEvent]
 ): F[ApplicationControl[F, DownEvent]] =
 
   for
     bus <- Queue.unbounded[F, DownEvent]
-    root <- freeRoot.place()
+    root <- initialWidget(bus).place()
     widget <- AtomicCell[F].of(root)
     fork <- 
       Concurrent[F]
@@ -62,7 +65,6 @@ def applicationLoop[
     bus.offer
   )
 end applicationLoop
-
 type DrawLoopExceptionHandler[F[_], Error] = Error => F[Option[ExitCode]]
 
 def drawLoop[
@@ -78,19 +80,17 @@ def drawLoop[
     .map(_.get)
 end drawLoop
 
-trait RootPlaceable[+F[+_], +T]:
-  def place() : F[T]
-
 def updateLoop[
-                F[+_] : ProcessRequest : Monad,
-                PlacedWidget <: EventConsumer[FreeWidget, F, ApplicationRequest, DownEvent],
-                FreeWidget <: RootPlaceable[F, ? <: PlacedWidget],
+                F[+_] : Monad,
+                PlacedRootWidget <: EventConsumer[FreeRootWidget, F, UpEvent, DownEvent],
+                FreeRootWidget <: RootPlaceable[F, PlacedRootWidget],
+                UpEvent,
                 DownEvent
               ](
-                initial: PlacedWidget,
-                pushNew: PlacedWidget => F[Unit],
-                nextEvent: F[DownEvent],
-              ) : F[ExitCode] =
+                  initial: PlacedRootWidget,
+                  pushNew: PlacedRootWidget => F[Unit],
+                  nextEvent: F[DownEvent],
+              )(using ProcessRequest[F, UpEvent]) : F[ExitCode] =
   Monad[F].tailRecM(initial)(updateStep(_, nextEvent, pushNew))
 end updateLoop
 
@@ -103,15 +103,16 @@ end updateLoop
  * @return
  */
 def updateStep[
-              F[+_] : Monad : ProcessRequest,
-              PlacedWidget <: EventConsumer[FreeWidget, F, ApplicationRequest, DownEvent],
+              F[+_] : Monad,
+              PlacedWidget <: EventConsumer[FreeWidget, F, UpEvent, DownEvent],
               FreeWidget <: RootPlaceable[F, PlacedWidget],
+              UpEvent,
               DownEvent
             ](
                 widget: PlacedWidget,
                 waitForTheNextEvent: F[DownEvent],
                 pushNew: PlacedWidget => F[Unit]
-            ): F[Either[PlacedWidget, ExitCode]] =
+            )(using ProcessRequest[F, UpEvent]): F[Either[PlacedWidget, ExitCode]] =
   for
     event  <- waitForTheNextEvent
     processResult <- widget.processEvent(event)
@@ -122,6 +123,6 @@ def updateStep[
   yield exit.toRight(placedWidget)
 end updateStep
 
-def processRequests[F[_] : Monad : ProcessRequest](requests : List[ApplicationRequest]) : F[Option[ExitCode]] =
+def processRequests[F[_] : Monad, UpEvent](requests : List[UpEvent])(using ProcessRequest[F, UpEvent]) : F[Option[ExitCode]] =
   requests.collectFirstSomeM(_.process)
 end processRequests

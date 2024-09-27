@@ -65,4 +65,4 @@ lazy val example = (project in file("example"))
       "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
     ),
     coverageEnabled := true,
-  ).dependsOn(widget).dependsOn(draw)
+  ).dependsOn(widget).dependsOn(draw).dependsOn(layout)
