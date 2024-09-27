@@ -19,7 +19,8 @@ lazy val layout = (project in file("layout"))
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % "2.12.0",
       "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.17.1" % "test"
+      "org.scalacheck" %% "scalacheck" % "1.17.1" % "test",
+      "io.github.iltotore" %% "iron" % "2.4.0",
     ),
     coverageEnabled := true
   )
@@ -45,11 +46,11 @@ lazy val draw = (project in file("draw"))
       "org.typelevel" %% "cats-core" % "2.12.0",
       "org.scalatest" %% "scalatest" % "3.2.19" % "test",
       "org.scalacheck" %% "scalacheck" % "1.17.1" % "test",
-      "co.fs2" %% "fs2-core" % "3.10.2",
+      "co.fs2" %% "fs2-core" % "3.10.2"
     ),
     mainClass := Some("me.katze.gui4s.example.lwjgl.Example"),
     coverageEnabled := true
-  )
+  ).dependsOn(widget)
 
 lazy val example = (project in file("example"))
   .settings(

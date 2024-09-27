@@ -1,18 +1,20 @@
 package me.katze.gui4s.draw
 package lwjgl
 
-import org.lwjgl._
-import org.lwjgl.glfw._
-import org.lwjgl.opengl._
-import org.lwjgl.system._
-import org.lwjgl.glfw.Callbacks._
-import org.lwjgl.glfw.GLFW._
-import org.lwjgl.opengl.GL11._
-import org.lwjgl.system.MemoryStack._
-import org.lwjgl.system.MemoryUtil._
+import fs2.Chunk.ByteBuffer
+import org.lwjgl.*
+import org.lwjgl.glfw.*
+import org.lwjgl.opengl.*
+import org.lwjgl.system.*
+import org.lwjgl.glfw.Callbacks.*
+import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.stb.STBEasyFont
+import org.lwjgl.system.MemoryStack.*
+import org.lwjgl.system.MemoryUtil.*
+import org.lwjgl.stb.*
 
 object Example extends App:
-  println(Thread.currentThread().threadId())
   // The window handle
   private var window: Long = 0L
   println("Hello LWJGL " + Version.getVersion + "!")
@@ -24,7 +26,6 @@ object Example extends App:
   // Terminate GLFW and free the error callback
   glfwTerminate()
   glfwSetErrorCallback(null).free()
-
 
   private def init(): Unit =
     // Setup an error callback. The default implementation
@@ -91,7 +92,7 @@ object Example extends App:
     // bindings available for use.
     GL.createCapabilities
     // Set the clear color
-    glClearColor(1.0f, 0.0f, 0.0f, 0.0f)
+    glClearColor(1.0f, 1.0f, 0.0f, 0.0f)
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
     while (!glfwWindowShouldClose(window))

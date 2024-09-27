@@ -1,30 +1,45 @@
 package me.katze.gui4s.example
 
+import cats.data.State as StateMonad
 import cats.effect.IO
 import me.katze.gui4s.example
 import me.katze.gui4s.widget.impl.{FreeStatefulFabricImpl, WidgetLibraryImpl}
 import me.katze.gui4s.widget.library.{LabelDraw, LabelLibrary, LabelPlacement, StatefulLibrary}
 import me.katze.gui4s.widget.placeable.Placeable
-import me.katze.gui4s.widget.stateful.{EventReaction, FreeStatefulFabric, RichTypeChecker, State, StatefulDraw, TaskFinished}
+import me.katze.gui4s.widget.stateful.*
 import me.katze.gui4s.widget.{*, given}
 
+object lib extends WidgetLibraryImpl[IO, StateMonad[Int, String], Null] with StatefulLibrary with LabelLibrary[Unit]:
+  override def statefulFabric[
+    RaiseableEvent, HandleableEvent >: TaskFinished,
+    ChildRaiseableEvent, ChildHandleableEvent >: HandleableEvent
+  ](using RichTypeChecker[ChildRaiseableEvent]): FreeStatefulFabricImpl[StateMonad[Int, String], WidgetTask, Magic, [T] =>> Placeable[Null, T], RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent] =
+      FreeStatefulFabricImpl[StateMonad[Int, String], WidgetTask, Magic, PlacementEffect, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent](constructRealWidget[RaiseableEvent, HandleableEvent])(using statefulIsDrawable, placementIsEffect, freeTreesAreMergeable)
 
-object lib extends WidgetLibraryImpl[IO, String] with StatefulLibrary with LabelLibrary[Unit]:
-  override def statefulFabric[RaiseableEvent, HandleableEvent >: TaskFinished, ChildRaiseableEvent, ChildHandleableEvent >: HandleableEvent](using RichTypeChecker[ChildRaiseableEvent]) =
-      FreeStatefulFabricImpl[String, WidgetTask, Magic, PlacementEffect, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent](constructRealWidget[RaiseableEvent, HandleableEvent])(using statefulIsDrawable, placementIsEffect, freeTreesAreMergeable)
-
-  override given statefulIsDrawable: StatefulDraw[String] = new StatefulDraw[String]:
+  override given statefulIsDrawable: StatefulDraw[StateMonad[Int, String]] = new StatefulDraw[StateMonad[Int, String]]:
     override def drawStateful[T](
                                   name     : String,
                                   state    : State[Any, T, Any, Any],
-                                  childTree: me.katze.gui4s.widget.PlacedWidget[String, Any, [A, B] =>> Any, Any, Nothing]
-                                ): String =
-      s"Stateful(name=$name; state=$state)\n  ${childTree.draw}"
+                                  childTree: me.katze.gui4s.widget.PlacedWidget[StateMonad[Int, String], Any, [A, B] =>> Any, Any, Nothing]
+                                ): StateMonad[Int, String] =
+      for
+        tabs <- StateMonad.get[Int]
+        res = "  ".repeat(tabs) + s"Stateful(name=$name; state=$state)\n"
+        _ <- StateMonad.modify[Int](_ + 1)
+        child <- childTree.draw
+        _ <- StateMonad.modify[Int](_ - 1)
+        tail = "  ".repeat(tabs) + s"end $name\n"
+      yield res + child + tail
   end statefulIsDrawable
 
-  override def textIsPlaceable: LabelPlacement[Placeable[Unit]] = text => bounds => ()
+  override def textIsPlaceable: LabelPlacement[Placeable[Null, Unit]] = text => bounds => ()
 
-  override def textDraw: LabelDraw[String, Unit] = (text, _) => s"Label($text)"
+  override def textDraw: LabelDraw[StateMonad[Int, String], Unit] =
+    (text, _) =>
+      for
+        tabs <- StateMonad.get
+      yield "  ".repeat(tabs) + s"Label($text)\n"
+  end textDraw
 end lib
 
 object Example extends App:
@@ -43,12 +58,10 @@ object Example extends App:
     end match
   end handleTapEvent
 
-  val tree: FreeWidget[Nothing, TaskFinished] = lib.stateful(
-    "outer",
-    Taps(0),
-    handleTapEvent,
-    outerState => stateful("inner", Taps(0), handleTapEvent, (state: Taps) => label(s"$outerState $state"))
-  )
+  val tree: Widget[Nothing] =
+    stateful("outer", Taps(0), handleTapEvent): outerState =>
+      stateful("inner", Taps(0), handleTapEvent): innerState =>
+        label(s"$outerState $innerState")
 
 
   def runEvent(widget: PlacedWidget[Nothing, TaskFinished], event: TaskFinished): PlacedWidget[Nothing, TaskFinished] =
@@ -63,11 +76,12 @@ object Example extends App:
     runEvents(
         placedTree,
         List(
-          TaskFinished("outer", List("inner", "end"), TapsEvent.Inc),
-          TaskFinished("outer", List("inner", "end"), TapsEvent.Inc),
           TaskFinished("outer", List("inner"), TapsEvent.Inc),
-          TaskFinished("outer", Nil, TapsEvent.Inc)
+          TaskFinished("outer", List("inner"), TapsEvent.Inc),
+          TaskFinished("outer", List("inner"), TapsEvent.Inc),
+          TaskFinished("outer", List("inner"), TapsEvent.Inc),
+          TaskFinished("outer", List("inner"), TapsEvent.Inc),
         )
-    ).draw
+    ).draw.runA(0).value
   )
 end Example
