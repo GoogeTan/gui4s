@@ -9,7 +9,7 @@ import cats.implicits.{*, given}
 import cats.syntax.all.{*, given}
 import cats.syntax.foldable.given
 import cats.{*, given}
-import me.katze.gui4s.widget.PlacedWidget
+import me.katze.gui4s.widget.{PlacedWidget, RunnableIO}
 import me.katze.gui4s.widget.stateful.Path
 import me.katze.gui4s.widget.placeable.Placeable
 
@@ -25,32 +25,28 @@ trait TruePlacedWidget[
 final class RootWidgetPlaced[
   F[+_] : Monad,
   +G,
-  -Bounds, 
+  -Bounds,
   +WidgetTask,
   +UpEvent, -DownEvent,
 ](
-  widget : TruePlacedWidget[G, WidgetTask, Bounds, DownEvent, UpEvent],
-  master : IOMaster[F]
-)(using ApplicationBounds[F, Bounds]) extends Drawable[G] with EventConsumer[RootWidgetFree[F, G, Bounds, WidgetTask, UpEvent, DownEvent], F, DownEvent, UpEvent]:
+  widget : TruePlacedWidget[G, WidgetTask, Bounds, UpEvent, DownEvent],
+  master : IOMaster[F, WidgetTask]
+)(using ApplicationBounds[F, Bounds]) extends Drawable[G] with EventConsumer[RootWidgetFree[F, G, WidgetTask, Bounds, UpEvent, DownEvent], F, DownEvent, UpEvent]:
 
-  override def processEvent(event: DownEvent): F[EventProcessResult[RootWidgetFree[F, G, Bounds, WidgetTask, UpEvent, DownEvent], UpEvent]] =
+  override def processEvent(event: DownEvent): F[EventProcessResult[RootWidgetFree[F, G, WidgetTask, Bounds, UpEvent, DownEvent], UpEvent]] =
     val res = widget.handleDownEvent(event)
-    pushIOS(res.ios) *> EventProcessResult(RootWidgetFree(res.widget, master), res.upEvent).pure[F]
+    res.ios.traverse_(master.pushIO) *> EventProcessResult(RootWidgetFree(res.widget, master), res.upEvent).pure[F]
   end processEvent
-
-  private def pushIOS(ios : List[RunnableIO[WidgetTask]]) : F[Unit] =
-    ios.traverse_(io => master.pushIO(io.io, io.path, io.keepAliveAfterWidgetDetach))
-  end pushIOS
 
   override def draw: G = widget.draw
 end RootWidgetPlaced
 
 
 final class RootWidgetFree[
-  F[+_] : Monad, +G, -Bounds, +WidgetTask,  +UpEvent, -DownEvent,
+  F[+_] : Monad, +G, +WidgetTask, -Bounds,  +UpEvent, -DownEvent,
 ](
     measurable: Placeable[Bounds, TruePlacedWidget[G, WidgetTask, Bounds, UpEvent, DownEvent]],
-    master : IOMaster[F]
+    master : IOMaster[F, WidgetTask]
 )(
     using bounds : ApplicationBounds[F, Bounds]
 ) extends me.katze.gui4s.example.Placeable[F, RootWidgetPlaced[F, G, Bounds, WidgetTask, UpEvent, DownEvent]]:
@@ -62,10 +58,10 @@ final class RootWidgetFree[
     yield RootWidgetPlaced(placed, master)
   end place
 
-  private def killDeadIOS(newWidget : TruePlacedWidget[G, WidgetTask, Bounds, UpEvent, DownEvent]) : F[Unit] =
+  private def killDeadIOS(newWidget : TruePlacedWidget[?, ?, ?, ?, ?]) : F[Unit] =
     for
       alive  <- master.alive
-      dead   =  newWidget.filterDeadPaths(alive)
+      dead   =  newWidget.filterDeadPaths(Path(List("ROOT")), alive) /// TODO CHECK ME
       _      <- dead.toList.traverse_(master.detach)
     yield ()
   end killDeadIOS

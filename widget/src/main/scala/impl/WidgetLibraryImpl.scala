@@ -3,7 +3,7 @@ package impl
 
 import library.{StatefulLibrary, WidgetLibrary}
 import placeable.{*, given}
-import stateful.{Mergeable, State, StatefulDraw, TaskFinished}
+import stateful.{Mergeable, Path, State, StatefulDraw, TaskFinished}
 
 import cats.*
 import cats.syntax.all.{*, given}
@@ -29,6 +29,12 @@ class WidgetLibraryImpl[F[+_] : Monad, DrawIn, Bounds] extends WidgetLibrary:
     override def childrenStates: Map[String, Any] = preWidget.childrenStates
 
     override def draw: Draw = preWidget.draw
+
+    override def filterDeadPaths(
+                                  currentPath: Path,
+                                  alive      : Set[Path]
+                                ): Set[Path] = 
+      preWidget.filterDeadPaths(currentPath, alive)
   end Magic
 
   final override def constructRealWidget[RaisableEvent, HandleableEvent](

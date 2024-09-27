@@ -13,5 +13,5 @@ trait PlacedWidget[+Draw, +WidgetTask, +FreeWidget[+_, -_], +RaiseableEvent, -Ha
   
   def draw : Draw
   
-  def filterDeadPaths(alive : Set[Path]) : Set[Path]
+  def filterDeadPaths(currentPath : Path, alive : Set[Path]) : Set[Path]
 end PlacedWidget

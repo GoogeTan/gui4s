@@ -1,8 +1,10 @@
 package me.katze.gui4s.widget
 package library
 
+import stateful.Path
+
 import cats.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.given
 
 trait LayoutLibrary extends WidgetLibrary:
   type ChildrenMeta
@@ -44,6 +46,12 @@ trait LayoutLibrary extends WidgetLibrary:
     override def draw: Draw =
       LD.drawChildren(children.map(child => (child._1.draw, child._2)))
     end draw
+
+    override def filterDeadPaths(
+                                  currentPath: Path,
+                                  alive      : Set[Path]
+                                ): Set[Path] =
+      children.foldLeft(alive)((res, child) => child._1.filterDeadPaths(currentPath, res))
   end LayoutWidget
 
   final def layout[Event](

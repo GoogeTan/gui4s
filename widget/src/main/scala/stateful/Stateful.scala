@@ -143,7 +143,12 @@ final case class Stateful[
     tasks.map(fixChildTaskPath)
   end fixChildTasksPaths
 
-  private def fixChildTaskPath[T](path : Path, task: RunnableIO[WidgetTask[T]]) : RunnableIO[WidgetTask[T]] =
-    task.copy(path = path.appendFirst(this.name))
+  private def fixChildTaskPath[T](task: RunnableIO[WidgetTask[T]]) : RunnableIO[WidgetTask[T]] =
+    task.copy(path = task.path.appendFirst(this.name))
   end fixChildTaskPath
+
+  override def filterDeadPaths(currentPath : Path, alive: Set[Path]): Set[Path] =
+    val pathToSelf = currentPath.appendFirst(name)
+    childTree.filterDeadPaths(pathToSelf, alive.excl(pathToSelf))
+  end filterDeadPaths
 end Stateful

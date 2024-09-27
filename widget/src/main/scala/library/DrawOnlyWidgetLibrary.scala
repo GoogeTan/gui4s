@@ -1,5 +1,6 @@
 package me.katze.gui4s.widget
 package library
+import stateful.Path
 
 trait DrawOnlyWidgetLibrary extends WidgetLibrary:
   private class DrawOnlyWidget(
@@ -9,6 +10,11 @@ trait DrawOnlyWidgetLibrary extends WidgetLibrary:
     override def handleDownEvent(event: Any): EventResult[WidgetTask[Any], FreeWidget[Nothing, Any], Nothing] = EventResult(asFree)
     override def mergeWithState(oldState: Map[String, Any]): FreeWidget[Nothing, Any] = asFree
     override def childrenStates: Map[String, Any] = Map()
+
+    override def filterDeadPaths(
+                                  currentPath: Path,
+                                  alive      : Set[Path]
+                                ): Set[Path] = alive
   end DrawOnlyWidget
 
   final def drawOnlyWidget(asFree: FreeWidget[Nothing, Any], draw: Draw): PlacedWidget[Nothing, Any] =
