@@ -15,6 +15,7 @@ class WidgetLibraryImpl[F[+_] : Monad, DrawIn, Bounds] extends WidgetLibrary:
   final override type WidgetTask[+T] = WidgetTaskImpl[F, T]
   final override type SystemEvent = TaskFinished
   final override type PlacementEffect[+E] = Placeable[Bounds, E]
+  type FreeWidget[+A, -B] = PlacementEffect[PlacedWidget[A, B]]
 
   final override def placementIsEffect: Monad[PlacementEffect] = me.katze.gui4s.widget.placeable.placementIsEffect
 

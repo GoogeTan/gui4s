@@ -13,7 +13,7 @@ trait WidgetLibrary:
   type WidgetTask[+T]
   type SystemEvent >: TaskFinished
   type PlacementEffect[+W]
-  final type FreeWidget[+A, -B] = PlacementEffect[PlacedWidget[A, B]]
+  type FreeWidget[+A, -B] = PlacementEffect[PlacedWidget[A, B]]
   final type Widget[+A] = FreeWidget[A, SystemEvent]
   
   given placementIsEffect: Monad[PlacementEffect]

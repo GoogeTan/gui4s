@@ -10,7 +10,7 @@ import scala.runtime.stdLibPatches.Predef.summon
 
 trait StatefulLibrary extends WidgetLibrary:
   given statefulIsDrawable : StatefulDraw[Draw]
-  
+
   def statefulFabric[
     RaiseableEvent, HandleableEvent >: TaskFinished,
     ChildRaiseableEvent, ChildHandleableEvent >: HandleableEvent
