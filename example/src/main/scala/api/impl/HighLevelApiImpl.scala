@@ -8,14 +8,11 @@ import cats.*
 import cats.data.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.*
-import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.layout.linear.*
-import me.katze.gui4s.layout.rowcolumn.*
 import me.katze.gui4s.widget.impl.FreeStatefulFabricImpl
-import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
+import me.katze.gui4s.widget.library.lowlevel.{WidgetLibrary, WidgetLibraryImpl}
 import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.placeable.Placeable
-import me.katze.gui4s.widget.stateful.{EventReaction, RichTypeChecker, State, StatefulDraw}
+import me.katze.gui4s.widget.stateful.{EventReaction, RichTypeChecker, State, StatefulDraw, TaskFinished}
 import me.katze.gui4s.widget.{PlacedWidget, library}
 
 trait HighLevelApiImpl[
@@ -24,8 +21,9 @@ trait HighLevelApiImpl[
   PlacementEffect[+_] : LabelPlacementT[LayoutPlacementMeta[MU], TextStyle],
   MU,
   -TextStyle,
+  SystemEvent >: TaskFinished
 ](
-  using val wl : WidgetLibraryImpl[F, Draw[Unit], PlacementEffect]
+  using val wl : WidgetLibraryImpl[F, Draw[Unit], PlacementEffect, SystemEvent]
 )(
   val drawApi : SimpleDrawApi[MU, Draw[Unit]]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi:
@@ -61,8 +59,6 @@ trait HighLevelApiImpl[
       name, initialState, eventHandler , renderState
     )
   end stateful
-
-
 end HighLevelApiImpl
 
   

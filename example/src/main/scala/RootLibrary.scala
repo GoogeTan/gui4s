@@ -24,9 +24,9 @@ def runWidget[
   MU,
   PlacementEffect[+_],
   UpEvent,
-  DownEvent >: TaskFinished
+  DownEvent >: TaskFinished,
 ](
-    lib: WidgetLibraryImpl[F, Draw, PlacementEffect]
+    lib: WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent]
 )(
     widget                  : lib.FreeWidget[UpEvent, DownEvent],
     drawLoopExceptionHandler: Throwable => F[Option[ExitCode]],
@@ -48,9 +48,9 @@ end runWidget
 
 def createRootWidget[
   F[+_] : Monad, Draw, PlacementEffect[+_],
-  UpEvent, DownEvent
+  UpEvent, DownEvent >: TaskFinished
 ](
-    lib : WidgetLibraryImpl[F, Draw, PlacementEffect]
+    lib : WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent]
 )(
     measurable: lib.FreeWidget[UpEvent, DownEvent],
     master : IOMaster[F, lib.WidgetTask[Any]],

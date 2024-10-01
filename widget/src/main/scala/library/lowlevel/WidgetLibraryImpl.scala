@@ -10,13 +10,13 @@ import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
-class WidgetLibraryImpl[F[+_] : Monad, DrawIn, PlacementEffectIn[+_]](
+class WidgetLibraryImpl[F[+_] : Monad, DrawIn, PlacementEffectIn[+_], SystemEventIn >: TaskFinished](
   using final override val placementIsEffect: FlatMap[PlacementEffectIn]
 ) extends WidgetLibrary:
   final override type Draw = DrawIn
   final override type PlacedWidget[+A, -B] = Magic[A, B]
   final override type WidgetTask[+T] = WidgetTaskImpl[F, T]
-  final override type SystemEvent = TaskFinished
+  final override type SystemEvent = SystemEventIn
   final override type PlacementEffect[+E] = PlacementEffectIn[E] //Placeable[Bounds, E]
 
   final class Magic[+A, -B](preWidget : widget.PlacedWidget[Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], A, B]) extends

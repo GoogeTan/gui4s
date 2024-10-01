@@ -1,7 +1,7 @@
 package me.katze.gui4s.widget
 package library
 
-import me.katze.gui4s.widget.stateful.Path
+import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 import cats.*
 import cats.syntax.all.given
 import library.lowlevel.{WidgetLibrary, WidgetLibraryImpl}
@@ -17,9 +17,9 @@ trait LayoutLibrary[-WL <: WidgetLibrary, -ChildrenMeta]:
       ) : lib.Widget[Event]
 end LayoutLibrary
 
-given layoutLibraryImpl[F[+_], Draw, PlacementEffect[+_], ChildrenMeta](using LayoutDraw[Draw, ChildrenMeta]): LayoutLibrary[WidgetLibraryImpl[F, Draw, PlacementEffect], ChildrenMeta] with
+given layoutLibraryImpl[F[+_], Draw, PlacementEffect[+_], ChildrenMeta, DownEvent >: TaskFinished](using LayoutDraw[Draw, ChildrenMeta]): LayoutLibrary[WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent], ChildrenMeta] with
   override def layout[Event]
-    (using lib : WidgetLibraryImpl[F, Draw, PlacementEffect])
+    (using lib : WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent])
     (
       children         : List[lib.Widget[Event]],
       placementStrategy: LayoutPlacementStrategy[lib.Widget[Event], lib.PlacedWidget[Event, lib.SystemEvent], lib.PlacementEffect, ChildrenMeta]

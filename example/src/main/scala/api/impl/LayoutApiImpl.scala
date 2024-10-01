@@ -7,8 +7,9 @@ import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout
 import me.katze.gui4s.layout.Axis
-import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
+import me.katze.gui4s.widget.library.lowlevel.WidgetLibrary
 import me.katze.gui4s.widget.library.{*, given}
+import me.katze.gui4s.widget.stateful.TaskFinished
 
 import scala.math.Fractional.Implicits.given
 
@@ -16,9 +17,10 @@ trait LayoutApiImpl[
   F[+_],
   Draw[_] : Applicative,
   PlacementEffect[+_],
-  -MU : Fractional
+  -MU : Fractional,
+  DownEvent >: TaskFinished
 ](
-    using val wl: WidgetLibraryImpl[F, Draw[Unit], PlacementEffect]
+    using val wl: WidgetLibrary
 )(
   using val lib : LayoutLibrary[wl.type, LayoutPlacementMeta[MU]]
 )(
