@@ -1,23 +1,23 @@
 package me.katze.gui4s.widget
-package impl
+package library.lowlevel
 
-import library.{StatefulLibrary, WidgetLibrary}
+import impl.WidgetTaskImpl
+import library.lowlevel.WidgetLibrary
 import placeable.{*, given}
-import stateful.{Mergeable, Path, State, StatefulDraw, TaskFinished}
+import stateful.{Mergeable, Path, TaskFinished}
 
 import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
-class WidgetLibraryImpl[F[+_] : Monad, DrawIn, Bounds] extends WidgetLibrary:
+class WidgetLibraryImpl[F[+_] : Monad, DrawIn, PlacementEffectIn[+_]](
+  using final override val placementIsEffect: FlatMap[PlacementEffectIn]
+) extends WidgetLibrary:
   final override type Draw = DrawIn
   final override type PlacedWidget[+A, -B] = Magic[A, B]
   final override type WidgetTask[+T] = WidgetTaskImpl[F, T]
   final override type SystemEvent = TaskFinished
-  final override type PlacementEffect[+E] = Placeable[Bounds, E]
-  type FreeWidget[+A, -B] = PlacementEffect[PlacedWidget[A, B]]
-
-  final override def placementIsEffect: Monad[PlacementEffect] = me.katze.gui4s.widget.placeable.placementIsEffect
+  final override type PlacementEffect[+E] = PlacementEffectIn[E] //Placeable[Bounds, E]
 
   final class Magic[+A, -B](preWidget : widget.PlacedWidget[Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], A, B]) extends
           me.katze.gui4s.widget.PlacedWidget[Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], A, B]:
@@ -25,7 +25,7 @@ class WidgetLibraryImpl[F[+_] : Monad, DrawIn, Bounds] extends WidgetLibrary:
 
     override def asFree: PlacementEffect[Magic[A, B]] = preWidget.asFree
 
-    override def mergeWithState(oldState: Map[String, Any]): Placeable[Bounds, Magic[A, B]] = preWidget.mergeWithState(oldState).map(Magic(_))
+    override def mergeWithState(oldState: Map[String, Any]): PlacementEffect[Magic[A, B]] = preWidget.mergeWithState(oldState).map(Magic(_))
 
     override def childrenStates: Map[String, Any] = preWidget.childrenStates
 
@@ -48,18 +48,8 @@ class WidgetLibraryImpl[F[+_] : Monad, DrawIn, Bounds] extends WidgetLibrary:
     end match
   end constructRealWidget
 
-  final override def freeTreesAreMergeable[A, B]: Mergeable[Placeable[Bounds, Magic[A, B]]] =
-    // Тут не лямбда, потому что их не умеет дебагер распознавать. Он просто не может зайти внутри них в данном контексте. Не известно почему. Просто так. Поэтому так.
-    new Mergeable[Placeable[Bounds, Magic[A, B]]]:
-      override def merge(
-                          oldOne: Placeable[Bounds, Magic[A, B]],
-                          newOne: Placeable[Bounds, Magic[A, B]]
-                        ): Placeable[Bounds, Magic[A, B]] =
-        for
-          realA <- oldOne
-          realB <- newOne
-          result <- realB.mergeWithState(realA.childrenStates)
-        yield result
-      end merge
+  final override def freeTreesAreMergeable[A, B]: Mergeable[PlacementEffect[Magic[A, B]]] =
+    (oldOne: PlacementEffect[Magic[A, B]], newOne: PlacementEffect[Magic[A, B]]) =>
+      FlatMap[PlacementEffect].flatMap2(oldOne, newOne)((a : Magic[A, B], b : Magic[A, B]) => b.mergeWithState(a.childrenStates))
   end freeTreesAreMergeable
 end WidgetLibraryImpl

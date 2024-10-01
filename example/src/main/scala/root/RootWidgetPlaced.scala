@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package root
 
 import draw.Drawable
-import place.ApplicationBounds
+import place.RunPlacement
 import update.{EventConsumer, EventProcessResult}
 
 import cats.implicits.{*, given}
@@ -18,7 +18,6 @@ type RootPlacedWidget[F[+_], G, FreeWidget[_, _], UpEvent, DownEvent] = EventCon
 final class RootWidgetPlaced[
   +F[+_] : Monad,
   +G,
-  -Bounds,
   +FreeWidget[+_, -_],
   RootFreeWidget[_, _],
   +WidgetTask,
@@ -27,10 +26,7 @@ final class RootWidgetPlaced[
     widget:  PlacedWidget[G, WidgetTask, FreeWidget, UpEvent, DownEvent],
     master: IOMaster[F, WidgetTask],
     RootWidgetFree : (FreeWidget[UpEvent, DownEvent], IOMaster[F, WidgetTask]) => RootFreeWidget[UpEvent, DownEvent],
-)(
-    using ApplicationBounds[F, Bounds]
 ) extends Drawable[G] with EventConsumer[RootFreeWidget[UpEvent, DownEvent], F, UpEvent, DownEvent]:
-  
   override def processEvent(event: DownEvent): F[EventProcessResult[RootFreeWidget[UpEvent, DownEvent], UpEvent]] =
     val res = widget.handleDownEvent(event)
     res.ios.traverse_(master.pushIO) *> EventProcessResult(RootWidgetFree(res.widget, master), res.upEvent).pure[F]

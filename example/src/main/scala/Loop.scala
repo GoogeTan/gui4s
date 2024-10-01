@@ -70,9 +70,9 @@ type DrawLoopExceptionHandler[F[_], Error] = Error => F[Option[ExitCode]]
 def drawLoop[
   F[+_] : MonadErrorT[Error],
   Error
-](renderExceptionHandler : DrawLoopExceptionHandler[F, Error], api : SimpleDrawApi[F])(currentWidget : F[Drawable[F[Unit]]]) : F[ExitCode] =
+](renderExceptionHandler : DrawLoopExceptionHandler[F, Error], beginDraw : F[Unit], endDraw : F[Unit])(drawCurrentWidget : F[Unit]) : F[ExitCode] =
   Monad[F].iterateWhile(
-      (api.beginDraw *> currentWidget.flatMap(_.draw) *> api.endDraw)
+      (beginDraw *> drawCurrentWidget *> endDraw)
         .as(None)
         .handleErrorWith(renderExceptionHandler)
     )(_.isEmpty)

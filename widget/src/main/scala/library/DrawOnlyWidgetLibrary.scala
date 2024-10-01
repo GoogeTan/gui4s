@@ -1,23 +1,23 @@
 package me.katze.gui4s.widget
 package library
-import stateful.Path
 
-trait DrawOnlyWidgetLibrary extends WidgetLibrary:
-  private class DrawOnlyWidget(
-                            override val asFree : FreeWidget[Nothing, Any],
-                            override val draw : Draw
-                          ) extends me.katze.gui4s.widget.PlacedWidget[Draw, WidgetTask[Any], FreeWidget, Nothing, Any]:
-    override def handleDownEvent(event: Any): EventResult[WidgetTask[Any], FreeWidget[Nothing, Any], Nothing] = EventResult(asFree)
-    override def mergeWithState(oldState: Map[String, Any]): FreeWidget[Nothing, Any] = asFree
-    override def childrenStates: Map[String, Any] = Map()
+import library.lowlevel.WidgetLibrary
+import me.katze.gui4s.widget.stateful.Path
 
-    override def filterDeadPaths(
-                                  currentPath: Path,
-                                  alive      : Set[Path]
-                                ): Set[Path] = alive
-  end DrawOnlyWidget
+def drawOnlyWidget(using lib : WidgetLibrary)(asFreeIn: lib.FreeWidget[Nothing, Any], drawIn: lib.Draw): lib.PlacedWidget[Nothing, Any] =
+  lib.constructRealWidget[Nothing, Any](
+    new PlacedWidget[lib.Draw, lib.WidgetTask[Any], lib.FreeWidget, Nothing, Any]:
+      override def handleDownEvent(event: Any): EventResult[lib.WidgetTask[Any], lib.FreeWidget[Nothing, Any], Nothing] = EventResult(asFree)
+  
+      override def mergeWithState(oldState: Map[String, Any]): lib.FreeWidget[Nothing, Any] = asFree
+  
+      override def childrenStates: Map[String, Any] = Map()
+  
+      override def filterDeadPaths(
+                                    currentPath: Path,
+                                    alive      : Set[Path]
+                                  ): Set[Path] = alive
 
-  final def drawOnlyWidget(asFree: FreeWidget[Nothing, Any], draw: Draw): PlacedWidget[Nothing, Any] =
-    constructRealWidget(DrawOnlyWidget(asFree, draw))
-  end drawOnlyWidget
-end DrawOnlyWidgetLibrary
+      override val asFree: lib.FreeWidget[Nothing, Any] = asFreeIn
+      override val draw  : lib.Draw = drawIn
+)

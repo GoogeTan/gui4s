@@ -6,11 +6,11 @@ final case class TextStyle(size : Int, color : Int, weight : Int)
 /**
  * Тестовое апи для рисования. Координаты считаются от верхнего левого угла.
  */
-trait SimpleDrawApi[F[_]]:
-  def text(x : Int, y : Int, text : String, style: TextStyle) : F[Unit]
+trait SimpleDrawApi[MU, F]:
+  def text(x : MU, y : MU, text : String, style: TextStyle) : F
   
-  def rectangle(x : Int, y : Int, width : Int, height : Int, color : Int) : F[Unit]
+  def rectangle(x : MU, y : MU, width : MU, height : MU, color : Int) : F
   
-  def beginDraw : F[Unit]
-  def endDraw : F[Unit]
+  def beginDraw : F
+  def endDraw : F
 end SimpleDrawApi

@@ -1,19 +1,11 @@
 package me.katze.gui4s.example
 
-import draw.*
+import api.{HighLevelApi, LabelApi, LayoutApi}
 import update.ApplicationRequest
 
-import cats.*
-import cats.effect.*
-
-object ExampleApp extends SwingApp:
-  override def app(api: Library): api.Widget[ApplicationRequest] =
-    api.label("12345")
+object ExampleApp extends Gui4sApp[Float]:
+  override def app(using api : HighLevelApi & LabelApi[Unit] & LayoutApi[Float]): api.Widget[ApplicationRequest] =
+    api.label("12345", ())
   end app
-
-  override type Library = SimpleDrawApiLibrary[IO, Int]
-  
-  override def createLibrary(drawApi: SimpleDrawApi[IO]) = SimpleDrawApiLibrary(drawApi)
 end ExampleApp
-
 

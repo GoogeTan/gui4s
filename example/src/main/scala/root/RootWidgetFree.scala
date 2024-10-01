@@ -1,49 +1,47 @@
 package me.katze.gui4s.example
 package root
 
-import place.ApplicationBounds
+import place.RunPlacement
 
 import cats.implicits.{*, given}
 import cats.syntax.all.given
 import cats.syntax.foldable.given
 import cats.{*, given}
+import me.*
 import me.katze.gui4s.example
 import me.katze.gui4s.example.*
-import me.katze.gui4s.example.draw.Drawable
-import me.katze.gui4s.example.update.{ApplicationRequest, EventConsumer}
+import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.widget.PlacedWidget
-import me.katze.gui4s.widget.placeable.Placeable
 import me.katze.gui4s.widget.stateful.Path
 
 
 type RootWidgetFreeT[
   F[+_], G,
   WidgetTask,
-  Bounds,
+  PlacementEffect[_],
   FreeWidget[+_, -_],
-] = [UpEvent, DownEvent] =>> RootWidgetFree[F, G, WidgetTask, Bounds, FreeWidget, UpEvent, DownEvent]
+] = [UpEvent, DownEvent] =>> RootWidgetFree[F, G, WidgetTask, PlacementEffect, FreeWidget, UpEvent, DownEvent]
 
 final class RootWidgetFree[
   F[+_] : Monad, G, 
   WidgetTask, 
-  Bounds, 
+  PlacementEffect[_],
   FreeWidget[+_, -_], 
   UpEvent, DownEvent,
 ](
-    child           : Placeable[Bounds, PlacedWidget[G, WidgetTask, FreeWidget, UpEvent, DownEvent]],
+    child           : PlacementEffect[PlacedWidget[G, WidgetTask, FreeWidget, UpEvent, DownEvent]],
     master          : IOMaster[F, WidgetTask],
     RootWidgetPlaced: (
         PlacedWidget[G, WidgetTask, FreeWidget, UpEvent, DownEvent], 
         IOMaster[F, WidgetTask]
-      ) => RootPlacedWidget[F, G, RootWidgetFreeT[F, G, WidgetTask, Bounds, FreeWidget], UpEvent, DownEvent]
+      ) => RootPlacedWidget[F, G, RootWidgetFreeT[F, G, WidgetTask, PlacementEffect, FreeWidget], UpEvent, DownEvent]
 )(
-    using bounds : ApplicationBounds[F, Bounds]
-) extends RootPlaceable[F, RootPlacedWidget[F, G, RootWidgetFreeT[F, G, WidgetTask, Bounds, FreeWidget], UpEvent, DownEvent]]:
+    using bounds : RunPlacement[F, PlacementEffect]
+) extends RootPlaceable[F, RootPlacedWidget[F, G, RootWidgetFreeT[F, G, WidgetTask, PlacementEffect, FreeWidget], UpEvent, DownEvent]]:
   
-  override def place(): F[RootPlacedWidget[F, G, RootWidgetFreeT[F, G, WidgetTask, Bounds, FreeWidget], UpEvent, DownEvent]] =
+  override def place(): F[RootPlacedWidget[F, G, RootWidgetFreeT[F, G, WidgetTask, PlacementEffect, FreeWidget], UpEvent, DownEvent]] =
     for
-      bounds <- bounds.currentBounds
-      placed =  child.place(bounds)
+      placed <- bounds.run(child)
       _ <- killDeadIOS(placed)
     yield RootWidgetPlaced(placed, master)
   end place

@@ -1,5 +1,5 @@
 package me.katze.gui4s.widget
-package library
+package library.lowlevel
 
 import stateful.{Mergeable, TaskFinished}
 
@@ -13,10 +13,10 @@ trait WidgetLibrary:
   type WidgetTask[+T]
   type SystemEvent >: TaskFinished
   type PlacementEffect[+W]
-  type FreeWidget[+A, -B] = PlacementEffect[PlacedWidget[A, B]]
+  final type FreeWidget[+A, -B] = PlacementEffect[PlacedWidget[A, B]]
   final type Widget[+A] = FreeWidget[A, SystemEvent]
   
-  given placementIsEffect: Monad[PlacementEffect]
+  given placementIsEffect: Functor[PlacementEffect]
   given freeTreesAreMergeable[A, B]: Mergeable[FreeWidget[A, B]]
   
   def constructRealWidget[RaisableEvent, HandleableEvent](widget: me.katze.gui4s.widget.PlacedWidget[Draw, WidgetTask[Any], FreeWidget, RaisableEvent, HandleableEvent]): PlacedWidget[RaisableEvent, HandleableEvent]
