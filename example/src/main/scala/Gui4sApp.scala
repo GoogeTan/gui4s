@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 
 import api.impl.{DrawMonad, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta}
 import api.{HighLevelApi, LabelApi, LayoutApi}
-import draw.{SimpleDrawApi, SwingApi, SwingProcessRequest, SwingRunPlacement}
+import draw.{SimpleDrawApi, SwingApi, SwingProcessRequest, swingBounds}
 import update.ApplicationRequest
 
 import cats.data.ReaderT
@@ -52,7 +52,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
         drawLoopExceptionHandler = drawLoopExceptionHandler,
         api = swing.graphics,
         runDraw = _.run(Numeric[MU].zero, Numeric[MU].zero)
-      )(using summon, SwingProcessRequest(swing), SwingRunPlacement(swing))
+      )(using summon, SwingProcessRequest(swing), MeasurableRunPlacement(swingBounds(swing)))
     yield code
   end run
 
@@ -60,7 +60,8 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
 
   private def hegherApi(lowLevelApi: WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU]], drawApi: SimpleDrawApi[MU, Draw[MU, Unit]]) : HL[lowLevelApi.Widget, lowLevelApi.WidgetTask, MU] =
     given LabelPlacement[Measurable[MU, LayoutPlacementMeta[MU]], TextStyle] with
-      override def sizeText(text : String, options: TextStyle): Measurable[MU, LayoutPlacementMeta[MU]] = _ => Sized(LayoutPlacementMeta(Fractional[MU].zero, Fractional[MU].zero), Fractional[MU].zero, Fractional[MU].zero)
+      override def sizeText(text : String, options: TextStyle): Measurable[MU, LayoutPlacementMeta[MU]] =
+        _ => Sized(LayoutPlacementMeta(Fractional[MU].zero, Fractional[MU].zero), Fractional[MU].zero, Fractional[MU].fromInt(10))
     given lowLevelApi.type = lowLevelApi
 
     new HighLevelApiImpl[IO, DrawT[MU], MeasurableT[MU], MU, TextStyle](using lowLevelApi)(drawApi) with LayoutApiImpl[IO, DrawT[MU], lowLevelApi.PlacementEffect, MU](

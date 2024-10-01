@@ -10,7 +10,6 @@ import me.katze.gui4s.layout
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Placed, Sized}
-import me.katze.gui4s.widget.library.given
 
 import scala.math.Fractional.Implicits.{*, given}
 
