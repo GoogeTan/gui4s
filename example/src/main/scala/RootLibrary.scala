@@ -45,12 +45,12 @@ def createRootWidget[
 ](
     lib : WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent]
 )(
-   freeWidget: lib.FreeWidget[UpEvent, DownEvent],
-   master    : TaskSet[F, lib.WidgetTask[Any]],
+    freeWidget : lib.FreeWidget[UpEvent, DownEvent],
+    taskSet   : TaskSet[F, lib.WidgetTask[Any]],
 )(using place.RunPlacement[F, PlacementEffect]) : RootWidgetFree[F, Draw, lib.WidgetTask[Any], PlacementEffect, lib.FreeWidget, UpEvent, DownEvent] =
   RootWidgetFree[F, Draw, lib.WidgetTask[Any], PlacementEffect, lib.FreeWidget, UpEvent, DownEvent](
     freeWidget,
-    master,
+    taskSet,
     RootWidgetPlaced(_, _, createRootWidget(lib)(_, _)(using summon[Monad[F]]))
   )
 end createRootWidget

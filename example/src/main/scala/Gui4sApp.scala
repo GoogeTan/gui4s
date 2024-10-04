@@ -4,7 +4,7 @@ import api.impl.{DrawMonad, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta
 import api.{HighLevelApi, LabelApi, LayoutApi}
 import draw.{SimpleDrawApi, SwingApi, SwingProcessRequest, swingBounds}
 import place.{additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
-import task.{IOOnThread, PathMap, PathMapImpl, TaskSetImpl}
+import task.{IOOnThread, MultiMap, StlWrapperMultiMap, RefTaskSet}
 import update.ApplicationRequest
 
 import cats.*
@@ -17,8 +17,8 @@ import me.katze.gui4s.widget.impl
 import me.katze.gui4s.widget.impl.WidgetTaskImpl
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.stateful.TaskFinished
-
+import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
+import update.ProcessRequest
 import scala.math.Numeric.Implicits.*
 
 type Draw[MU, T] = ReaderT[IO, (MU, MU), T]
@@ -49,26 +49,37 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     for
       swing <- SwingApi.invoke
       lowLevelLib = WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], DownEvent]()
-      taskSetRef <- Ref.of[IO, PathMap[IOOnThread[IO]]](PathMapImpl(Map()))
+      taskSet <- Ref.of[IO, MultiMap[Path, IOOnThread[IO]]](StlWrapperMultiMap(Map()))
+      given ProcessRequest[IO, ApplicationRequest] = SwingProcessRequest(swing)
       code <- runWidget(lowLevelLib)(
         widget = queue =>
           createRootWidget(lowLevelLib)(
-            app(using higherApi(lowLevelLib, swing.graphics)),
-            TaskSetImpl(
-              taskSetRef,
-              (path, task) => 
-                val offerTask = (event : Any) => queue.offer(TaskFinished(path, event))
-                task match
-                  case impl.WidgetTaskImpl.OneEvent(value) => value.flatMap(offerTask).start
-                  case impl.WidgetTaskImpl.ManyEvents(stream) => stream.evalMap(offerTask).compile.drain.start
+            freeWidget = app(using higherApi(lowLevelLib, swing.graphics)),
+            taskSet = RefTaskSet(
+              runningTaskSet = taskSet,
+              startTask = (path, task) => startWidgetTask(task, taskResult => queue.offer(TaskFinished(path, taskResult)))
             )
           )(using summon, MeasurableRunPlacement(swingBounds(swing))),
         drawLoopExceptionHandler = drawLoopExceptionHandler,
         api = swing.graphics,
         runDraw = _.run(Numeric[MU].zero, Numeric[MU].zero)
-      )(using summon, SwingProcessRequest(swing))
+      )
     yield code
   end run
+
+
+  def startWidgetTask[F[+_] : Concurrent, T](widgetTask : WidgetTaskImpl[F, T], offerTask : T => F[Unit]) : F[Fiber[F, Throwable, Unit]] =
+    // TODO add execution context
+    Concurrent[F].start(runWidgetTask(widgetTask, offerTask))
+  end startWidgetTask
+
+  def runWidgetTask[F[+_] : Concurrent, T](widgetTask : WidgetTaskImpl[F, T], offerTask : T => F[Unit]) : F[Unit] =
+    widgetTask match
+      case WidgetTaskImpl.OneEvent(value) => value.flatMap(offerTask)
+      case WidgetTaskImpl.ManyEvents(stream) => stream.evalMap(offerTask).compile.drain
+    end match
+  end runWidgetTask
+
 
   type TextStyle = Unit
 
