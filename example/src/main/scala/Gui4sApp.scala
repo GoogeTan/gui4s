@@ -3,23 +3,22 @@ package me.katze.gui4s.example
 import api.impl.{DrawMonad, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta}
 import api.{HighLevelApi, LabelApi, LayoutApi}
 import draw.{SimpleDrawApi, SwingApi, SwingProcessRequest, swingBounds}
+import place.{additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
+import task.{IOOnThread, PathMap, PathMapImpl, TaskSetImpl}
 import update.ApplicationRequest
 
-import cats.data.ReaderT
 import cats.*
 import cats.data.*
 import cats.effect.*
 import cats.syntax.all.{*, given}
-import place.{additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
-
-import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
-import me.katze.gui4s.widget.library.{*, given}
+import me.katze.gui4s.layout.{*, given}
+import me.katze.gui4s.widget.impl
+import me.katze.gui4s.widget.impl.WidgetTaskImpl
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
+import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.TaskFinished
 
-import scala.math.Fractional.Implicits.*
 import scala.math.Numeric.Implicits.*
 
 type Draw[MU, T] = ReaderT[IO, (MU, MU), T]
@@ -50,12 +49,24 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     for
       swing <- SwingApi.invoke
       lowLevelLib = WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], DownEvent]()
+      taskSetRef <- Ref.of[IO, PathMap[IOOnThread[IO]]](PathMapImpl(Map()))
       code <- runWidget(lowLevelLib)(
-        widget = app(using higherApi(lowLevelLib, swing.graphics)),
+        widget = queue =>
+          createRootWidget(lowLevelLib)(
+            app(using higherApi(lowLevelLib, swing.graphics)),
+            TaskSetImpl(
+              taskSetRef,
+              (path, task) => 
+                val offerTask = (event : Any) => queue.offer(TaskFinished(path, event))
+                task match
+                  case impl.WidgetTaskImpl.OneEvent(value) => value.flatMap(offerTask).start
+                  case impl.WidgetTaskImpl.ManyEvents(stream) => stream.evalMap(offerTask).compile.drain.start
+            )
+          )(using summon, MeasurableRunPlacement(swingBounds(swing))),
         drawLoopExceptionHandler = drawLoopExceptionHandler,
         api = swing.graphics,
         runDraw = _.run(Numeric[MU].zero, Numeric[MU].zero)
-      )(using summon, SwingProcessRequest(swing), MeasurableRunPlacement(swingBounds(swing)))
+      )(using summon, SwingProcessRequest(swing))
     yield code
   end run
 
@@ -67,7 +78,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
         _ => Sized(LayoutPlacementMeta(Fractional[MU].zero, Fractional[MU].zero), Fractional[MU].zero, Fractional[MU].fromInt(10))
     given lowLevelApi.type = lowLevelApi
 
-    new HighLevelApiImpl[IO, DrawT[MU], MeasurableT[MU], MU, TextStyle, DownEvent](using lowLevelApi)(drawApi) with LayoutApiImpl[IO, DrawT[MU], lowLevelApi.PlacementEffect, MU, DownEvent](
+    new HighLevelApiImpl[IO, DrawT[MU], MeasurableT[MU], MU, TextStyle, DownEvent](using lowLevelApi)(drawApi) with LayoutApiImpl[MU](
       [Event] => (axis, elements, main, additional) => weightedRowColumnPlace(
         axis,
         elements.map(widget => MaybeWeighted(None, widget)),

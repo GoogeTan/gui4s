@@ -9,8 +9,7 @@ import cats.syntax.foldable.given
 import cats.{*, given}
 import me.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.*
-import me.katze.gui4s.layout.bound.Bounds
+import task.TaskSet
 import me.katze.gui4s.widget.PlacedWidget
 import me.katze.gui4s.widget.stateful.Path
 
@@ -30,10 +29,10 @@ final class RootWidgetFree[
   UpEvent, DownEvent,
 ](
     child           : PlacementEffect[PlacedWidget[G, WidgetTask, FreeWidget, UpEvent, DownEvent]],
-    master          : IOMaster[F, WidgetTask],
+    master          : TaskSet[F, WidgetTask],
     RootWidgetPlaced: (
         PlacedWidget[G, WidgetTask, FreeWidget, UpEvent, DownEvent], 
-        IOMaster[F, WidgetTask]
+        TaskSet[F, WidgetTask]
       ) => RootPlacedWidget[F, G, RootWidgetFreeT[F, G, WidgetTask, PlacementEffect, FreeWidget], UpEvent, DownEvent]
 )(
     using bounds : RunPlacement[F, PlacementEffect]
@@ -48,9 +47,9 @@ final class RootWidgetFree[
 
   private def killDeadIOS(newWidget : PlacedWidget[?, ?, ?, ?, ?]) : F[Unit] =
     for
-      alive  <- master.alive
+      alive  <- master.aliveTasksPaths
       dead   =  newWidget.filterDeadPaths(Path(List("ROOT")), alive) /// TODO Проверить, что "ROOT" - хорошая идея.
-      _      <- dead.toList.traverse_(master.detach)
+      _      <- dead.toList.traverse_(master.killTask)
     yield ()
   end killDeadIOS
 end RootWidgetFree

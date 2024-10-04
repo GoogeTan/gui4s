@@ -13,13 +13,7 @@ import me.katze.gui4s.widget.stateful.TaskFinished
 
 import scala.math.Fractional.Implicits.given
 
-trait LayoutApiImpl[
-  F[+_],
-  Draw[_] : Applicative,
-  PlacementEffect[+_],
-  -MU : Fractional,
-  DownEvent >: TaskFinished
-](
+trait LayoutApiImpl[-MU : Fractional](
     using val wl: WidgetLibrary
 )(
   using val lib : LayoutLibrary[wl.type, LayoutPlacementMeta[MU]]
