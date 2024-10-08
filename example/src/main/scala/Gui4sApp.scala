@@ -4,7 +4,7 @@ import api.impl.{DrawMonad, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta
 import api.{HighLevelApi, LabelApi, LayoutApi}
 import draw.{SimpleDrawApi, SwingApi, SwingProcessRequest, swingBounds}
 import place.{additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
-import task.{IOOnThread, MultiMap, StlWrapperMultiMap, RefTaskSet}
+import task.{IOOnThread, MultiMap, RefTaskSet, StlWrapperMultiMap}
 import update.ApplicationRequest
 
 import cats.*
@@ -19,6 +19,9 @@ import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 import update.ProcessRequest
+
+import cats.effect.std.Queue
+
 import scala.math.Numeric.Implicits.*
 
 type Draw[MU, T] = ReaderT[IO, (MU, MU), T]
@@ -48,7 +51,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   final override def run(args: List[String]): IO[ExitCode] =
     for
       swing <- SwingApi.invoke
-      lowLevelLib = WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], DownEvent]()
+      lowLevelLib = WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], WidgetTaskT[IO], DownEvent]()
       taskSet <- Ref.of[IO, MultiMap[Path, IOOnThread[IO]]](StlWrapperMultiMap(Map()))
       given ProcessRequest[IO, ApplicationRequest] = SwingProcessRequest(swing)
       code <- runWidget(lowLevelLib)(
@@ -57,7 +60,10 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
             freeWidget = app(using higherApi(lowLevelLib, swing.graphics)),
             taskSet = RefTaskSet(
               runningTaskSet = taskSet,
-              startTask = (path, task) => startWidgetTask(task, taskResult => queue.offer(TaskFinished(path, taskResult)))
+              startTask = (path, task) => startWidgetTask(
+                task = task,
+                resultDrain = offerTask(queue, at = path, _)
+              )
             )
           )(using summon, MeasurableRunPlacement(swingBounds(swing))),
         drawLoopExceptionHandler = drawLoopExceptionHandler,
@@ -67,10 +73,13 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     yield code
   end run
 
+  def offerTask[F[+_]](queue: Queue[F, TaskFinished], at: Path, taskResult: Any) : F[Unit] =
+    queue.offer(TaskFinished(at, taskResult))
+  end offerTask
 
-  def startWidgetTask[F[+_] : Concurrent, T](widgetTask : WidgetTaskImpl[F, T], offerTask : T => F[Unit]) : F[Fiber[F, Throwable, Unit]] =
+  def startWidgetTask[F[+_] : Concurrent, T](task: WidgetTaskImpl[F, T], resultDrain: T => F[Unit]) : F[Fiber[F, Throwable, Unit]] =
     // TODO add execution context
-    Concurrent[F].start(runWidgetTask(widgetTask, offerTask))
+    Concurrent[F].start(runWidgetTask(task, resultDrain))
   end startWidgetTask
 
   def runWidgetTask[F[+_] : Concurrent, T](widgetTask : WidgetTaskImpl[F, T], offerTask : T => F[Unit]) : F[Unit] =
@@ -83,20 +92,20 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
 
   type TextStyle = Unit
 
-  private def higherApi(lowLevelApi: WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], DownEvent], drawApi: SimpleDrawApi[MU, Draw[MU, Unit]]) : HL[lowLevelApi.Widget, lowLevelApi.WidgetTask, MU] =
+  private def higherApi(lowLevelApi: WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], WidgetTaskT[IO], DownEvent], drawApi: SimpleDrawApi[MU, Draw[MU, Unit]]) : HL[lowLevelApi.Widget, lowLevelApi.WidgetTask, MU] =
     given LabelPlacement[Measurable[MU, LayoutPlacementMeta[MU]], TextStyle] with
       override def sizeText(text : String, options: TextStyle): Measurable[MU, LayoutPlacementMeta[MU]] =
         _ => Sized(LayoutPlacementMeta(Fractional[MU].zero, Fractional[MU].zero), Fractional[MU].zero, Fractional[MU].fromInt(10))
     given lowLevelApi.type = lowLevelApi
 
-    new HighLevelApiImpl[IO, DrawT[MU], MeasurableT[MU], MU, TextStyle, DownEvent](using lowLevelApi)(drawApi) with LayoutApiImpl[MU](
+    new HighLevelApiImpl[IO, DrawT[MU], MeasurableT[MU], WidgetTaskT[IO], MU, TextStyle, DownEvent](using lowLevelApi)(drawApi) with LayoutApiImpl[MU](
       [Event] => (axis, elements, main, additional) => weightedRowColumnPlace(
         axis,
         elements.map(widget => MaybeWeighted(None, widget)),
         rowColumnPlace(_, _, mainAxisStrategyPlacement(main, _, _), additionalAxisStrategyPlacement(additional, _, _))
       ).map(unpack)
     ) {
-      override val wl: WidgetLibraryImpl[IO, DrawT[MU][TextStyle], MeasurableT[MU], DownEvent] = lowLevelApi
+      override val wl: WidgetLibraryImpl[IO, DrawT[MU][TextStyle], MeasurableT[MU], WidgetTaskT[IO], DownEvent] = lowLevelApi
     }.asInstanceOf[HL[lowLevelApi.Widget, lowLevelApi.WidgetTask, MU]] // TODO do not believe me
   end higherApi
 

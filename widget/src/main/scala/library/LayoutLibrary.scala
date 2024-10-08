@@ -1,10 +1,12 @@
 package me.katze.gui4s.widget
 package library
 
-import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
+import stateful.{Path, TaskFinished}
+import impl.WidgetTaskImpl
 import cats.*
 import cats.syntax.all.given
 import library.lowlevel.{WidgetLibrary, WidgetLibraryImpl}
+
 
 type LayoutPlacementStrategy[Widget, PlacedWidget, PlacementEffect[+_], ChildrenMeta] =  List[Widget] => PlacementEffect[List[(PlacedWidget, ChildrenMeta)]]
 
@@ -17,9 +19,11 @@ trait LayoutLibrary[-WL <: WidgetLibrary, -ChildrenMeta]:
       ) : lib.Widget[Event]
 end LayoutLibrary
 
-given layoutLibraryImpl[F[+_], Draw, PlacementEffect[+_], ChildrenMeta, DownEvent >: TaskFinished](using LayoutDraw[Draw, ChildrenMeta]): LayoutLibrary[WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent], ChildrenMeta] with
+type WidgetTaskT[F[+_]] = [T] =>> WidgetTaskImpl[F, T]
+
+given layoutLibraryImpl[F[+_], Draw, PlacementEffect[+_], ChildrenMeta, DownEvent >: TaskFinished](using LayoutDraw[Draw, ChildrenMeta]): LayoutLibrary[WidgetLibraryImpl[F, Draw, PlacementEffect, WidgetTaskT[F], DownEvent], ChildrenMeta] with
   override def layout[Event]
-    (using lib : WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent])
+    (using lib : WidgetLibraryImpl[F, Draw, PlacementEffect, WidgetTaskT[F], DownEvent])
     (
       children         : List[lib.Widget[Event]],
       placementStrategy: LayoutPlacementStrategy[lib.Widget[Event], lib.PlacedWidget[Event, lib.SystemEvent], lib.PlacementEffect, ChildrenMeta]

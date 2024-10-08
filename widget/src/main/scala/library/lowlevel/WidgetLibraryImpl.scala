@@ -1,23 +1,21 @@
 package me.katze.gui4s.widget
 package library.lowlevel
 
-import impl.WidgetTaskImpl
-import library.lowlevel.WidgetLibrary
-import placeable.{*, given}
+import placeable.given
 import stateful.{Mergeable, Path, TaskFinished}
 
 import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
-class WidgetLibraryImpl[F[+_] : Monad, DrawIn, PlacementEffectIn[+_], SystemEventIn >: TaskFinished](
+class WidgetLibraryImpl[F[+_] : Monad, DrawIn, PlacementEffectIn[+_], WidgetTaskIn[+_], SystemEventIn >: TaskFinished](
   using final override val placementIsEffect: FlatMap[PlacementEffectIn]
 ) extends WidgetLibrary:
   final override type Draw = DrawIn
   final override type PlacedWidget[+A, -B] = Magic[A, B]
-  final override type WidgetTask[+T] = WidgetTaskImpl[F, T]
+  final override type WidgetTask[+T] = WidgetTaskIn[T]
   final override type SystemEvent = SystemEventIn
-  final override type PlacementEffect[+E] = PlacementEffectIn[E] //Placeable[Bounds, E]
+  final override type PlacementEffect[+E] = PlacementEffectIn[E]
 
   final class Magic[+A, -B](preWidget : widget.PlacedWidget[Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], A, B]) extends
           me.katze.gui4s.widget.PlacedWidget[Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], A, B]:

@@ -11,27 +11,25 @@ import cats.effect.*
 import cats.effect.kernel.Concurrent
 import cats.effect.std.Queue
 import cats.syntax.all.{*, given}
-import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
+import me.katze.gui4s.widget.library.lowlevel.{WidgetLibrary, WidgetLibraryImpl}
 import me.katze.gui4s.widget.stateful.TaskFinished
 
 // TODO отрефакторить это сверху вниз по-человечески. 
 def runWidget[
   F[+_] : Concurrent,
-  Draw,
   MU,
-  PlacementEffect[+_],
   UpEvent,
   DownEvent >: TaskFinished,
 ](
-    lib: WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent]
+    lib: WidgetLibrary
 )(
-    widget                  : Queue[F, DownEvent] => RootWidgetFree[F, Draw, lib.WidgetTask[Any], PlacementEffect, lib.FreeWidget, UpEvent, DownEvent],
+    widget                  : Queue[F, DownEvent] => RootWidgetFree[F, lib.Draw, lib.WidgetTask[Any], lib.PlacementEffect, lib.FreeWidget, UpEvent, DownEvent],
     drawLoopExceptionHandler: Throwable => F[Option[ExitCode]],
-    api                     : SimpleDrawApi[MU, Draw],
-    runDraw                 : Draw => F[Unit]
+    api                     : SimpleDrawApi[MU, lib.Draw],
+    runDraw                 : lib.Draw => F[Unit]
 )(using ProcessRequest[F, UpEvent]): F[ExitCode] =
-  type FreeRootWidget[A, B] = RootWidgetFree[F, Draw, lib.WidgetTask[Any], PlacementEffect, lib.FreeWidget, A, B]
-  type PlacedRootWidget[A, B] = RootPlacedWidget[F, Draw, FreeRootWidget, A, B]
+  type FreeRootWidget[A, B] = RootWidgetFree[F, lib.Draw, lib.WidgetTask[Any], lib.PlacementEffect, lib.FreeWidget, A, B]
+  type PlacedRootWidget[A, B] = RootPlacedWidget[F, lib.Draw, FreeRootWidget, A, B]
   applicationLoop[F, UpEvent, DownEvent, PlacedRootWidget, FreeRootWidget](
     widget,
     currentWidget => drawLoop[F, Throwable](drawLoopExceptionHandler, runDraw(api.beginDraw), runDraw(api.endDraw))(currentWidget.map(_.draw).flatMap(runDraw)),
@@ -40,10 +38,10 @@ def runWidget[
 end runWidget
 
 def createRootWidget[
-  F[+_] : Monad, Draw, PlacementEffect[+_],
+  F[+_] : Monad, Draw, PlacementEffect[+_], WidgetTask[+_],
   UpEvent, DownEvent >: TaskFinished
 ](
-    lib : WidgetLibraryImpl[F, Draw, PlacementEffect, DownEvent]
+    lib : WidgetLibraryImpl[F, Draw, PlacementEffect, WidgetTask, DownEvent]
 )(
     freeWidget : lib.FreeWidget[UpEvent, DownEvent],
     taskSet   : TaskSet[F, lib.WidgetTask[Any]],
