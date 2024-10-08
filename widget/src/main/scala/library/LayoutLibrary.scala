@@ -1,12 +1,12 @@
 package me.katze.gui4s.widget
 package library
 
-import stateful.{Path, TaskFinished}
-import impl.WidgetTaskImpl
+import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 import cats.*
 import cats.syntax.all.given
 import library.lowlevel.{WidgetLibrary, WidgetLibraryImpl}
 
+import impl.WidgetTaskImpl
 
 type LayoutPlacementStrategy[Widget, PlacedWidget, PlacementEffect[+_], ChildrenMeta] =  List[Widget] => PlacementEffect[List[(PlacedWidget, ChildrenMeta)]]
 
