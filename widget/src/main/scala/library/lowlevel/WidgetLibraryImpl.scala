@@ -8,7 +8,7 @@ import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
-class WidgetLibraryImpl[F[+_] : Monad, DrawIn, PlacementEffectIn[+_], WidgetTaskIn[+_], SystemEventIn >: TaskFinished](
+class WidgetLibraryImpl[F[+_] : Monad, DrawIn, PlacementEffectIn[+_], WidgetTaskIn[+_], SystemEventIn](
   using final override val placementIsEffect: FlatMap[PlacementEffectIn]
 ) extends WidgetLibrary:
   final override type Draw = DrawIn

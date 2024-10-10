@@ -1,5 +1,5 @@
 package me.katze.gui4s.example
-package draw
+package draw.swing
 
 import java.awt.Graphics
 import java.awt.image.BufferedImage

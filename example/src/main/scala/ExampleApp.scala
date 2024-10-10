@@ -4,7 +4,7 @@ import api.*
 import update.ApplicationRequest
 
 object ExampleApp extends Gui4sApp[Float]:
-  override def app(using api : HighLevelApi & LabelApi[Unit] & LayoutApi[Float]): api.Widget[ApplicationRequest] =
+  override def rootWidget(using api : HighLevelApi & LabelApi[Unit] & LayoutApi[Float]): api.Widget[ApplicationRequest] =
     api.column(
       List(
         api.label("12345", ()),
@@ -14,6 +14,6 @@ object ExampleApp extends Gui4sApp[Float]:
       MainAxisStrategy.SpaceBetween,
       AdditionalAxisStrategy.Begin
     )
-  end app
+  end rootWidget
 end ExampleApp
 

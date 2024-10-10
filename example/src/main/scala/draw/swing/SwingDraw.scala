@@ -1,7 +1,8 @@
 package me.katze.gui4s.example
-package draw
+package draw.swing
 
 import api.impl.DrawMonadT
+import draw.{SimpleDrawApi, TextStyle}
 
 import cats.effect.*
 import cats.syntax.all.given

@@ -1,6 +1,5 @@
 package me.katze.gui4s.example
 
-import draw.{Drawable, SimpleDrawApi}
 import update.*
 
 import cats.effect.std.{AtomicCell, Queue}
@@ -25,9 +24,6 @@ type UpdateLoop[F[+_], Widget[_, _], UpEvent, DownEvent] = (Widget[UpEvent, Down
  */
 type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
 
-trait RootPlaceable[+F[+_], +T]:
-  def place() : F[T]
-
 /**
  * Запускает в отдельных потоках обновление виджета и его отрисовку.
  * @param initialWidget дерево виджетов
@@ -39,17 +35,16 @@ def applicationLoop[
   F[+_] : Concurrent, 
   UpEvent,
   DownEvent, 
-  RootWidgetPlaced[_, _],
-  RootWidgetFree[A, B] <: RootPlaceable[F, RootWidgetPlaced[A, B]]
+  Widget[_, _]
 ](
-    initialWidget : Queue[F, DownEvent] => RootWidgetFree[UpEvent, DownEvent],
-    drawLoop      : DrawLoop[F, RootWidgetPlaced[UpEvent, DownEvent]],
-    updateLoop    : UpdateLoop[F, RootWidgetPlaced, UpEvent, DownEvent]
+    initialWidget : Queue[F, DownEvent] => F[Widget[UpEvent, DownEvent]],
+    drawLoop      : DrawLoop[F, Widget[UpEvent, DownEvent]],
+    updateLoop    : UpdateLoop[F, Widget, UpEvent, DownEvent]
 ): F[ApplicationControl[F, DownEvent]] =
 
   for
     bus <- Queue.unbounded[F, DownEvent]
-    root <- initialWidget(bus).place()
+    root <- initialWidget(bus)
     widget <- AtomicCell[F].of(root)
     fork <- 
       Concurrent[F]
@@ -82,44 +77,49 @@ end drawLoop
 
 def updateLoop[
                 F[+_] : Monad,
-                PlacedRootWidget <: EventConsumer[FreeRootWidget, F, UpEvent, DownEvent],
-                FreeRootWidget <: RootPlaceable[F, PlacedRootWidget],
+                PlacedWidget <: EventConsumer[F[PlacedWidget], F, UpEvent, DownEvent],
                 UpEvent,
                 DownEvent
               ](
-                  initial: PlacedRootWidget,
-                  pushNew: PlacedRootWidget => F[Unit],
+                  initial: PlacedWidget,
+                  pushNew: PlacedWidget => F[Unit],
                   nextEvent: F[DownEvent],
               )(using ProcessRequest[F, UpEvent]) : F[ExitCode] =
-  Monad[F].tailRecM(initial)(updateStep(_, nextEvent, pushNew))
+  Monad[F].tailRecM(initial)(
+    updateStep(_, nextEvent) >>= doIfLeft(pushNew)
+  )
 end updateLoop
+
+def doIfLeft[F[_] : Monad, A, B](f : A => F[Unit])(value : Either[A, B]) : F[Either[A, B]] =
+  value match
+    case Left(value)  => f(value).map(_ => Left(value))
+    case Right(value) => Right(value).pure[F]
+  end match
+end doIfLeft
+
 
 /**
  * TODO Написать норм описание, что тут происходит. А лучше поработать над неймингом, чтобы вопросов не возникало
+ *
  * @param widget Виджет, который принимает внешние события
- * @param waitForTheNextEvent Достаёт следующее событие из очереди или иного источника
- * @param pushNew Отправляет обновлённый виджет
+ * @param eventSource Даёт следующее событие. Возможно ожидание.
  * @tparam DownEvent Тип внешнего события виджета
  * @return
  */
 def updateStep[
               F[+_] : Monad,
-              PlacedWidget <: EventConsumer[FreeWidget, F, UpEvent, DownEvent],
-              FreeWidget <: RootPlaceable[F, PlacedWidget],
+              PlacedWidget <: EventConsumer[F[PlacedWidget], F, UpEvent, DownEvent],
               UpEvent,
               DownEvent
             ](
-                widget: PlacedWidget,
-                waitForTheNextEvent: F[DownEvent],
-                pushNew: PlacedWidget => F[Unit]
+                widget     : PlacedWidget,
+                eventSource: F[DownEvent],
             )(using ProcessRequest[F, UpEvent]): F[Either[PlacedWidget, ExitCode]] =
   for
-    event  <- waitForTheNextEvent
-    processResult <- widget.processEvent(event)
-    EventProcessResult(freeWidget, events) = processResult
-    placedWidget <- freeWidget.place()
-    _      <- pushNew(placedWidget)
-    exit   <- processRequests(events)
+    event         <- eventSource
+    eventResult   <- widget.processEvent(event)
+    placedWidget  <- eventResult.freeWidget
+    exit          <- processRequests(eventResult.events)
   yield exit.toRight(placedWidget)
 end updateStep
 

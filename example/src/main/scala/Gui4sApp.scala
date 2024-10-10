@@ -1,9 +1,9 @@
 package me.katze.gui4s.example
 
-import api.impl.{DrawMonad, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta}
+import api.impl.{DrawMonad, DrawMonadT, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta}
 import api.{HighLevelApi, LabelApi, LayoutApi}
-import draw.{SimpleDrawApi, SwingApi, SwingProcessRequest, swingBounds}
-import place.{additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
+import draw.{DrawApi, ProcessRequestImpl, SimpleDrawApi, windowBounds}
+import place.{RunPlacement, additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
 import task.{IOOnThread, MultiMap, RefTaskSet, StlWrapperMultiMap}
 import update.ApplicationRequest
 
@@ -21,6 +21,7 @@ import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 import update.ProcessRequest
 
 import cats.effect.std.Queue
+import me.katze.gui4s.example.draw.swing.SwingApi
 
 import scala.math.Numeric.Implicits.*
 
@@ -52,26 +53,53 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     for
       swing <- SwingApi.invoke
       lowLevelLib = WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], WidgetTaskT[IO], DownEvent]()
-      taskSet <- Ref.of[IO, MultiMap[Path, IOOnThread[IO]]](StlWrapperMultiMap(Map()))
-      given ProcessRequest[IO, ApplicationRequest] = SwingProcessRequest(swing)
-      code <- runWidget(lowLevelLib)(
-        widget = queue =>
-          createRootWidget(lowLevelLib)(
-            freeWidget = app(using higherApi(lowLevelLib, swing.graphics)),
-            taskSet = RefTaskSet(
-              runningTaskSet = taskSet,
-              startTask = (path, task) => startWidgetTask(
-                task = task,
-                resultDrain = offerTask(queue, at = path, _)
-              )
-            )
-          )(using summon, MeasurableRunPlacement(swingBounds(swing))),
-        drawLoopExceptionHandler = drawLoopExceptionHandler,
-        api = swing.graphics,
-        runDraw = _.run(Numeric[MU].zero, Numeric[MU].zero)
+      code <- run2[IO, DrawT[MU], MeasurableT[MU], WidgetTaskT[IO]](using lowLevelLib)(
+        api = swing, 
+        runDraw = _.run(Numeric[MU].zero, Numeric[MU].zero), 
+        startTask = [T] => (task, drain) => startWidgetTask(task, drain),
+        drawLoopExceptionHandler = drawLoopExceptionHandler
+      )(
+        using
+          summon,
+          summon,
+          higherApi(lowLevelLib, swing.graphics),
+          MeasurableRunPlacement(windowBounds(swing.window)),
+          summon,
+          ProcessRequestImpl(swing.window)
       )
     yield code
   end run
+
+  def run2[
+    F[+_] : Concurrent,
+    Draw[_] : DrawMonadT[MU],
+    Placement[+_],
+    WidgetTask[+_]
+  ](
+    using wl: WidgetLibraryImpl[F, Draw[Unit], Placement, WidgetTask, DownEvent]
+  )(
+    api: DrawApi[F, MU],
+    runDraw : Draw[Unit] => F[Unit],
+    startTask : [T] => (WidgetTask[T], T => F[Unit]) => F[Fiber[F, Throwable, Unit]],
+    drawLoopExceptionHandler: DrawLoopExceptionHandler[F, Throwable]
+  )(
+    using HL[wl.Widget, wl.WidgetTask, MU], RunPlacement[F, Placement], Lift[F, Draw, (MU, MU)], ProcessRequest[F, ApplicationRequest]
+  ) : F[ExitCode] =
+    runWidget(using wl)(
+      widget = queue =>
+        for
+          taskSet <- Ref.of[F, MultiMap[Path, IOOnThread[F]]](StlWrapperMultiMap(Map()))
+          widget <- rootWidget.runPlacement
+        yield EventConsumerAdapter(using wl)(
+          widget,
+          RefTaskSet[F, WidgetTask[Any]](taskSet, (path, task) => startTask(task, offerTask(queue, path, _))),
+        ),
+      drawLoopExceptionHandler = drawLoopExceptionHandler,
+      api = api.graphics,
+      runDraw = runDraw
+    )
+  end run2
+
 
   def offerTask[F[+_]](queue: Queue[F, TaskFinished], at: Path, taskResult: Any) : F[Unit] =
     queue.offer(TaskFinished(at, taskResult))
@@ -113,5 +141,5 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     IO.println(s"Error in draw loop: $exception").map(_ => Some(ExitCode.Error))
   end drawLoopExceptionHandler
 
-  def app(using api : HighLevelApi & LayoutApi[MU] & LabelApi[Unit]) : api.Widget[ApplicationRequest]
+  def rootWidget(using api: HighLevelApi & LayoutApi[MU] & LabelApi[Unit]) : api.Widget[ApplicationRequest]
 end Gui4sApp
