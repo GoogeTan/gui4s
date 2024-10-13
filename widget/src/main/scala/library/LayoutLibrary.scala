@@ -29,7 +29,7 @@ given layoutLibraryImpl[F[+_], Draw, PlacementEffect[+_], ChildrenMeta, DownEven
       placementStrategy: LayoutPlacementStrategy[lib.Widget[Event], lib.PlacedWidget[Event, lib.SystemEvent], lib.PlacementEffect, ChildrenMeta]
     ): lib.Widget[Event] =
 
-    class LayoutWidget(
+    final class LayoutWidget(
                         children : List[(lib.PlacedWidget[Event, lib.SystemEvent], ChildrenMeta)],
                         placeFree: List[lib.Widget[Event]] => lib.Widget[Event]
                       ) extends me.katze.gui4s.widget.PlacedWidget[lib.Draw, lib.WidgetTask[Any], lib.FreeWidget, Event, lib.SystemEvent]:

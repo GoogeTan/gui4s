@@ -9,7 +9,7 @@ import java.awt.Frame
 import javax.swing.JFrame
 import scala.math.Numeric.Implicits.{*, given}
 
-class SwingWindow[MU : Numeric](frame: JFrame, component: SwingWindowComponent) extends Window[IO, MU]:
+final class SwingWindow[MU : Numeric](frame: JFrame, component: SwingWindowComponent) extends Window[IO, MU]:
   override def size: IO[(MU, MU)] =
     IO:
       (Numeric[MU].fromInt(frame.getWidth), Numeric[MU].fromInt(frame.getHeight))

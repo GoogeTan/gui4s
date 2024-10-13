@@ -2,17 +2,14 @@ package me.katze.gui4s.example
 
 import draw.*
 import place.RunPlacement
-import task.TaskSet
 import update.*
 
 import cats.*
 import cats.effect.*
 import cats.effect.kernel.Concurrent
 import cats.effect.std.Queue
-import cats.syntax.all.{*, given}
-import me.katze.gui4s.widget.{EventResult, PlacedWidget}
+import cats.syntax.all.given
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
-import me.katze.gui4s.widget.stateful.Path
 
 // TODO отрефакторить это сверху вниз по-человечески. 
 def runWidget[

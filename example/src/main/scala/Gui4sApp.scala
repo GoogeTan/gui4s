@@ -83,7 +83,11 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     startTask : [T] => (WidgetTask[T], T => F[Unit]) => F[Fiber[F, Throwable, Unit]],
     drawLoopExceptionHandler: DrawLoopExceptionHandler[F, Throwable]
   )(
-    using HL[wl.Widget, wl.WidgetTask, MU], RunPlacement[F, Placement], Lift[F, Draw, (MU, MU)], ProcessRequest[F, ApplicationRequest]
+    using
+      HL[wl.Widget, wl.WidgetTask, MU], 
+      RunPlacement[F, Placement], 
+      Lift[F, Draw, (MU, MU)], 
+      ProcessRequest[F, ApplicationRequest]
   ) : F[ExitCode] =
     runWidget(using wl)(
       widget = queue =>

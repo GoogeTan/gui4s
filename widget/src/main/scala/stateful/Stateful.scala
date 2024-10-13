@@ -4,19 +4,6 @@ package stateful
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
-@FunctionalInterface
-trait FreeStatefulFabric[WidgetTask[+_], FreeWidgetTree[+_, -_], RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent]:
-  def apply(
-    name : String,
-    state : State[WidgetTask[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
-    childTree : FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]
-  ) : FreeWidgetTree[RaiseableEvent, HandleableEvent]
-end FreeStatefulFabric
-
-trait StatefulDraw[Draw]:
-  def drawStateful[T](name : String, state : State[Any, T, Any, Any], childTree : PlacedWidget[Draw, Any, [A, B] =>> Any, Any, Nothing]) : Draw
-end StatefulDraw
-
 final case class Stateful[
   Draw : StatefulDraw, 
   WidgetTask[+_],

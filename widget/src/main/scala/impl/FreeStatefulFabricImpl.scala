@@ -6,7 +6,7 @@ import stateful.*
 import cats.*
 import cats.syntax.all.{*, given}
 
-class FreeStatefulFabricImpl[
+final class FreeStatefulFabricImpl[
   Draw : StatefulDraw,
   WidgetTask[+_],
   PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Draw, WidgetTask[Any], [A, B] =>> PlacementEffect[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],

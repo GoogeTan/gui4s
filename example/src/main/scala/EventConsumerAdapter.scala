@@ -12,7 +12,7 @@ import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 import me.katze.gui4s.widget.stateful.Path
 
 
-class EventConsumerAdapter[
+final class EventConsumerAdapter[
   F[+_] : Monad,
   Draw,
   PlacementEffect[+_],

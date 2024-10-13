@@ -5,7 +5,7 @@ import cats.Apply
 import cats.implicits.catsSyntaxApplyOps
 
 // TODO notify draw thread about changes
-final class NotifyDrawThreadWindow[F[_] : Apply, MU](initial: Window[F, MU], notifySizeChanged: F[Unit]) extends Window[F, MU]:
+final class NotifyDrawLoopWindow[F[_] : Apply, MU](initial: Window[F, MU], notifySizeChanged: F[Unit]) extends Window[F, MU]:
   override def enterFullScreen: F[Unit] =
     initial.enterFullScreen *> notifySizeChanged
   end enterFullScreen
@@ -15,5 +15,5 @@ final class NotifyDrawThreadWindow[F[_] : Apply, MU](initial: Window[F, MU], not
   end resize
 
   override def size: F[(MU, MU)] = initial.size
-end NotifyDrawThreadWindow
+end NotifyDrawLoopWindow
   
