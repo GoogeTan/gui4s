@@ -47,6 +47,7 @@ type HL[W[+_], WT[+_], MU] <: HighLevelApi & LabelApi[Unit] & LayoutApi[MU]
   }
 
 type DownEvent = TaskFinished
+type WidgetTaskT[F[+_]] = [T] =>> WidgetTaskImpl[F, T]
 
 trait Gui4sApp[MU : Fractional] extends IOApp:
   final override def run(args: List[String]): IO[ExitCode] =

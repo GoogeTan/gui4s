@@ -7,7 +7,7 @@ trait StatefulApi extends HighLevelApi:
   def stateful[T: Equiv, ParentEvent, ChildEvent](
                                                     name        : String,
                                                     initialState: T,
-                                                    eventHandler: (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ChildEvent, ParentEvent],
+                                                    eventHandler: (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
                                                   )(
                                                     renderState: T => Widget[ChildEvent]
                                                   )(

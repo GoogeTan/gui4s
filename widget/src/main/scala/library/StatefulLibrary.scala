@@ -10,8 +10,13 @@ import cats.syntax.all.{*, given}
 import scala.runtime.stdLibPatches.Predef.summon
 
 def stateful[T: Equiv, ParentEvent, ChildEvent]
-  (using lib: WidgetLibrary)
+  (using lib: WidgetLibrary {
+    type WidgetTask[+A]
+    type Update[+U, +E] = EventReaction[WidgetTask[Any], U, E]
+  })
   (using statefulFabric : FreeStatefulFabric[
+          [U] =>> lib.Update[U, ParentEvent],
+          lib.Merge,
           lib.WidgetTask,
           lib.FreeWidget,
           ParentEvent, lib.SystemEvent,
@@ -20,15 +25,16 @@ def stateful[T: Equiv, ParentEvent, ChildEvent]
 )(
   name: String,
   initialState: T,
-  eventHandler: (T, ChildEvent) => EventReaction[lib.WidgetTask[ChildEvent], T, ChildEvent, ParentEvent],
+  eventHandler: (T, ChildEvent) => EventReaction[lib.WidgetTask[ChildEvent], T, ParentEvent],
   renderState: T => lib.Widget[ChildEvent]
 )(
-  using RichTypeChecker[ChildEvent], RichTypeChecker[(T, T)]
+  using RichTypeChecker[ChildEvent], RichTypeChecker[(T, T)], BiMonad[lib.Update], Monad[lib.Merge]
 ): lib.Widget[ParentEvent] =
   final case class StateImpl(
-                        initialState: T, currentState: T
-                      ) extends State[lib.WidgetTask[ChildEvent], ChildEvent, ParentEvent, lib.Widget[ChildEvent]]:
-    override def handleEvent(event: ChildEvent): EventReaction[lib.WidgetTask[ChildEvent], State[lib.WidgetTask[ChildEvent], ChildEvent, ParentEvent, lib.Widget[ChildEvent]], ChildEvent, ParentEvent] =
+                              initialState: T,
+                              currentState: T
+                            ) extends State[[U] =>> lib.Update[U, ParentEvent], lib.Merge, lib.WidgetTask[ChildEvent], ChildEvent, ParentEvent, lib.Widget[ChildEvent]]:
+    override def handleEvent(event: ChildEvent): lib.Update[State[[U] =>> lib.Update[U, ParentEvent], lib.Merge, lib.WidgetTask[ChildEvent], ChildEvent, ParentEvent, lib.Widget[ChildEvent]], ParentEvent] =
       eventHandler(currentState, event).mapState(StateImpl(initialState, _))
     end handleEvent
 
@@ -36,12 +42,12 @@ def stateful[T: Equiv, ParentEvent, ChildEvent]
 
     override def state: Any = (initialState, currentState)
 
-    override def mergeWithOldState(maybeOldState: Any): State[lib.WidgetTask[ChildEvent], ChildEvent, ParentEvent, lib.Widget[ChildEvent]] =
+    override def mergeWithOldState(maybeOldState: Any): lib.Merge[State[[U] =>> lib.Update[U, ParentEvent], lib.Merge, lib.WidgetTask[ChildEvent], ChildEvent, ParentEvent, lib.Widget[ChildEvent]]] =
       val (oldInitialState, oldState) = summon[RichTypeChecker[(T, T)]].tryCast(maybeOldState).valueOr(error => throw Exception(error))
       if Equiv[T].equiv(oldInitialState, initialState) then
-        StateImpl(oldInitialState, currentState)
+        StateImpl(oldInitialState, currentState).pure[lib.Merge]
       else
-        this
+        this.pure[lib.Merge]
       end if
     end mergeWithOldState
   end StateImpl
