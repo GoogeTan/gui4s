@@ -9,7 +9,7 @@ import me.katze.gui4s.widget.stateful.{BiMonad, Path}
 
 def drawOnlyWidget(using lib : WidgetLibrary)(asFreeIn: lib.FreeWidget[Nothing, Any], drawIn: lib.Draw)(using BiMonad[lib.Update], Monad[lib.Merge]): lib.PlacedWidget[Nothing, Any] =
   lib.constructRealWidget[Nothing, Any](
-    new PlacedWidget[lib.Update, lib.Merge, lib.Draw, lib.WidgetTask[Any], lib.FreeWidget, Nothing, Any]:
+    new PlacedWidget[lib.Update, lib.Merge, lib.Draw, lib.WidgetTask, lib.FreeWidget, Nothing, Any]:
       override def handleDownEvent(event: Any): lib.Update[lib.FreeWidget[Nothing, Any], Nothing] = asFree.asMonad
   
       override def mergeWithState(oldState: Map[String, Any]): lib.Merge[lib.FreeWidget[Nothing, Any]] = asFree.pure[lib.Merge]

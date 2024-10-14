@@ -7,15 +7,18 @@ import cats.Monad
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 
 trait EffectApiImpl[
-  F[+_], Draw,
+  F[+_], 
+  Update[+_, +_],
+  Merge[+_],
+  Draw,
   PlacementEffect[+_],
   WidgetTaskIn[+_],
   SystemEvent
 ](
-  using val wl : WidgetLibraryImpl[F, Draw, PlacementEffect, WidgetTaskIn, SystemEvent]
+  using val wl : WidgetLibraryImpl[Update, Merge, Draw, PlacementEffect, WidgetTaskIn[Any], SystemEvent]
 ) extends EffectApi[WidgetTaskIn]:
   override type Widget[+T] = wl.Widget[T]
-  override type WidgetTask[+T] = wl.WidgetTask[T]
+  override type WidgetTask[+T] = WidgetTaskIn[T]
 
   override def sideEffect[T](name : String, task: WidgetTask[T]): Widget[T] =
     ???

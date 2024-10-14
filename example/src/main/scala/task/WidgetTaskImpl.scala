@@ -1,5 +1,4 @@
-package me.katze.gui4s.widget
-package impl
+package me.katze.gui4s.example.task
 
 import fs2.*
 

@@ -13,8 +13,10 @@ import me.katze.gui4s.widget.stateful.TaskFinished
 
 import scala.math.Fractional.Implicits.given
 
-trait LayoutApiImpl[-MU : Fractional](
-    using val wl: WidgetLibrary
+trait LayoutApiImpl[-MU : Fractional, WidgetTaskIn[+_]](
+    using val wl: WidgetLibrary {
+      type WidgetTask = WidgetTaskIn[Any]
+    }
 )(
   using val lib : LayoutLibrary[wl.type, LayoutPlacementMeta[MU]]
 )(
@@ -23,7 +25,7 @@ trait LayoutApiImpl[-MU : Fractional](
 
   given Functor[wl.PlacementEffect] = wl.placementIsEffect
 
-  override type WidgetTask[+A] = wl.WidgetTask[A]
+  override type WidgetTask[+A] = WidgetTaskIn[A]
   override type Widget[+A] = wl.Widget[A]
 
   override def column[Event](

@@ -8,22 +8,22 @@ import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
-final class WidgetLibraryImpl[UpdateIn[+_, +_] : Bifunctor, MergeIn[+_] : Monad, DrawIn, PlacementEffectIn[+_], WidgetTaskIn[+_], SystemEventIn](
+final class WidgetLibraryImpl[UpdateIn[+_, +_] : Bifunctor, MergeIn[+_] : Monad, DrawIn, PlacementEffectIn[+_], WidgetTaskIn, SystemEventIn](
   using override val placementIsEffect: Monad[PlacementEffectIn]
 )(
   val swapEffects : [A] => PlacementEffectIn[MergeIn[A]] => MergeIn[PlacementEffectIn[A]]
 ) extends WidgetLibrary:
   override type Draw = DrawIn
   override type PlacedWidget[+A, -B] = Magic[A, B]
-  override type WidgetTask[+T] = WidgetTaskIn[T]
+  override type WidgetTask = WidgetTaskIn
   override type SystemEvent = SystemEventIn
   override type PlacementEffect[+E] = PlacementEffectIn[E]
   override type Update = UpdateIn
   override type Merge = MergeIn
 
   final class Magic[+A, -B](
-                              preWidget : widget.PlacedWidget[Update, Merge, Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], A, B]
-                            ) extends widget.PlacedWidget[Update, Merge, Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], A, B]:
+                              preWidget : widget.PlacedWidget[Update, Merge, Draw, WidgetTask, [C, D] =>> PlacementEffect[Magic[C, D]], A, B]
+                            ) extends widget.PlacedWidget[Update, Merge, Draw, WidgetTask, [C, D] =>> PlacementEffect[Magic[C, D]], A, B]:
     override def handleDownEvent(event: B): Update[PlacementEffect[Magic[A, B]], A] = preWidget.handleDownEvent(event)
 
     override def asFree: PlacementEffect[Magic[A, B]] = preWidget.asFree
@@ -43,7 +43,7 @@ final class WidgetLibraryImpl[UpdateIn[+_, +_] : Bifunctor, MergeIn[+_] : Monad,
   end Magic
 
   override def constructRealWidget[RaisableEvent, HandleableEvent](
-                                                                    widget: me.katze.gui4s.widget.PlacedWidget[Update, Merge, Draw, WidgetTask[Any], [C, D] =>> PlacementEffect[Magic[C, D]], RaisableEvent, HandleableEvent]
+                                                                    widget: me.katze.gui4s.widget.PlacedWidget[Update, Merge, Draw, WidgetTask, [C, D] =>> PlacementEffect[Magic[C, D]], RaisableEvent, HandleableEvent]
                                                                   ) : Magic[RaisableEvent, HandleableEvent] =
     widget match
       case magic: Magic[RaisableEvent, HandleableEvent] => magic

@@ -21,8 +21,8 @@ given layoutLibraryImpl[
   Update[+_, +_] : BiMonad,
   Merge[+_] : Monad,
   Draw,
-  WidgetTask[+_],
-  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, WidgetTask[Any], [A, B] =>> Place[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],
+  WidgetTask,
+  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, WidgetTask, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],
   Place[+_] : Monad,
   ChildrenMeta,
   DownEvent

@@ -4,7 +4,7 @@ import api.impl.{DrawMonad, DrawMonadT, HighLevelApiImpl, LayoutApiImpl, LayoutP
 import api.{HighLevelApi, LabelApi, LayoutApi}
 import draw.{DrawApi, ProcessRequestImpl, SimpleDrawApi, windowBounds}
 import place.{RunPlacement, additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
-import task.{IOOnThread, MultiMap, RefTaskSet, StlWrapperMultiMap}
+import task.{IOOnThread, MultiMap, RefTaskSet, StlWrapperMultiMap, WidgetTaskImpl}
 import update.ApplicationRequest
 
 import cats.*
@@ -13,8 +13,6 @@ import cats.effect.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.impl
-import me.katze.gui4s.widget.impl.WidgetTaskImpl
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.{Path, TaskFinished}

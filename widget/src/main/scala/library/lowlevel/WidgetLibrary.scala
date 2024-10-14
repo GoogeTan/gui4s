@@ -13,7 +13,7 @@ type WidgetLibraryGeneric[
   PlaceIn[+_],
   DrawIn,
   PlacedWidgetIn[+_, -_],
-  WidgetTaskIn[+_],
+  WidgetTaskIn,
   SystemEventIn
 ] = WidgetLibrary
   {
@@ -29,7 +29,7 @@ type WidgetLibraryGeneric[
 trait WidgetLibrary:
   type Draw
   type PlacedWidget[+A, -B]
-  type WidgetTask[+T] // TODO remove generic
+  type WidgetTask
   type SystemEvent
   type PlacementEffect[+W]
   type Update[+_, +_]
@@ -40,6 +40,6 @@ trait WidgetLibrary:
   given placementIsEffect: Functor[PlacementEffect]
   given freeTreesAreMergeable[A, B]: Mergeable[Merge, FreeWidget[A, B]]
   
-  def constructRealWidget[RaisableEvent, HandleableEvent](widget: gui4s.widget.PlacedWidget[Update, Merge, Draw, WidgetTask[Any], FreeWidget, RaisableEvent, HandleableEvent]): PlacedWidget[RaisableEvent, HandleableEvent]
+  def constructRealWidget[RaisableEvent, HandleableEvent](widget: gui4s.widget.PlacedWidget[Update, Merge, Draw, WidgetTask, FreeWidget, RaisableEvent, HandleableEvent]): PlacedWidget[RaisableEvent, HandleableEvent]
 end WidgetLibrary
 

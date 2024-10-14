@@ -3,7 +3,7 @@ package task
 
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.stateful.Path
-import me.katze.gui4s.widget.{RunnableIO, impl}
+import me.katze.gui4s.widget.RunnableIO
 
 trait TaskSet[F[_], WidgetTask]:
   def pushTask(io: RunnableIO[WidgetTask]): F[Unit]

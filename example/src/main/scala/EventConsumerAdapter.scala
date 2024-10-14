@@ -17,14 +17,14 @@ final class EventConsumerAdapter[
   F[+_] : Monad,
   Draw,
   PlacementEffect[+_],
-  WidgetTask[+_],
+  WidgetTask,
   UpEvent,
   DownEvent,
 ](
-  using lib: WidgetLibraryImpl[[A, B] =>> EventResult[WidgetTask[Any], A, B], Merge, Draw, PlacementEffect, WidgetTask, DownEvent]
+  using lib: WidgetLibraryImpl[[A, B] =>> EventResult[WidgetTask, A, B], Merge, Draw, PlacementEffect, WidgetTask, DownEvent]
 )(
     placedWidget: lib.PlacedWidget[UpEvent, DownEvent],
-    taskSet : TaskSet[F, WidgetTask[Any]]
+    taskSet : TaskSet[F, WidgetTask]
 )(
     using ProcessRequest[F, UpEvent], RunPlacement[F, PlacementEffect]
 ) extends EventConsumer[F[EventConsumerAdapter[Merge, F, Draw, PlacementEffect, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
