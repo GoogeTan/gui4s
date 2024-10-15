@@ -13,7 +13,7 @@ final case class Stateful[
   Draw : StatefulDraw, 
   WidgetTask[+_],
   FreeWidgetTree[+_, -_],
-  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, WidgetTask[Any], FreeWidgetTree, RaisesEvent, HandlesEvent],
+  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, FreeWidgetTree, RaisesEvent, HandlesEvent],
   RaiseableEvent,
   HandleableEvent >: TaskFinished,
   ChildRaiseableEvent,
@@ -28,7 +28,7 @@ final case class Stateful[
     freeWidgetIsMergeable: Mergeable[Merge, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
     freeStatefulFabric   : FreeStatefulFabric[[W] =>> Update[W, RaiseableEvent], Merge, WidgetTask, FreeWidgetTree, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent],
     ChildRaisableEventTypeChecker: RichTypeChecker[ChildRaiseableEvent]
-)  extends PlacedWidget[Update, Merge, Draw, WidgetTask[Any], FreeWidgetTree, RaiseableEvent, HandleableEvent]:
+)  extends PlacedWidget[Update, Merge, Draw, FreeWidgetTree, RaiseableEvent, HandleableEvent]:
   import freeWidgetIsMergeable.*
 
   private type StatefulUpdateResult = Update[FreeWidgetTree[RaiseableEvent, HandleableEvent], RaiseableEvent]

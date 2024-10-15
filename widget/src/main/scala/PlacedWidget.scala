@@ -2,7 +2,7 @@ package me.katze.gui4s.widget
 
 import stateful.Path
 
-trait PlacedWidget[+Update[+_, +_], +Merge[+_], +Draw, +WidgetTask, +FreeWidget[+_, -_], +RaiseableEvent, -HandleableEvent]:
+trait PlacedWidget[+Update[+_, +_], +Merge[+_], +Draw, +FreeWidget[+_, -_], +RaiseableEvent, -HandleableEvent]:
   def handleDownEvent(event : HandleableEvent) : Update[FreeWidget[RaiseableEvent, HandleableEvent], RaiseableEvent]
   
   def asFree : FreeWidget[RaiseableEvent, HandleableEvent]

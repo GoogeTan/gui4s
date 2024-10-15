@@ -23,10 +23,10 @@ trait HighLevelApiImpl[
   -TextStyle,
   SystemEvent >: TaskFinished
 ](
-  using val 
-    wl : WidgetLibraryImpl[UpdateIn, MergeIn, Draw[Unit], PlacementEffect, WidgetTaskIn[Any], SystemEvent],
-    runMerge : [T] => MergeIn[T] => UpdateIn[T, Nothing],
-    liftReaction : LiftEventReaction[UpdateIn, WidgetTaskIn[Any]]
+    using val 
+      wl : WidgetLibraryImpl[UpdateIn, MergeIn, Draw[Unit], PlacementEffect, SystemEvent],
+      runMerge : [T] => MergeIn[T] => UpdateIn[T, Nothing],
+      liftReaction : LiftEventReaction[UpdateIn, WidgetTaskIn[Any]]
 )(
   val drawApi : SimpleDrawApi[MU, Draw[Unit]]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi:
@@ -43,7 +43,7 @@ trait HighLevelApiImpl[
   end label
   
   given statefulDraw : StatefulDraw[wl.Draw] with
-    override def drawStateful[T](name : String, state : State[?, ?, Any, T, Any, Any], childTree: PlacedWidget[?, ?, wl.Draw, Any, [A, B] =>> Any, Any, Nothing]): wl.Draw = childTree.draw
+    override def drawStateful[T](name : String, state : State[?, ?, Any, T, Any, Any], childTree: PlacedWidget[?, ?, wl.Draw, ?, ?, ?]): wl.Draw = childTree.draw
   end statefulDraw
   
   override def stateful[T: Equiv, ParentEvent, ChildEvent](
@@ -60,7 +60,7 @@ trait HighLevelApiImpl[
     library.stateful[T, ParentEvent, ChildEvent, WidgetTaskIn](using wl)(using freeStatefulFabricImpl, liftReaction)(name, initialState, eventHandler , renderState)
   end stateful
 
-  override def freeStatefulFabricImpl[
+  def freeStatefulFabricImpl[
     RaiseableEvent, HandleableEvent >: TaskFinished,
     ChildRaiseableEvent : RichTypeChecker, ChildHandleableEvent >: HandleableEvent
   ](

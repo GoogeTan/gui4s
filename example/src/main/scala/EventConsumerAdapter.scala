@@ -21,7 +21,7 @@ final class EventConsumerAdapter[
   UpEvent,
   DownEvent,
 ](
-  using lib: WidgetLibraryImpl[[A, B] =>> EventResult[WidgetTask, A, B], Merge, Draw, PlacementEffect, WidgetTask, DownEvent]
+  using lib: WidgetLibraryImpl[[A, B] =>> EventResult[WidgetTask, A, B], Merge, Draw, PlacementEffect, DownEvent]
 )(
     placedWidget: lib.PlacedWidget[UpEvent, DownEvent],
     taskSet : TaskSet[F, WidgetTask]
@@ -40,7 +40,7 @@ final class EventConsumerAdapter[
   end draw
 end EventConsumerAdapter
 
-private def killDeadIOS[F[_] : Monad, T](taskSet : TaskSet[F, T], newWidget: PlacedWidget[?, ?, ?, ?, ?, ?, ?]): F[Unit] =
+private def killDeadIOS[F[_] : Monad, T](taskSet : TaskSet[F, T], newWidget: PlacedWidget[?, ?, ?, ?, ?, ?]): F[Unit] =
   for
     alive <- taskSet.aliveTasksPaths
     dead = newWidget.filterDeadPaths(Path(List("ROOT")), alive) /// TODO Проверить, что "ROOT" - хорошая идея.

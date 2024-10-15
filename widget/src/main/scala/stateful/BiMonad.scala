@@ -10,7 +10,7 @@ trait BiMonad[F[+_, +_]]:
   def tailRecM[A, B, E](a: A)(f: A => F[Either[A, B], E]): F[B, E]
   
   extension[A, B] (value : F[A, B])
-    def map[C](f : A => C) : F[C, B]
+    def map[C](f : A => C) : F[C, B] = flatMap(f andThen asMonad)
     def flatMap[C](f : A => F[C, B]) : F[C, B] = flatMap_(value)(f)
     @targetName("aliasForFlatMap")
     def >>=[C](f: A => F[C, B]) : F[C, B] = flatMap(f)

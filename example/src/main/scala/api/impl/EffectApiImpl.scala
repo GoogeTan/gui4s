@@ -15,7 +15,7 @@ trait EffectApiImpl[
   WidgetTaskIn[+_],
   SystemEvent
 ](
-  using val wl : WidgetLibraryImpl[Update, Merge, Draw, PlacementEffect, WidgetTaskIn[Any], SystemEvent]
+  using val wl : WidgetLibraryImpl[Update, Merge, Draw, PlacementEffect, SystemEvent]
 ) extends EffectApi[WidgetTaskIn]:
   override type Widget[+T] = wl.Widget[T]
   override type WidgetTask[+T] = WidgetTaskIn[T]

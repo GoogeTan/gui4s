@@ -10,21 +10,21 @@ import cats.effect.kernel.Concurrent
 import cats.effect.std.Queue
 import cats.syntax.all.given
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
+import me.katze.gui4s.widget.stateful.BiMonad
 
 // TODO отрефакторить это сверху вниз по-человечески. 
 def runWidget[
   F[+_] : Concurrent,
-  UpdateF[+_, +_] : Bifunctor, 
+  UpdateF[+_, +_] : BiMonad, 
   MergeF[+_] : Monad,
   Draw,
-  PlacementEffect[+_], 
-  WidgetTask,
+  PlacementEffect[+_],
   MU,
   UpEvent,
   DownEvent,
   Widget[A, B] <: EventConsumer[F[Widget[A, B]], F, A, B] & Drawable[Draw]
 ](
-  using lib: WidgetLibraryImpl[UpdateF, MergeF, Draw, PlacementEffect, WidgetTask, DownEvent]
+  using lib: WidgetLibraryImpl[UpdateF, MergeF, Draw, PlacementEffect, DownEvent]
 )(
     widget                  : Queue[F, DownEvent] => F[Widget[UpEvent, DownEvent]],
     drawLoopExceptionHandler: Throwable => F[Option[ExitCode]],

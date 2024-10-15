@@ -9,23 +9,19 @@ import me.katze.gui4s.layout
 import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibrary
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.stateful.TaskFinished
 
 import scala.math.Fractional.Implicits.given
 
-trait LayoutApiImpl[-MU : Fractional, WidgetTaskIn[+_]](
-    using val wl: WidgetLibrary {
-      type WidgetTask = WidgetTaskIn[Any]
-    }
+trait LayoutApiImpl[-MU : Fractional](
+    val wl: WidgetLibrary
 )(
-  using val lib : LayoutLibrary[wl.type, LayoutPlacementMeta[MU]]
+    using val lib : LayoutLibrary[wl.type, LayoutPlacementMeta[MU]]
 )(
   placement : [Event] => (Axis, List[wl.Widget[Event]], MainAxisStrategy[MU], AdditionalAxisStrategy) => wl.PlacementEffect[List[(wl.PlacedWidget[Event, wl.SystemEvent], LayoutPlacementMeta[MU])]]
 ) extends LayoutApi[MU]:
 
   given Functor[wl.PlacementEffect] = wl.placementIsEffect
 
-  override type WidgetTask[+A] = WidgetTaskIn[A]
   override type Widget[+A] = wl.Widget[A]
 
   override def column[Event](
@@ -60,6 +56,6 @@ trait LayoutApiImpl[-MU : Fractional, WidgetTaskIn[+_]](
                                 mainAxisStrategy      : MainAxisStrategy[MU],
                                 additionalAxisStrategy: AdditionalAxisStrategy,
                               ) : Widget[Event] =
-    lib.layout(children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
+    lib.layout(using wl)(children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
   end rowColumn
 end LayoutApiImpl

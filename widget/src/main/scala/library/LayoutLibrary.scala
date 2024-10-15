@@ -18,12 +18,12 @@ trait LayoutLibrary[-WL <: WidgetLibrary, -ChildrenMeta]:
 end LayoutLibrary
 
 given layoutLibraryImpl[
+  WL <: WidgetLibraryGeneric[Update, Merge, Place, Draw, PlacedWidgetTree, DownEvent],
   Update[+_, +_] : BiMonad,
   Merge[+_] : Monad,
   Draw,
-  WidgetTask,
-  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, WidgetTask, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],
-  Place[+_] : Monad,
+  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],
+  Place[+_] : FlatMap,
   ChildrenMeta,
   DownEvent
 ](
@@ -31,9 +31,9 @@ given layoutLibraryImpl[
     ld: LayoutDraw[Draw, ChildrenMeta],
     swapEffects: [A] => Place[Merge[A]] => Merge[Place[A]],
     runMerge: [T] => Merge[T] => Update[T, Nothing]
-): LayoutLibrary[WidgetLibraryGeneric[Update, Merge, Place, Draw, PlacedWidgetTree, WidgetTask, DownEvent], ChildrenMeta] with
+): LayoutLibrary[WL, ChildrenMeta] with
   override def layout[Event]
-    (using lib : WidgetLibraryGeneric[Update, Merge, Place, Draw, PlacedWidgetTree, WidgetTask, DownEvent])
+    (using lib : WL)
     (
       children         : List[lib.Widget[Event]],
       placementStrategy: LayoutPlacementStrategy[lib.Widget[Event], lib.PlacedWidget[Event, lib.SystemEvent], lib.PlacementEffect, ChildrenMeta]
@@ -50,9 +50,8 @@ final class LayoutWidget[
   UpdateF[+_, +_] : BiMonad,
   MergeF[+_] : Monad,
   DrawF,
-  PlaceF[+_] : Monad,
-  PlacedWidget[+RaisesEvent, -HandlesEvent] <: me.katze.gui4s.widget.PlacedWidget[UpdateF, MergeF, DrawF, WidgetTask, [A, B] =>> PlaceF[PlacedWidget[A, B]], RaisesEvent, HandlesEvent],
-  WidgetTask,
+  PlaceF[+_] : FlatMap,
+  PlacedWidget[+RaisesEvent, -HandlesEvent] <: me.katze.gui4s.widget.PlacedWidget[UpdateF, MergeF, DrawF, [A, B] =>> PlaceF[PlacedWidget[A, B]], RaisesEvent, HandlesEvent],
   UpEvent,
   DownEvent,
   ChildrenMeta
@@ -63,7 +62,7 @@ final class LayoutWidget[
     runMerge: [T] => MergeF[T] => UpdateF[T, Nothing]
 )(
   using LayoutDraw[DrawF, ChildrenMeta]
-) extends me.katze.gui4s.widget.PlacedWidget[UpdateF, MergeF, DrawF, WidgetTask, [A, B] =>> PlaceF[PlacedWidget[A, B]], UpEvent, DownEvent]:
+) extends me.katze.gui4s.widget.PlacedWidget[UpdateF, MergeF, DrawF, [A, B] =>> PlaceF[PlacedWidget[A, B]], UpEvent, DownEvent]:
 
   override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[PlacedWidget[UpEvent, DownEvent]], UpEvent] =
     children.traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[PlacedWidget[UpEvent, DownEvent]]](_._1.handleDownEvent(event))

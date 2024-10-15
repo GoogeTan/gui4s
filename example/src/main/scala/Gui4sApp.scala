@@ -15,12 +15,15 @@ import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
+import me.katze.gui4s.widget.stateful.{EventReaction, Path, TaskFinished, given}
 import update.ProcessRequest
 
+import me.katze.gui4s.widget.library.{LayoutLibrary, given}
 import cats.effect.std.Queue
 import me.katze.gui4s.example.draw.swing.SwingApi
+import me.katze.gui4s.widget.{EventResult, given}
 
+import me.katze.gui4s.widget.stateful.{BiMonad, given}
 import scala.math.Numeric.Implicits.*
 
 type Draw[MU, T] = ReaderT[IO, (MU, MU), T]
@@ -48,10 +51,23 @@ type DownEvent = TaskFinished
 type WidgetTaskT[F[+_]] = [T] =>> WidgetTaskImpl[F, T]
 
 trait Gui4sApp[MU : Fractional] extends IOApp:
+  type Update[Task] = [A, B] =>> EventResult[Task, A, B]
+  type Merge[Task] = [A] =>> Update[Task][A, Nothing]
+  
+  given runMerge[Task] : ([T] => Merge[Task][T] => Update[Task][T, Nothing]) = [T] => (a : Merge[Task][T]) => a
+  // TODO Оказалось, что свапать эти эффекты просто так нельзя. Надо думать, что с этим делать.
+  given swapEffects[Task] : ([T] => MeasurableT[MU][Merge[Task][T]] => Merge[Task][MeasurableT[MU][T]]) =
+    ???//[T] => measurable => EventResult[MeasurableT[MU][T], T, Nothing](bounds => measurable(bounds).widget, ???, ???)
+  end swapEffects
+  
+  given[Task] : LiftEventReaction[Update[Task], Task] with
+    override def lift[A, B](reaction: EventReaction[Task, A, B]): Update[Task][A, B] = ???
+  end given
+  
   final override def run(args: List[String]): IO[ExitCode] =
     for
       swing <- SwingApi.invoke
-      lowLevelLib = WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], WidgetTaskT[IO], DownEvent]()
+      lowLevelLib = WidgetLibraryImpl[Update[WidgetTaskImpl[IO, Any]], Merge[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], MeasurableT[MU], DownEvent](swapEffects[WidgetTaskImpl[IO, Any]])
       code <- run2[IO, DrawT[MU], MeasurableT[MU], WidgetTaskT[IO]](using lowLevelLib)(
         api = swing, 
         runDraw = _.run(Numeric[MU].zero, Numeric[MU].zero), 
@@ -75,7 +91,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     Placement[+_],
     WidgetTask[+_]
   ](
-    using wl: WidgetLibraryImpl[F, Draw[Unit], Placement, WidgetTask, DownEvent]
+    using wl: WidgetLibraryImpl[[A, B] =>> Update[WidgetTask[Any]][A, B], Merge[WidgetTask[Any]], Draw[Unit], Placement, DownEvent]
   )(
     api: DrawApi[F, MU],
     runDraw : Draw[Unit] => F[Unit],
@@ -83,7 +99,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     drawLoopExceptionHandler: DrawLoopExceptionHandler[F, Throwable]
   )(
     using
-      HL[wl.Widget, wl.WidgetTask, MU], 
+      HL[wl.Widget, WidgetTask, MU], 
       RunPlacement[F, Placement], 
       Lift[F, Draw, (MU, MU)], 
       ProcessRequest[F, ApplicationRequest]
@@ -123,21 +139,27 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
 
   type TextStyle = Unit
 
-  private def higherApi(lowLevelApi: WidgetLibraryImpl[IO, Draw[MU, Unit], MeasurableT[MU], WidgetTaskT[IO], DownEvent], drawApi: SimpleDrawApi[MU, Draw[MU, Unit]]) : HL[lowLevelApi.Widget, lowLevelApi.WidgetTask, MU] =
+  private def higherApi(lowLevelApi: WidgetLibraryImpl[Update[WidgetTaskImpl[IO, Any]], Merge[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], MeasurableT[MU], DownEvent], drawApi: SimpleDrawApi[MU, Draw[MU, Unit]]) : HL[lowLevelApi.Widget, WidgetTaskT[IO], MU] =
     given LabelPlacement[Measurable[MU, LayoutPlacementMeta[MU]], TextStyle] with
       override def sizeText(text : String, options: TextStyle): Measurable[MU, LayoutPlacementMeta[MU]] =
         _ => Sized(LayoutPlacementMeta(Fractional[MU].zero, Fractional[MU].zero), Fractional[MU].zero, Fractional[MU].fromInt(10))
     given lowLevelApi.type = lowLevelApi
-
-    new HighLevelApiImpl[IO, DrawT[MU], MeasurableT[MU], WidgetTaskT[IO], MU, TextStyle, DownEvent](using lowLevelApi)(drawApi) with LayoutApiImpl[MU](
-      [Event] => (axis, elements, main, additional) => weightedRowColumnPlace(
+    given runMerge2 : ([T] => (Merge[WidgetTaskImpl[IO, Any]][T]) => Update[WidgetTaskImpl[IO, Any]][T, Nothing]) = runMerge[WidgetTaskImpl[IO, Any]]
+    given swapEffects2 : ([T] => MeasurableT[MU][Merge[WidgetTaskImpl[IO, Any]][T]] => Merge[WidgetTaskImpl[IO, Any]][MeasurableT[MU][T]]) = swapEffects[WidgetTaskImpl[IO, Any]]
+    given layoutLib : LayoutLibrary[lowLevelApi.type, LayoutPlacementMeta[MU]] = layoutLibraryImpl[lowLevelApi.type, Update[WidgetTaskImpl[IO, Any]], Merge[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], lowLevelApi.PlacedWidget, lowLevelApi.PlacementEffect, LayoutPlacementMeta[MU], DownEvent]
+    new HighLevelApiImpl[Update[WidgetTaskImpl[IO, Any]], Merge[WidgetTaskImpl[IO, Any]], IO, DrawT[MU], MeasurableT[MU], WidgetTaskT[IO], MU, TextStyle, DownEvent](using lowLevelApi)(drawApi) 
+        with LayoutApiImpl[MU](lowLevelApi)(
+      [Event] => (axis, elements, main, additional) => weightedRowColumnPlace[MU, lowLevelApi.PlacedWidget[Event, lowLevelApi.SystemEvent]](
         axis,
         elements.map(widget => MaybeWeighted(None, widget)),
-        rowColumnPlace(_, _, mainAxisStrategyPlacement(main, _, _), additionalAxisStrategyPlacement(additional, _, _))
+        rowColumnPlace(_, _, mainAxisStrategyPlacement[MU](main, _, _), additionalAxisStrategyPlacement[MU](additional, _, _))
       ).map(unpack)
     ) {
-      override val wl: WidgetLibraryImpl[IO, DrawT[MU][TextStyle], MeasurableT[MU], WidgetTaskT[IO], DownEvent] = lowLevelApi
-    }.asInstanceOf[HL[lowLevelApi.Widget, lowLevelApi.WidgetTask, MU]] // TODO do not believe me
+      override type Widget[+T] = wl.Widget[T]
+      override type WidgetTask[+T] = WidgetTaskImpl[IO, T]
+      
+      override val wl: lowLevelApi.type = lowLevelApi
+    }.asInstanceOf[HL[lowLevelApi.Widget, WidgetTaskT[IO], MU]] // TODO do not believe me
   end higherApi
 
   def drawLoopExceptionHandler(exception: Throwable): IO[Option[ExitCode]] =
