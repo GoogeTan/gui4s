@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package place
 
 import api.impl.LayoutPlacementMeta
-import api.{AdditionalAxisStrategy, MainAxisStrategy}
+import api.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
 import cats.*
 import cats.syntax.all.given
@@ -13,21 +13,21 @@ import me.katze.gui4s.layout.{Placed, Sized}
 
 import scala.math.Fractional.Implicits.{*, given}
 
-def mainAxisStrategyPlacement[MU : Fractional](strategy: MainAxisStrategy[MU], elements: List[MU], bounds: AxisBounds[MU]): List[MU] =
+def mainAxisStrategyPlacement[MU : Fractional](strategy: MainAxisPlacementStrategy[MU], elements: List[MU], bounds: AxisBounds[MU]): List[MU] =
   strategy match
-    case MainAxisStrategy.Begin(gap) => placeBeginMany(elements.map(_ + gap))
-    case MainAxisStrategy.Center(gap) => placeCenterMany(elements.map(_ + gap), bounds.max.getOrElse(throw Exception("TODO")))
-    case MainAxisStrategy.End(gap) => placeEndMany(elements.map(_ + gap), bounds.max.getOrElse(throw Exception("TODO")))
-    case MainAxisStrategy.SpaceBetween => placeSpaceBetween(elements, bounds.max.getOrElse(throw Exception("TODO")))
-    case MainAxisStrategy.SpaceAround => placeSpaceAround(elements, bounds.max.getOrElse(throw Exception("TODO")))
+    case MainAxisPlacementStrategy.Begin(gap) => placeBeginMany(elements.map(_ + gap))
+    case MainAxisPlacementStrategy.Center(gap) => placeCenterMany(elements.map(_ + gap), bounds.max.getOrElse(throw Exception("TODO")))
+    case MainAxisPlacementStrategy.End(gap) => placeEndMany(elements.map(_ + gap), bounds.max.getOrElse(throw Exception("TODO")))
+    case MainAxisPlacementStrategy.SpaceBetween => placeSpaceBetween(elements, bounds.max.getOrElse(throw Exception("TODO")))
+    case MainAxisPlacementStrategy.SpaceAround => placeSpaceAround(elements, bounds.max.getOrElse(throw Exception("TODO")))
   end match
 end mainAxisStrategyPlacement
 
-def additionalAxisStrategyPlacement[MU : Fractional](strategy: AdditionalAxisStrategy, element: MU, bounds: AxisBounds[MU]): MU =
+def additionalAxisStrategyPlacement[MU : Fractional](strategy: AdditionalAxisPlacementStrategy, element: MU, bounds: AxisBounds[MU]): MU =
   strategy match
-    case AdditionalAxisStrategy.Begin => placeBegin
-    case AdditionalAxisStrategy.Center => placeCenter(element, bounds.max.getOrElse(throw Exception("TODO")))
-    case AdditionalAxisStrategy.End => placeEnd(element, bounds.max.getOrElse(throw Exception("TODO")))
+    case AdditionalAxisPlacementStrategy.Begin => placeBegin
+    case AdditionalAxisPlacementStrategy.Center => placeCenter(element, bounds.max.getOrElse(throw Exception("TODO")))
+    case AdditionalAxisPlacementStrategy.End => placeEnd(element, bounds.max.getOrElse(throw Exception("TODO")))
   end match
 end additionalAxisStrategyPlacement
 

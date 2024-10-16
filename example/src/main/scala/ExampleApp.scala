@@ -11,8 +11,8 @@ object ExampleApp extends Gui4sApp[Float]:
         api.label("12345", ()),
         api.label("12345", ())
       ),
-      MainAxisStrategy.SpaceBetween,
-      AdditionalAxisStrategy.Begin
+      MainAxisPlacementStrategy.SpaceBetween,
+      AdditionalAxisPlacementStrategy.Begin
     )
   end rootWidget
 end ExampleApp
