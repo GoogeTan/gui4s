@@ -9,7 +9,6 @@ import me.katze.gui4s.widget
 
 type WidgetLibraryGeneric[
   UpdateIn[+_, +_],
-  MergeIn[+_],
   PlaceIn[+_],
   DrawIn,
   PlacedWidgetIn[+_, -_],
@@ -20,7 +19,6 @@ type WidgetLibraryGeneric[
     type Update = UpdateIn
     type PlacementEffect = PlaceIn
     type Draw = DrawIn
-    type Merge = MergeIn
     type SystemEvent = SystemEventIn
   }
 
@@ -30,13 +28,12 @@ trait WidgetLibrary:
   type SystemEvent
   type PlacementEffect[+W]
   type Update[+_, +_]
-  type Merge[+_]
   final type FreeWidget[+A, -B] = PlacementEffect[PlacedWidget[A, B]]
   final type Widget[+A] = FreeWidget[A, SystemEvent]
   
   given placementIsEffect: Functor[PlacementEffect]
-  given freeTreesAreMergeable[A, B]: Mergeable[Merge, FreeWidget[A, B]]
+  given freeTreesAreMergeable[A, B]: Mergeable[FreeWidget[A, B]]
   
-  def constructRealWidget[RaisableEvent, HandleableEvent](widget: gui4s.widget.PlacedWidget[Update, Merge, Draw, FreeWidget, RaisableEvent, HandleableEvent]): PlacedWidget[RaisableEvent, HandleableEvent]
+  def constructRealWidget[RaisableEvent, HandleableEvent](widget: gui4s.widget.PlacedWidget[Update, Draw, FreeWidget, RaisableEvent, HandleableEvent]): PlacedWidget[RaisableEvent, HandleableEvent]
 end WidgetLibrary
 

@@ -16,7 +16,6 @@ import me.katze.gui4s.widget.stateful.BiMonad
 def runWidget[
   F[+_] : Concurrent,
   UpdateF[+_, +_] : BiMonad, 
-  MergeF[+_] : Monad,
   Draw,
   PlacementEffect[+_],
   MU,
@@ -24,7 +23,7 @@ def runWidget[
   DownEvent,
   Widget[A, B] <: EventConsumer[F[Widget[A, B]], F, A, B] & Drawable[Draw]
 ](
-  using lib: WidgetLibraryImpl[UpdateF, MergeF, Draw, PlacementEffect, DownEvent]
+  using lib: WidgetLibraryImpl[UpdateF, Draw, PlacementEffect, DownEvent]
 )(
     widget                  : Queue[F, DownEvent] => F[Widget[UpEvent, DownEvent]],
     drawLoopExceptionHandler: Throwable => F[Option[ExitCode]],

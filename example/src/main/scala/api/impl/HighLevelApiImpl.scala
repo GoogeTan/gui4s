@@ -14,7 +14,6 @@ import me.katze.gui4s.widget.{PlacedWidget, library}
 
 trait HighLevelApiImpl[
   UpdateIn[+_, +_]: BiMonad : CatchEvents, 
-  MergeIn[+_]: Monad,
   F[+_],
   Draw[_],
   PlacementEffect[+_] : LabelPlacementT[LayoutPlacementMeta[MU], TextStyle],
@@ -24,14 +23,13 @@ trait HighLevelApiImpl[
   SystemEvent >: TaskFinished
 ](
     using val 
-      wl : WidgetLibraryImpl[UpdateIn, MergeIn, Draw[Unit], PlacementEffect, SystemEvent],
-      runMerge : [T] => MergeIn[T] => UpdateIn[T, Nothing],
+      wl : WidgetLibraryImpl[UpdateIn, Draw[Unit], PlacementEffect, SystemEvent],
       liftReaction : LiftEventReaction[UpdateIn, WidgetTaskIn[Any]]
 )(
   val drawApi : SimpleDrawApi[MU, Draw[Unit]]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi:
   given wl.placementIsEffect.type = wl.placementIsEffect
-  given[A, B]: Mergeable[MergeIn, wl.FreeWidget[A, B]] = wl.freeTreesAreMergeable
+  given[A, B]: Mergeable[wl.FreeWidget[A, B]] = wl.freeTreesAreMergeable
   
   override type WidgetTask[+T] = WidgetTaskIn[T]
   override type Widget[+Event] = wl.Widget[Event]
@@ -43,7 +41,7 @@ trait HighLevelApiImpl[
   end label
   
   given statefulDraw : StatefulDraw[wl.Draw] with
-    override def drawStateful[T](name : String, state : State[?, ?, Any, T, Any, Any], childTree: PlacedWidget[?, ?, wl.Draw, ?, ?, ?]): wl.Draw = childTree.draw
+    override def drawStateful[T](name : String, state : State[?, Any, T, Any, Any], childTree: PlacedWidget[?, wl.Draw, ?, ?, ?]): wl.Draw = childTree.draw
   end statefulDraw
   
   override def stateful[T: Equiv, ParentEvent, ChildEvent](
@@ -65,21 +63,20 @@ trait HighLevelApiImpl[
     ChildRaiseableEvent : RichTypeChecker, ChildHandleableEvent >: HandleableEvent
   ](
     name     : String,
-    state    : State[[W] =>> wl.Update[W, RaiseableEvent], wl.Merge, WidgetTaskIn[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, wl.FreeWidget[ChildRaiseableEvent, ChildHandleableEvent]],
+    state    : State[[W] =>> wl.Update[W, RaiseableEvent], WidgetTaskIn[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, wl.FreeWidget[ChildRaiseableEvent, ChildHandleableEvent]],
     childTree: wl.FreeWidget[ChildRaiseableEvent, ChildHandleableEvent]
   ): wl.FreeWidget[RaiseableEvent, HandleableEvent] =
     given this.type = this
     wl.placementIsEffect.map(childTree)(placedChildTree =>
       Stateful[
         wl.Update,
-        wl.Merge,
         wl.Draw,
         WidgetTaskIn,
         [A, B] =>> wl.FreeWidget[A, B],
         [A, B] =>> wl.PlacedWidget[A, B],
         RaiseableEvent, HandleableEvent,
         ChildRaiseableEvent, ChildHandleableEvent
-      ](name, state, placedChildTree, runMerge)(using summon, summon, summon, statefulDraw, wl.freeTreesAreMergeable, freeStatefulFabricImpl, summon[RichTypeChecker[ChildRaiseableEvent]])
+      ](name, state, placedChildTree)(using summon, summon, statefulDraw, wl.freeTreesAreMergeable, freeStatefulFabricImpl, summon[RichTypeChecker[ChildRaiseableEvent]])
     ).map(wl.constructRealWidget)
   end freeStatefulFabricImpl
 end HighLevelApiImpl

@@ -18,19 +18,16 @@ trait LayoutLibrary[-WL <: WidgetLibrary, -ChildrenMeta]:
 end LayoutLibrary
 
 given layoutLibraryImpl[
-  WL <: WidgetLibraryGeneric[Update, Merge, Place, Draw, PlacedWidgetTree, DownEvent],
+  WL <: WidgetLibraryGeneric[Update, Place, Draw, PlacedWidgetTree, DownEvent],
   Update[+_, +_] : BiMonad,
-  Merge[+_] : Monad,
   Draw,
-  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],
+  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Draw, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],
   Place[+_] : FlatMap,
   ChildrenMeta,
   DownEvent
 ](
   using
-    ld: LayoutDraw[Draw, ChildrenMeta],
-    swapEffects: [A] => Place[Merge[A]] => Merge[Place[A]],
-    runMerge: [T] => Merge[T] => Update[T, Nothing]
+    ld: LayoutDraw[Draw, ChildrenMeta]
 ): LayoutLibrary[WL, ChildrenMeta] with
   override def layout[Event]
     (using lib : WL)
@@ -41,46 +38,38 @@ given layoutLibraryImpl[
     
     lib.placementIsEffect.map(placementStrategy(children))(
       placedChilren => 
-        lib.constructRealWidget(LayoutWidget(placedChilren, layout(_, placementStrategy), swapEffects, runMerge))
+        lib.constructRealWidget(LayoutWidget(placedChilren, layout(_, placementStrategy)))
     )
   end layout
 end layoutLibraryImpl
 
 final class LayoutWidget[
   UpdateF[+_, +_] : BiMonad,
-  MergeF[+_] : Monad,
   DrawF,
   PlaceF[+_] : FlatMap,
-  PlacedWidget[+RaisesEvent, -HandlesEvent] <: me.katze.gui4s.widget.PlacedWidget[UpdateF, MergeF, DrawF, [A, B] =>> PlaceF[PlacedWidget[A, B]], RaisesEvent, HandlesEvent],
+  PlacedWidget[+RaisesEvent, -HandlesEvent] <: me.katze.gui4s.widget.PlacedWidget[UpdateF, DrawF, [A, B] =>> PlaceF[PlacedWidget[A, B]], RaisesEvent, HandlesEvent],
   UpEvent,
   DownEvent,
   ChildrenMeta
 ](
     children : List[(PlacedWidget[UpEvent, DownEvent], ChildrenMeta)],
-    placeFree: List[PlaceF[PlacedWidget[UpEvent, DownEvent]]] => PlaceF[PlacedWidget[UpEvent, DownEvent]],
-    swapEffects: [A] => PlaceF[MergeF[A]] => MergeF[PlaceF[A]],
-    runMerge: [T] => MergeF[T] => UpdateF[T, Nothing]
+    placeFree: List[PlaceF[PlacedWidget[UpEvent, DownEvent]]] => PlaceF[PlacedWidget[UpEvent, DownEvent]]
 )(
   using LayoutDraw[DrawF, ChildrenMeta]
-) extends me.katze.gui4s.widget.PlacedWidget[UpdateF, MergeF, DrawF, [A, B] =>> PlaceF[PlacedWidget[A, B]], UpEvent, DownEvent]:
+) extends me.katze.gui4s.widget.PlacedWidget[UpdateF, DrawF, [A, B] =>> PlaceF[PlacedWidget[A, B]], UpEvent, DownEvent]:
 
   override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[PlacedWidget[UpEvent, DownEvent]], UpEvent] =
-    children.traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[PlacedWidget[UpEvent, DownEvent]]](_._1.handleDownEvent(event))
-      .flatMap(newChildren =>
-        // TODO Отрефакторить это чудо. Надо разделить все 4 эффекта, обобщить операцию над ними(такая же есть в стейтфуле).
-        val a : PlaceF[MergeF[PlaceF[PlacedWidget[UpEvent, DownEvent]]]] = placeFree(newChildren).map(_.mergeWithState(childrenStates))
-        val b : MergeF[PlaceF[PlacedWidget[UpEvent, DownEvent]]] = swapEffects(a).map(_.flatten)
-        val c : UpdateF[PlaceF[PlacedWidget[UpEvent, DownEvent]], Nothing] = runMerge(b)
-        c,
-      )
+    children
+      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[PlacedWidget[UpEvent, DownEvent]]](_._1.handleDownEvent(event))
+      .map(newChildren => placeFree(newChildren).flatMap(_.mergeWithState(childrenStates)))
   end handleDownEvent
 
   override def asFree: PlaceF[PlacedWidget[UpEvent, DownEvent]] =
     placeFree(children.map(_._1.asFree))
   end asFree
 
-  override def mergeWithState(oldState: Map[String, Any]): MergeF[PlaceF[PlacedWidget[UpEvent, DownEvent]]] =
-    children.traverse(_._1.mergeWithState(oldState)).map(placeFree)
+  override def mergeWithState(oldState: Map[String, Any]): PlaceF[PlacedWidget[UpEvent, DownEvent]] =
+    placeFree(children.map(_._1.mergeWithState(oldState)))
   end mergeWithState
 
   override def childrenStates: Map[String, Any] =

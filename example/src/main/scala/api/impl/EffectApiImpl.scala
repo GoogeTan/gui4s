@@ -9,13 +9,12 @@ import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 trait EffectApiImpl[
   F[+_], 
   Update[+_, +_],
-  Merge[+_],
   Draw,
   PlacementEffect[+_],
   WidgetTaskIn[+_],
   SystemEvent
 ](
-  using val wl : WidgetLibraryImpl[Update, Merge, Draw, PlacementEffect, SystemEvent]
+  using val wl : WidgetLibraryImpl[Update, Draw, PlacementEffect, SystemEvent]
 ) extends EffectApi[WidgetTaskIn]:
   override type Widget[+T] = wl.Widget[T]
   override type WidgetTask[+T] = WidgetTaskIn[T]

@@ -13,7 +13,6 @@ import me.katze.gui4s.widget.stateful.Path
 
 
 final class EventConsumerAdapter[
-  Merge[+_],
   F[+_] : Monad,
   Draw,
   PlacementEffect[+_],
@@ -21,14 +20,14 @@ final class EventConsumerAdapter[
   UpEvent,
   DownEvent,
 ](
-  using lib: WidgetLibraryImpl[[A, B] =>> EventResult[WidgetTask, A, B], Merge, Draw, PlacementEffect, DownEvent]
+  using lib: WidgetLibraryImpl[[A, B] =>> EventResult[WidgetTask, A, B], Draw, PlacementEffect, DownEvent]
 )(
     placedWidget: lib.PlacedWidget[UpEvent, DownEvent],
     taskSet : TaskSet[F, WidgetTask]
 )(
     using ProcessRequest[F, UpEvent], RunPlacement[F, PlacementEffect]
-) extends EventConsumer[F[EventConsumerAdapter[Merge, F, Draw, PlacementEffect, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
-  override def processEvent(event: DownEvent): F[EventProcessResult[F[EventConsumerAdapter[Merge, F, Draw, PlacementEffect, WidgetTask, UpEvent, DownEvent]], UpEvent]] =
+) extends EventConsumer[F[EventConsumerAdapter[F, Draw, PlacementEffect, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
+  override def processEvent(event: DownEvent): F[EventProcessResult[F[EventConsumerAdapter[F, Draw, PlacementEffect, WidgetTask, UpEvent, DownEvent]], UpEvent]] =
     val EventResult(newWidget, systemRequests, ios) = placedWidget.handleDownEvent(event)
     val runIOS = ios.traverse_(taskSet.pushTask)
     val freeWidget = newWidget.runPlacement.map(EventConsumerAdapter(_, taskSet))
@@ -40,7 +39,7 @@ final class EventConsumerAdapter[
   end draw
 end EventConsumerAdapter
 
-private def killDeadIOS[F[_] : Monad, T](taskSet : TaskSet[F, T], newWidget: PlacedWidget[?, ?, ?, ?, ?, ?]): F[Unit] =
+private def killDeadIOS[F[_] : Monad, T](taskSet : TaskSet[F, T], newWidget: PlacedWidget[?, ?, ?, ?, ?]): F[Unit] =
   for
     alive <- taskSet.aliveTasksPaths
     dead = newWidget.filterDeadPaths(Path(List("ROOT")), alive) /// TODO Проверить, что "ROOT" - хорошая идея.

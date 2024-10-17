@@ -1,11 +1,9 @@
 package me.katze.gui4s.example
 package draw.swing
 
-import api.impl.DrawMonadT
 import draw.{SimpleDrawApi, TextStyle}
 
 import cats.effect.*
-import cats.syntax.all.given
 
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -13,7 +11,7 @@ import scala.math.Numeric.Implicits.{*, given}
 import scala.swing.Font
 
 final class SwingDraw[
-  Draw[_] : DrawMonadT[MU], 
+  Draw[_], 
   MU : Numeric
 ](
   canvas: SwingWindowComponent

@@ -9,31 +9,28 @@ import me.katze.gui4s.widget
 final case class Stateful[
   // T, Event
   Update[+_, +_] : BiMonad : CatchEvents,
-  Merge[+_] : Monad,
   Draw : StatefulDraw, 
   WidgetTask[+_],
   FreeWidgetTree[+_, -_],
-  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Merge, Draw, FreeWidgetTree, RaisesEvent, HandlesEvent],
+  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Draw, FreeWidgetTree, RaisesEvent, HandlesEvent],
   RaiseableEvent,
   HandleableEvent >: TaskFinished,
   ChildRaiseableEvent,
   ChildHandleableEvent >: HandleableEvent,
 ](
   name: String,
-  state: State[[W] =>> Update[W, RaiseableEvent], Merge, WidgetTask[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
+  state: State[[W] =>> Update[W, RaiseableEvent], WidgetTask[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
   childTree: PlacedWidgetTree[ChildRaiseableEvent, ChildHandleableEvent],
-  runMerge : [T] => Merge[T] => Update[T, Nothing]
 )(
   using
-    freeWidgetIsMergeable: Mergeable[Merge, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
-    freeStatefulFabric   : FreeStatefulFabric[[W] =>> Update[W, RaiseableEvent], Merge, WidgetTask, FreeWidgetTree, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent],
+    freeWidgetIsMergeable: Mergeable[FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
+    freeStatefulFabric   : FreeStatefulFabric[[W] =>> Update[W, RaiseableEvent], WidgetTask, FreeWidgetTree, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent],
     ChildRaisableEventTypeChecker: RichTypeChecker[ChildRaiseableEvent]
-)  extends PlacedWidget[Update, Merge, Draw, FreeWidgetTree, RaiseableEvent, HandleableEvent]:
+)  extends PlacedWidget[Update, Draw, FreeWidgetTree, RaiseableEvent, HandleableEvent]:
   import freeWidgetIsMergeable.*
 
   private type StatefulUpdateResult = Update[FreeWidgetTree[RaiseableEvent, HandleableEvent], RaiseableEvent]
-  private type StatefulMergeResult = Merge[FreeWidgetTree[RaiseableEvent, HandleableEvent]]
-  private type InternalState = State[[W] =>> Update[W, RaiseableEvent], Merge, WidgetTask[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]]
+  private type InternalState = State[[W] =>> Update[W, RaiseableEvent], WidgetTask[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]]
 
   private def freeStateful(
                             state: InternalState,
@@ -75,15 +72,14 @@ final case class Stateful[
     freeStateful(this.state, this.childTree.asFree)
   end asFree
 
-  override def mergeWithState(oldState: Map[String, Any]): StatefulMergeResult =
+  override def mergeWithState(oldState: Map[String, Any]): FreeWidgetTree[RaiseableEvent, HandleableEvent] =
     oldState.get(this.name) match
       case Some(value) =>
-        for
-          newState <- this.state.mergeWithOldState(value)
-          mergedChildTree <-  freeWidgetIsMergeable.merge(this.childTree.asFree, newState.render)
-        yield freeStateful(newState, mergedChildTree)  
+        val newState = this.state.mergeWithOldState(value)
+        val mergedChildTree =  freeWidgetIsMergeable.merge(this.childTree.asFree, newState.render)
+        freeStateful(newState, mergedChildTree)  
       case None =>
-        asFree.pure[Merge]
+        asFree
     end match
   end mergeWithState
 
@@ -95,15 +91,10 @@ final case class Stateful[
 
   private def onChildUpdate(newChildF: Update[FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent], ChildRaiseableEvent]) : StatefulUpdateResult =
     for
-      a <- newChildF.catchEvents
-      (newChild, events) = a
+      tmp <- newChildF.catchEvents
+      (newChild, events) = tmp
       newState <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], InternalState](this.state)(reactOnEvent)
-      res <- runMerge(
-        for 
-          a <- freeWidgetIsMergeable.merge(this.childTree.asFree, newChild)
-          b <- freeWidgetIsMergeable.merge(a, newState.render)
-        yield freeStateful(state, b)
-      )
+      res = freeStateful(state, freeWidgetIsMergeable.merge(freeWidgetIsMergeable.merge(this.childTree.asFree, newChild), newState.render))
     yield res  
   end onChildUpdate
   

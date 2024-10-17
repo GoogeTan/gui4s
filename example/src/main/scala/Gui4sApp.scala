@@ -18,10 +18,10 @@ import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.{EventReaction, Path, TaskFinished, given}
 import update.ProcessRequest
 
-import me.katze.gui4s.widget.library.{given}
+import me.katze.gui4s.widget.library.given
 import cats.effect.std.Queue
 import me.katze.gui4s.example.draw.swing.SwingApi
-import me.katze.gui4s.widget.{EventResult, given}
+import me.katze.gui4s.widget.{EventResult, RunnableIO, given}
 import me.katze.gui4s.widget.stateful.{BiMonad, given}
 
 import scala.math.Numeric.Implicits.*
@@ -55,26 +55,22 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   
   type Place[+T] = Measurable[MU, T]
   type Update[+Task] = [A, B] =>> EventResult[Task, A, B]
-  type Merge[+Task] = [A] =>> Update[Task][A, Nothing]
   type TextStyle = Unit
   
-  given runMerge[Task] : ([T] => Merge[Task][T] => Update[Task][T, Nothing]) = [T] => (a : Merge[Task][T]) => a
-  // TODO Оказалось, что свапать эти эффекты просто так нельзя. Надо думать, что с этим делать.
-  given swapEffects[Task] : ([T] => Place[Merge[Task][T]] => Merge[Task][Place[T]]) =
-    ???//[T] => measurable => EventResult[MeasurableT[MU][T], T, Nothing](bounds => measurable(bounds).widget, ???, ???)
-  end swapEffects
-  
   given[Task] : LiftEventReaction[Update[Task], Task] with
-    override def lift[A, B](reaction: EventReaction[Task, A, B]): Update[Task][A, B] = ???
+    override def lift[A, B](reaction: EventReaction[Task, A, B]): Update[Task][A, B] =
+      EventResult[Task, A, B](reaction.newState, reaction.parentEvent, reaction.ios.map(RunnableIO(_, Path(), _))) // TODO Проверить, что тут правда нужен пустой путь
+    end lift
   end given
   
   def runDraw(draw : DrawT[MU][Unit]) : IO[Unit] =
     draw.run(Numeric[MU].zero, Numeric[MU].zero)
+  end runDraw
   
   final override def run(args: List[String]): IO[ExitCode] =
     for
       swing <- SwingApi.invoke
-      lowLevelLib = WidgetLibraryImpl[Update[WidgetTaskImpl[IO, Any]], Merge[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, DownEvent](swapEffects[WidgetTaskImpl[IO, Any]])
+      lowLevelLib = WidgetLibraryImpl[Update[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, DownEvent]()
       code <- run2(using lowLevelLib)(
         api = swing, 
         runDraw = runDraw, 
@@ -103,7 +99,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     Placement[+_],
     WidgetTask[+_]
   ](
-    using wl: WidgetLibraryImpl[Update[WidgetTask[Any]], Merge[WidgetTask[Any]], Draw[Unit], Placement, DownEvent]
+    using wl: WidgetLibraryImpl[Update[WidgetTask[Any]], Draw[Unit], Placement, DownEvent]
   )(
     api: DrawApi[F, MU],
     runDraw : Draw[Unit] => F[Unit],
@@ -141,14 +137,11 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     end sizeText
   end given
   
-  private def higherApi(lowLevelApi: WidgetLibraryImpl[Update[WidgetTaskImpl[IO, Any]], Merge[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, DownEvent], drawApi: SimpleDrawApi[MU, Draw[MU, Unit]]) : HL[lowLevelApi.Widget, WidgetTaskT[IO], MU] =
+  private def higherApi(lowLevelApi: WidgetLibraryImpl[Update[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, DownEvent], drawApi: SimpleDrawApi[MU, Draw[MU, Unit]]) : HL[lowLevelApi.Widget, WidgetTaskT[IO], MU] =
     given lowLevelApi.type = lowLevelApi
-    given runMerge2 : ([T] => Merge[WidgetTaskImpl[IO, Any]][T] => Update[WidgetTaskImpl[IO, Any]][T, Nothing]) = runMerge[WidgetTaskImpl[IO, Any]]
-    given swapEffects2 : ([T] => Place[Merge[WidgetTaskImpl[IO, Any]][T]] => Merge[WidgetTaskImpl[IO, Any]][Place[T]]) = swapEffects[WidgetTaskImpl[IO, Any]]
 
     new HighLevelApiImpl[
       Update[WidgetTaskImpl[IO, Any]], 
-      Merge[WidgetTaskImpl[IO, Any]], 
       IO,
       DrawT[MU], 
       Place,
