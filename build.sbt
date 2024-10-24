@@ -19,8 +19,7 @@ lazy val layout = (project in file("layout"))
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % "2.12.0",
       "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.17.1" % "test",
-      "io.github.iltotore" %% "iron" % "2.4.0",
+      "org.scalacheck" %% "scalacheck" % "1.17.1" % "test"
     ),
     coverageEnabled := true
   )

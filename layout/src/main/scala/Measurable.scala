@@ -3,7 +3,6 @@ package me.katze.gui4s.layout
 import bound.Bounds
 
 import cats.{FlatMap, Monad}
-import io.github.iltotore.iron.{*, given}
 
 import scala.annotation.tailrec
 

@@ -3,9 +3,6 @@ package rowcolumn
 
 import bound.{AxisBounds, AxisDependentBounds}
 
-import io.github.iltotore.iron.constraint.all.{*, given}
-import io.github.iltotore.iron.constraint.collection.{*, given}
-import io.github.iltotore.iron.{*, given}
 import scala.math.Fractional.{*, given}
 import scala.math.Fractional.Implicits.{*, given}
 

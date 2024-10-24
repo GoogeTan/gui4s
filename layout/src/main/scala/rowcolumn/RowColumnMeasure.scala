@@ -2,9 +2,6 @@ package me.katze.gui4s.layout
 package rowcolumn
 
 import bound.AxisDependentBounds
-
-import io.github.iltotore.iron.constraint.all.{*, given}
-import io.github.iltotore.iron.{*, given}
 import bound.withMaxValue
 
 def measure[MU : Fractional, T](
