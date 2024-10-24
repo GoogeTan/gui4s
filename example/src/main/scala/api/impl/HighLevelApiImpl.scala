@@ -9,13 +9,13 @@ import cats.data.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, Mergeable, RichTypeChecker, State, Stateful, StatefulDraw, TaskFinished}
+import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, Mergeable, RaiseEvent, RichTypeChecker, State, Stateful, StatefulDraw, TaskFinished, TaskResultCatcher}
 import me.katze.gui4s.widget.{PlacedWidget, library}
 
 trait HighLevelApiImpl[
-  UpdateIn[+_, +_]: BiMonad : CatchEvents, 
+  UpdateIn[+_, +_]: BiMonad : CatchEvents : RaiseEvent,
   F[+_],
-  Draw[_],
+  Draw[_] : Applicative,
   PlacementEffect[+_] : LabelPlacementT[LayoutPlacementMeta[MU], TextStyle],
   WidgetTaskIn[+_],
   MU,
@@ -28,7 +28,7 @@ trait HighLevelApiImpl[
 )(
   val drawApi : SimpleDrawApi[MU, Draw[Unit]]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi:
-  given wl.placementIsEffect.type = wl.placementIsEffect
+  given FlatMap[PlacementEffect] = wl.placementIsEffect
   given[A, B]: Mergeable[wl.FreeWidget[A, B]] = wl.freeTreesAreMergeable
   
   override type WidgetTask[+T] = WidgetTaskIn[T]
@@ -41,7 +41,7 @@ trait HighLevelApiImpl[
   end label
   
   given statefulDraw : StatefulDraw[wl.Draw] with
-    override def drawStateful[T](name : String, state : State[?, Any, T, Any, Any], childTree: PlacedWidget[?, wl.Draw, ?, ?, ?]): wl.Draw = childTree.draw
+    override def drawStateful[T](name : String, state : State[?, T, ?], childTree: PlacedWidget[?, wl.Draw, ?, ?, ?]): wl.Draw = childTree.draw
   end statefulDraw
   
   override def stateful[T: Equiv, ParentEvent, ChildEvent](
@@ -55,28 +55,32 @@ trait HighLevelApiImpl[
                                                             RichTypeChecker[ChildEvent],
                                                             RichTypeChecker[(T, T)]
                                                           ): Widget[ParentEvent] =
-    library.stateful[T, ParentEvent, ChildEvent, WidgetTaskIn](using wl)(using freeStatefulFabricImpl, liftReaction)(name, initialState, eventHandler , renderState)
+    library.stateful[T, ParentEvent, ChildEvent, WidgetTaskIn](using wl)(using liftReaction)(freeStatefulFabricImpl, name, initialState, eventHandler, renderState andThen addTaskResultCatcher[ChildEvent](name))
   end stateful
 
+  def addTaskResultCatcher[T : RichTypeChecker](name: String)(initial: Widget[T]) : Widget[T] =
+    wl.placementIsEffect
+      .map(initial)(TaskResultCatcher(name, ().pure[Draw], _, wl.constructRealWidget))
+      .map(wl.constructRealWidget)
+  end addTaskResultCatcher
+
   def freeStatefulFabricImpl[
-    RaiseableEvent, HandleableEvent >: TaskFinished,
-    ChildRaiseableEvent : RichTypeChecker, ChildHandleableEvent >: HandleableEvent
+    RaiseableEvent, HandleableEvent,
+    ChildRaiseableEvent, ChildHandleableEvent >: HandleableEvent
   ](
     name     : String,
-    state    : State[[W] =>> wl.Update[W, RaiseableEvent], WidgetTaskIn[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, wl.FreeWidget[ChildRaiseableEvent, ChildHandleableEvent]],
+    state    : State[[W] =>> wl.Update[W, RaiseableEvent], ChildRaiseableEvent, wl.FreeWidget[ChildRaiseableEvent, ChildHandleableEvent]],
     childTree: wl.FreeWidget[ChildRaiseableEvent, ChildHandleableEvent]
   ): wl.FreeWidget[RaiseableEvent, HandleableEvent] =
-    given this.type = this
     wl.placementIsEffect.map(childTree)(placedChildTree =>
       Stateful[
         wl.Update,
         wl.Draw,
-        WidgetTaskIn,
         [A, B] =>> wl.FreeWidget[A, B],
         [A, B] =>> wl.PlacedWidget[A, B],
         RaiseableEvent, HandleableEvent,
         ChildRaiseableEvent, ChildHandleableEvent
-      ](name, state, placedChildTree)(using summon, summon, statefulDraw, wl.freeTreesAreMergeable, freeStatefulFabricImpl, summon[RichTypeChecker[ChildRaiseableEvent]])
+      ](name, state, placedChildTree)(using summon, summon, statefulDraw, wl.freeTreesAreMergeable, freeStatefulFabricImpl)
     ).map(wl.constructRealWidget)
   end freeStatefulFabricImpl
 end HighLevelApiImpl
