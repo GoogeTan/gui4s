@@ -1,6 +1,6 @@
 package me.katze.gui4s.widget
 
-import stateful.{BiMonad, CatchEvents}
+import stateful.{BiMonad, CatchEvents, RaiseEvent}
 
 import scala.annotation.tailrec
 
@@ -44,6 +44,12 @@ given[Task]: BiMonad[[A, B] =>> EventResult[Task, A, B]] with
     helper(a)(f)
   end tailRecM
 end given
+
+given[Task] : RaiseEvent[[A, B] =>> EventResult[Task, A, B]] with
+  override def raise[Event](event: Event): EventResult[Task, Unit, Event] =
+    EventResult((), List(event), Nil)
+  end raise
+end given  
 
 given[Task] : CatchEvents[[A, B] =>> EventResult[Task, A, B]] with
   extension [W, E](old: EventResult[Task, W, E])

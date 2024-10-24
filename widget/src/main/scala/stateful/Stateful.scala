@@ -1,36 +1,29 @@
 package me.katze.gui4s.widget
 package stateful
 
-import cats.Monad
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
-// TODO Отделить ловку TaskFinished
 final case class Stateful[
-  // T, Event
   Update[+_, +_] : BiMonad : CatchEvents,
   Draw : StatefulDraw, 
-  WidgetTask[+_],
   FreeWidgetTree[+_, -_],
   PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Draw, FreeWidgetTree, RaisesEvent, HandlesEvent],
   RaiseableEvent,
-  HandleableEvent >: TaskFinished,
+  HandleableEvent,
   ChildRaiseableEvent,
   ChildHandleableEvent >: HandleableEvent,
 ](
   name: String,
-  state: State[[W] =>> Update[W, RaiseableEvent], WidgetTask[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
+  state: State[[W] =>> Update[W, RaiseableEvent], ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
   childTree: PlacedWidgetTree[ChildRaiseableEvent, ChildHandleableEvent],
 )(
   using
     freeWidgetIsMergeable: Mergeable[FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
-    freeStatefulFabric   : FreeStatefulFabric[[W] =>> Update[W, RaiseableEvent], WidgetTask, FreeWidgetTree, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent],
-    ChildRaisableEventTypeChecker: RichTypeChecker[ChildRaiseableEvent]
+    freeStatefulFabric   : FreeStatefulFabric[[W] =>> Update[W, RaiseableEvent], FreeWidgetTree, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent]
 )  extends PlacedWidget[Update, Draw, FreeWidgetTree, RaiseableEvent, HandleableEvent]:
-  import freeWidgetIsMergeable.*
-
   private type StatefulUpdateResult = Update[FreeWidgetTree[RaiseableEvent, HandleableEvent], RaiseableEvent]
-  private type InternalState = State[[W] =>> Update[W, RaiseableEvent], WidgetTask[ChildRaiseableEvent], ChildRaiseableEvent, RaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]]
+  private type InternalState = State[[W] =>> Update[W, RaiseableEvent], ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]]
 
   private def freeStateful(
                             state: InternalState,
@@ -39,35 +32,14 @@ final case class Stateful[
     freeStatefulFabric(this.name, state, childTree)
   end freeStateful
 
-  override def draw: Draw = summon[StatefulDraw[Draw]].drawStateful(this.name, this.state, this.childTree)
+  override def draw: Draw = 
+    summon[StatefulDraw[Draw]].drawStateful(this.name, this.state, this.childTree)
+  end draw
   
   override def handleDownEvent(event: HandleableEvent): StatefulUpdateResult =
-    event match
-      case task : TaskFinished => onTaskFinished(task)
-      case otherThing          => handleChildDownEvent(otherThing)
-    end match
+    onChildUpdate(this.childTree.handleDownEvent(event))
   end handleDownEvent
 
-  private def onTaskFinished(taskFinished: TaskFinished): StatefulUpdateResult =
-    taskFinished match
-      case TaskFinished(this.name, Nil, maybeEvent) => reactOnEvent(typeCheckEvent(maybeEvent))
-      case TaskFinished(this.name, childName :: furtherPath, eventForChild) => handleChildFinishedTask(childName, furtherPath, eventForChild)
-      case _ => handleSomeoneElsesTask()
-    end match
-  end onTaskFinished
-  
-  private def typeCheckEvent(maybeEvent : Any) : ChildRaiseableEvent =
-    ChildRaisableEventTypeChecker.tryCast(maybeEvent).valueOr(castError => throw Exception(castError))
-  end typeCheckEvent
-  
-  private def handleChildFinishedTask(childWidgetName : String, furtherPath: List[String], eventForChild: Any): StatefulUpdateResult =
-    onChildUpdate(this.childTree.handleDownEvent(TaskFinished(childWidgetName, furtherPath, eventForChild)))
-  end handleChildFinishedTask
-  
-  private def handleSomeoneElsesTask(): StatefulUpdateResult =
-    noUpdateNeeded()
-  end handleSomeoneElsesTask
-  
   override def asFree: FreeWidgetTree[RaiseableEvent, HandleableEvent] =
     freeStateful(this.state, this.childTree.asFree)
   end asFree
@@ -83,31 +55,18 @@ final case class Stateful[
     end match
   end mergeWithState
 
-  override def childrenStates: Map[String, Any] = Map(this.name -> this.state.state)
-  
-  private def handleChildDownEvent(otherThing : HandleableEvent): StatefulUpdateResult =
-    onChildUpdate(this.childTree.handleDownEvent(otherThing))
-  end handleChildDownEvent
+  override def childrenStates: Map[String, Any] = 
+    Map(this.name -> this.state.state)
+  end childrenStates
 
   private def onChildUpdate(newChildF: Update[FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent], ChildRaiseableEvent]) : StatefulUpdateResult =
     for
       tmp <- newChildF.catchEvents
       (newChild, events) = tmp
-      newState <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], InternalState](this.state)(reactOnEvent)
+      newState <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], InternalState](this.state)(_.handleEvent(_))
       res = freeStateful(state, freeWidgetIsMergeable.merge(freeWidgetIsMergeable.merge(this.childTree.asFree, newChild), newState.render))
     yield res  
   end onChildUpdate
-  
-  private def reactOnEvent(state : InternalState, event : ChildRaiseableEvent) : Update[InternalState, RaiseableEvent] =
-    this.state.handleEvent(event)
-  
-  private def reactOnEvent(event: ChildRaiseableEvent): StatefulUpdateResult =
-    ??? //reactOnEvent(this.state, event)
-  end reactOnEvent
-
-  private def noUpdateNeeded() : StatefulUpdateResult =
-    asFree.asMonad
-  end noUpdateNeeded
 
   override def filterDeadPaths(currentPath : Path, alive: Set[Path]): Set[Path] =
     val pathToSelf = currentPath.appendFirst(name)
