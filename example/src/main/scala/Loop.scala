@@ -26,10 +26,6 @@ type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
 
 /**
  * Запускает в отдельных потоках обновление виджета и его отрисовку.
- * @param initialWidget дерево виджетов
- * @param drawLoop Цикл отрисовки приложения. Например, может рисовать на экран, рендерить в html и тому подобное.
- * @param updateLoop цикл обновления дерева виджетов приложения.
- * @tparam DownEvent Тип событий, которые умеет обрабатывать виджет.
  */
 def applicationLoop[
   F[+_] : Concurrent, 
@@ -37,29 +33,28 @@ def applicationLoop[
   DownEvent, 
   Widget[_, _]
 ](
-    initialWidget : Queue[F, DownEvent] => F[Widget[UpEvent, DownEvent]],
-    drawLoop      : DrawLoop[F, Widget[UpEvent, DownEvent]],
-    updateLoop    : UpdateLoop[F, Widget, UpEvent, DownEvent]
+    eventBus     : Queue[F, DownEvent],
+    widgetCell   : AtomicCell[F, Widget[UpEvent, DownEvent]],
+    drawLoop     : DrawLoop[F, Widget[UpEvent, DownEvent]],
+    updateLoop   : UpdateLoop[F, Widget, UpEvent, DownEvent]
 ): F[ApplicationControl[F, DownEvent]] =
-
   for
-    bus <- Queue.unbounded[F, DownEvent]
-    root <- initialWidget(bus)
-    widget <- AtomicCell[F].of(root)
+    initialWidget <- widgetCell.get
     fork <- 
       Concurrent[F]
         .race(
-          updateLoop(root, widget.set, bus.take),
-          drawLoop(widget.get)
+          updateLoop(initialWidget, widgetCell.set, eventBus.take),
+          drawLoop(widgetCell.get)
         )
         .map(_.fold(identity, identity))
         .start
   yield ApplicationControl(
     fork.cancel,
     fork.joinWithNever,
-    bus.offer
+    eventBus.offer
   )
 end applicationLoop
+
 type DrawLoopExceptionHandler[F[_], Error] = Error => F[Option[ExitCode]]
 
 def drawLoop[
@@ -118,7 +113,7 @@ def updateStep[
   for
     event         <- eventSource
     eventResult   <- widget.processEvent(event)
-    placedWidget  <- eventResult.freeWidget
+    placedWidget  <- eventResult.widget
     exit          <- processRequests(eventResult.events)
   yield exit.toRight(placedWidget)
 end updateStep

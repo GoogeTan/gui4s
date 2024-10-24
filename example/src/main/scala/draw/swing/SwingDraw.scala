@@ -29,11 +29,10 @@ final class SwingDraw[
     lift.lift((ox, oy) =>
       IO:
         val font = Font("Comis Sans MS", Font.Plain, style.size)
-        canvas.getFontMetrics(font).getLineMetrics("1234", canvas.graphics)
-        
         canvas.graphics.setColor(Color(style.color))
+        val h =  canvas.getFontMetrics(font).getStringBounds(text, canvas.graphics)
         canvas.setFont(font)
-        canvas.graphics.drawString(text, (ox + x).toInt, (oy + y).toInt + 10)
+        canvas.graphics.drawString(text, (ox + x).toInt, (oy + y).toInt + (-h.getY).toInt)
     )
   end text
   

@@ -6,3 +6,5 @@ trait Window[+F[_], MU]:
   def size : F[(MU, MU)]
   def resize(width : MU, height : MU) : F[Unit]
   def enterFullScreen : F[Unit]
+  def onResizedByUser : F[Unit]
+end Window

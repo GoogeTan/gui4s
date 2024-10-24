@@ -35,7 +35,6 @@ given layoutLibraryImpl[
       children         : List[lib.Widget[Event]],
       placementStrategy: LayoutPlacementStrategy[lib.Widget[Event], lib.PlacedWidget[Event, lib.SystemEvent], lib.PlacementEffect, ChildrenMeta]
     ): lib.Widget[Event] =
-    
     lib.placementIsEffect.map(placementStrategy(children))(
       placedChilren => 
         lib.constructRealWidget(LayoutWidget(placedChilren, layout(_, placementStrategy)))

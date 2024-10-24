@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 
 import api.impl.{DrawMonad, DrawMonadT, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta}
 import api.{AdditionalAxisPlacementStrategy, HighLevelApi, LabelApi, LayoutApi, MainAxisPlacementStrategy}
-import draw.{DrawApi, ProcessRequestImpl, SimpleDrawApi, windowBounds}
+import draw.{DrawApi, NotifyDrawLoopWindow, ProcessRequestImpl, SimpleDrawApi, windowBounds}
 import place.{RunPlacement, additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
 import task.{IOOnThread, MultiMap, RefTaskSet, StlWrapperMultiMap, WidgetTaskImpl, runWidgetTask}
 import update.ApplicationRequest
@@ -15,14 +15,14 @@ import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget.library.lowlevel.{WidgetLibrary, WidgetLibraryImpl}
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.stateful.{EventReaction, Path, TaskFinished, given}
+import me.katze.gui4s.widget.stateful.{EventReaction, Path, TaskFinished}
 import update.ProcessRequest
 
 import me.katze.gui4s.widget.library.given
-import cats.effect.std.Queue
-import me.katze.gui4s.example.draw.swing.SwingApi
+import cats.effect.std.{AtomicCell, Queue}
+import draw.swing.{SwingApi, SwingWindow}
+
 import me.katze.gui4s.widget.{EventResult, RunnableIO, given}
-import me.katze.gui4s.widget.stateful.{BiMonad, given}
 
 import scala.math.Numeric.Implicits.*
 
@@ -31,7 +31,7 @@ type DrawT[MU] = [T] =>> Draw[MU, T]
 
 given[MU](using drawMonad: DrawMonad[DrawT[MU], MU]): LayoutDraw[Draw[MU, Unit], LayoutPlacementMeta[MU]] with
   override def drawChildren(children: List[(Draw[MU, Unit], LayoutPlacementMeta[MU])]): Draw[MU, Unit] =
-    children.traverse_((childDraw, coords) => drawMonad.move(coords.x, coords.y, childDraw))
+    children.traverse_((childDraw, coordinates) => drawMonad.move(coordinates.x, coordinates.y, childDraw))
   end drawChildren
 end given
 
@@ -47,13 +47,15 @@ type HL[W[+_], WT[+_], MU] <: HighLevelApi & LabelApi[Unit] & LayoutApi[MU]
     type WidgetTask[+T] = WT[T]
   }
 
-type DownEvent = TaskFinished
+object WindowResized 
+
+type DownEvent = TaskFinished | WindowResized.type
 type WidgetTaskT[F[+_]] = [T] =>> WidgetTaskImpl[F, T]
 
 trait Gui4sApp[MU : Fractional] extends IOApp:
   def rootWidget(using api: HighLevelApi & LayoutApi[MU] & LabelApi[Unit]) : api.Widget[ApplicationRequest]
   
-  type Place[+T] = Measurable[MU, T]
+  private type Place[+T] = Measurable[MU, T]
   type Update[+Task] = [A, B] =>> EventResult[Task, A, B]
   type TextStyle = Unit
   
@@ -63,37 +65,37 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     end lift
   end given
   
-  def runDraw(draw : DrawT[MU][Unit]) : IO[Unit] =
+  private def runDraw(draw: DrawT[MU][Unit]) : IO[Unit] =
     draw.run(Numeric[MU].zero, Numeric[MU].zero)
   end runDraw
   
   final override def run(args: List[String]): IO[ExitCode] =
     for
-      swing <- SwingApi.invoke
+      queue <- Queue.unbounded[IO, DownEvent]
+      (swing, unswing) <- SwingApi.invoke[MU]((a, b) => NotifyDrawLoopWindow(SwingWindow(a, b), queue.offer(WindowResized))).allocated
       lowLevelLib = WidgetLibraryImpl[Update[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, DownEvent]()
       code <- run2(using lowLevelLib)(
+        queue = queue,
         api = swing, 
         runDraw = runDraw, 
-        startTask = [T] => (task, drain) => startWidgetTask(task, drain),
+        startTask = [T] => (task : WidgetTaskImpl[IO, T], drain : T => IO[Unit]) => startWidgetTask(task, drain),
         drawLoopExceptionHandler = drawLoopExceptionHandler
       )(
         using
           summon,
           summon,
           higherApi(lowLevelLib, swing.graphics),
-          MeasurableRunPlacement(windowBounds(swing.window)),
           summon,
-          ProcessRequestImpl(swing.window)
       )
     yield code
   end run
 
-  def startWidgetTask[F[+_] : Concurrent, T](task : WidgetTaskImpl[F, T], resultDrain: T => F[Unit]): F[Fiber[F, Throwable, Unit]] =
+  private def startWidgetTask[F[+_] : Concurrent, T](task: WidgetTaskImpl[F, T], resultDrain: T => F[Unit]): F[Fiber[F, Throwable, Unit]] =
     // TODO add execution context
     Concurrent[F].start(runWidgetTask(task, resultDrain))
   end startWidgetTask
 
-  def run2[
+  private def run2[
     F[+_] : Concurrent,
     Draw[_] : DrawMonadT[MU],
     Placement[+_],
@@ -101,39 +103,46 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   ](
     using wl: WidgetLibraryImpl[Update[WidgetTask[Any]], Draw[Unit], Placement, DownEvent]
   )(
+    queue : Queue[F, DownEvent],
     api: DrawApi[F, MU],
     runDraw : Draw[Unit] => F[Unit],
     startTask : [T] => (WidgetTask[T], T => F[Unit]) => F[Fiber[F, Throwable, Unit]],
-    drawLoopExceptionHandler: DrawLoopExceptionHandler[F, Throwable]
+    drawLoopExceptionHandler: DrawLoopExceptionHandler[F, Throwable],
   )(
     using
-      HL[wl.Widget, WidgetTask, MU], 
-      RunPlacement[F, Placement], 
-      Lift[F, Draw, (MU, MU)], 
-      ProcessRequest[F, ApplicationRequest]
+      HL[wl.Widget, WidgetTask, MU],
+      Lift[F, Draw, (MU, MU)],
   ) : F[ExitCode] =
-    runWidget(using wl)(
-      widget = queue =>
-        for
-          taskSet <- Ref.of[F, MultiMap[Path, IOOnThread[F]]](StlWrapperMultiMap(Map()))
-          widget <- rootWidget.runPlacement
-        yield EventConsumerAdapter(using wl)(
-          widget,
+    for
+      taskSet <- Ref.of[F, MultiMap[Path, IOOnThread[F]]](StlWrapperMultiMap(Map()))
+      given RunPlacement[F, Placement] = MeasurableRunPlacement(windowBounds(api.window)).asInstanceOf[RunPlacement[F, Placement]] // TODO
+      given ProcessRequest[F, ApplicationRequest] = ProcessRequestImpl(api.window)
+
+      rootWidget <- rootWidget.runPlacement
+
+      widget <- AtomicCell[F].of(
+        EventConsumerAdapter(using wl)(
+          rootWidget,
           RefTaskSet[F, WidgetTask[Any]](taskSet, (path, task) => startTask(task, offerTask(queue, path, _))),
-        ),
-      drawLoopExceptionHandler = drawLoopExceptionHandler,
-      api = api.graphics,
-      runDraw = runDraw
-    )
+        )
+      )
+      graphics = api.graphics[Draw]
+      code <- applicationLoop[F, ApplicationRequest, DownEvent, [A, B] =>> EventConsumerAdapter[F, Draw[Unit], Placement, WidgetTask[Any], A, B]](
+        eventBus = queue,
+        widgetCell = widget,
+        drawLoop = currentWidget => drawLoop(drawLoopExceptionHandler, runDraw(graphics.beginDraw), runDraw(graphics.endDraw))(currentWidget.map(_.draw).flatMap(runDraw)),
+        updateLoop = updateLoop
+      ).flatMap(_.join)
+    yield code
   end run2
 
-  def offerTask[F[+_]](queue: Queue[F, TaskFinished], at: Path, taskResult: Any) : F[Unit] =
+  def offerTask[F[+_]](queue: Queue[F, ? >: TaskFinished], at: Path, taskResult: Any) : F[Unit] =
     queue.offer(TaskFinished(at, taskResult))
   end offerTask
 
   given LabelPlacement[Place[LayoutPlacementMeta[MU]], TextStyle] with
     override def sizeText(text: String, options: TextStyle): Place[LayoutPlacementMeta[MU]] =
-      _ => Sized(LayoutPlacementMeta(Fractional[MU].zero, Fractional[MU].zero), Fractional[MU].zero, Fractional[MU].fromInt(10))
+      _ => Sized(LayoutPlacementMeta(Fractional[MU].zero, Fractional[MU].zero), Fractional[MU].zero, Fractional[MU].fromInt(17))
     end sizeText
   end given
   
@@ -141,7 +150,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     given lowLevelApi.type = lowLevelApi
 
     new HighLevelApiImpl[
-      Update[WidgetTaskImpl[IO, Any]], 
+      Update[WidgetTaskImpl[IO, Any]],
       IO,
       DrawT[MU], 
       Place,
@@ -159,7 +168,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   private def containerPlacementCurried
         (using wl: WidgetLibrary { type PlacementEffect[+T] = Place[T] }): [Event] => (Axis, List[wl.Widget[Event]], MainAxisPlacementStrategy[MU], AdditionalAxisPlacementStrategy) 
         => wl.PlacementEffect[List[(wl.PlacedWidget[Event, wl.SystemEvent], LayoutPlacementMeta[MU])]] =
-    [Event] => (axis, elements, main, additional) => containerPlacement(axis, elements, main, additional)
+    [Event] => (axis : Axis, elements : List[wl.Widget[Event]], main : MainAxisPlacementStrategy[MU], additional : AdditionalAxisPlacementStrategy) => containerPlacement(axis, elements, main, additional)
   end containerPlacementCurried
   
   private def containerPlacement[Event](
@@ -177,7 +186,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     ).map(unpack)
   end containerPlacement
 
-  def drawLoopExceptionHandler(exception: Throwable): IO[Option[ExitCode]] =
+  private def drawLoopExceptionHandler(exception: Throwable): IO[Option[ExitCode]] =
     IO.println(s"Error in draw loop: $exception").map(_ => Some(ExitCode.Error))
   end drawLoopExceptionHandler
 end Gui4sApp

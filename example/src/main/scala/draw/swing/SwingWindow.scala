@@ -29,3 +29,8 @@ final class SwingWindow[MU : Numeric](frame: JFrame, component: SwingWindowCompo
       frame.setUndecorated(true)
       component.setSize(frame.getWidth, frame.getHeight)
   end enterFullScreen
+
+  override def onResizedByUser: IO[Unit] =
+    IO.unit
+  end onResizedByUser
+end SwingWindow

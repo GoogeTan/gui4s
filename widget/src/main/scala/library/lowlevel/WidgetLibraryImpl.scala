@@ -17,9 +17,9 @@ final class WidgetLibraryImpl[UpdateIn[+_, +_], DrawIn, PlacementEffectIn[+_], S
   override type PlacementEffect[+E] = PlacementEffectIn[E]
   override type Update = UpdateIn
 
-  final class Magic[+A, -B](
-                              preWidget : widget.PlacedWidget[Update, Draw, [C, D] =>> PlacementEffect[Magic[C, D]], A, B]
-                            ) extends widget.PlacedWidget[Update, Draw, [C, D] =>> PlacementEffect[Magic[C, D]], A, B]:
+  final case class Magic[+A, -B](
+                                  preWidget : widget.PlacedWidget[Update, Draw, [C, D] =>> PlacementEffect[Magic[C, D]], A, B]
+                                ) extends widget.PlacedWidget[Update, Draw, [C, D] =>> PlacementEffect[Magic[C, D]], A, B]:
     override def handleDownEvent(event: B): Update[PlacementEffect[Magic[A, B]], A] = preWidget.handleDownEvent(event)
 
     override def asFree: PlacementEffect[Magic[A, B]] = preWidget.asFree

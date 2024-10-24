@@ -33,7 +33,7 @@ final class EventConsumerAdapter[
     val freeWidget = newWidget.runPlacement.map(EventConsumerAdapter(_, taskSet))
     runIOS *> EventProcessResult(freeWidget, systemRequests).pure[F]
   end processEvent
-
+  
   override def draw: Draw =
     placedWidget.draw
   end draw
