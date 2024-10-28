@@ -1,8 +1,8 @@
 package me.katze.gui4s.example
 
-import api.impl.{DrawMonad, DrawMonadT, HighLevelApiImpl, LayoutApiImpl, LayoutPlacement, LayoutPlacementMeta}
-import api.{AdditionalAxisPlacementStrategy, HighLevelApi, LabelApi, LayoutApi, MainAxisPlacementStrategy}
-import draw.{DrawApi, NotifyDrawLoopWindow, ProcessRequestImpl, SimpleDrawApi, windowBounds}
+import api.impl.{DrawMonad, DrawMonadT, HighLevelApiImpl,  LayoutPlacement, LayoutPlacementMeta}
+import api.{HighLevelApi, LabelApi, LayoutApi}
+import draw.{DrawApi, NotifyDrawLoopWindow, ProcessRequestImpl, windowBounds}
 import place.{RunPlacement, additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
 import task.{IOOnThread, MultiMap, RefTaskSet, StlWrapperMultiMap, WidgetTaskImpl, runWidgetTask}
 import update.ApplicationRequest
@@ -14,7 +14,7 @@ import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.stateful.{EventReaction, Mergeable, Path, TaskFinished}
+import me.katze.gui4s.widget.stateful.{EventReaction, Path, TaskFinished}
 import update.ProcessRequest
 
 import me.katze.gui4s.example.given
@@ -74,7 +74,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   final override def run(args: List[String]): IO[ExitCode] =
     for
       queue <- Queue.unbounded[IO, DownEvent]
-      (swing, unswing) <- SwingApi.invoke[MU]((a, b) => NotifyDrawLoopWindow(SwingWindow(a, b), queue.offer(WindowResized))).allocated
+      (swing, unswing) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
       code <- run2[IO, DrawT[MU], Place, [A] =>> WidgetTaskImpl[IO, A]](
         queue = queue,
         api = swing, 

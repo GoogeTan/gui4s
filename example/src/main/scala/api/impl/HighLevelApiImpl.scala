@@ -14,6 +14,11 @@ import me.katze.gui4s.widget.{Widget, library}
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.given
 
+type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, MU] =
+  [Event]
+    => (Axis, List[Place[Widget[Update, Draw, Place, Recompose, Event, DownEvent]]], MainAxisPlacementStrategy[MU], AdditionalAxisPlacementStrategy)
+    => Place[List[(Widget[Update, Draw, Place, Recompose, Event, DownEvent], LayoutPlacementMeta[MU])]]
+
 final class HighLevelApiImpl[
   Update[+_, +_]: BiMonad : CatchEvents : RaiseEvent,
   Draw : Monoid,
