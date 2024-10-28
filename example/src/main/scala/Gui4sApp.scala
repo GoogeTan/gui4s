@@ -1,6 +1,6 @@
 package me.katze.gui4s.example
 
-import api.impl.{DrawMonad, DrawMonadT, HighLevelApiImpl, LayoutApiImpl, LayoutPlacementMeta}
+import api.impl.{DrawMonad, DrawMonadT, HighLevelApiImpl, LayoutApiImpl, LayoutPlacement, LayoutPlacementMeta}
 import api.{AdditionalAxisPlacementStrategy, HighLevelApi, LabelApi, LayoutApi, MainAxisPlacementStrategy}
 import draw.{DrawApi, NotifyDrawLoopWindow, ProcessRequestImpl, SimpleDrawApi, windowBounds}
 import place.{RunPlacement, additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
@@ -17,11 +17,12 @@ import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.{EventReaction, Mergeable, Path, TaskFinished}
 import update.ProcessRequest
 
+import me.katze.gui4s.example.given
 import me.katze.gui4s.widget.library.given
 import cats.effect.std.{AtomicCell, Queue}
 import draw.swing.{SwingApi, SwingWindow}
 
-import me.katze.gui4s.widget.{EventResult, Widget, RunnableIO, given}
+import me.katze.gui4s.widget.{EventResult, RunnableIO, Widget, given}
 import me.katze.gui4s.widget
 
 import scala.math.Numeric.Implicits.*
@@ -49,10 +50,11 @@ type HL[W[+_], WT[+_], MU] <: HighLevelApi & LabelApi[Unit] & LayoutApi[MU]
 
 object WindowResized 
 
-type DownEvent = TaskFinished | WindowResized.type
-type WidgetTaskT[F[+_]] = [T] =>> WidgetTaskImpl[F, T]
 
 trait Gui4sApp[MU : Fractional] extends IOApp:
+  type DownEvent = TaskFinished | WindowResized.type
+  type WidgetTaskT[F[+_]] = [T] =>> WidgetTaskImpl[F, T]
+
   def rootWidget(using api: HighLevelApi & LayoutApi[MU] & LabelApi[Unit]) : api.Widget[ApplicationRequest]
   
   private type Place[+T] = Measurable[MU, T]
@@ -87,11 +89,13 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
             Update[WidgetTaskImpl[IO, Any]],
             DrawT[MU][Unit],
             Place,
+            RecompositionEffect[IO, WidgetTaskImpl[IO, Any]],
             WidgetTaskT[IO],
             MU,
             TextStyle,
             DownEvent
-          ](swing.graphics, containerPlacementCurried).asInstanceOf[HL[[T] =>> Place[widget.Widget[Update[WidgetTaskImpl[IO, Unit]], Draw[MU, Unit], Place, T, DownEvent]], [T] =>> WidgetTaskImpl[IO, T], MU]],
+          ](swing.graphics, containerPlacementCurried)
+              .asInstanceOf[HL[[T] =>> Place[widget.Widget[Update[WidgetTaskImpl[IO, Unit]], Draw[MU, Unit], Place, RecompositionEffect[IO, WidgetTaskImpl[IO, Any]], T, DownEvent]], [T] =>> WidgetTaskImpl[IO, T], MU]],
           summon,
       )
     yield code
@@ -114,9 +118,9 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     startTask : [T] => (WidgetTask[T], T => F[Unit]) => F[Fiber[F, Throwable, Unit]],
     drawLoopExceptionHandler: DrawLoopExceptionHandler[F, Throwable],
   )(
-     using
-     HL[[T] =>> Placement[widget.Widget[Update[WidgetTask[Unit]], Draw[Unit], Placement, T, DownEvent]], WidgetTask, MU],
-     Lift[F, Draw, (MU, MU)],
+      using
+        HL[[T] =>> Placement[widget.Widget[Update[WidgetTask[Unit]], Draw[Unit], Placement, RecompositionEffect[F, WidgetTask[Any]], T, DownEvent]], WidgetTask, MU],
+        Lift[F, Draw, (MU, MU)],
   ) : F[ExitCode] =
     for
       taskSet <- Ref.of[F, MultiMap[Path, IOOnThread[F]]](StlWrapperMultiMap(Map()))
@@ -151,12 +155,9 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     end sizeText
   end given
   
-  type Widget[+A] = Place[widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, A, DownEvent]]
-  
-  private def containerPlacementCurried: [Event] => (Axis, List[Widget[Event]], MainAxisPlacementStrategy[MU], AdditionalAxisPlacementStrategy) 
-        => Place[List[(widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, Event, DownEvent], LayoutPlacementMeta[MU])]] =
-    [Event] => (axis : Axis, elements : List[Widget[Event]], main : MainAxisPlacementStrategy[MU], additional : AdditionalAxisPlacementStrategy) =>
-      weightedRowColumnPlace[MU, widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, Event, DownEvent]](
+  private def containerPlacementCurried: LayoutPlacement[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, RecompositionEffect[IO, WidgetTaskImpl[IO, Any]], DownEvent, MU] =
+    [Event] => (axis : Axis, elements, main, additional) =>
+      weightedRowColumnPlace[MU, widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, RecompositionEffect[IO, WidgetTaskImpl[IO, Any]], Event, DownEvent]](
         axis,
         elements.map(widget => MaybeWeighted(None, widget)),
         rowColumnPlace(_, _, mainAxisStrategyPlacement[MU](main, _, _), additionalAxisStrategyPlacement[MU](additional, _, _))

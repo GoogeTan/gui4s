@@ -8,11 +8,12 @@ trait EffectApiImpl[
   F[+_], 
   Update[+_, +_],
   Draw,
+  Recompose,
   Place[+_],
   WidgetTaskIn[+_],
   SystemEvent
 ] extends EffectApi[WidgetTaskIn]:
-  override type Widget[+T] = Place[widget.Widget[Update, Draw, Place, T, SystemEvent]]
+  override type Widget[+T] = Place[widget.Widget[Update, Draw, Place, Recompose, T, SystemEvent]]
   override type WidgetTask[+T] = WidgetTaskIn[T]
 
   override def sideEffect[T](name : String, task: WidgetTask[T]): Widget[T] =

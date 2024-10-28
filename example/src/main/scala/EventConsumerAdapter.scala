@@ -8,8 +8,29 @@ import update.{EventConsumer, EventProcessResult, ProcessRequest}
 import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget.{EventResult, Widget}
-import me.katze.gui4s.widget.stateful.Path
+import me.katze.gui4s.widget.stateful.{KillTasks, Path}
 
+type RecompositionEffect[F[_], WidgetTask] = (TaskSet[F, WidgetTask], Set[Path]) => F[Unit]
+
+given recompositionEffectIsMonoid[F[_] : Applicative, WidgetTask] : Monoid[RecompositionEffect[F, WidgetTask]] with
+  override def combine(x: RecompositionEffect[F, WidgetTask], y: RecompositionEffect[F, WidgetTask]): RecompositionEffect[F, WidgetTask] =
+    (a, b) => x(a, b) *> y(a, b)
+  end combine
+
+  override def empty: RecompositionEffect[F, WidgetTask] =
+    (_, _) => ().pure[F]
+end recompositionEffectIsMonoid
+
+given recompositionCanKillTasks[F[_] : Applicative, WidgetTask] : KillTasks[RecompositionEffect[F, WidgetTask]] with
+  override def killDetachableTasks(currentPath : Path): RecompositionEffect[F, WidgetTask] =
+    (taskSet, alive) =>
+      if alive.contains(currentPath) then
+        ().pure[F]
+      else
+        taskSet.killTask(currentPath)
+      end if
+  end killDetachableTasks
+end recompositionCanKillTasks
 
 final class EventConsumerAdapter[
   F[+_] : Monad,
@@ -19,15 +40,22 @@ final class EventConsumerAdapter[
   UpEvent,
   DownEvent,
 ](
-   placedWidget: Widget[[A, B] =>> EventResult[WidgetTask, A, B], Draw, Place, UpEvent, DownEvent],
-   taskSet : TaskSet[F, WidgetTask]
+    placedWidget: Widget[[A, B] =>> EventResult[WidgetTask, A, B], Draw, Place, RecompositionEffect[F, WidgetTask], UpEvent, DownEvent],
+    taskSet : TaskSet[F, WidgetTask]
 )(
     using ProcessRequest[F, UpEvent], RunPlacement[F, Place]
 ) extends EventConsumer[F[EventConsumerAdapter[F, Draw, Place, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
   override def processEvent(event: DownEvent): F[EventProcessResult[F[EventConsumerAdapter[F, Draw, Place, WidgetTask, UpEvent, DownEvent]], UpEvent]] =
     val EventResult(newWidget, systemRequests, ios) = placedWidget.handleDownEvent(event)
     val runIOS = ios.traverse_(taskSet.pushTask)
-    val freeWidget = newWidget.runPlacement.map(EventConsumerAdapter(_, taskSet))
+    val freeWidget =
+      for
+        newPlacedWidget <- newWidget.runPlacement
+        alive = newPlacedWidget.aliveWidgets(Path(List("ROOT")))
+        _ <- placedWidget.recomposed(Path(List("ROOT")))(taskSet, alive)
+      yield EventConsumerAdapter(newPlacedWidget, taskSet)
+    end freeWidget
+
     runIOS *> EventProcessResult(freeWidget, systemRequests).pure[F]
   end processEvent
   
@@ -35,11 +63,3 @@ final class EventConsumerAdapter[
     placedWidget.draw
   end draw
 end EventConsumerAdapter
-
-private def killDeadIOS[F[_] : Monad, T](taskSet : TaskSet[F, T], newWidget: Widget[?, ?, ?, ?, ?]): F[Unit] =
-  for
-    alive <- taskSet.aliveTasksPaths
-    dead = newWidget.filterDeadPaths(Path(List("ROOT")), alive) /// TODO Проверить, что "ROOT" - хорошая идея.
-    _ <- dead.toList.traverse_(taskSet.killTask)
-  yield ()
-end killDeadIOS

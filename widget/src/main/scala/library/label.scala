@@ -10,15 +10,19 @@ def label[
   Update[+_, +_] : BiMonad : CatchEvents,
   Draw,
   Place[+_] : FlatMap,
+  LeftComposition : Empty,
   LabelPlacementMeta,
   TextStyle
 ]
     (using
         textDraw : LabelDraw[Draw, LabelPlacementMeta],
-        textIsPlaceable : LabelPlacement[Place[LabelPlacementMeta], TextStyle],
-        drawOnlyWidget: (Place[Widget[Update, Draw, Place, Nothing, Any]], Draw) => Widget[Update, Draw, Place, Nothing, Any])
-    (text : String, style : TextStyle) : Place[Widget[Update, Draw, Place, Nothing, Any]] =
+        textIsPlaceable : LabelPlacement[Place[LabelPlacementMeta], TextStyle])
+    (
+      drawOnlyWidget : (Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]], Draw) => Widget[Update, Draw, Place, LeftComposition, Nothing, Any],
+      text : String, 
+      style : TextStyle
+    ) : Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]] =
   textIsPlaceable.sizeText(text, style).map:
     placementMetadata =>
-      drawOnlyWidget(label(text, style), textDraw.drawString(text, placementMetadata))
+      drawOnlyWidget(label(drawOnlyWidget, text, style), textDraw.drawString(text, placementMetadata))
 end label
