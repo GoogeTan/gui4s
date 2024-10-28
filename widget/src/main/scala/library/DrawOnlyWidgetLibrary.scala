@@ -1,17 +1,19 @@
 package me.katze.gui4s.widget
 package library
 
-import library.lowlevel.WidgetLibrary
-
-import cats.Monad
+import cats.{FlatMap, Monad}
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget.stateful.{BiMonad, Path}
 
-def drawOnlyWidget(using lib : WidgetLibrary)(asFreeIn: lib.FreeWidget[Nothing, Any], drawIn: lib.Draw)(using BiMonad[lib.Update]): lib.PlacedWidget[Nothing, Any] =
-  case object DrawOnlyWidget extends PlacedWidget[lib.Update, lib.Draw, lib.FreeWidget, Nothing, Any]:
-    override def handleDownEvent(event: Any): lib.Update[lib.FreeWidget[Nothing, Any], Nothing] = asFree.asMonad
+def drawOnlyWidget[
+  Update[+_, +_] : BiMonad,
+  Draw,
+  Place[+_] : FlatMap
+](asFreeIn: Place[PlacedWidget[Update, Draw, Place, Nothing, Any]], drawIn: Draw): PlacedWidget[Update, Draw, Place,Nothing, Any] =
+  case object DrawOnlyWidget extends PlacedWidget[Update, Draw, Place, Nothing, Any]:
+    override def handleDownEvent(event: Any): Update[Place[PlacedWidget[Update, Draw, Place,Nothing, Any]], Nothing] = asFree.asMonad
 
-    override def mergeWithState(oldState: Map[String, Any]): lib.FreeWidget[Nothing, Any] = asFree
+    override def mergeWithState(oldState: Map[String, Any]): Place[PlacedWidget[Update, Draw, Place,Nothing, Any]] = asFree
 
     override def childrenStates: Map[String, Any] = Map()
 
@@ -20,9 +22,9 @@ def drawOnlyWidget(using lib : WidgetLibrary)(asFreeIn: lib.FreeWidget[Nothing, 
                                   alive      : Set[Path]
                                 ): Set[Path] = alive
 
-    override val asFree: lib.FreeWidget[Nothing, Any] = asFreeIn
-    override val draw  : lib.Draw = drawIn
+    override val asFree: Place[PlacedWidget[Update, Draw, Place,Nothing, Any]] = asFreeIn
+    override val draw  : Draw = drawIn
   end DrawOnlyWidget
   
-  lib.constructRealWidget[Nothing, Any](DrawOnlyWidget)
+  DrawOnlyWidget
 end drawOnlyWidget

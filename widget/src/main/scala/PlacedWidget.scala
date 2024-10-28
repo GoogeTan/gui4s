@@ -2,12 +2,12 @@ package me.katze.gui4s.widget
 
 import stateful.Path
 
-trait PlacedWidget[+Update[+_, +_], +Draw, +FreeWidget[+_, -_], +RaiseableEvent, -HandleableEvent]:
-  def handleDownEvent(event : HandleableEvent) : Update[FreeWidget[RaiseableEvent, HandleableEvent], RaiseableEvent]
+trait PlacedWidget[+Update[+_, +_], +Draw, +Place[+_], +RaiseableEvent, -HandleableEvent]:
+  def handleDownEvent(event : HandleableEvent) : Update[Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]], RaiseableEvent]
   
-  def asFree : FreeWidget[RaiseableEvent, HandleableEvent]
+  def asFree : Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]]
 
-  def mergeWithState(oldState : Map[String, Any]) : FreeWidget[RaiseableEvent, HandleableEvent]
+  def mergeWithState(oldState : Map[String, Any]) : Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]]
 
   def childrenStates : Map[String, Any]
   

@@ -1,35 +1,32 @@
 package me.katze.gui4s.widget
 package stateful
 
+import cats.FlatMap
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
 final case class Stateful[
   Update[+_, +_] : BiMonad : CatchEvents,
   Draw : StatefulDraw, 
-  FreeWidgetTree[+_, -_],
-  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Draw, FreeWidgetTree, RaisesEvent, HandlesEvent],
+  Place[+_] : FlatMap,
   RaiseableEvent,
   HandleableEvent,
   ChildRaiseableEvent,
   ChildHandleableEvent >: HandleableEvent,
 ](
   name: String,
-  state: State[[W] =>> Update[W, RaiseableEvent], ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
-  childTree: PlacedWidgetTree[ChildRaiseableEvent, ChildHandleableEvent],
-)(
-  using
-    freeWidgetIsMergeable: Mergeable[FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]],
-    freeStatefulFabric   : FreeStatefulFabric[[W] =>> Update[W, RaiseableEvent], FreeWidgetTree, RaiseableEvent, HandleableEvent, ChildRaiseableEvent, ChildHandleableEvent]
-)  extends PlacedWidget[Update, Draw, FreeWidgetTree, RaiseableEvent, HandleableEvent]:
-  private type StatefulUpdateResult = Update[FreeWidgetTree[RaiseableEvent, HandleableEvent], RaiseableEvent]
-  private type InternalState = State[[W] =>> Update[W, RaiseableEvent], ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]]
+  state: State[[W] =>> Update[W, RaiseableEvent], ChildRaiseableEvent, Place[PlacedWidget[Update, Draw, Place, ChildRaiseableEvent, ChildHandleableEvent]]],
+  childTree: PlacedWidget[Update, Draw, Place, ChildRaiseableEvent, ChildHandleableEvent],
+)  extends PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]:
+  private type FreeWidgetTree[+A, -B] = Place[PlacedWidget[Update, Draw, Place, A, B]]
+  private type StatefulUpdateResult = Update[Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]], RaiseableEvent]
+  private type InternalState = State[[WW] =>> Update[WW, RaiseableEvent], ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]]
 
   private def freeStateful(
                             state: InternalState,
-                            childTree: FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]
+                            childTree: Place[PlacedWidget[Update, Draw, Place, ChildRaiseableEvent, ChildHandleableEvent]]
                           ) : FreeWidgetTree[RaiseableEvent, HandleableEvent] =
-    freeStatefulFabric(this.name, state, childTree)
+    childTree.map(Stateful(name, state, _))
   end freeStateful
 
   override def draw: Draw = 
@@ -48,7 +45,7 @@ final case class Stateful[
     oldState.get(this.name) match
       case Some(value) =>
         val newState = this.state.mergeWithOldState(value)
-        val mergedChildTree =  freeWidgetIsMergeable.merge(this.childTree.asFree, newState.render)
+        val mergedChildTree =  mergeFreeTrees(this.childTree.asFree, newState.render)
         freeStateful(newState, mergedChildTree)  
       case None =>
         asFree
@@ -64,7 +61,7 @@ final case class Stateful[
       tmp <- newChildF.catchEvents
       (newChild, events) = tmp
       newState <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], InternalState](this.state)(_.handleEvent(_))
-      res = freeStateful(state, freeWidgetIsMergeable.merge(freeWidgetIsMergeable.merge(this.childTree.asFree, newChild), newState.render))
+      res = freeStateful(state, mergeFreeTrees(mergeFreeTrees(this.childTree.asFree, newChild), newState.render))
     yield res  
   end onChildUpdate
 
@@ -72,4 +69,8 @@ final case class Stateful[
     val pathToSelf = currentPath.appendFirst(name)
     childTree.filterDeadPaths(pathToSelf, alive.excl(pathToSelf))
   end filterDeadPaths
+  
+  private def mergeFreeTrees[A, B](oldOne: FreeWidgetTree[A, B], newOne: FreeWidgetTree[A, B]) =
+    FlatMap[Place].flatMap2(oldOne, newOne)((a, b) => b.mergeWithState(a.childrenStates))
+  end mergeFreeTrees
 end Stateful

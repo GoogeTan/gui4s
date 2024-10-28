@@ -7,29 +7,25 @@ import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout
 import me.katze.gui4s.layout.Axis
-import me.katze.gui4s.widget.library.lowlevel.WidgetLibrary
+import me.katze.gui4s.widget.PlacedWidget
 import me.katze.gui4s.widget.library.{*, given}
 
 import scala.math.Fractional.Implicits.given
 
-trait LayoutApiImpl[-MU : Fractional](
-    using val wl: WidgetLibrary
+trait LayoutApiImpl[Update[+_, +_], Draw, Place[+_] : Functor, DownEvent, -MU : Fractional](
+    using val lib : LayoutLibrary[Place, [A] =>> PlacedWidget[Update, Draw, Place, A, DownEvent], LayoutPlacementMeta[MU]]
 )(
-    using val lib : LayoutLibrary[wl.type, LayoutPlacementMeta[MU]]
-)(
-  placement : [Event] => (Axis, List[wl.Widget[Event]], MainAxisPlacementStrategy[MU], AdditionalAxisPlacementStrategy) => wl.PlacementEffect[List[(wl.PlacedWidget[Event, wl.SystemEvent], LayoutPlacementMeta[MU])]]
+  placement : [Event] => (Axis, List[Place[PlacedWidget[Update, Draw, Place, Event, DownEvent]]], MainAxisPlacementStrategy[MU], AdditionalAxisPlacementStrategy) => Place[List[(PlacedWidget[Update, Draw, Place, Event, DownEvent], LayoutPlacementMeta[MU])]]
 ) extends LayoutApi[MU]:
 
-  given Functor[wl.PlacementEffect] = wl.placementIsEffect
-
-  override type Widget[+A] = wl.Widget[A]
+  final override type Widget[+Event] = Place[PlacedWidget[Update, Draw, Place, Event, DownEvent]]
 
   override def column[Event](
                               children: List[Widget[Event]],
                               verticalStrategy : MainAxisPlacementStrategy[MU],
                               horizontalStrategy : AdditionalAxisPlacementStrategy
                             ): Widget[Event] =
-    rowColumn(
+    linearLayout(
       children = children,
       axis = Axis.Vertical,
       mainAxisStrategy = verticalStrategy,
@@ -38,11 +34,11 @@ trait LayoutApiImpl[-MU : Fractional](
   end column
 
   override def row[Event](
-                           children: List[wl.Widget[Event]],
-                           horizontalStrategy : MainAxisPlacementStrategy[MU],
-                           verticalStrategy : AdditionalAxisPlacementStrategy
-                          ): wl.Widget[Event] =
-    rowColumn(
+                            children: List[Widget[Event]],
+                            horizontalStrategy : MainAxisPlacementStrategy[MU],
+                            verticalStrategy : AdditionalAxisPlacementStrategy
+                          ): Widget[Event] =
+    linearLayout(
       children = children,
       axis = Axis.Horizontal,
       mainAxisStrategy = horizontalStrategy,
@@ -50,12 +46,12 @@ trait LayoutApiImpl[-MU : Fractional](
     )
   end row
 
-  private def rowColumn[Event](
+  private def linearLayout[Event](
                                 children              : List[Widget[Event]],
                                 axis                  : Axis,
                                 mainAxisStrategy      : MainAxisPlacementStrategy[MU],
                                 additionalAxisStrategy: AdditionalAxisPlacementStrategy,
                               ) : Widget[Event] =
-    lib.layout(using wl)(children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
-  end rowColumn
+    lib.layout(children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
+  end linearLayout
 end LayoutApiImpl

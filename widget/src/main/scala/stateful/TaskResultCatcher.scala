@@ -8,25 +8,22 @@ final class TaskResultCatcher[
   +Update[+_, +_] : BiMonad : RaiseEvent,
   +Draw,
   +Place[+_] : FlatMap,
-  PlacedWidgetTree[+RaisesEvent, -HandlesEvent] <: PlacedWidget[Update, Draw, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaisesEvent, HandlesEvent],
   +RaiseableEvent : RichTypeChecker,
   -HandleableEvent >: TaskFinished
 ](
   name : String,
   nothingToDraw : Draw,
-  child : PlacedWidget[Update, Draw, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaiseableEvent, HandleableEvent],
-  constructRealWidget : PlacedWidget[Update, Draw, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaiseableEvent, HandleableEvent] => PlacedWidgetTree[RaiseableEvent, HandleableEvent]
-) extends PlacedWidget[Update, Draw, [A, B] =>> Place[PlacedWidgetTree[A, B]], RaiseableEvent, HandleableEvent]:
+  child : PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent],
+) extends PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]:
   override def draw: Draw = nothingToDraw
 
-  override def mergeWithState(oldState: Map[String, Any]): Place[PlacedWidgetTree[RaiseableEvent, HandleableEvent]] =
+  override def mergeWithState(oldState: Map[String, Any]): Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]] =
     child
       .mergeWithState(oldState)
-      .map(TaskResultCatcher(name, nothingToDraw, _, constructRealWidget))
-      .map(constructRealWidget)
+      .map(TaskResultCatcher(name, nothingToDraw, _))
   end mergeWithState
 
-  override def handleDownEvent(event: HandleableEvent): Update[Place[PlacedWidgetTree[RaiseableEvent, HandleableEvent]], RaiseableEvent] =
+  override def handleDownEvent(event: HandleableEvent): Update[Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
     event match
       case TaskFinished(this.name, Nil, newEvent) => onTaskFinished(newEvent, event)
       case TaskFinished(this.name, childName :: furtherPath, eventForChild) => handleChildFinishedTask(childName, furtherPath, eventForChild)
@@ -34,19 +31,14 @@ final class TaskResultCatcher[
     end match
   end handleDownEvent
 
-  private def handleChildFinishedTask(childWidgetName : String, furtherPath: List[String], eventForChild: Any) : Update[Place[PlacedWidgetTree[RaiseableEvent, HandleableEvent]], RaiseableEvent] =
+  private def handleChildFinishedTask(childWidgetName : String, furtherPath: List[String], eventForChild: Any) : Update[Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
     for
-      freeChild : Place[PlacedWidgetTree[RaiseableEvent, HandleableEvent]] <- child.handleDownEvent(TaskFinished(childWidgetName, furtherPath, eventForChild))
-      freeCatcher = freeChild.map(
-        a =>
-          constructRealWidget(
-            TaskResultCatcher[Update, Draw, Place, PlacedWidgetTree, RaiseableEvent, HandleableEvent](name, nothingToDraw, a, constructRealWidget)
-          )
-      )
+      freeChild : Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]] <- child.handleDownEvent(TaskFinished(childWidgetName, furtherPath, eventForChild))
+      freeCatcher = freeChild.map(TaskResultCatcher(name, nothingToDraw, _))
     yield freeCatcher
   end handleChildFinishedTask
 
-  private def onTaskFinished(newEvent: Any, event : HandleableEvent): Update[Place[PlacedWidgetTree[RaiseableEvent, HandleableEvent]], RaiseableEvent] =
+  private def onTaskFinished(newEvent: Any, event : HandleableEvent): Update[Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
     val eventToRaise = summon[RichTypeChecker[RaiseableEvent]]
       .tryCast(newEvent)
       .fold(a => throw Exception(a), a => a)
@@ -63,11 +55,10 @@ final class TaskResultCatcher[
     child.filterDeadPaths(currentPath, alive)
   end filterDeadPaths
 
-  override def asFree: Place[PlacedWidgetTree[RaiseableEvent, HandleableEvent]] =
+  override def asFree: Place[PlacedWidget[Update, Draw, Place, RaiseableEvent, HandleableEvent]] =
     child
       .asFree
-      .map(TaskResultCatcher(name, nothingToDraw, _, constructRealWidget))
-      .map(constructRealWidget)
+      .map(TaskResultCatcher(name, nothingToDraw, _))
   end asFree
 
   override def childrenStates: Map[String, Any] =

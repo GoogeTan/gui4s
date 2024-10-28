@@ -9,6 +9,9 @@ object ExampleApp extends Gui4sApp[Float]:
       List(
         api.label("12345", ()),
         api.label("12345", ()),
+        api.label("12345", ()),
+        api.label("12345", ()),
+        api.label("12345", ()),
         api.label("12345", ())
       ),
       MainAxisPlacementStrategy.SpaceBetween,
