@@ -8,26 +8,23 @@ import update.{EventConsumer, EventProcessResult, ProcessRequest}
 import cats.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget.{EventResult, PlacedWidget}
-import me.katze.gui4s.widget.library.lowlevel.WidgetLibraryImpl
 import me.katze.gui4s.widget.stateful.Path
 
 
 final class EventConsumerAdapter[
   F[+_] : Monad,
   Draw,
-  PlacementEffect[+_],
+  Place[+_],
   WidgetTask,
   UpEvent,
   DownEvent,
 ](
-  using lib: WidgetLibraryImpl[[A, B] =>> EventResult[WidgetTask, A, B], Draw, PlacementEffect, DownEvent]
-)(
-    placedWidget: lib.PlacedWidget[UpEvent, DownEvent],
+    placedWidget: PlacedWidget[[A, B] =>> EventResult[WidgetTask, A, B], Draw, Place, UpEvent, DownEvent],
     taskSet : TaskSet[F, WidgetTask]
 )(
-    using ProcessRequest[F, UpEvent], RunPlacement[F, PlacementEffect]
-) extends EventConsumer[F[EventConsumerAdapter[F, Draw, PlacementEffect, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
-  override def processEvent(event: DownEvent): F[EventProcessResult[F[EventConsumerAdapter[F, Draw, PlacementEffect, WidgetTask, UpEvent, DownEvent]], UpEvent]] =
+    using ProcessRequest[F, UpEvent], RunPlacement[F, Place]
+) extends EventConsumer[F[EventConsumerAdapter[F, Draw, Place, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
+  override def processEvent(event: DownEvent): F[EventProcessResult[F[EventConsumerAdapter[F, Draw, Place, WidgetTask, UpEvent, DownEvent]], UpEvent]] =
     val EventResult(newWidget, systemRequests, ios) = placedWidget.handleDownEvent(event)
     val runIOS = ios.traverse_(taskSet.pushTask)
     val freeWidget = newWidget.runPlacement.map(EventConsumerAdapter(_, taskSet))

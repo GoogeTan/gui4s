@@ -1,7 +1,6 @@
 package me.katze.gui4s.widget
 package library
 
-import library.lowlevel.WidgetLibrary
 import me.katze.gui4s.widget.stateful.*
 
 import cats.*
@@ -16,39 +15,39 @@ trait LiftEventReaction[
   def lift[A, B](reaction : EventReaction[WidgetTask, A, B]) : Update[A, B]
 end LiftEventReaction
 
-def stateful[T: Equiv, ParentEvent, ChildEvent, WidgetTask[+_]]
-  (using lib: WidgetLibrary)
-  (using liftEventReaction : LiftEventReaction[lib.Update, WidgetTask[Any]]
+def stateful[
+  Update[+_, +_] : BiMonad : CatchEvents,
+  Draw : StatefulDraw,
+  Place[+_] : FlatMap,
+  T: Equiv,
+  ParentEvent, ChildEvent,
+  DownEvent,
+  WidgetTask[+_]
+](
+    using liftEventReaction : LiftEventReaction[Update, WidgetTask[Any]]
 )(
-    statefulFabric : FreeStatefulFabric[
-    [U] =>> lib.Update[U, ParentEvent],
-    lib.FreeWidget,
-    ParentEvent, lib.SystemEvent,
-    ChildEvent, lib.SystemEvent
-  ],
     name          : String,
     initialState  : T,
     eventHandler  : (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
-    renderState   : T => lib.Widget[ChildEvent]
-)(
-  using RichTypeChecker[(T, T)]
-): lib.Widget[ParentEvent] =
+    renderState   : T => Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]],
+    typeCheck     : RichTypeChecker[(T, T)]
+): Place[PlacedWidget[Update, Draw, Place, ParentEvent, DownEvent]] =
   final case class StateImpl(
                               initialState: T,
                               currentState: T
-                            ) extends State[[U] =>> lib.Update[U, ParentEvent], ChildEvent, lib.Widget[ChildEvent]]:
-    override def handleEvent(event: ChildEvent): lib.Update[State[[U] =>> lib.Update[U, ParentEvent], ChildEvent, lib.Widget[ChildEvent]], ParentEvent] =
+                            ) extends State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]]]:
+    override def handleEvent(event: ChildEvent): Update[State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]]], ParentEvent] =
       liftEventReaction.lift(
         eventHandler(currentState, event).mapState(StateImpl(initialState, _))
       )
     end handleEvent
 
-    override def render: lib.Widget[ChildEvent] = renderState(currentState)
+    override def render: Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]] = renderState(currentState)
 
     override def state: Any = (initialState, currentState)
 
-    override def mergeWithOldState(maybeOldState: Any): State[[U] =>> lib.Update[U, ParentEvent], ChildEvent, lib.Widget[ChildEvent]] =
-      val (oldInitialState, oldState) = summon[RichTypeChecker[(T, T)]].tryCast(maybeOldState).valueOr(error => throw Exception(error))
+    override def mergeWithOldState(maybeOldState: Any): State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]]] =
+      val (oldInitialState, oldState) = typeCheck.tryCast(maybeOldState).valueOr(error => throw Exception(error))
       if Equiv[T].equiv(oldInitialState, initialState) then
         StateImpl(oldInitialState, currentState)
       else
@@ -58,5 +57,5 @@ def stateful[T: Equiv, ParentEvent, ChildEvent, WidgetTask[+_]]
   end StateImpl
 
   val state = StateImpl(initialState, initialState)
-  statefulFabric(name, state, state.render)
+  state.render.map(Stateful(name, state, _))
 end stateful
