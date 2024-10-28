@@ -7,7 +7,7 @@ import update.{EventConsumer, EventProcessResult, ProcessRequest}
 
 import cats.*
 import cats.syntax.all.{*, given}
-import me.katze.gui4s.widget.{EventResult, PlacedWidget}
+import me.katze.gui4s.widget.{EventResult, Widget}
 import me.katze.gui4s.widget.stateful.Path
 
 
@@ -19,8 +19,8 @@ final class EventConsumerAdapter[
   UpEvent,
   DownEvent,
 ](
-    placedWidget: PlacedWidget[[A, B] =>> EventResult[WidgetTask, A, B], Draw, Place, UpEvent, DownEvent],
-    taskSet : TaskSet[F, WidgetTask]
+   placedWidget: Widget[[A, B] =>> EventResult[WidgetTask, A, B], Draw, Place, UpEvent, DownEvent],
+   taskSet : TaskSet[F, WidgetTask]
 )(
     using ProcessRequest[F, UpEvent], RunPlacement[F, Place]
 ) extends EventConsumer[F[EventConsumerAdapter[F, Draw, Place, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
@@ -36,7 +36,7 @@ final class EventConsumerAdapter[
   end draw
 end EventConsumerAdapter
 
-private def killDeadIOS[F[_] : Monad, T](taskSet : TaskSet[F, T], newWidget: PlacedWidget[?, ?, ?, ?, ?]): F[Unit] =
+private def killDeadIOS[F[_] : Monad, T](taskSet : TaskSet[F, T], newWidget: Widget[?, ?, ?, ?, ?]): F[Unit] =
   for
     alive <- taskSet.aliveTasksPaths
     dead = newWidget.filterDeadPaths(Path(List("ROOT")), alive) /// TODO Проверить, что "ROOT" - хорошая идея.

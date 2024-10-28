@@ -26,27 +26,27 @@ def stateful[
 ](
     using liftEventReaction : LiftEventReaction[Update, WidgetTask[Any]]
 )(
-    name          : String,
-    initialState  : T,
-    eventHandler  : (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
-    renderState   : T => Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]],
-    typeCheck     : RichTypeChecker[(T, T)]
-): Place[PlacedWidget[Update, Draw, Place, ParentEvent, DownEvent]] =
+   name          : String,
+   initialState  : T,
+   eventHandler  : (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
+   renderState   : T => Place[Widget[Update, Draw, Place, ChildEvent, DownEvent]],
+   typeCheck     : RichTypeChecker[(T, T)]
+): Place[Widget[Update, Draw, Place, ParentEvent, DownEvent]] =
   final case class StateImpl(
                               initialState: T,
                               currentState: T
-                            ) extends State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]]]:
-    override def handleEvent(event: ChildEvent): Update[State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]]], ParentEvent] =
+                            ) extends State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, ChildEvent, DownEvent]]]:
+    override def handleEvent(event: ChildEvent): Update[State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, ChildEvent, DownEvent]]], ParentEvent] =
       liftEventReaction.lift(
         eventHandler(currentState, event).mapState(StateImpl(initialState, _))
       )
     end handleEvent
 
-    override def render: Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]] = renderState(currentState)
+    override def render: Place[Widget[Update, Draw, Place, ChildEvent, DownEvent]] = renderState(currentState)
 
     override def state: Any = (initialState, currentState)
 
-    override def mergeWithOldState(maybeOldState: Any): State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[PlacedWidget[Update, Draw, Place, ChildEvent, DownEvent]]] =
+    override def mergeWithOldState(maybeOldState: Any): State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, ChildEvent, DownEvent]]] =
       val (oldInitialState, oldState) = typeCheck.tryCast(maybeOldState).valueOr(error => throw Exception(error))
       if Equiv[T].equiv(oldInitialState, initialState) then
         StateImpl(oldInitialState, currentState)

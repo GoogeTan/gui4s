@@ -24,8 +24,8 @@ given layoutLibraryImpl[
 ](
   using
     ld: LayoutDraw[Draw, ChildrenMeta]
-): LayoutLibrary[Place, [A] =>> PlacedWidget[Update, Draw, Place, A, DownEvent], ChildrenMeta] with
-  type Widget[A] = PlacedWidget[Update, Draw, Place, A, DownEvent]
+): LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, A, DownEvent], ChildrenMeta] with
+  type Widget[A] = me.katze.gui4s.widget.Widget[Update, Draw, Place, A, DownEvent]
 
   override def layout[Event](
                               children         : List[Place[Widget[Event]]],
@@ -43,23 +43,23 @@ final class LayoutWidget[
   DownEvent,
   ChildrenMeta
 ](
-    children : List[(PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent], ChildrenMeta)],
-    placeFree: List[PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]] => PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]
+   children : List[(Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent], ChildrenMeta)],
+   placeFree: List[PlaceF[Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]] => PlaceF[Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]
 )(
   using LayoutDraw[DrawF, ChildrenMeta]
-) extends me.katze.gui4s.widget.PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]:
+) extends me.katze.gui4s.widget.Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]:
 
-  override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]], UpEvent] =
+  override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]], UpEvent] =
     children
-      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]](_._1.handleDownEvent(event))
+      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]](_._1.handleDownEvent(event))
       .map(newChildren => placeFree(newChildren).flatMap(_.mergeWithState(childrenStates)))
   end handleDownEvent
 
-  override def asFree: PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]] =
+  override def asFree: PlaceF[Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]] =
     placeFree(children.map(_._1.asFree))
   end asFree
 
-  override def mergeWithState(oldState: Map[String, Any]): PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]] =
+  override def mergeWithState(oldState: Map[String, Any]): PlaceF[Widget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]] =
     placeFree(children.map(_._1.mergeWithState(oldState)))
   end mergeWithState
 

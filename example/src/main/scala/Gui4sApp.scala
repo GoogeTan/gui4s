@@ -21,7 +21,8 @@ import me.katze.gui4s.widget.library.given
 import cats.effect.std.{AtomicCell, Queue}
 import draw.swing.{SwingApi, SwingWindow}
 
-import me.katze.gui4s.widget.{EventResult, PlacedWidget, RunnableIO, given}
+import me.katze.gui4s.widget.{EventResult, Widget, RunnableIO, given}
+import me.katze.gui4s.widget
 
 import scala.math.Numeric.Implicits.*
 
@@ -90,7 +91,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
             MU,
             TextStyle,
             DownEvent
-          ](swing.graphics, containerPlacementCurried).asInstanceOf[HL[[T] =>> Place[PlacedWidget[Update[WidgetTaskImpl[IO, Unit]], Draw[MU, Unit], Place, T, DownEvent]], [T] =>> WidgetTaskImpl[IO, T], MU]],
+          ](swing.graphics, containerPlacementCurried).asInstanceOf[HL[[T] =>> Place[widget.Widget[Update[WidgetTaskImpl[IO, Unit]], Draw[MU, Unit], Place, T, DownEvent]], [T] =>> WidgetTaskImpl[IO, T], MU]],
           summon,
       )
     yield code
@@ -113,9 +114,9 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     startTask : [T] => (WidgetTask[T], T => F[Unit]) => F[Fiber[F, Throwable, Unit]],
     drawLoopExceptionHandler: DrawLoopExceptionHandler[F, Throwable],
   )(
-    using
-      HL[[T] =>> Placement[PlacedWidget[Update[WidgetTask[Unit]], Draw[Unit], Placement, T, DownEvent]], WidgetTask, MU],
-      Lift[F, Draw, (MU, MU)],
+     using
+     HL[[T] =>> Placement[widget.Widget[Update[WidgetTask[Unit]], Draw[Unit], Placement, T, DownEvent]], WidgetTask, MU],
+     Lift[F, Draw, (MU, MU)],
   ) : F[ExitCode] =
     for
       taskSet <- Ref.of[F, MultiMap[Path, IOOnThread[F]]](StlWrapperMultiMap(Map()))
@@ -150,12 +151,12 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     end sizeText
   end given
   
-  type Widget[+A] = Place[PlacedWidget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, A, DownEvent]]
+  type Widget[+A] = Place[widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, A, DownEvent]]
   
   private def containerPlacementCurried: [Event] => (Axis, List[Widget[Event]], MainAxisPlacementStrategy[MU], AdditionalAxisPlacementStrategy) 
-        => Place[List[(PlacedWidget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, Event, DownEvent], LayoutPlacementMeta[MU])]] =
+        => Place[List[(widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, Event, DownEvent], LayoutPlacementMeta[MU])]] =
     [Event] => (axis : Axis, elements : List[Widget[Event]], main : MainAxisPlacementStrategy[MU], additional : AdditionalAxisPlacementStrategy) =>
-      weightedRowColumnPlace[MU, PlacedWidget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, Event, DownEvent]](
+      weightedRowColumnPlace[MU, widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, Event, DownEvent]](
         axis,
         elements.map(widget => MaybeWeighted(None, widget)),
         rowColumnPlace(_, _, mainAxisStrategyPlacement[MU](main, _, _), additionalAxisStrategyPlacement[MU](additional, _, _))

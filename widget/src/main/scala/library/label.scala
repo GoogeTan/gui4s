@@ -16,8 +16,8 @@ def label[
     (using
         textDraw : LabelDraw[Draw, LabelPlacementMeta],
         textIsPlaceable : LabelPlacement[Place[LabelPlacementMeta], TextStyle],
-        drawOnlyWidget: (Place[PlacedWidget[Update, Draw, Place, Nothing, Any]], Draw) => PlacedWidget[Update, Draw, Place, Nothing, Any])
-    (text : String, style : TextStyle) : Place[PlacedWidget[Update, Draw, Place, Nothing, Any]] =
+        drawOnlyWidget: (Place[Widget[Update, Draw, Place, Nothing, Any]], Draw) => Widget[Update, Draw, Place, Nothing, Any])
+    (text : String, style : TextStyle) : Place[Widget[Update, Draw, Place, Nothing, Any]] =
   textIsPlaceable.sizeText(text, style).map:
     placementMetadata =>
       drawOnlyWidget(label(text, style), textDraw.drawString(text, placementMetadata))
