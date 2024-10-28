@@ -19,13 +19,14 @@ given layoutLibraryImpl[
   Update[+_, +_] : BiMonad,
   Draw,
   Place[+_] : FlatMap,
+  LeftComposition : Monoid,
   ChildrenMeta,
   DownEvent
 ](
   using
     ld: LayoutDraw[Draw, ChildrenMeta]
-): LayoutLibrary[Place, [A] =>> PlacedWidget[Update, Draw, Place, A, DownEvent], ChildrenMeta] with
-  type Widget[A] = PlacedWidget[Update, Draw, Place, A, DownEvent]
+): LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, LeftComposition, A, DownEvent], ChildrenMeta] with
+  type Widget[A] = me.katze.gui4s.widget.Widget[Update, Draw, Place, LeftComposition, A, DownEvent]
 
   override def layout[Event](
                               children         : List[Place[Widget[Event]]],
@@ -39,27 +40,28 @@ final class LayoutWidget[
   UpdateF[+_, +_] : BiMonad,
   DrawF,
   PlaceF[+_] : FlatMap,
+  LeftComposition : Monoid,
   UpEvent,
   DownEvent,
   ChildrenMeta
 ](
-    children : List[(PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent], ChildrenMeta)],
-    placeFree: List[PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]] => PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]
+  children : List[(Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent], ChildrenMeta)],
+  placeFree: List[PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]] => PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]
 )(
   using LayoutDraw[DrawF, ChildrenMeta]
-) extends me.katze.gui4s.widget.PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]:
+) extends me.katze.gui4s.widget.Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]:
 
-  override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]], UpEvent] =
+  override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]], UpEvent] =
     children
-      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]]](_._1.handleDownEvent(event))
+      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]](_._1.handleDownEvent(event))
       .map(newChildren => placeFree(newChildren).flatMap(_.mergeWithState(childrenStates)))
   end handleDownEvent
 
-  override def asFree: PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]] =
+  override def asFree: PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]] =
     placeFree(children.map(_._1.asFree))
   end asFree
 
-  override def mergeWithState(oldState: Map[String, Any]): PlaceF[PlacedWidget[UpdateF, DrawF, PlaceF, UpEvent, DownEvent]] =
+  override def mergeWithState(oldState: Map[String, Any]): PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]] =
     placeFree(children.map(_._1.mergeWithState(oldState)))
   end mergeWithState
 
@@ -71,10 +73,13 @@ final class LayoutWidget[
     summon[LayoutDraw[DrawF, ChildrenMeta]].drawChildren(children.map(child => (child._1.draw, child._2)))
   end draw
 
-  override def filterDeadPaths(
-                                currentPath: Path,
-                                alive      : Set[Path]
-                              ): Set[Path] =
-    children.foldLeft(alive)((res, child) => child._1.filterDeadPaths(currentPath, res))
-  end filterDeadPaths
+  override def aliveWidgets(
+                              currentPath: Path,
+                            ): Set[Path] =
+    children.foldMap(_._1.aliveWidgets(currentPath))
+  end aliveWidgets
+  
+  override def recomposed(currentPath : Path): LeftComposition =
+    children.foldMap(_._1.recomposed(currentPath))
+  end recomposed
 end LayoutWidget
