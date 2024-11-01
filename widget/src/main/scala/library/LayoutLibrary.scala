@@ -19,14 +19,14 @@ given layoutLibraryImpl[
   Update[+_, +_] : BiMonad,
   Draw,
   Place[+_] : FlatMap,
-  LeftComposition : Monoid,
+  Recomposition : Monoid,
   ChildrenMeta,
   DownEvent
 ](
   using
     ld: LayoutDraw[Draw, ChildrenMeta]
-): LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, LeftComposition, A, DownEvent], ChildrenMeta] with
-  type Widget[A] = me.katze.gui4s.widget.Widget[Update, Draw, Place, LeftComposition, A, DownEvent]
+): LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, Recomposition, A, DownEvent], ChildrenMeta] with
+  type Widget[A] = me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, A, DownEvent]
 
   override def layout[Event](
                               children         : List[Place[Widget[Event]]],
