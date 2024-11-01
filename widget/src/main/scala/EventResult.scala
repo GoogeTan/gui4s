@@ -4,6 +4,8 @@ import stateful.{BiMonad, CatchEvents, RaiseEvent}
 
 import scala.annotation.tailrec
 
+type EventResultP[WT] = [A, B] =>> EventResult[WT, A, B]
+
 final case class EventResult[+WidgetTask, +FreeWidget, +UpEvent](
                                                                   widget: FreeWidget, 
                                                                   upEvent: List[UpEvent] = Nil,
