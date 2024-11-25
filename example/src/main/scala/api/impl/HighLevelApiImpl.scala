@@ -9,7 +9,7 @@ import cats.data.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, KillTasks, Mergeable, RaiseEvent, RichTypeChecker, State, StatefulDraw, TaskFinished, TaskResultCatcher}
+import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, KillTasks, Mergeable, RaiseEvent, RecompositionRunner, RichTypeChecker, State, StatefulDraw, TaskFinished, TaskResultCatcher}
 import me.katze.gui4s.widget.{Widget, library}
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.given
@@ -34,7 +34,7 @@ final class HighLevelApiImpl[
 )(
     val drawApi : SimpleDrawApi[MU, Draw],
     val placement : LayoutPlacement[Update, Draw, Place, Recomposition, SystemEvent, MU],
-    val runRecomposition : [A] => (Widget[Update, Draw, Place, Recomposition, A, SystemEvent], Widget[Update, Draw, Place, Recomposition, A, SystemEvent]) => Place[Widget[Update, Draw, Place, Recomposition, A, SystemEvent]]
+    val runRecomposition : RecompositionRunner[Update, Draw, Place, Recomposition, SystemEvent]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MU]:
   override type WidgetTask[+T] = WidgetTaskIn[T]
   override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]

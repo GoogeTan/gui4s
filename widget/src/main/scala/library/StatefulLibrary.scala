@@ -27,12 +27,12 @@ def stateful[
 ](
     using liftEventReaction : LiftEventReaction[Update, WidgetTask[Any]]
 )(
-   name          : String,
-   initialState  : T,
-   eventHandler  : (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
-   renderState   : T => Place[Widget[Update, Draw, Place, Recomposition, ChildEvent, DownEvent]],
-   typeCheck     : RichTypeChecker[(T, T)],
-   runRecomposition : [A] => (Widget[Update, Draw, Place, Recomposition, A, DownEvent], Widget[Update, Draw, Place, Recomposition, A, DownEvent]) => Place[Widget[Update, Draw, Place, Recomposition, A, DownEvent]]
+    name          : String,
+    initialState  : T,
+    eventHandler  : (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
+    renderState   : T => Place[Widget[Update, Draw, Place, Recomposition, ChildEvent, DownEvent]],
+    typeCheck     : RichTypeChecker[(T, T)],
+    runRecomposition : RecompositionRunner[Update, Draw, Place, Recomposition, DownEvent]
 ): Place[Widget[Update, Draw, Place, Recomposition, ParentEvent, DownEvent]] =
   final case class StateImpl(
                               initialState: T,

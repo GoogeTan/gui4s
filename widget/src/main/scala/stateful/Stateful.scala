@@ -5,6 +5,11 @@ import cats.FlatMap
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.widget
 
+type RecompositionRunner[Update[+_, +_], Draw, Place[+_], Recomposition, HandleableEvent] = [A] => (
+  Widget[Update, Draw, Place, Recomposition, A, HandleableEvent],
+    Widget[Update, Draw, Place, Recomposition, A, HandleableEvent]
+  ) => Place[Widget[Update, Draw, Place, Recomposition, A, HandleableEvent]]
+
 final case class Stateful[
   Update[+_, +_] : BiMonad : CatchEvents,
   Draw : StatefulDraw, 
@@ -17,10 +22,7 @@ final case class Stateful[
     name: String,
     state: State[[W] =>> Update[W, RaiseableEvent], ChildRaiseableEvent, Place[Widget[Update, Draw, Place, Recomposition, ChildRaiseableEvent, HandleableEvent]]],
     childTree: Widget[Update, Draw, Place, Recomposition, ChildRaiseableEvent, HandleableEvent],
-    runRecomposition : [A] => (
-      Widget[Update, Draw, Place, Recomposition, A, HandleableEvent],
-        Widget[Update, Draw, Place, Recomposition, A, HandleableEvent]
-      ) => Place[Widget[Update, Draw, Place, Recomposition, A, HandleableEvent]]
+    runRecomposition : RecompositionRunner[Update, Draw, Place, Recomposition, HandleableEvent]
 )  extends Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]:
   private type WidgetTree[+A] = Widget[Update, Draw, Place, Recomposition, A, HandleableEvent]
   private type FreeWidgetTree[+A] = Place[WidgetTree[A]]

@@ -45,12 +45,6 @@ given [MU: Numeric] : DrawMonad[DrawT[MU], MU] with
   end move
 end given
 
-type HL[W[+_], WT[+_], MU] <: HighLevelApi & LabelApi[Unit] & LayoutApi[MU]
-  {
-    type Widget[+T] = W[T]
-    type WidgetTask[+T] = WT[T]
-  }
-
 object WindowResized 
 
 
@@ -83,11 +77,9 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
       (drawApi, destroyDrawApi) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
       taskMap <- Ref.of[IO, MultiMap[Path, IOOnThread[IO]]](StlWrapperMultiMap(Map()))
       taskSet = RefTaskSet[IO, WidgetTaskImpl[IO, Any]](taskMap, (path, task) => startWidgetTask(task, offerTask(queue, path, _)))
-      recompostionRun = [A] => (
-        a : Widget[Update[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, Recomposition, A, DownEvent],
-        b : Widget[Update[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, Recomposition, A, DownEvent]
-      ) => 
-        runRecomposition(Path(List("ROOT")), a, b)
+      recompostionRun : RecompositionRunner[Update[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, Recomposition, DownEvent] =
+        [A] => (a, b) =>
+        //runRecomposition(Path(List("ROOT")), a, b)
         b.asFree
 
       widgetApi = new HighLevelApiImpl[
