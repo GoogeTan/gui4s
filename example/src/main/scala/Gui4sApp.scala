@@ -21,11 +21,10 @@ import me.katze.gui4s.example.given
 import me.katze.gui4s.widget.library.given
 import cats.effect.std.{AtomicCell, Queue}
 import draw.swing.{SwingApi, SwingWindow}
-import me.katze.gui4s.layout.given
 
-import me.katze.gui4s.example.recomposition.{ *, given}
+import me.katze.gui4s.layout.given
 import me.katze.gui4s.widget.{EventResult, RunnableIO, Widget, given}
-import  me.katze.gui4s.widget.stateful.{*, given}
+import me.katze.gui4s.widget.stateful.{*, given}
 import me.katze.gui4s.widget
 
 import scala.math.Numeric.Implicits.*
@@ -68,19 +67,20 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     draw.run(Numeric[MU].zero, Numeric[MU].zero)
   end runDraw
   
+  enum RecompositionAction:
+    case Task(task : RunnableIO[WidgetTaskImpl[IO, Any]])
+    case KillTasksFor(path : Path)
+    
+  
   final override def run(args: List[String]): IO[ExitCode] =
-    type Recomposition = RecompositionEffect[List[WidgetTaskT[IO][Any]], WidgetTaskImpl[IO, Any]]
-    given Monoid[Recomposition] = me.katze.gui4s.example.recomposition.recompositionEffect2IsMonoid
+    type Recomposition = List[RecompositionAction]
+    given KillTasks[Recomposition] = (path) => List(RecompositionAction.KillTasksFor(path))
 
     for
       queue <- Queue.unbounded[IO, DownEvent]
       (drawApi, destroyDrawApi) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
       taskMap <- Ref.of[IO, MultiMap[Path, IOOnThread[IO]]](StlWrapperMultiMap(Map()))
       taskSet = RefTaskSet[IO, WidgetTaskImpl[IO, Any]](taskMap, (path, task) => startWidgetTask(task, offerTask(queue, path, _)))
-      recompostionRun : RecompositionRunner[Update[WidgetTaskImpl[IO, Any]], Draw[MU, Unit], Place, Recomposition, DownEvent] =
-        [A] => (a, b) =>
-        //runRecomposition(Path(List("ROOT")), a, b)
-        b.asFree
 
       widgetApi = new HighLevelApiImpl[
         Update[WidgetTaskImpl[IO, Any]],
@@ -91,7 +91,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
         MU,
         TextStyle,
         DownEvent
-      ](drawApi.graphics, containerPlacementCurried, recompostionRun)
+      ](drawApi.graphics, containerPlacementCurried)
       given RunPlacement[IO, Place] = MeasurableRunPlacement(windowBounds(drawApi.window))
       given ProcessRequest[IO, ApplicationRequest] = ProcessRequestImpl(drawApi.window)
 
@@ -101,7 +101,11 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
         EventConsumerAdapter[IO, Draw[MU, Unit], Place, Recomposition, WidgetTaskImpl[IO, Any], ApplicationRequest, DownEvent](
           Path(List("ROOT")),
           rootWidget,
-          taskSet
+          taskSet,
+          _.traverse_ {
+            case RecompositionAction.Task(task) => taskSet.pushTask(task)
+            case RecompositionAction.KillTasksFor(path) => taskSet.killTasksFor(path)
+          }
         )
       )
       graphics = drawApi.graphics[DrawT[MU]]

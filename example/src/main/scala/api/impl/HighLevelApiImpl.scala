@@ -9,7 +9,7 @@ import cats.data.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, KillTasks, Mergeable, RaiseEvent, RecompositionRunner, RichTypeChecker, State, StatefulDraw, TaskFinished, TaskResultCatcher}
+import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, KillTasks, RaiseEvent, RichTypeChecker, State, StatefulDraw, TaskFinished, TaskResultCatcher}
 import me.katze.gui4s.widget.{Widget, library}
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.given
@@ -23,21 +23,21 @@ final class HighLevelApiImpl[
   Update[+_, +_]: BiMonad : CatchEvents : RaiseEvent,
   Draw : Monoid,
   Place[+_] : LabelPlacementT[LayoutPlacementMeta[MU], TextStyle] : FlatMap,
-  Recomposition : Monoid : KillTasks,
+  RecompositionIn : Monoid : KillTasks,
   WidgetTaskIn[+_],
   MU,
   -TextStyle,
   SystemEvent >: TaskFinished
 ](
     using liftReaction : LiftEventReaction[Update, WidgetTaskIn[Any]],
-          linearLayoutLibrary: LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, Recomposition, A, SystemEvent], LayoutPlacementMeta[MU]]
+          linearLayoutLibrary: LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, RecompositionIn, A, SystemEvent], LayoutPlacementMeta[MU]]
 )(
     val drawApi : SimpleDrawApi[MU, Draw],
-    val placement : LayoutPlacement[Update, Draw, Place, Recomposition, SystemEvent, MU],
-    val runRecomposition : RecompositionRunner[Update, Draw, Place, Recomposition, SystemEvent]
+    val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MU]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MU]:
   override type WidgetTask[+T] = WidgetTaskIn[T]
-  override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]
+  override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, RecompositionIn, Event, SystemEvent]]
+  override type Recomposition = RecompositionIn
   
   given textDraw: LabelDraw[Draw, LayoutPlacementMeta[MU]] = (text, meta) => drawApi.text(meta.x, meta.y, text, TextStyle(18, 0, 400))
   
@@ -46,12 +46,13 @@ final class HighLevelApiImpl[
   end label
   
   given statefulDraw : StatefulDraw[Draw] with
-    override def drawStateful[T](name : String, state : State[?, T, ?], childTree: me.katze.gui4s.widget.Widget[?, Draw, ?, ?, ?, ?]): Draw = childTree.draw
+    override def drawStateful[T](name : String, state : State[?, ?, T, ?], childTree: me.katze.gui4s.widget.Widget[?, Draw, ?, ?, ?, ?]): Draw = childTree.draw
   end statefulDraw
   
   override def stateful[T: Equiv, ParentEvent, ChildEvent](
                                                             name: String,
                                                             initialState: T,
+                                                            dealloc_ : T => Recomposition,
                                                             eventHandler: (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent]
                                                           )
                                                           (renderState: T => Widget[ChildEvent])
@@ -61,7 +62,7 @@ final class HighLevelApiImpl[
                                                               checkState : RichTypeChecker[(T, T)]
                                                           ): Widget[ParentEvent] =
     val render = renderState andThen addTaskResultCatcher[ChildEvent](using checkEvent)(name)
-    library.stateful[Update, Draw, Place, Recomposition, T, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, eventHandler, render, checkState, runRecomposition)
+    library.stateful[Update, Draw, Place, Recomposition, T, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, dealloc_, eventHandler, render, checkState)
   end stateful
 
   override def column[Event](

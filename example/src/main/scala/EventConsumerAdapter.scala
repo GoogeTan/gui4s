@@ -3,13 +3,14 @@ package me.katze.gui4s.example
 import draw.Drawable
 import place.RunPlacement
 import task.TaskSet
-import update.{EventConsumer, EventProcessResult, ProcessRequest}
+import update.{EventConsumer, EventProcessResult}
+
 import cats.*
 import cats.syntax.all.{*, given}
-import me.katze.gui4s.widget.{EventResult, EventResultP, Widget}
+import me.katze.gui4s.widget.{EventResult, EventResultP, Widget, foldLeftComposition}
 import me.katze.gui4s.widget.stateful.{KillTasks, Path}
 
-final class EventConsumerAdapter[
+final case class EventConsumerAdapter[
   F[+_] : Monad,
   Draw,
   Place[+_],
@@ -20,7 +21,8 @@ final class EventConsumerAdapter[
 ](
   pathToRoot : Path,
   placedWidget: Widget[EventResultP[WidgetTask], Draw, Place, Recomposition, UpEvent, DownEvent],
-  taskSet : TaskSet[F, WidgetTask]
+  taskSet : TaskSet[F, WidgetTask],
+  runRecomposition : Recomposition => F[Unit]
 )(
   using RunPlacement[F, Place]
 ) extends EventConsumer[F[EventConsumerAdapter[F, Draw, Place, Recomposition, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
@@ -30,7 +32,11 @@ final class EventConsumerAdapter[
     val EventResult(newWidget, systemRequests, ios) = placedWidget.handleDownEvent(pathToRoot, event)
     ios.traverse_(taskSet.pushTask) 
       *> EventProcessResult(
-          newWidget.runPlacement.map(EventConsumerAdapter(pathToRoot, _, taskSet)),
+          for
+            newPlacedWidget <- newWidget.runPlacement
+            _ <- runRecomposition(newPlacedWidget.recomposed(pathToRoot, placedWidget.childrenStates))
+            _ <- foldLeftComposition[Recomposition](placedWidget.childrenStates, newPlacedWidget.childrenStates).traverse_(runRecomposition)
+          yield copy(placedWidget = newPlacedWidget),
           systemRequests
         ).pure[F]
   end processEvent
