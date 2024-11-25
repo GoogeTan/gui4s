@@ -18,34 +18,27 @@ final class TaskResultCatcher[
 ) extends Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]:
   override def draw: Draw = nothingToDraw
 
-  override def mergeWithState(oldState: Map[String, Any]): Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]] =
+  override def mergeWithState(pathToParent : Path, oldState: Map[String, Any]): Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]] =
     child
-      .mergeWithState(oldState)
+      .mergeWithState(pathToParent, oldState)
       .map(TaskResultCatcher(name, nothingToDraw, _))
   end mergeWithState
 
-  override def handleDownEvent(event: HandleableEvent): Update[Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
+  override def handleDownEvent(pathToParent : Path, event: HandleableEvent): Update[Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
     event match
-      case TaskFinished(this.name, Nil, newEvent) => onTaskFinished(newEvent, event)
-      case TaskFinished(this.name, childName :: furtherPath, eventForChild) => handleChildFinishedTask(childName, furtherPath, eventForChild)
-      case another                                => child.handleDownEvent(another)
+      case TaskFinished(path, newEvent) if path == pathToParent.appendLast(name) =>
+        onTaskFinished(pathToParent, newEvent, event)
+      case another => child.handleDownEvent(pathToParent, another)
     end match
   end handleDownEvent
 
-  private def handleChildFinishedTask(childWidgetName : String, furtherPath: List[String], eventForChild: Any) : Update[Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
-    for
-      freeChild : Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]] <- child.handleDownEvent(TaskFinished(childWidgetName, furtherPath, eventForChild))
-      freeCatcher = freeChild.map(TaskResultCatcher(name, nothingToDraw, _))
-    yield freeCatcher
-  end handleChildFinishedTask
-
-  private def onTaskFinished(newEvent: Any, event : HandleableEvent): Update[Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
+  private def onTaskFinished(pathToParent : Path, newEvent: Any, event : HandleableEvent): Update[Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
     val eventToRaise = summon[RichTypeChecker[RaiseableEvent]]
       .tryCast(newEvent)
       .fold(a => throw Exception(a), a => a)
     for
       _ <- summon[RaiseEvent[Update]].raise(eventToRaise)
-      res <- child.handleDownEvent(event)
+      res <- child.handleDownEvent(pathToParent, event)
     yield res
   end onTaskFinished
 

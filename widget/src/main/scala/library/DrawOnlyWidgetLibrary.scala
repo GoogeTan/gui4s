@@ -12,9 +12,9 @@ def drawOnlyWidget[
   LeftComposition : Empty
 ](asFreeIn: Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]], drawIn: Draw): Widget[Update, Draw, Place, LeftComposition, Nothing, Any] =
   case object DrawOnlyWidget extends Widget[Update, Draw, Place, LeftComposition, Nothing, Any]:
-    override def handleDownEvent(event: Any): Update[Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]], Nothing] = asFree.asMonad
+    override def handleDownEvent(pathToParent: Path, event: Any): Update[Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]], Nothing] = asFree.asMonad
 
-    override def mergeWithState(oldState: Map[String, Any]): Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]] = asFree
+    override def mergeWithState(pathToParent: Path, oldState: Map[String, Any]): Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]] = asFree
 
     override def childrenStates: Map[String, Any] = Map()
 

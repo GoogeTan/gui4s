@@ -18,30 +18,22 @@ final class EventConsumerAdapter[
   UpEvent,
   DownEvent,
 ](
+  pathToRoot : Path,
   placedWidget: Widget[EventResultP[WidgetTask], Draw, Place, Recomposition, UpEvent, DownEvent],
   taskSet : TaskSet[F, WidgetTask]
 )(
-    using
-      rp : RunPlacement[F, Place],
-      rr : RunRecomposition[TaskSet[F, WidgetTask], F[Unit], Widget[EventResultP[WidgetTask], Draw, Place, Recomposition, UpEvent, DownEvent]]
+  using RunPlacement[F, Place]
 ) extends EventConsumer[F[EventConsumerAdapter[F, Draw, Place, Recomposition, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
   type PlacedWidget = Widget[EventResultP[WidgetTask], Draw, Place, Recomposition, UpEvent, DownEvent]
 
   override def processEvent(event: DownEvent): F[EventProcessResult[F[EventConsumerAdapter[F, Draw, Place, Recomposition, WidgetTask, UpEvent, DownEvent]], UpEvent]] =
-    val EventResult(newWidget, systemRequests, ios) = placedWidget.handleDownEvent(event)
+    val EventResult(newWidget, systemRequests, ios) = placedWidget.handleDownEvent(pathToRoot, event)
     ios.traverse_(taskSet.pushTask) 
       *> EventProcessResult(
-          updateWidgetFromOld(newWidget).map(EventConsumerAdapter(_, taskSet)),
+          newWidget.runPlacement.map(EventConsumerAdapter(pathToRoot, _, taskSet)),
           systemRequests
         ).pure[F]
   end processEvent
-
-  def updateWidgetFromOld(newWidget: Place[PlacedWidget]): F[PlacedWidget] =
-    for
-      newPlacedWidget <- newWidget.runPlacement
-      _ <- rr.run(taskSet, placedWidget, newPlacedWidget)
-    yield newPlacedWidget
-  end updateWidgetFromOld
   
   override def draw: Draw =
     placedWidget.draw

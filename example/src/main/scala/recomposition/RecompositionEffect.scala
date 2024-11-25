@@ -8,68 +8,67 @@ import me.katze.gui4s.widget.stateful.{KillTasks, Path}
 import cats.*
 import cats.syntax.all.{*, given}
 
-trait RecompositionEffect[F[_], +WidgetTask]:
-  def enteredComposition(taskSet : TaskSet[F, WidgetTask], paths : Set[Path]) : F[Unit]
-  def recomposed(taskSet : TaskSet[F, WidgetTask], paths : Set[Path]) : F[Unit]
-  def leftComposition(taskSet : TaskSet[F, WidgetTask], paths : Set[Path]) : F[Unit]
+trait RecompositionEffect[F, +WidgetTask]:
+  def enteredComposition(paths : Set[Path]) : F
+  def recomposed(paths : Set[Path], states : Map[String, Any]) : F
+  def leftComposition(paths : Set[Path], states : Map[String, Any]) : F
 end RecompositionEffect
 
-given recompositionEffect2IsMonoid[F[_] : Applicative, WidgetTask] : Monoid[RecompositionEffect[F, WidgetTask]] with
+given recompositionEffect2IsMonoid[F : Monoid, WidgetTask] : Monoid[RecompositionEffect[F, WidgetTask]] with
   override def combine(x: RecompositionEffect[F, WidgetTask], y: RecompositionEffect[F, WidgetTask]): RecompositionEffect[F, WidgetTask] =
     new RecompositionEffect[F, WidgetTask]:
-      override def enteredComposition(taskSet: TaskSet[F, WidgetTask], path : Set[Path]): F[Unit] =
-        x.enteredComposition(taskSet, path) *> y.enteredComposition(taskSet, path)
+      override def enteredComposition(path : Set[Path]): F =
+        x.enteredComposition(path) combine y.enteredComposition(path)
       end enteredComposition
 
-      override def leftComposition(taskSet: TaskSet[F, WidgetTask], path : Set[Path]): F[Unit] =
-        x.leftComposition(taskSet, path) *> y.leftComposition(taskSet, path)
+      override def leftComposition(path : Set[Path], states : Map[String, Any]): F =
+        x.leftComposition(path, states) combine y.leftComposition(path, states)
       end leftComposition
 
-      override def recomposed(taskSet: TaskSet[F, WidgetTask], path : Set[Path]): F[Unit] =
-        x.recomposed(taskSet, path) *> y.recomposed(taskSet, path)
+      override def recomposed(path : Set[Path], states : Map[String, Any]): F =
+        x.recomposed(path, states) combine y.recomposed(path, states)
       end recomposed
     end new
   end combine
 
   override def empty: RecompositionEffect[F, WidgetTask] =
     new RecompositionEffect[F, WidgetTask]:
-      override def enteredComposition(taskSet: TaskSet[F, WidgetTask], paths  : Set[Path]): F[Unit] =
-        ().pure[F]
+      override def enteredComposition(paths : Set[Path]): F =
+        Monoid[F].empty
       end enteredComposition
 
-      override def leftComposition(taskSet: TaskSet[F, WidgetTask], paths  : Set[Path]): F[Unit] =
-        ().pure[F]
+      override def leftComposition(paths : Set[Path], states : Map[String, Any]): F =
+        Monoid[F].empty
       end leftComposition
 
-      override def recomposed(taskSet: TaskSet[F, WidgetTask], paths  : Set[Path]): F[Unit] =
-        ().pure[F]
+      override def recomposed(paths : Set[Path], states : Map[String, Any]): F =
+        Monoid[F].empty
       end recomposed
     end new
   end empty
 end recompositionEffect2IsMonoid
 
-given recompositionCanKillTasks[F[_] : Applicative, WidgetTask] : KillTasks[RecompositionEffect[F, WidgetTask]] with
+given recompositionCanKillTasks[F : Monoid, WidgetTask] : KillTasks[RecompositionEffect[F, WidgetTask]] with
   override def killDetachableTasks(currentPath : Path): RecompositionEffect[F, WidgetTask] =
     new RecompositionEffect[F, WidgetTask]:
       override def enteredComposition(
-                                       taskSet: TaskSet[F, WidgetTask],
-                                       paths  : Set[Path]
-                                     ): F[Unit] =
-        ().pure[F]
+                                        paths  : Set[Path]
+                                      ): F =
+        Monoid[F].empty
       end enteredComposition
 
       override def leftComposition(
-                                    taskSet: TaskSet[F, WidgetTask],
-                                    paths  : Set[Path]
-                                  ): F[Unit] =
-        taskSet.killTask(currentPath)
+                                    paths  : Set[Path],
+                                    states : Map[String, Any]
+                                  ): F =
+        ??? // TODO taskSet.killTask(currentPath)
       end leftComposition
 
       override def recomposed(
-                               taskSet: TaskSet[F, WidgetTask],
-                               paths  : Set[Path]
-                             ): F[Unit] =
-        ().pure[F]
+                                paths  : Set[Path],
+                                states : Map[String, Any]
+                              ): F =
+        Monoid[F].empty
       end recomposed
     end new
   end killDetachableTasks

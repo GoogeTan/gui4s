@@ -9,7 +9,7 @@ import cats.data.*
 import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, KillTasks, Mergeable, RaiseEvent, RichTypeChecker, State, Stateful, StatefulDraw, TaskFinished, TaskResultCatcher}
+import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, KillTasks, Mergeable, RaiseEvent, RichTypeChecker, State, StatefulDraw, TaskFinished, TaskResultCatcher}
 import me.katze.gui4s.widget.{Widget, library}
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.given
@@ -23,20 +23,21 @@ final class HighLevelApiImpl[
   Update[+_, +_]: BiMonad : CatchEvents : RaiseEvent,
   Draw : Monoid,
   Place[+_] : LabelPlacementT[LayoutPlacementMeta[MU], TextStyle] : FlatMap,
-  Recompose : Monoid : KillTasks,
+  Recomposition : Monoid : KillTasks,
   WidgetTaskIn[+_],
   MU,
   -TextStyle,
   SystemEvent >: TaskFinished
 ](
-    using val liftReaction : LiftEventReaction[Update, WidgetTaskIn[Any]],
-          val linearLayoutLibrary: LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, Recompose, A, SystemEvent], LayoutPlacementMeta[MU]]
+    using liftReaction : LiftEventReaction[Update, WidgetTaskIn[Any]],
+          linearLayoutLibrary: LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, Recomposition, A, SystemEvent], LayoutPlacementMeta[MU]]
 )(
-  val drawApi : SimpleDrawApi[MU, Draw],
-  val placement : LayoutPlacement[Update, Draw, Place, Recompose, SystemEvent, MU]
+    val drawApi : SimpleDrawApi[MU, Draw],
+    val placement : LayoutPlacement[Update, Draw, Place, Recomposition, SystemEvent, MU],
+    val runRecomposition : [A] => (Widget[Update, Draw, Place, Recomposition, A, SystemEvent], Widget[Update, Draw, Place, Recomposition, A, SystemEvent]) => Place[Widget[Update, Draw, Place, Recomposition, A, SystemEvent]]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MU]:
   override type WidgetTask[+T] = WidgetTaskIn[T]
-  override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, Recompose, Event, SystemEvent]]
+  override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]
   
   given textDraw: LabelDraw[Draw, LayoutPlacementMeta[MU]] = (text, meta) => drawApi.text(meta.x, meta.y, text, TextStyle(18, 0, 400))
   
@@ -59,7 +60,8 @@ final class HighLevelApiImpl[
                                                               checkEvent : RichTypeChecker[ChildEvent],
                                                               checkState : RichTypeChecker[(T, T)]
                                                           ): Widget[ParentEvent] =
-    library.stateful[Update, Draw, Place, Recompose, T, ParentEvent, ChildEvent, SystemEvent, WidgetTaskIn](name, initialState, eventHandler, renderState andThen addTaskResultCatcher[ChildEvent](using checkEvent)(name), checkState)
+    val render = renderState andThen addTaskResultCatcher[ChildEvent](using checkEvent)(name)
+    library.stateful[Update, Draw, Place, Recomposition, T, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, eventHandler, render, checkState, runRecomposition)
   end stateful
 
   override def column[Event](
@@ -93,12 +95,12 @@ final class HighLevelApiImpl[
                                     axis                  : Axis,
                                     mainAxisStrategy      : MainAxisPlacementStrategy[MU],
                                     additionalAxisStrategy: AdditionalAxisPlacementStrategy,
-                                  )(using Widget[Event] =:= Place[widget.Widget[Update, Draw, Place, Recompose, Event, SystemEvent]]): Widget[Event] =
+                                  )(using Widget[Event] =:= Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]): Widget[Event] =
     linearLayoutLibrary.layout(children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
   end linearLayout
   
   
-  private def addTaskResultCatcher[T](using RichTypeChecker[T])(name: String)(initial: Place[widget.Widget[Update, Draw, Place, Recompose, T, SystemEvent]]) : Place[widget.Widget[Update, Draw, Place, Recompose, T, SystemEvent]] =
+  private def addTaskResultCatcher[T](using RichTypeChecker[T])(name: String)(initial: Place[widget.Widget[Update, Draw, Place, Recomposition, T, SystemEvent]]) : Place[widget.Widget[Update, Draw, Place, Recomposition, T, SystemEvent]] =
     FlatMap[Place].map(initial)(TaskResultCatcher(name, Monoid[Draw].empty, _))
   end addTaskResultCatcher
 end HighLevelApiImpl

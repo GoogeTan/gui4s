@@ -51,18 +51,18 @@ final class LayoutWidget[
   using LayoutDraw[DrawF, ChildrenMeta]
 ) extends me.katze.gui4s.widget.Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]:
 
-  override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]], UpEvent] =
+  override def handleDownEvent(pathToParent: Path, event: DownEvent): UpdateF[PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]], UpEvent] =
     children
-      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]](_._1.handleDownEvent(event))
-      .map(newChildren => placeFree(newChildren).flatMap(_.mergeWithState(childrenStates)))
+      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]](_._1.handleDownEvent(pathToParent, event))
+      .map(newChildren => placeFree(newChildren).flatMap(_.mergeWithState(pathToParent, childrenStates)))
   end handleDownEvent
 
   override def asFree: PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]] =
     placeFree(children.map(_._1.asFree))
   end asFree
 
-  override def mergeWithState(oldState: Map[String, Any]): PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]] =
-    placeFree(children.map(_._1.mergeWithState(oldState)))
+  override def mergeWithState(pathToParent: Path, oldState: Map[String, Any]): PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]] =
+    placeFree(children.map(_._1.mergeWithState(pathToParent, oldState)))
   end mergeWithState
 
   override def childrenStates: Map[String, Any] =

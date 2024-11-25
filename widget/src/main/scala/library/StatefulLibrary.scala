@@ -19,7 +19,7 @@ def stateful[
   Update[+_, +_] : BiMonad : CatchEvents,
   Draw : StatefulDraw,
   Place[+_] : FlatMap,
-  LeftComposition,
+  Recomposition,
   T: Equiv,
   ParentEvent, ChildEvent,
   DownEvent,
@@ -30,24 +30,25 @@ def stateful[
    name          : String,
    initialState  : T,
    eventHandler  : (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
-   renderState   : T => Place[Widget[Update, Draw, Place, LeftComposition, ChildEvent, DownEvent]],
-   typeCheck     : RichTypeChecker[(T, T)]
-): Place[Widget[Update, Draw, Place, LeftComposition, ParentEvent, DownEvent]] =
+   renderState   : T => Place[Widget[Update, Draw, Place, Recomposition, ChildEvent, DownEvent]],
+   typeCheck     : RichTypeChecker[(T, T)],
+   runRecomposition : [A] => (Widget[Update, Draw, Place, Recomposition, A, DownEvent], Widget[Update, Draw, Place, Recomposition, A, DownEvent]) => Place[Widget[Update, Draw, Place, Recomposition, A, DownEvent]]
+): Place[Widget[Update, Draw, Place, Recomposition, ParentEvent, DownEvent]] =
   final case class StateImpl(
                               initialState: T,
                               currentState: T
-                            ) extends State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, LeftComposition, ChildEvent, DownEvent]]]:
-    override def handleEvent(event: ChildEvent): Update[State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, LeftComposition, ChildEvent, DownEvent]]], ParentEvent] =
+                            ) extends State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, Recomposition, ChildEvent, DownEvent]]]:
+    override def handleEvent(event: ChildEvent): Update[State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, Recomposition, ChildEvent, DownEvent]]], ParentEvent] =
       liftEventReaction.lift(
         eventHandler(currentState, event).mapState(StateImpl(initialState, _))
       )
     end handleEvent
 
-    override def render: Place[Widget[Update, Draw, Place, LeftComposition, ChildEvent, DownEvent]] = renderState(currentState)
+    override def render: Place[Widget[Update, Draw, Place, Recomposition, ChildEvent, DownEvent]] = renderState(currentState)
 
     override def state: Any = (initialState, currentState)
 
-    override def mergeWithOldState(maybeOldState: Any): State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, LeftComposition, ChildEvent, DownEvent]]] =
+    override def mergeWithOldState(maybeOldState: Any): State[[U] =>> Update[U, ParentEvent], ChildEvent, Place[Widget[Update, Draw, Place, Recomposition, ChildEvent, DownEvent]]] =
       val (oldInitialState, oldState) = typeCheck.tryCast(maybeOldState).valueOr(error => throw Exception(error))
       if Equiv[T].equiv(oldInitialState, initialState) then
         StateImpl(oldInitialState, currentState)
@@ -58,5 +59,5 @@ def stateful[
   end StateImpl
 
   val state = StateImpl(initialState, initialState)
-  state.render.map(Stateful(name, state, _))
+  state.render.map(Stateful(name, state, _, runRecomposition))
 end stateful
