@@ -57,12 +57,7 @@ final case class Stateful[
 
   override def childrenStates: Map[String, StateTree[Recomposition]] =
     val stateValue = state
-    Map(this.name ->
-      new StateTree[Recomposition]:
-        def state: Any = stateValue.state
-        override def leftComposition: Recomposition = stateValue.dealloc
-        override def childrenStates: Map[String, StateTree[Recomposition]] = childTree.childrenStates
-    )
+    Map(this.name -> StateTree[Recomposition](stateValue.state, stateValue.dealloc, childTree.childrenStates))
   end childrenStates
 
   private def onChildUpdate(pathToSelf: Path, newChildF: Update[FreeWidgetTree[ChildRaiseableEvent], ChildRaiseableEvent]) : StatefulUpdateResult =

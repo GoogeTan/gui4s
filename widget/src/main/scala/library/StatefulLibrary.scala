@@ -1,21 +1,12 @@
 package me.katze.gui4s.widget
 package library
 
-import me.katze.gui4s.widget.stateful.*
+import stateful.*
 
 import cats.*
 import cats.syntax.all.{*, given}
 
-import scala.runtime.stdLibPatches.Predef.summon
-
-trait LiftEventReaction[
-  Update[+_, +_],
-  WidgetTask,
-]:
-  def lift[A, B](reaction : EventReaction[WidgetTask, A, B]) : Update[A, B]
-end LiftEventReaction
-
-def stateful[
+def statefulWidget[
   Update[+_, +_] : BiMonad : CatchEvents,
   Draw : StatefulDraw,
   Place[+_] : FlatMap,
@@ -62,4 +53,4 @@ def stateful[
 
   val state = StateImpl(initialState, initialState)
   state.render.map(Stateful(name, state, _))
-end stateful
+end statefulWidget

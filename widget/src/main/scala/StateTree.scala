@@ -1,12 +1,10 @@
 package me.katze.gui4s.widget
 
-trait StateTree[Dealloc]:
-  def state: Any
-
-  def leftComposition: Dealloc
-
-  def childrenStates: Map[String, StateTree[Dealloc]]
-end StateTree
+final case class StateTree[Dealloc](
+  state: Any,
+  leftComposition: Dealloc,
+  childrenStates: Map[String, StateTree[Dealloc]]
+)
 
 def foldLeftComposition[Dealloc](
                                   oldTree: Map[String, StateTree[Dealloc]], 

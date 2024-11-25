@@ -29,8 +29,7 @@ final class HighLevelApiImpl[
   -TextStyle,
   SystemEvent >: TaskFinished
 ](
-    using liftReaction : LiftEventReaction[Update, WidgetTaskIn[Any]],
-          linearLayoutLibrary: LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, RecompositionIn, A, SystemEvent], LayoutPlacementMeta[MU]]
+    using liftReaction : LiftEventReaction[Update, WidgetTaskIn[Any]], ld : LayoutDraw[Draw, LayoutPlacementMeta[MU]]
 )(
     val drawApi : SimpleDrawApi[MU, Draw],
     val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MU]
@@ -42,7 +41,7 @@ final class HighLevelApiImpl[
   given textDraw: LabelDraw[Draw, LayoutPlacementMeta[MU]] = (text, meta) => drawApi.text(meta.x, meta.y, text, TextStyle(18, 0, 400))
   
   override def label(text: String, style : TextStyle): Widget[Nothing] =
-    library.label(library.drawOnlyWidget, text, style)
+    library.labelWidget(library.drawOnlyWidget, text, style)
   end label
   
   given statefulDraw : StatefulDraw[Draw] with
@@ -62,7 +61,7 @@ final class HighLevelApiImpl[
                                                               checkState : RichTypeChecker[(T, T)]
                                                           ): Widget[ParentEvent] =
     val render = renderState andThen addTaskResultCatcher[ChildEvent](using checkEvent)(name)
-    library.stateful[Update, Draw, Place, Recomposition, T, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, dealloc_, eventHandler, render, checkState)
+    library.statefulWidget[Update, Draw, Place, Recomposition, T, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, dealloc_, eventHandler, render, checkState)
   end stateful
 
   override def column[Event](
@@ -97,7 +96,7 @@ final class HighLevelApiImpl[
                                     mainAxisStrategy      : MainAxisPlacementStrategy[MU],
                                     additionalAxisStrategy: AdditionalAxisPlacementStrategy,
                                   )(using Widget[Event] =:= Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]): Widget[Event] =
-    linearLayoutLibrary.layout(children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
+    layoutWidget[Update, Draw, Place, Recomposition, LayoutPlacementMeta[MU], Event, SystemEvent](children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
   end linearLayout
   
   
