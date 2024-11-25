@@ -22,6 +22,10 @@ trait BiMonad[F[+_, +_]]:
   end extension
 end BiMonad
 
+object BiMonad:
+  def apply[F[+_, +_]](using a : BiMonad[F]): BiMonad[F] = a
+end BiMonad
+
 given biMonadIsMonad[F[+_, +_]: BiMonad, T] : Monad[[A] =>> F[A, T]] with
   override def flatMap[A, B](fa: F[A, T])(f: A => F[B, T]): F[B, T] =
     summon[BiMonad[F]].flatMap_(fa)(f)

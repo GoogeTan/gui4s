@@ -9,24 +9,24 @@ final case class Stateful[
   Update[+_, +_] : BiMonad : CatchEvents,
   Draw : StatefulDraw, 
   Place[+_] : FlatMap,
-  LeftComposition,
+  Recomposition,
   RaiseableEvent,
   HandleableEvent,
-  ChildRaiseableEvent,
-  ChildHandleableEvent >: HandleableEvent,
+  ChildRaiseableEvent
 ](
     name: String,
-    state: State[[W] =>> Update[W, RaiseableEvent], ChildRaiseableEvent, Place[Widget[Update, Draw, Place, LeftComposition, ChildRaiseableEvent, ChildHandleableEvent]]],
-    childTree: Widget[Update, Draw, Place, LeftComposition, ChildRaiseableEvent, ChildHandleableEvent],
-)  extends Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]:
-  private type FreeWidgetTree[+A, -B] = Place[Widget[Update, Draw, Place, LeftComposition, A, B]]
-  private type StatefulUpdateResult = Update[Place[Widget[Update, Draw, Place, LeftComposition, RaiseableEvent, HandleableEvent]], RaiseableEvent]
-  private type InternalState = State[[WW] =>> Update[WW, RaiseableEvent], ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent]]
+    state: State[[W] =>> Update[W, RaiseableEvent], Recomposition, ChildRaiseableEvent, Place[Widget[Update, Draw, Place, Recomposition, ChildRaiseableEvent, HandleableEvent]]],
+    childTree: Widget[Update, Draw, Place, Recomposition, ChildRaiseableEvent, HandleableEvent]
+)  extends Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]:
+  private type WidgetTree[+A] = Widget[Update, Draw, Place, Recomposition, A, HandleableEvent]
+  private type FreeWidgetTree[+A] = Place[WidgetTree[A]]
+  private type StatefulUpdateResult = Update[FreeWidgetTree[RaiseableEvent], RaiseableEvent]
+  private type InternalState = State[[A] =>> Update[A, RaiseableEvent], Recomposition, ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent]]
 
   private def freeStateful(
                             state: InternalState,
-                            childTree: Place[Widget[Update, Draw, Place, LeftComposition, ChildRaiseableEvent, ChildHandleableEvent]]
-                          ) : FreeWidgetTree[RaiseableEvent, HandleableEvent] =
+                            childTree: Place[Widget[Update, Draw, Place, Recomposition, ChildRaiseableEvent, HandleableEvent]]
+                          ) : FreeWidgetTree[RaiseableEvent] =
     childTree.map(Stateful(name, state, _))
   end freeStateful
 
@@ -34,36 +34,42 @@ final case class Stateful[
     summon[StatefulDraw[Draw]].drawStateful(this.name, this.state, this.childTree)
   end draw
   
-  override def handleDownEvent(event: HandleableEvent): StatefulUpdateResult =
-    onChildUpdate(this.childTree.handleDownEvent(event))
+  override def handleDownEvent(pathToParent: Path, event: HandleableEvent): StatefulUpdateResult =
+    val pathToSelf = pathToParent.appendLast(name)
+    onChildUpdate(pathToSelf, this.childTree.handleDownEvent(pathToSelf, event))
   end handleDownEvent
 
-  override def asFree: FreeWidgetTree[RaiseableEvent, HandleableEvent] =
+  override def asFree: FreeWidgetTree[RaiseableEvent] =
     freeStateful(this.state, this.childTree.asFree)
   end asFree
 
-  override def mergeWithState(oldState: Map[String, Any]): FreeWidgetTree[RaiseableEvent, HandleableEvent] =
+  override def mergeWithState(pathToParent: Path, oldState: Map[String, StateTree[Recomposition]]): FreeWidgetTree[RaiseableEvent] =
+    val pathToSelf = pathToParent.appendLast(name)
     oldState.get(this.name) match
-      case Some(value) =>
-        val newState = this.state.mergeWithOldState(value)
-        val mergedChildTree =  mergeFreeTrees(this.childTree.asFree, newState.render)
+      case Some(prevStateTree) =>
+        val newState = this.state.mergeWithOldState(prevStateTree.state)
+        val mergedChildTree = mergeFreeTrees(pathToSelf, this.childTree.asFree, newState.render)
         freeStateful(newState, mergedChildTree)  
       case None =>
         asFree
     end match
   end mergeWithState
 
-  override def childrenStates: Map[String, Any] = 
-    Map(this.name -> this.state.state)
+  override def childrenStates: Map[String, StateTree[Recomposition]] =
+    val stateValue = state
+    Map(this.name -> StateTree[Recomposition](stateValue.state, stateValue.dealloc, childTree.childrenStates))
   end childrenStates
 
-  private def onChildUpdate(newChildF: Update[FreeWidgetTree[ChildRaiseableEvent, ChildHandleableEvent], ChildRaiseableEvent]) : StatefulUpdateResult =
+  private def onChildUpdate(pathToSelf: Path, newChildF: Update[FreeWidgetTree[ChildRaiseableEvent], ChildRaiseableEvent]) : StatefulUpdateResult =
     for
-      tmp <- newChildF.catchEvents
-      (newChild, events) = tmp
-      newState <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], InternalState](this.state)(_.handleEvent(_))
-      res = freeStateful(state, mergeFreeTrees(mergeFreeTrees(this.childTree.asFree, newChild), newState.render))
-    yield res  
+      (newChild, events) <- newChildF.catchEvents
+      (newState, newTree) <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], (InternalState, FreeWidgetTree[ChildRaiseableEvent])]((this.state, mergeFreeTrees(pathToSelf, this.childTree.asFree, newChild)))(
+        (stateAndTree, event) =>
+          stateAndTree._1.handleEvent(event).map(
+            newState => (newState, mergeFreeTrees(pathToSelf, stateAndTree._2, newState.render))
+          )
+      )
+    yield freeStateful(newState, newTree)
   end onChildUpdate
 
   override def aliveWidgets(currentPath: Path): Set[Path] =
@@ -71,11 +77,16 @@ final case class Stateful[
     Set(pathToSelf) ++ childTree.aliveWidgets(pathToSelf)
   end aliveWidgets
   
-  private def mergeFreeTrees[A, B](oldOne: FreeWidgetTree[A, B], newOne: FreeWidgetTree[A, B]) =
-    FlatMap[Place].flatMap2(oldOne, newOne)((a, b) => b.mergeWithState(a.childrenStates))
+  private def mergeFreeTrees[A](pathToSelf: Path, oldOne: Place[WidgetTree[A]], newOne: Place[WidgetTree[A]]) : Place[WidgetTree[A]] =
+    FlatMap[Place].flatMap2(oldOne, newOne)((newPlaced, oldPlaced) => newPlaced.mergeWithState(pathToSelf, oldPlaced.childrenStates))
   end mergeFreeTrees
 
-  override def recomposed(currentPath : Path): LeftComposition =
-    childTree.recomposed(currentPath.appendFirst(name))
+  override def recomposed(currentPath : Path, states : Map[String, StateTree[Recomposition]]): Recomposition =
+    states.get(this.name) match
+      case Some(prevState) =>
+        childTree.recomposed(currentPath.appendFirst(name), prevState.childrenStates)
+      case None =>
+        childTree.recomposed(currentPath.appendFirst(name), Map())
+    end match
   end recomposed
 end Stateful

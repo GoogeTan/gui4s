@@ -1,85 +1,27 @@
 package me.katze.gui4s.widget
 package library
 
-import me.katze.gui4s.widget.stateful.{BiMonad, Path, given}
+import stateful.BiMonad
+
 import cats.*
 import cats.syntax.all.given
+import me.katze.gui4s.widget
 
 type LayoutPlacementStrategy[Widget, PlacedWidget, PlacementEffect[+_], ChildrenMeta] =  List[Widget] => PlacementEffect[List[(PlacedWidget, ChildrenMeta)]]
 
-trait LayoutLibrary[Place[+_], Widget[+_], -ChildrenMeta]:
-  def layout[Event]
-      (
-        children : List[Place[Widget[Event]]],
-        placementStrategy : LayoutPlacementStrategy[Place[Widget[Event]], Widget[Event], Place, ChildrenMeta]
-      ) : Place[Widget[Event]]
-end LayoutLibrary
-
-given layoutLibraryImpl[
+def layoutWidget[
   Update[+_, +_] : BiMonad,
   Draw,
   Place[+_] : FlatMap,
   Recomposition : Monoid,
   ChildrenMeta,
-  DownEvent
-](
-  using
-    ld: LayoutDraw[Draw, ChildrenMeta]
-): LayoutLibrary[Place, [A] =>> Widget[Update, Draw, Place, Recomposition, A, DownEvent], ChildrenMeta] with
-  type Widget[A] = me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, A, DownEvent]
-
-  override def layout[Event](
-                              children         : List[Place[Widget[Event]]],
-                              placementStrategy: LayoutPlacementStrategy[Place[Widget[Event]], Widget[Event], Place, ChildrenMeta]
-                            ): Place[Widget[Event]] =
-    placementStrategy(children).map(LayoutWidget(_, layout(_, placementStrategy)))
-  end layout
-end layoutLibraryImpl
-
-final class LayoutWidget[
-  UpdateF[+_, +_] : BiMonad,
-  DrawF,
-  PlaceF[+_] : FlatMap,
-  LeftComposition : Monoid,
-  UpEvent,
+  Event,
   DownEvent,
-  ChildrenMeta
 ](
-  children : List[(Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent], ChildrenMeta)],
-  placeFree: List[PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]] => PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]
+  using LayoutDraw[Draw, ChildrenMeta]
 )(
-  using LayoutDraw[DrawF, ChildrenMeta]
-) extends me.katze.gui4s.widget.Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]:
-
-  override def handleDownEvent(event: DownEvent): UpdateF[PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]], UpEvent] =
-    children
-      .traverse[[T] =>> UpdateF[T, UpEvent], PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]]](_._1.handleDownEvent(event))
-      .map(newChildren => placeFree(newChildren).flatMap(_.mergeWithState(childrenStates)))
-  end handleDownEvent
-
-  override def asFree: PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]] =
-    placeFree(children.map(_._1.asFree))
-  end asFree
-
-  override def mergeWithState(oldState: Map[String, Any]): PlaceF[Widget[UpdateF, DrawF, PlaceF, LeftComposition, UpEvent, DownEvent]] =
-    placeFree(children.map(_._1.mergeWithState(oldState)))
-  end mergeWithState
-
-  override def childrenStates: Map[String, Any] =
-    children.flatMap(_._1.childrenStates).toMap
-  end childrenStates
-
-  override def draw: DrawF =
-    summon[LayoutDraw[DrawF, ChildrenMeta]].drawChildren(children.map(child => (child._1.draw, child._2)))
-  end draw
-
-  override def aliveWidgets(
-                              currentPath: Path,
-                            ): Set[Path] =
-    children.foldMap(_._1.aliveWidgets(currentPath))
-  end aliveWidgets
-  
-  override def recomposed(currentPath : Path): LeftComposition =
-    children.foldMap(_._1.recomposed(currentPath))
-  end recomposed
-end LayoutWidget
+  children         : List[Place[Widget[Update, Draw, Place, Recomposition, Event, DownEvent]]],
+  placementStrategy: LayoutPlacementStrategy[Place[Widget[Update, Draw, Place, Recomposition, Event, DownEvent]], Widget[Update, Draw, Place, Recomposition, Event, DownEvent], Place, ChildrenMeta]
+): Place[Widget[Update, Draw, Place, Recomposition, Event, DownEvent]] =
+  placementStrategy(children).map(LayoutWidget(_, layoutWidget(_, placementStrategy)))
+end layoutWidget

@@ -10,6 +10,6 @@ trait TaskSet[+F[_], -WidgetTask]:
   
   def aliveTasksPaths: F[Set[Path]]
   
-  def killTask(path: Path): F[Unit]
+  def killTasksFor(path: Path): F[Unit]
 end TaskSet
 

@@ -18,7 +18,7 @@ final case class RefTaskSet[F[+_] : Monad, Task](
     runningTaskSet.get.map(_.keys)
   end aliveTasksPaths
 
-  override def killTask(path: Path): F[Unit] =
+  override def killTasksFor(path: Path): F[Unit] =
     runningTaskSet
       .modify(_.remove(path))
       .flatMap(deletedRunningTasks =>
@@ -26,7 +26,7 @@ final case class RefTaskSet[F[+_] : Monad, Task](
           .filterNot(_.keepAfterWidgetDeath).toList
           .traverse_(_.fiberControl.cancel)
       )
-  end killTask
+  end killTasksFor
 
   override def pushTask(io: RunnableIO[Task]): F[Unit] =
     for

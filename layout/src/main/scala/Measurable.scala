@@ -2,7 +2,7 @@ package me.katze.gui4s.layout
 
 import bound.Bounds
 
-import cats.{FlatMap, Monad}
+import cats.FlatMap
 
 import scala.annotation.tailrec
 
