@@ -5,6 +5,7 @@ import java.awt.Graphics
 import java.awt.image.BufferedImage
 import javax.swing.JComponent
 
+@SuppressWarnings(Array("org.wartremover.warts.All"))
 final class SwingWindowComponent extends JComponent:
   private[draw] var image: BufferedImage = new BufferedImage(400, 400, BufferedImage.TYPE_INT_ARGB)
   private[draw] var graphics = image.createGraphics()

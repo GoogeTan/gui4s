@@ -33,9 +33,7 @@ final class TaskResultCatcher[
   end handleDownEvent
 
   private def onTaskFinished(pathToParent : Path, newEvent: Any, event : HandleableEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
-    val eventToRaise = summon[RichTypeChecker[RaiseableEvent]]
-      .tryCast(newEvent)
-      .fold(a => throw Exception(a), a => a)
+    val eventToRaise = summon[RichTypeChecker[RaiseableEvent]].tryCast(newEvent, "Event type mismatch")
     for
       _ <- summon[RaiseEvent[Update]].raise(eventToRaise)
       res <- child.handleDownEvent(pathToParent, event)

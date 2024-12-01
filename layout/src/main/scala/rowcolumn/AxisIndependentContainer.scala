@@ -15,7 +15,7 @@ def weightedRowColumnPlace[MU : Fractional, T](
     val dependentAxes = AxisDependentBounds.fromConstraints(constraints, mainAxis)
     val measured = measure(elements, dependentAxes)
     val placed = rowColumnPlace(measured, dependentAxes)
-    val width = placed.map(a => a.x + a.width).max
-    val height = placed.map(a => a.x + a.width).max
+    val width = placed.map(a => a.x + a.width).maxOption.getOrElse(Numeric[MU].zero)
+    val height = placed.map(a => a.x + a.width).maxOption.getOrElse(Numeric[MU].zero)
     Sized(placed, width, height)
 end weightedRowColumnPlace

@@ -9,8 +9,11 @@ final case class AxisBounds[+T : Numeric](min: Option[T], max: Option[T]):
   def fixed: Boolean = min == max
   def finite : Boolean = max.isDefined
   def zero : Boolean = max.contains(Numeric[T].zero)
-  
-  
+
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def maxValueUnsafe : T = 
+    max.getOrElse(throw Exception("Infinite size container has infinite size children"))
+  end maxValueUnsafe
 end AxisBounds
 
 extension[T : Numeric](self : AxisBounds[T])

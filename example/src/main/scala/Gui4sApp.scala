@@ -59,7 +59,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   
   given[Task] : LiftEventReaction[Update[Task], Task] with
     override def lift[A, B](reaction: EventReaction[Task, A, B]): Update[Task][A, B] =
-      EventResult[Task, A, B](reaction.newState, reaction.parentEvent, reaction.ios.map(RunnableIO(_, Path(), _))) // TODO Проверить, что тут правда нужен пустой путь
+      EventResult[Task, A, B](reaction.newState, reaction.parentEvent, reaction.ios.map(RunnableIO(_, Path(List("_ROOT_")), _))) // TODO Проверить, что тут правда нужен пустой путь
     end lift
   end given
   
@@ -70,17 +70,21 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   enum RecompositionAction:
     case Task(task : RunnableIO[WidgetTaskImpl[IO, Any]])
     case KillTasksFor(path : Path)
-    
-  
+  end RecompositionAction
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   final override def run(args: List[String]): IO[ExitCode] =
     type Recomposition = List[RecompositionAction]
-    given KillTasks[Recomposition] = (path) => List(RecompositionAction.KillTasksFor(path))
+    given KillTasks[Recomposition] = path => List(RecompositionAction.KillTasksFor(path))
 
     for
       queue <- Queue.unbounded[IO, DownEvent]
       (drawApi, destroyDrawApi) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
       taskMap <- Ref.of[IO, MultiMap[Path, IOOnThread[IO]]](StlWrapperMultiMap(Map()))
-      taskSet = RefTaskSet[IO, WidgetTaskImpl[IO, Any]](taskMap, (path, task) => startWidgetTask(task, offerTask(queue, path, _)))
+      taskSet = RefTaskSet[IO, WidgetTaskImpl[IO, Any]](
+        taskMap, 
+        (path, task) => startWidgetTask(task, offerTask(queue, path, _))
+      )
 
       widgetApi = new HighLevelApiImpl[
         Update[WidgetTaskImpl[IO, Any]],
@@ -138,7 +142,9 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
       weightedRowColumnPlace[MU, widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, RE, Event, DownEvent]](
         axis,
         elements.map(widget => MaybeWeighted(None, widget)),
-        rowColumnPlace(_, _, mainAxisStrategyPlacement[MU](main, _, _), additionalAxisStrategyPlacement[MU](additional, _, _))
+        rowColumnPlace(_, _, 
+          (elements, bounds) => mainAxisStrategyPlacement[MU](main, elements, bounds.maxValueUnsafe),
+          (elements, bounds) => additionalAxisStrategyPlacement[MU](additional, elements, bounds.maxValueUnsafe))
       ).map(unpack)
   end containerPlacementCurried
 

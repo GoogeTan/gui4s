@@ -29,7 +29,7 @@ final class HighLevelApiImpl[
   -TextStyle,
   SystemEvent >: TaskFinished
 ](
-    using liftReaction : LiftEventReaction[Update, WidgetTaskIn[Any]], ld : LayoutDraw[Draw, LayoutPlacementMeta[MU]]
+    using LiftEventReaction[Update, WidgetTaskIn[Any]], LayoutDraw[Draw, LayoutPlacementMeta[MU]]
 )(
     val drawApi : SimpleDrawApi[MU, Draw],
     val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MU]

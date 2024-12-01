@@ -13,21 +13,22 @@ import me.katze.gui4s.layout.{Placed, Sized}
 
 import scala.math.Fractional.Implicits.{*, given}
 
-def mainAxisStrategyPlacement[MU : Fractional](strategy: MainAxisPlacementStrategy[MU], elements: List[MU], bounds: AxisBounds[MU]): List[MU] =
-  strategy match
-    case MainAxisPlacementStrategy.Begin(gap) => placeBeginMany(elements.map(_ + gap))
-    case MainAxisPlacementStrategy.Center(gap) => placeCenterMany(elements.map(_ + gap), bounds.max.getOrElse(throw Exception("TODO")))
-    case MainAxisPlacementStrategy.End(gap) => placeEndMany(elements.map(_ + gap), bounds.max.getOrElse(throw Exception("TODO")))
-    case MainAxisPlacementStrategy.SpaceBetween => placeSpaceBetween(elements, bounds.max.getOrElse(throw Exception("TODO")))
-    case MainAxisPlacementStrategy.SpaceAround => placeSpaceAround(elements, bounds.max.getOrElse(throw Exception("TODO")))
-  end match
+def mainAxisStrategyPlacement[MU : Fractional](strategy: MainAxisPlacementStrategy[MU], elements: List[MU], space : => MU): List[MU] =
+  (
+    strategy match
+      case MainAxisPlacementStrategy.Begin(gap) => placeBeginMany(elements.map(_ + gap))
+      case MainAxisPlacementStrategy.Center(gap) => placeCenterMany(elements.map(_ + gap), space)
+      case MainAxisPlacementStrategy.End(gap) => placeEndMany(elements.map(_ + gap), space)
+      case MainAxisPlacementStrategy.SpaceBetween => placeSpaceBetween(elements, space)
+      case MainAxisPlacementStrategy.SpaceAround => placeSpaceAround(elements, space)
+  ).map(_.coordinateOfStart)
 end mainAxisStrategyPlacement
 
-def additionalAxisStrategyPlacement[MU : Fractional](strategy: AdditionalAxisPlacementStrategy, element: MU, bounds: AxisBounds[MU]): MU =
+def additionalAxisStrategyPlacement[MU : Fractional](strategy: AdditionalAxisPlacementStrategy, element: MU, space : => MU): MU =
   strategy match
     case AdditionalAxisPlacementStrategy.Begin => placeBegin
-    case AdditionalAxisPlacementStrategy.Center => placeCenter(element, bounds.max.getOrElse(throw Exception("TODO")))
-    case AdditionalAxisPlacementStrategy.End => placeEnd(element, bounds.max.getOrElse(throw Exception("TODO")))
+    case AdditionalAxisPlacementStrategy.Center => placeCenter(element, space)
+    case AdditionalAxisPlacementStrategy.End => placeEnd(element, space)
   end match
 end additionalAxisStrategyPlacement
 

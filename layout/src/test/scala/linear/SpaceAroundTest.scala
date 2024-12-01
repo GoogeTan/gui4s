@@ -12,8 +12,7 @@ class SpaceAroundTest extends AnyFlatSpec:
       CoveredSpace(spaceAround, freeSpace - spaceAround)
     )(
       spaceCovered(
-        placeSpaceAround(widgets, freeSpace), 
-        widgets
+        placeSpaceAround(widgets, freeSpace)
       )
     )
   
@@ -23,7 +22,6 @@ class SpaceAroundTest extends AnyFlatSpec:
     assert(
       spaceAroundElements(
         placeSpaceAround(widgets, freeSpace), 
-        widgets, 
         freeSpace
       ).toSet.size == 1
     )

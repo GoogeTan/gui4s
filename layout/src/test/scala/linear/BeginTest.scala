@@ -17,14 +17,13 @@ class BeginTest extends AnyFlatSpec:
     assert(placeBegin[Float] == 0f)
 
   "placeBeginMany" should "form prefix sums" in:
-    assert(placeBeginMany(List(2, 2, 2)) == List(0, 2, 4))
+    assert(placeBeginMany(List(2, 2, 2)) == List(0, 2, 4).map(SizedElement(2, _)))
 
   "placeBeginMany" should "have zero space between" in:
     val widgets = List(2, 2, 2)
     assert(
       spaceBetweenElements(
-        placeBeginMany(widgets), 
-        widgets
+        placeBeginMany(widgets)
       ).forall(_ == 0)
     )
 

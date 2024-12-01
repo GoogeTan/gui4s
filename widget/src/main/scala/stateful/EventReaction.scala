@@ -5,8 +5,8 @@ import scala.annotation.tailrec
 
 final case class EventReaction[+WidgetTask, +State, +ParentUpEvent](
                                                                       newState   : State,
-                                                                      parentEvent: List[ParentUpEvent] = Nil,
-                                                                      ios        : List[(WidgetTask, Boolean)] = Nil
+                                                                      parentEvent: List[ParentUpEvent],
+                                                                      ios        : List[(WidgetTask, Boolean)]
                                                                     ):
   def mapState[NewState](f : State => NewState) : EventReaction[WidgetTask, NewState, ParentUpEvent] =
     EventReaction(f(newState), parentEvent, ios)
@@ -32,8 +32,8 @@ given[Task]: BiMonad[[A, B] =>> EventReaction[Task, A, B]] with
     @tailrec
     def helper(
                 a: A,
-                parentEvent: List[E] = Nil,
-                ios        : List[(Task, Boolean)] = Nil
+                parentEvent: List[E],
+                ios        : List[(Task, Boolean)]
               )(
                 f: A => EventReaction[Task, Either[A, B], E]
               ) : EventReaction[Task, B, E] =
@@ -43,7 +43,7 @@ given[Task]: BiMonad[[A, B] =>> EventReaction[Task, A, B]] with
         case Right(value) => EventReaction(value, ape ++ parentEvent, ios ++ aios)
       end match
     end helper
-    helper(a)(f)
+    helper(a, Nil, Nil)(f)
   end tailRecM
 end given
 

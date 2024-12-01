@@ -1,19 +1,17 @@
 package me.katze.gui4s.draw
 package lwjgl
 
-import fs2.Chunk.ByteBuffer
 import org.lwjgl.*
 import org.lwjgl.glfw.*
-import org.lwjgl.opengl.*
-import org.lwjgl.system.*
 import org.lwjgl.glfw.Callbacks.*
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.stb.STBEasyFont
+import org.lwjgl.system.*
 import org.lwjgl.system.MemoryStack.*
 import org.lwjgl.system.MemoryUtil.*
-import org.lwjgl.stb.*
 
+@SuppressWarnings(Array("org.wartremover.warts.All"))
 object Example extends App:
   // The window handle
   private var window: Long = 0L

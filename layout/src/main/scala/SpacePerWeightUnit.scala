@@ -1,6 +1,6 @@
 package me.katze.gui4s.layout
 
-import bound.AxisDependentBounds
+import bound.{AxisDependentBounds, Bounds}
 
 import cats.syntax.all.given
 
@@ -28,13 +28,13 @@ def spacePerWeightForContainerElements[MU : Fractional, T](
                                             constraints: AxisDependentBounds[MU]
                                           ) : SpacePerWeightUnit[MU] =
   val allTheWeight = elements.mapFilter(_.weight).sum
-  val allTheSpace = constraints.mainAxisMaxValue.get
-  val nonWeightedElementsSpace = fixedSpace(elements, constraints)
+  val allTheSpace = constraints.mainAxis.maxValueUnsafe
+  val nonWeightedElementsSpace = fixedSpace(elements, constraints.axis, constraints.bounds)
   if nonWeightedElementsSpace > allTheSpace then
     // Если фиксированные элементы заняли больше места, чем было свободного, то на взвешенные элементы места не остаётся.
     SpacePerWeightUnit(allTheWeight, Fractional[MU].zero)
   else
-    val freeSpace = (allTheSpace - nonWeightedElementsSpace)
+    val freeSpace = allTheSpace - nonWeightedElementsSpace
     SpacePerWeightUnit(allTheWeight, freeSpace)
   end if
 end spacePerWeightForContainerElements
@@ -42,10 +42,10 @@ end spacePerWeightForContainerElements
 /**
  * Считает суммарный размер всех элементов без веса.
  */
-def fixedSpace[MU : Numeric, T](children : List[MaybeWeighted[Measurable[MU,T]]], constraints: AxisDependentBounds[MU]) : MU =
+def fixedSpace[MU : Numeric, T](children : List[MaybeWeighted[Measurable[MU,T]]], mainAxis : Axis, bounds : Bounds[MU]) : MU =
   children.map {
     case MaybeWeighted(None, value) =>
-      value.placeInside(constraints.bounds).mainAxisValue(constraints.axis)
+      value.placeInside(bounds).mainAxisValue(mainAxis)
     case _ => Numeric[MU].zero
   }.sum
 end fixedSpace

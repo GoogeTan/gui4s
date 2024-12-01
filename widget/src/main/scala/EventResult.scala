@@ -8,8 +8,8 @@ type EventResultP[WT] = [A, B] =>> EventResult[WT, A, B]
 
 final case class EventResult[+WidgetTask, +FreeWidget, +UpEvent](
                                                                   widget: FreeWidget, 
-                                                                  upEvent: List[UpEvent] = Nil,
-                                                                  ios   : List[RunnableIO[WidgetTask]] = Nil
+                                                                  upEvent: List[UpEvent],
+                                                                  ios   : List[RunnableIO[WidgetTask]]
                                                                 )
 
 
@@ -32,8 +32,8 @@ given[Task]: BiMonad[[A, B] =>> EventResult[Task, A, B]] with
     @tailrec
     def helper(
                 a: A,
-                parentEvent: List[E] = Nil,
-                ios        : List[RunnableIO[Task]] = Nil
+                parentEvent: List[E],
+                ios        : List[RunnableIO[Task]]
               )(
                 f: A => EventResult[Task, Either[A, B], E]
               ) : EventResult[Task, B, E] =
@@ -43,7 +43,7 @@ given[Task]: BiMonad[[A, B] =>> EventResult[Task, A, B]] with
         case Right(value) => EventResult(value, ape ++ parentEvent, ios ++ aios)
       end match
     end helper
-    helper(a)(f)
+    helper(a, Nil, Nil)(f)
   end tailRecM
 end given
 

@@ -4,6 +4,10 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.5.1"
 
+addCompilerPlugin("org.wartremover" %% "wartremover" % "3.2.5" cross CrossVersion.full)
+
+scalacOptions += "-P:wartremover:traverser:org.wartremover.warts.Unsafe"
+
 val packagePrefix = "me.katze.gui4s"
 /*
 lazy val root = (project in file("."))
@@ -21,7 +25,8 @@ lazy val layout = (project in file("layout"))
       "org.scalatest" %% "scalatest" % "3.2.19" % "test",
       "org.scalacheck" %% "scalacheck" % "1.17.1" % "test"
     ),
-    coverageEnabled := true
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe
   )
 
 lazy val widget = (project in file("widget"))
@@ -34,7 +39,8 @@ lazy val widget = (project in file("widget"))
       "org.scalacheck" %% "scalacheck" % "1.17.1" % "test",
       "co.fs2" %% "fs2-core" % "3.10.2",
     ),
-    coverageEnabled := true
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe
   )
 
 lazy val draw = (project in file("draw"))
@@ -48,7 +54,8 @@ lazy val draw = (project in file("draw"))
       "co.fs2" %% "fs2-core" % "3.10.2"
     ),
     mainClass := Some("me.katze.gui4s.example.lwjgl.Example"),
-    coverageEnabled := true
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe
   ).dependsOn(widget)
 
 lazy val example = (project in file("example"))
@@ -64,4 +71,6 @@ lazy val example = (project in file("example"))
       "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
     ),
     coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe
   ).dependsOn(widget).dependsOn(draw).dependsOn(layout)
+

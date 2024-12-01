@@ -5,6 +5,8 @@ import stateful.{BiMonad, Path}
 
 import cats.FlatMap
 
+private final case class LaunchedEffectState(value : List[Any])
+
 final case class LaunchedEffectWidget[
   Update[+_, +_] : BiMonad,
   Draw,
@@ -18,7 +20,9 @@ final case class LaunchedEffectWidget[
   taskOnChange : Path => Recomposition,
   nothingToDo : Recomposition,
   nothingToDraw : Draw,
-  override val asFree: Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]]
+  override val asFree: Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]],
+  stateTypeMismatchRecompositionError: (Any, Path) => Recomposition,
+  stateTypeMismatchPlaceError: (Any, Path) => Place[Nothing]
 ) extends Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]:
   override def handleDownEvent(
                                 pathToParent: Path, event: DownEvent
@@ -27,19 +31,20 @@ final case class LaunchedEffectWidget[
   end handleDownEvent
 
   override def recomposed(
-                            currentPath: Path,
-                            states     : Map[String, StateTree[Recomposition]]
+                            pathToParent: Path,
+                            states      : Map[String, StateTree[Recomposition]]
                           ): Recomposition =
     states.get(name) match
-      case Some(value) =>
-        val oldKeys = value.asInstanceOf[List[Any]]
+      case Some(StateTree(LaunchedEffectState(oldKeys), _, _)) =>
         if keys != oldKeys then
-          taskOnChange(currentPath)
+          taskOnChange(pathToParent)
         else
           nothingToDo
         end if
+      case Some(StateTree(value, _, _)) =>
+        stateTypeMismatchRecompositionError(value, pathToParent.appendLast(this.name))
       case None =>
-        taskOnChange(currentPath)
+        taskOnChange(pathToParent)
     end match
   end recomposed
 
@@ -48,9 +53,10 @@ final case class LaunchedEffectWidget[
                                 oldState    : Map[String, StateTree[Recomposition]]
                               ): Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]] =
     oldState.get(name) match
-      case Some(value) =>
-        val oldKeys = value.asInstanceOf[List[Any]]
+      case Some(StateTree(LaunchedEffectState(oldKeys), _, _)) =>
         copy(keys = oldKeys).asFree
+      case Some(StateTree(value, _, _)) =>
+        stateTypeMismatchPlaceError(value, pathToParent.appendLast(this.name))
       case None =>
         asFree
     end match
@@ -60,7 +66,7 @@ final case class LaunchedEffectWidget[
   end aliveWidgets
 
   override def childrenStates: Map[String, StateTree[Recomposition]] =
-    Map(name -> StateTree[Recomposition](keys, nothingToDo, Map()))
+    Map(name -> StateTree[Recomposition](LaunchedEffectState(keys), nothingToDo, Map()))
   end childrenStates
 
   override def draw: Draw = nothingToDraw

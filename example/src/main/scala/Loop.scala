@@ -61,13 +61,14 @@ def drawLoop[
   F[+_] : MonadErrorT[Error],
   Error
 ](renderExceptionHandler : DrawLoopExceptionHandler[F, Error], beginDraw : F[Unit], endDraw : F[Unit])(drawCurrentWidget : F[Unit]) : F[ExitCode] =
-  Monad[F].iterateWhile(
+  Monad[F].tailRecM[None.type, ExitCode](
+    None
+  )(_ =>
       (beginDraw *> drawCurrentWidget *> endDraw)
         .as(None)
         .handleErrorWith(renderExceptionHandler)
-    )(_.isEmpty)
-    // Мы всегда уверены, что там Some, так как это условие выхода из цикла
-    .map(_.get)
+        .map(_.toRight(None))
+  )
 end drawLoop
 
 def updateLoop[

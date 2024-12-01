@@ -6,22 +6,17 @@ import scala.math.Numeric.Implicits.{*, given}
 
 def placeBegin[T : Numeric] : T = Numeric[T].zero
 
-def placeBeginMany[T : Numeric](sizes : List[T]) : List[T] =
-  placeBeginTailrec(sizes, Numeric[T].zero)
+def placeBeginMany[T : Numeric](sizes : List[T]) : List[SizedElement[T]] =
+  placeBeginTailrecHelper(sizes, Numeric[T].zero, Nil)
 end placeBeginMany
-
-
-private[linear] def placeBeginTailrec[T : Numeric](sizes: List[T], initialGap: T): List[T] =
-  placeBeginTailrecHelper(sizes, initialGap, Nil).reverse
-end placeBeginTailrec
   
 @tailrec
-private def placeBeginTailrecHelper[T : Numeric](sizes: List[T], initialGap: T, result: List[T]): List[T] =
+def placeBeginTailrecHelper[T : Numeric](sizes: List[T], initialGap: T, result: List[SizedElement[T]]): List[SizedElement[T]] =
   sizes match
     case size :: otherSizes =>
-      placeBeginTailrecHelper(otherSizes, initialGap + size, initialGap :: result)
+      placeBeginTailrecHelper(otherSizes, initialGap + size, SizedElement(size, initialGap) :: result)
     case Nil =>
-      result
+      result.reverse
   end match
 end placeBeginTailrecHelper
 

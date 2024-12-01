@@ -5,7 +5,7 @@ import scala.math.Numeric.Implicits.infixNumericOps
 
 def placeEnd[T : Numeric](size : T, space : T) : T = space - size
 
-def placeEndMany[T: Numeric](sizes : List[T], space : T) : List[T] =
+def placeEndMany[T: Numeric](sizes : List[T], space : T) : List[SizedElement[T]] =
   val allSize = sizes.sum
-  placeBeginTailrec(sizes, space - allSize)
+  placeBeginTailrecHelper(sizes, space - allSize, Nil)
 end placeEndMany
