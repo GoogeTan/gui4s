@@ -3,8 +3,7 @@ package library
 
 import stateful.*
 
-import cats.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 
 final case class InitialBasedState[
   Widget,

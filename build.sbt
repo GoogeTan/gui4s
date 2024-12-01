@@ -8,6 +8,12 @@ addCompilerPlugin("org.wartremover" %% "wartremover" % "3.2.5" cross CrossVersio
 
 scalacOptions += "-P:wartremover:traverser:org.wartremover.warts.Unsafe"
 
+inThisBuild(
+  List(
+    semanticdbEnabled := true, // enable SemanticDB for scalafix
+  )
+)
+
 val packagePrefix = "me.katze.gui4s"
 /*
 lazy val root = (project in file("."))
@@ -26,7 +32,16 @@ lazy val layout = (project in file("layout"))
       "org.scalacheck" %% "scalacheck" % "1.17.1" % "test"
     ),
     coverageEnabled := true,
-    wartremoverErrors := Warts.unsafe
+    wartremoverErrors := Warts.unsafe,
+    scalafixOnCompile := true,
+    scalacOptions +=
+      {
+        if (scalaVersion.value.startsWith("2.12"))
+          "-Ywarn-unused-import"
+        else
+          "-Wunused:imports"
+      }
+
   )
 
 lazy val widget = (project in file("widget"))
@@ -40,7 +55,15 @@ lazy val widget = (project in file("widget"))
       "co.fs2" %% "fs2-core" % "3.10.2",
     ),
     coverageEnabled := true,
-    wartremoverErrors := Warts.unsafe
+    wartremoverErrors := Warts.unsafe,
+    scalafixOnCompile := true,
+    scalacOptions +=
+      {
+        if (scalaVersion.value.startsWith("2.12"))
+          "-Ywarn-unused-import"
+        else
+          "-Wunused:imports"
+      }
   )
 
 lazy val draw = (project in file("draw"))
@@ -55,7 +78,15 @@ lazy val draw = (project in file("draw"))
     ),
     mainClass := Some("me.katze.gui4s.example.lwjgl.Example"),
     coverageEnabled := true,
-    wartremoverErrors := Warts.unsafe
+    wartremoverErrors := Warts.unsafe,
+    scalafixOnCompile := true,
+    scalacOptions +=
+      {
+        if (scalaVersion.value.startsWith("2.12"))
+          "-Ywarn-unused-import"
+        else
+          "-Wunused:imports"
+      }
   ).dependsOn(widget)
 
 lazy val example = (project in file("example"))
@@ -71,6 +102,14 @@ lazy val example = (project in file("example"))
       "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
     ),
     coverageEnabled := true,
-    wartremoverErrors := Warts.unsafe
+    wartremoverErrors := Warts.unsafe,
+    scalafixOnCompile := true,
+    scalacOptions +=
+      {
+        if (scalaVersion.value.startsWith("2.12"))
+          "-Ywarn-unused-import"
+        else
+          "-Wunused:imports"
+      }
   ).dependsOn(widget).dependsOn(draw).dependsOn(layout)
 

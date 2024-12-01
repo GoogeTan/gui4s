@@ -2,7 +2,7 @@ package me.katze.gui4s.widget
 package stateful
 
 import cats.FlatMap
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 import me.katze.gui4s.widget
 
 final case class Stateful[

@@ -2,14 +2,10 @@ package me.katze.gui4s.layout
 package linear
 
 import org.scalatest.flatspec.*
-import cats.*
-import cats.syntax.all.{*, given}
 import org.scalatest.*
 
 import scala.collection.immutable.List
-import scala.collection.mutable.ArrayBuffer
-import scala.math.Numeric.Implicits.{*, given}
-import scala.util.Random
+import scala.math.Numeric.Implicits.*
 
 class BeginTest extends AnyFlatSpec:
   "placeBegin" should "always return 0" in:

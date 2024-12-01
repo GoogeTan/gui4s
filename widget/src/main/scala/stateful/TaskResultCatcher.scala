@@ -2,7 +2,7 @@ package me.katze.gui4s.widget
 package stateful
 
 import cats.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 
 final class TaskResultCatcher[
   +Update[+_, +_] : BiMonad : RaiseEvent,

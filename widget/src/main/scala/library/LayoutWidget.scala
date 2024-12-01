@@ -4,7 +4,7 @@ package library
 import stateful.{BiMonad, Path, given}
 
 import cats.{FlatMap, Monoid}
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 
 final class LayoutWidget[
   Update[+_, +_] : BiMonad,

@@ -2,7 +2,7 @@ package me.katze.gui4s.layout
 package linear
 
 import scala.annotation.tailrec
-import scala.math.Numeric.Implicits.{*, given}
+import scala.math.Numeric.Implicits.*
 
 def placeBegin[T : Numeric] : T = Numeric[T].zero
 

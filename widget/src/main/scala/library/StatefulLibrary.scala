@@ -4,7 +4,7 @@ package library
 import stateful.*
 
 import cats.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 
 def statefulWidget[
   Update[+_, +_] : BiMonad : CatchEvents,

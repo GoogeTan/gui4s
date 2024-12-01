@@ -1,8 +1,8 @@
 package me.katze.gui4s.widget
 package library
 
-import cats.{FlatMap, Monad}
-import cats.syntax.all.{*, given}
+import cats.FlatMap
+import cats.syntax.all.*
 import me.katze.gui4s.widget.stateful.{BiMonad, Path}
 
 def drawOnlyWidget[

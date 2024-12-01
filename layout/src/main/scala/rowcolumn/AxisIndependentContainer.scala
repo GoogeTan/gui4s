@@ -1,10 +1,10 @@
 package me.katze.gui4s.layout
 package rowcolumn
 
-import bound.{AxisBounds, AxisDependentBounds}
+import bound.AxisDependentBounds
 
-import scala.math.Fractional.{*, given}
-import scala.math.Fractional.Implicits.{*, given}
+import scala.math.Fractional.*
+import scala.math.Fractional.Implicits.*
 
 def weightedRowColumnPlace[MU : Fractional, T](
                                                               mainAxis: Axis,

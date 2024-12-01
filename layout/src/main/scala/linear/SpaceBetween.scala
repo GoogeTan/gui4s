@@ -1,7 +1,7 @@
 package me.katze.gui4s.layout
 package linear
 
-import scala.math.Fractional.Implicits.{*, given}
+import scala.math.Fractional.Implicits.*
 
 def placeSpaceBetween[T : Fractional](sizes : List[T], space : T) : List[SizedElement[T]] =
   val gap = spaceBetween(sizes, space)

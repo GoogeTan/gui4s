@@ -4,7 +4,7 @@ package library
 import stateful.{BiMonad, CatchEvents}
 
 import cats.FlatMap
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 
 def labelWidget[
   Update[+_, +_] : BiMonad : CatchEvents,
