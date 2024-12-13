@@ -1,11 +1,11 @@
 package me.katze.gui4s.draw
 package lwjgl.test2
 
-import lwjgl.FontDemo
 import lwjgl.GLFWUtil.glfwInvoke
+
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.glfw.{GLFWErrorCallback, GLFWVidMode}
+import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.{GL, GLUtil}
 import org.lwjgl.system.MemoryStack.stackPush
@@ -13,9 +13,8 @@ import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.system.{Callback, MemoryStack, Platform}
 
 import java.lang.Math.{max, min}
-import java.nio.FloatBuffer
 import java.util.Objects
-import java.util.regex.{Matcher, Pattern}
+import java.util.regex.Pattern
 import scala.util.Using
 
 final case class FontDemo(
@@ -40,7 +39,7 @@ final case class FontDemo(
 
   def setLineOffset(offset: Int): Unit =
     lineOffset = max(0, min(offset, lineCount - (wh / lineHeight).toInt))
-  
+
   def setScale(scale: Int): Unit =
     this.scale = max(-3, scale)
     this.lineHeight = fontHeight * (1.0f + this.scale * 0.25f)
@@ -58,15 +57,20 @@ final case class FontDemo(
 end FontDemo
 
 object FontDemo:
-  @SuppressWarnings(Array("org.wartremover.warts.All"))
-  def apply(text : String, fontHeight : Int) : FontDemo =
+  def linesOfText(text : String) : Int =
     var lc = 0
     val m = Pattern.compile("^.*$", Pattern.MULTILINE).matcher(text)
-    while (m.find)
+    while m.find do
       lc += 1
+    end while  
+    lc
+  end linesOfText
+
+  @SuppressWarnings(Array("org.wartremover.warts.All"))
+  def apply(text : String, fontHeight : Int) : FontDemo =
     new FontDemo(
       text,
-      lc,
+      linesOfText(text),
       0,
       800,
       600,
@@ -115,51 +119,7 @@ def initFD(self: FontDemo, title: String): Unit =
   self.window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL)
   if (self.window == NULL)
     throw new RuntimeException("Failed to create the GLFW window")
-  glfwSetWindowSizeCallback(self.window, windowSizeChanged2(self, _, _, _))
-  glfwSetFramebufferSizeCallback(self.window, framebufferSizeChanged)
-  glfwSetKeyCallback(self.window, (window: Long, key: Int, scancode: Int, action: Int, mods: Int) =>
-      key match
-        case GLFW_KEY_LEFT_CONTROL =>
-        case GLFW_KEY_RIGHT_CONTROL =>
-          self.ctrlDown = action != GLFW_RELEASE
-      end match
-
-      if action != GLFW_RELEASE then
-        key match
-          case GLFW_KEY_ESCAPE =>
-            glfwSetWindowShouldClose(window, true)
-          case GLFW_KEY_PAGE_UP =>
-            self.setLineOffset(self.lineOffset - self.wh / self.lineHeight)
-          case GLFW_KEY_PAGE_DOWN =>
-            self.setLineOffset(self.lineOffset + self.wh / self.lineHeight)
-          case GLFW_KEY_HOME =>
-            self.setLineOffset(0)
-          case GLFW_KEY_END =>
-            self.setLineOffset(self.lineCount - self.wh / self.lineHeight)
-          case GLFW_KEY_KP_ADD =>
-          case GLFW_KEY_EQUAL =>
-            self.setScale(self.scale + 1)
-          case GLFW_KEY_KP_SUBTRACT =>
-          case GLFW_KEY_MINUS =>
-            self.setScale(self.scale - 1)
-          case GLFW_KEY_0 =>
-          case GLFW_KEY_KP_0 =>
-            if (self.ctrlDown)
-              self.setScale(0)
-          case GLFW_KEY_B =>
-            self.lineBBEnabled = !self.lineBBEnabled
-
-          case GLFW_KEY_K =>
-            self.kerningEnabled = !self.kerningEnabled
-      end if
-  )
-  glfwSetScrollCallback(self.window, (window: Long, xoffset: Double, yoffset: Double) =>
-  {
-    if (self.ctrlDown)
-      self.setScale(self.scale + yoffset.round.toInt)
-    else
-      self.setLineOffset(self.lineOffset - yoffset.round.toInt * 3)
-  })
+  registerCallbacks(self)
   // Center window
   val vidmode = Objects.requireNonNull(glfwGetVideoMode(monitor))
   glfwSetWindowPos(self.window, (vidmode.width - framebufferW) / 2, (vidmode.height - framebufferH) / 2)
@@ -171,6 +131,54 @@ def initFD(self: FontDemo, title: String): Unit =
   glfwShowWindow(self.window)
   glfwInvoke(self.window, windowSizeChanged2(self, _, _, _), framebufferSizeChanged)
 end initFD
+
+def registerCallbacks(self : FontDemo) : Unit =
+  glfwSetWindowSizeCallback(self.window, windowSizeChanged2(self, _, _, _))
+  glfwSetFramebufferSizeCallback(self.window, framebufferSizeChanged)
+  glfwSetKeyCallback(self.window, (window: Long, key: Int, scancode: Int, action: Int, mods: Int) =>
+    key match
+      case GLFW_KEY_LEFT_CONTROL =>
+      case GLFW_KEY_RIGHT_CONTROL =>
+        self.ctrlDown = action != GLFW_RELEASE
+    end match
+
+    if action != GLFW_RELEASE then
+      key match
+        case GLFW_KEY_ESCAPE =>
+          glfwSetWindowShouldClose(window, true)
+        case GLFW_KEY_PAGE_UP =>
+          self.setLineOffset(self.lineOffset - self.wh / self.lineHeight)
+        case GLFW_KEY_PAGE_DOWN =>
+          self.setLineOffset(self.lineOffset + self.wh / self.lineHeight)
+        case GLFW_KEY_HOME =>
+          self.setLineOffset(0)
+        case GLFW_KEY_END =>
+          self.setLineOffset(self.lineCount - self.wh / self.lineHeight)
+        case GLFW_KEY_KP_ADD =>
+        case GLFW_KEY_EQUAL =>
+          self.setScale(self.scale + 1)
+        case GLFW_KEY_KP_SUBTRACT =>
+        case GLFW_KEY_MINUS =>
+          self.setScale(self.scale - 1)
+        case GLFW_KEY_0 =>
+        case GLFW_KEY_KP_0 =>
+          if (self.ctrlDown)
+            self.setScale(0)
+        case GLFW_KEY_B =>
+          self.lineBBEnabled = !self.lineBBEnabled
+
+        case GLFW_KEY_K =>
+          self.kerningEnabled = !self.kerningEnabled
+    end if
+  )
+  glfwSetScrollCallback(self.window, (window: Long, xoffset: Double, yoffset: Double) =>
+  {
+    if (self.ctrlDown)
+      self.setScale(self.scale + yoffset.round.toInt)
+    else
+      self.setLineOffset(self.lineOffset - yoffset.round.toInt * 3)
+  })
+end registerCallbacks
 
 def framebufferSizeChanged(window: Long, width: Int, height: Int): Unit =
   glViewport(0, 0, width, height)

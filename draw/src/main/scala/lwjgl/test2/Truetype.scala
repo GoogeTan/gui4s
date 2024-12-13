@@ -49,7 +49,7 @@ object Truetype:
     Truetype(font, ttf, info, ascent, descent, lineGap)
   end apply
 
-  def init(self : Truetype, BITMAP_W: Int, BITMAP_H: Int): STBTTBakedChar.Buffer =
+  def initLoop(self: Truetype, BITMAP_W: Int, BITMAP_H: Int): STBTTBakedChar.Buffer =
     val texID = glGenTextures
     val cdata = STBTTBakedChar.malloc(96)
     val bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H)
@@ -66,24 +66,28 @@ object Truetype:
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     cdata
-  end init
+  end initLoop
+
+  def loopStep(self : Truetype, cdata : STBTTBakedChar.Buffer, BITMAP_W : Int, BITMAP_H : Int) : Unit =
+    glfwPollEvents()
+    glClear(GL_COLOR_BUFFER_BIT)
+    val scaleFactor = 1.0f + self.fontDemo.scale * 0.25f
+    glPushMatrix()
+    // Zoom
+    glScalef(scaleFactor, scaleFactor, 1f)
+    // Scroll
+    glTranslatef(4.0f, self.fontDemo.fontHeight * 0.5f + 4.0f - self.fontDemo.lineOffset * self.fontDemo.fontHeight, 0f)
+    renderText(self, cdata, BITMAP_W, BITMAP_H)
+    glPopMatrix()
+    glfwSwapBuffers(self.fontDemo.window)
+  end loopStep
 
   def loop(self : Truetype): Unit =
     val BITMAP_W = 512 * self.fontDemo.contentScaleX.round
     val BITMAP_H = 512 * self.fontDemo.contentScaleY.round
-    val cdata = init(self, BITMAP_W, BITMAP_H)
-    while (!glfwWindowShouldClose(self.fontDemo.window)) do
-      glfwPollEvents()
-      glClear(GL_COLOR_BUFFER_BIT)
-      val scaleFactor = 1.0f + self.fontDemo.scale * 0.25f
-      glPushMatrix()
-      // Zoom
-      glScalef(scaleFactor, scaleFactor, 1f)
-      // Scroll
-      glTranslatef(4.0f, self.fontDemo.fontHeight * 0.5f + 4.0f - self.fontDemo.lineOffset * self.fontDemo.fontHeight, 0f)
-      renderText(self, cdata, BITMAP_W, BITMAP_H)
-      glPopMatrix()
-      glfwSwapBuffers(self.fontDemo.window)
+    val cdata = initLoop(self, BITMAP_W, BITMAP_H)
+    while !glfwWindowShouldClose(self.fontDemo.window) do
+      loopStep(self, cdata, BITMAP_W, BITMAP_H)
     end while
     cdata.free()
   end loop
@@ -148,7 +152,6 @@ object Truetype:
   end renderText
 
   private def renderLineBB(self : Truetype, from: Int, to: Int, yIn: Float, scale: Float): Unit =
-
     glDisable(GL_TEXTURE_2D)
     glPolygonMode(GL_FRONT, GL_LINE)
     glColor3f(1.0f, 1.0f, 0.0f)
@@ -215,6 +218,6 @@ object Truetype:
 
   @main
   def test() : Unit =
-    run(Truetype("Hello from test!"), "Awesome title")
+    run(Truetype("Hello from \n test!"), "Awesome title")
   end test
 end Truetype
