@@ -72,13 +72,15 @@ lazy val draw = (project in file("draw"))
     idePackagePrefix := Some(s"$packagePrefix.draw"),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % "2.12.0",
+      "org.typelevel" %% "cats-effect" % "3.5.4",
+      "org.typelevel" %% "cats-core" % "2.12.0",
       "org.scalatest" %% "scalatest" % "3.2.19" % "test",
       "org.scalacheck" %% "scalacheck" % "1.17.1" % "test",
       "co.fs2" %% "fs2-core" % "3.10.2"
     ),
     mainClass := Some("me.katze.gui4s.example.lwjgl.Example"),
     coverageEnabled := true,
-    wartremoverErrors := Warts.unsafe,
+    wartremoverErrors := Warts.allBut(Warts.all*),
     scalafixOnCompile := true,
     scalacOptions +=
       {

@@ -17,7 +17,7 @@ import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 /** STB Easy Font demo. */
-abstract class FontDemo {
+public abstract class FontDemo {
 
     protected final String text;
     private final   int    lineCount;
@@ -41,7 +41,7 @@ abstract class FontDemo {
 
     private Callback debugProc;
 
-    protected FontDemo(int fontHeight, String text) {
+    public FontDemo(int fontHeight, String text) {
         this.fontHeight = fontHeight;
         this.lineHeight = fontHeight;
 
@@ -87,7 +87,7 @@ abstract class FontDemo {
         return lineBBEnabled;
     }
 
-    protected void run(String title) {
+    public void run(String title) {
         try {
             init(title);
 

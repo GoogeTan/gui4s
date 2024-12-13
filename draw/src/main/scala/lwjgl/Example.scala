@@ -81,7 +81,7 @@ object Example extends App:
     // Make the window visible
     glfwShowWindow(window)
   end init
-
+  
   private def loop(): Unit =
   {
     GL.createCapabilities

@@ -24,8 +24,8 @@ public final class Truetype extends FontDemo {
     private final int descent;
     private final int lineGap;
 
-    private Truetype(String filePath) {
-        super(24, filePath);
+    public Truetype(String text) {
+        super(24, text);
 
         try {
             ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024);
@@ -53,7 +53,7 @@ public final class Truetype extends FontDemo {
 
     public static void main(String[] args) {
         String fontPath = "JetBrainsMono-Regular.ttf";
-        new Truetype(fontPath).run("STB Truetype Demo");
+        new me.katze.gui4s.draw.lwjgl.Truetype(fontPath).run("STB Truetype Demo");
     }
 
     private STBTTBakedChar.Buffer init(int BITMAP_W, int BITMAP_H) {
@@ -242,5 +242,4 @@ public final class Truetype extends FontDemo {
         cpOut.put(0, c1);
         return 1;
     }
-
 }
