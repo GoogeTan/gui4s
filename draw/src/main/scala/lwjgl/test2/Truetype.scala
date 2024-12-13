@@ -53,7 +53,7 @@ object Truetype:
     val texID = glGenTextures
     val cdata = STBTTBakedChar.malloc(96)
     val bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H)
-    stbtt_BakeFontBitmap(self.ttf, self.fontDemo.fontHeight * self.fontDemo.contentScaleY, bitmap, BITMAP_W, BITMAP_H, 32, cdata)
+    stbtt_BakeFontBitmap(self.ttf, self.fontDemo.line.fontHeight * self.fontDemo.state.contentScaleY, bitmap, BITMAP_W, BITMAP_H, 32, cdata)
     glBindTexture(GL_TEXTURE_2D, texID)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, BITMAP_W, BITMAP_H, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -71,22 +71,22 @@ object Truetype:
   def loopStep(self : Truetype, cdata : STBTTBakedChar.Buffer, BITMAP_W : Int, BITMAP_H : Int) : Unit =
     glfwPollEvents()
     glClear(GL_COLOR_BUFFER_BIT)
-    val scaleFactor = 1.0f + self.fontDemo.scale * 0.25f
+    val scaleFactor = 1.0f + self.fontDemo.state.scale * 0.25f
     glPushMatrix()
     // Zoom
     glScalef(scaleFactor, scaleFactor, 1f)
     // Scroll
-    glTranslatef(4.0f, self.fontDemo.fontHeight * 0.5f + 4.0f - self.fontDemo.lineOffset * self.fontDemo.fontHeight, 0f)
+    glTranslatef(4.0f, self.fontDemo.line.fontHeight * 0.5f + 4.0f - self.fontDemo.state.lineOffset * self.fontDemo.line.fontHeight, 0f)
     renderText(self, cdata, BITMAP_W, BITMAP_H)
     glPopMatrix()
-    glfwSwapBuffers(self.fontDemo.window)
+    glfwSwapBuffers(self.fontDemo.window.window)
   end loopStep
 
   def loop(self : Truetype): Unit =
-    val BITMAP_W = 512 * self.fontDemo.contentScaleX.round
-    val BITMAP_H = 512 * self.fontDemo.contentScaleY.round
+    val BITMAP_W = 512 * self.fontDemo.state.contentScaleX.round
+    val BITMAP_H = 512 * self.fontDemo.state.contentScaleY.round
     val cdata = initLoop(self, BITMAP_W, BITMAP_H)
-    while !glfwWindowShouldClose(self.fontDemo.window) do
+    while !glfwWindowShouldClose(self.fontDemo.window.window) do
       loopStep(self, cdata, BITMAP_W, BITMAP_H)
     end while
     cdata.free()
@@ -96,7 +96,7 @@ object Truetype:
     (offset - center) * factor + center
 
   private def renderText(self : Truetype, cdata: STBTTBakedChar.Buffer, BITMAP_W: Int, BITMAP_H: Int): Unit =
-    val scale = stbtt_ScaleForPixelHeight(self.info, self.fontDemo.fontHeight)
+    val scale = stbtt_ScaleForPixelHeight(self.info, self.fontDemo.line.fontHeight)
     Using(stackPush):
       stack =>
         val pCodePoint = stack.mallocInt(1)
@@ -104,17 +104,17 @@ object Truetype:
         val y = stack.floats(0.0f)
         val q = STBTTAlignedQuad.malloc(stack)
         var lineStart = 0
-        val factorX = 1.0f / self.fontDemo.contentScaleX
-        val factorY = 1.0f / self.fontDemo.contentScaleY
+        val factorX = 1.0f / self.fontDemo.state.contentScaleX
+        val factorY = 1.0f / self.fontDemo.state.contentScaleY
         var lineY = 0.0f
         glBegin(GL_QUADS)
         var i = 0
-        val to = self.fontDemo.text.length
+        val to = self.fontDemo.line.text.length
         while (i < to) do
-          i += getCP(self.fontDemo.text, to, i, pCodePoint)
+          i += getCP(self.fontDemo.line.text, to, i, pCodePoint)
           val cp = pCodePoint.get(0)
           if cp == '\n' then
-            if (self.fontDemo.lineBBEnabled)
+            if (self.fontDemo.line.lineBBEnabled)
             {
               glEnd()
               renderLineBB(self, lineStart, i - 1, y.get(0), scale)
@@ -128,8 +128,8 @@ object Truetype:
             val cpX = x.get(0)
             stbtt_GetBakedQuad(cdata, BITMAP_W, BITMAP_H, cp - 32, x, y, q, true)
             x.put(0, scaled(cpX, x.get(0), factorX))
-            if self.fontDemo.kerningEnabled && i < to then
-              getCP(self.fontDemo.text, to, i, pCodePoint)
+            if self.fontDemo.line.kerningEnabled && i < to then
+              getCP(self.fontDemo.line.text, to, i, pCodePoint)
               x.put(0, x.get(0) + stbtt_GetCodepointKernAdvance(self.info, cp, pCodePoint.get(0)) * scale)
             val x0 = scaled(cpX, q.x0, factorX)
             val x1 = scaled(cpX, q.x1, factorX)
@@ -146,8 +146,8 @@ object Truetype:
           end if
         end while
         glEnd()
-        if (self.fontDemo.lineBBEnabled)
-          renderLineBB(self, lineStart, self.fontDemo.text.length, lineY, scale)
+        if (self.fontDemo.line.lineBBEnabled)
+          renderLineBB(self, lineStart, self.fontDemo.line.text.length, lineY, scale)
         end if
   end renderText
 
@@ -155,13 +155,13 @@ object Truetype:
     glDisable(GL_TEXTURE_2D)
     glPolygonMode(GL_FRONT, GL_LINE)
     glColor3f(1.0f, 1.0f, 0.0f)
-    val width = getStringWidth(self.fontDemo.kerningEnabled, self.info, self.fontDemo.text, from, to, self.fontDemo.fontHeight)
+    val width = getStringWidth(self.fontDemo.line.kerningEnabled, self.info, self.fontDemo.line.text, from, to, self.fontDemo.line.fontHeight)
     val y = yIn - self.descent * scale
     glBegin(GL_QUADS)
     glVertex2f(0.0f, y)
     glVertex2f(width, y)
-    glVertex2f(width, y - self.fontDemo.fontHeight)
-    glVertex2f(0.0f, y - self.fontDemo.fontHeight)
+    glVertex2f(width, y - self.fontDemo.line.fontHeight)
+    glVertex2f(0.0f, y - self.fontDemo.line.fontHeight)
     glEnd()
     glEnable(GL_TEXTURE_2D)
     glPolygonMode(GL_FRONT, GL_FILL)
