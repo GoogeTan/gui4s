@@ -1,18 +1,18 @@
 package me.katze.gui4s.draw
 package lwjgl.test2
 
-import me.katze.gui4s.draw.lwjgl.IOUtil.ioResourceToByteBuffer
+import lwjgl.IOUtil.ioResourceToByteBuffer
+
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.{glfwPollEvents, glfwSwapBuffers, glfwWindowShouldClose}
-import org.lwjgl.opengl.GL11.{GL_ALPHA, GL_BLEND, GL_COLOR_BUFFER_BIT, GL_FILL, GL_FRONT, GL_LINE, GL_LINEAR, GL_ONE_MINUS_SRC_ALPHA, GL_QUADS, GL_SRC_ALPHA, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_UNSIGNED_BYTE, glBegin, glBindTexture, glBlendFunc, glClear, glClearColor, glColor3f, glDisable, glEnable, glEnd, glGenTextures, glPolygonMode, glPopMatrix, glPushMatrix, glScalef, glTexCoord2f, glTexImage2D, glTexParameteri, glTranslatef, glVertex2f}
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.stb.STBTruetype.*
 import org.lwjgl.stb.{STBTTAlignedQuad, STBTTBakedChar, STBTTFontinfo}
-import org.lwjgl.stb.STBTruetype.{stbtt_BakeFontBitmap, stbtt_GetBakedQuad, stbtt_GetCodepointHMetrics, stbtt_GetCodepointKernAdvance, stbtt_GetFontVMetrics, stbtt_InitFont, stbtt_ScaleForPixelHeight}
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 
-import java.io.IOException
-import java.nio.{ByteBuffer, FloatBuffer, IntBuffer}
-import scala.util.Using
+import java.nio.{ByteBuffer, IntBuffer}
+import scala.util.{Try, Using}
 
 final case class Truetype(
                             fontDemo: FontDemo,
@@ -24,14 +24,7 @@ final case class Truetype(
                           )
 
 object Truetype:
-  def apply(text : String) : Truetype =
-    val font = FontDemo(text, 24)
-    val ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
-    val info = STBTTFontinfo.create
-    if (!stbtt_InitFont(info, ttf))
-      throw new IllegalStateException("Failed to initialize font information.")
-
-    (
+  def getFontMetrics(info : STBTTFontinfo) : Try[(Int, Int, Int)] =
     Using(stackPush):
       stack =>
         val pAscent = stack.mallocInt(1)
@@ -41,10 +34,22 @@ object Truetype:
         val ascent = pAscent.get(0)
         val descent = pDescent.get(0)
         val lineGap = pLineGap.get(0)
-        Truetype(font, ttf, info, ascent, descent, lineGap)
-    ).get
+        (ascent, descent, lineGap)
+  end getFontMetrics
 
-  def init(self : Truetype, BITMAP_W: Int, BITMAP_H: Int) =
+
+  def apply(text : String) : Truetype =
+    val font = FontDemo(text, 24)
+    val ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
+    val info = STBTTFontinfo.create
+    if (!stbtt_InitFont(info, ttf))
+      throw new IllegalStateException("Failed to initialize font information.")
+
+    val (ascent, descent, lineGap) = getFontMetrics(info).get
+    Truetype(font, ttf, info, ascent, descent, lineGap)
+  end apply
+
+  def init(self : Truetype, BITMAP_W: Int, BITMAP_H: Int): STBTTBakedChar.Buffer =
     val texID = glGenTextures
     val cdata = STBTTBakedChar.malloc(96)
     val bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H)
@@ -87,13 +92,9 @@ object Truetype:
     (offset - center) * factor + center
 
   private def renderText(self : Truetype, cdata: STBTTBakedChar.Buffer, BITMAP_W: Int, BITMAP_H: Int): Unit =
-  {
     val scale = stbtt_ScaleForPixelHeight(self.info, self.fontDemo.fontHeight)
-    try
-    {
-      val stack = stackPush
-      try
-      {
+    Using(stackPush):
+      stack =>
         val pCodePoint = stack.mallocInt(1)
         val x = stack.floats(0.0f)
         val y = stack.floats(0.0f)
@@ -105,8 +106,7 @@ object Truetype:
         glBegin(GL_QUADS)
         var i = 0
         val to = self.fontDemo.text.length
-        while (i < to)
-        {
+        while (i < to) do
           i += getCP(self.fontDemo.text, to, i, pCodePoint)
           val cp = pCodePoint.get(0)
           if cp == '\n' then
@@ -139,17 +139,16 @@ object Truetype:
             glVertex2f(x1, y1)
             glTexCoord2f(q.s0, q.t1)
             glVertex2f(x0, y1)
-        }
+          end if
+        end while
         glEnd()
         if (self.fontDemo.lineBBEnabled)
           renderLineBB(self, lineStart, self.fontDemo.text.length, lineY, scale)
-      } finally
-        if (stack != null) stack.close()
-    }
-  }
+        end if
+  end renderText
 
   private def renderLineBB(self : Truetype, from: Int, to: Int, yIn: Float, scale: Float): Unit =
-  {
+
     glDisable(GL_TEXTURE_2D)
     glPolygonMode(GL_FRONT, GL_LINE)
     glColor3f(1.0f, 1.0f, 0.0f)
@@ -164,70 +163,55 @@ object Truetype:
     glEnable(GL_TEXTURE_2D)
     glPolygonMode(GL_FRONT, GL_FILL)
     glColor3f(169f / 255f, 183f / 255f, 198f / 255f) // Text color
-
-  }
+  end renderLineBB
 
   private def getStringWidth(isKerningEnabled : Boolean, info: STBTTFontinfo, text: String, from: Int, to: Int, fontHeight: Int) =
-  {
     var width = 0
-    try
-    {
-      val stack = stackPush
-      try
-      {
+    Using(stackPush):
+      stack =>
         val pCodePoint = stack.mallocInt(1)
         val pAdvancedWidth = stack.mallocInt(1)
         val pLeftSideBearing = stack.mallocInt(1)
         var i = from
-        while (i < to)
-        {
+        while (i < to) do
           i += getCP(text, to, i, pCodePoint)
           val cp = pCodePoint.get(0)
           stbtt_GetCodepointHMetrics(info, cp, pAdvancedWidth, pLeftSideBearing)
           width += pAdvancedWidth.get(0)
-          if (isKerningEnabled && i < to)
-          {
+          if isKerningEnabled && i < to then
             getCP(text, to, i, pCodePoint)
             width += stbtt_GetCodepointKernAdvance(info, cp, pCodePoint.get(0))
-          }
-        }
-      } finally
-        if (stack != null) stack.close()
-    }
+          end if
+        end while
     width * stbtt_ScaleForPixelHeight(info, fontHeight)
-  }
+  end getStringWidth
 
   private def getCP(text: String, to: Int, i: Int, cpOut: IntBuffer): Int =
-  {
     val c1 = text.charAt(i)
-    if (Character.isHighSurrogate(c1) && i + 1 < to)
-    {
+    if Character.isHighSurrogate(c1) && i + 1 < to then
       val c2 = text.charAt(i + 1)
-      if (Character.isLowSurrogate(c2))
-      {
+      if Character.isLowSurrogate(c2) then
         cpOut.put(0, Character.toCodePoint(c1, c2))
         return 2
-      }
-    }
+      end if
+    end if
     cpOut.put(0, c1)
     1
-  }
+  end getCP
 
   def run(self : Truetype, title: String): Unit =
-  {
     try
-    {
       initFD(self.fontDemo, title)
       loop(self)
-    } finally
+    finally
       try
         self.fontDemo.destroy()
       catch
-      {
         case e: Exception =>
           e.printStackTrace()
-      }
-  }
+      end try
+    end try
+  end run
 
   @main
   def test() : Unit =
