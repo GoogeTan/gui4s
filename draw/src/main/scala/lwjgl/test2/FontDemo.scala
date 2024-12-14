@@ -18,20 +18,17 @@ import java.util.regex.Pattern
 import scala.util.{Try, Using}
 
 final case class OGLWindow(
-                            var window: Long,
+                            window: Long,
                             var ww: Int,
                             var wh: Int,
-                            var debugProc: Callback | Null,
+                            debugProc: Callback | Null,
                           )
 
-final case class Line(
-                        text : String,
-                        lineCount: Int,
-                        fontHeight: Int,
-                        var lineHeight: Float,
-                        var kerningEnabled: Boolean,
-                        var lineBBEnabled: Boolean,
-                      )
+final case class StyledText(
+                            text : String,
+                            lineCount: Int,
+                            fontHeight: Int,
+                          )
 
 final case class State(
                         var scale: Int,
@@ -39,23 +36,27 @@ final case class State(
                         var contentScaleY: Float,
                         var ctrlDown: Boolean,
                         var lineOffset: Int,
+                        var kerningEnabled: Boolean,
+                        var lineBBEnabled: Boolean,
                       )
 
 
 final case class FontDemo(
                             window : OGLWindow,
-                            line : Line,
+                            line : StyledText,
                             state : State
                           ):
+  def lineHeight: Float = line.fontHeight * (1.0f + state.scale * 0.25f)
+  
   def setLineOffset(offset: Float): Unit =
     setLineOffset(offset.round)
 
   def setLineOffset(offset: Int): Unit =
-    state.lineOffset = max(0, min(offset, line.lineCount - (window.wh / line.lineHeight).toInt))
+    state.lineOffset = max(0, min(offset, line.lineCount - (window.wh / lineHeight).toInt))
 
   def setScale(scale: Int): Unit =
     state.scale = max(-3, scale)
-    line.lineHeight = line.fontHeight * (1.0f + state.scale * 0.25f)
+    //line.lineHeight = line.fontHeight * (1.0f + state.scale * 0.25f)
     setLineOffset(state.lineOffset)
 
   def destroy(): Unit =
@@ -83,28 +84,28 @@ object FontDemo:
   def apply(text : String, fontHeight : Int) : FontDemo =
     new FontDemo(
       OGLWindow(0, 800, 600, null),
-      Line(text, linesOfText(text), fontHeight, 0, true, false),
-      State(0, 0, 0, false, 0)
+      StyledText(text, linesOfText(text), fontHeight),
+      State(0, 0, 0, false, 0, true, false)
     )
   end apply
 end FontDemo
 
-def initFrameBuffer(monitor : Long, self : FontDemo) : Try[(Int, Int)] =
+def initFrameBuffer(monitor : Long, self : State, ww : Int, wh : Int) : Try[(Int, Int)] =
   Using(stackPush):
     s =>
       val px = s.mallocFloat(1)
       val py = s.mallocFloat(1)
       glfwGetMonitorContentScale(monitor, px, py)
-      self.state.contentScaleX = px.get(0)
-      self.state.contentScaleY = py.get(0)
+      self.contentScaleX = px.get(0)
+      self.contentScaleY = py.get(0)
       if Platform.get eq Platform.MACOSX then
-        (self.window.ww, self.window.wh)
+        (ww, wh)
       else
-        (self.window.ww * self.state.contentScaleX.round, self.window.wh * self.state.contentScaleY.round)
+        (ww * self.contentScaleX.round, wh * self.contentScaleY.round)
 end initFrameBuffer
 
 
-def initFD(self: FontDemo, title: String): Unit =
+def initFD(state: State, line: StyledText, title: String): OGLWindow =
   GLFWErrorCallback.createPrint.set
   if (!glfwInit)
     throw new IllegalStateException("Unable to initialize GLFW")
@@ -113,21 +114,25 @@ def initFD(self: FontDemo, title: String): Unit =
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
   val monitor = glfwGetPrimaryMonitor
-  val (framebufferW, framebufferH) = initFrameBuffer(monitor, self).get
-  self.window.window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL)
-  if (self.window.window == NULL)
+  val (framebufferW, framebufferH) = initFrameBuffer(monitor, state, 800, 600).get
+  val window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL)
+  if (window == NULL)
     throw new RuntimeException("Failed to create the GLFW window")
-  registerCallbacks(self)
   // Center window
   val vidmode = Objects.requireNonNull(glfwGetVideoMode(monitor))
-  glfwSetWindowPos(self.window.window, (vidmode.width - framebufferW) / 2, (vidmode.height - framebufferH) / 2)
+  glfwSetWindowPos(window, (vidmode.width - framebufferW) / 2, (vidmode.height - framebufferH) / 2)
   // Create context
-  glfwMakeContextCurrent(self.window.window)
+  glfwMakeContextCurrent(window)
   GL.createCapabilities
-  self.window.debugProc = GLUtil.setupDebugMessageCallback
+  val debugProc = GLUtil.setupDebugMessageCallback
   glfwSwapInterval(1)
-  glfwShowWindow(self.window.window)
-  glfwInvoke(self.window.window, windowSizeChanged2(self, _, _, _), framebufferSizeChanged)
+  glfwShowWindow(window)
+  val res = OGLWindow(window, 800, 600, debugProc)
+  val self = FontDemo(res, line, state)
+  glfwInvoke(window, windowSizeChanged2(self, _, _, _), framebufferSizeChanged)
+  registerCallbacks(self)
+  
+  res
 end initFD
 
 def registerCallbacks(self : FontDemo) : Unit =
@@ -138,6 +143,7 @@ def registerCallbacks(self : FontDemo) : Unit =
       case GLFW_KEY_LEFT_CONTROL =>
       case GLFW_KEY_RIGHT_CONTROL =>
         self.state.ctrlDown = action != GLFW_RELEASE
+      case _ => ()  
     end match
 
     if action != GLFW_RELEASE then
@@ -145,13 +151,13 @@ def registerCallbacks(self : FontDemo) : Unit =
         case GLFW_KEY_ESCAPE =>
           glfwSetWindowShouldClose(window, true)
         case GLFW_KEY_PAGE_UP =>
-          self.setLineOffset(self.state.lineOffset - self.window.wh / self.line.lineHeight)
+          self.setLineOffset(self.state.lineOffset - self.window.wh / self.lineHeight)
         case GLFW_KEY_PAGE_DOWN =>
-          self.setLineOffset(self.state.lineOffset + self.window.wh / self.line.lineHeight)
+          self.setLineOffset(self.state.lineOffset + self.window.wh / self.lineHeight)
         case GLFW_KEY_HOME =>
           self.setLineOffset(0)
         case GLFW_KEY_END =>
-          self.setLineOffset(self.line.lineCount - self.window.wh / self.line.lineHeight)
+          self.setLineOffset(self.line.lineCount - self.window.wh / self.lineHeight)
         case GLFW_KEY_KP_ADD =>
         case GLFW_KEY_EQUAL =>
           self.setScale(self.state.scale + 1)
@@ -163,10 +169,11 @@ def registerCallbacks(self : FontDemo) : Unit =
           if (self.state.ctrlDown)
             self.setScale(0)
         case GLFW_KEY_B =>
-          self.line.lineBBEnabled = !self.line.lineBBEnabled
+          self.state.lineBBEnabled = !self.state.lineBBEnabled
 
         case GLFW_KEY_K =>
-          self.line.kerningEnabled = !self.line.kerningEnabled
+          self.state.kerningEnabled = !self.state.kerningEnabled
+        case _ => ()  
     end if
   )
   glfwSetScrollCallback(self.window.window, (_: Long, _: Double, yoffset: Double) =>
