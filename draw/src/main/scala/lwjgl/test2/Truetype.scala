@@ -26,28 +26,30 @@ final case class Truetype(
                           )
 
 object Truetype:
-  def getFontMetrics(info : STBTTFontinfo) : Try[(Int, Int, Int)] =
-    Using(stackPush):
+  def getFontMetrics(info : STBTTFontinfo) : IO[(Int, Int, Int)] =
+    stackPushResource.use:
       stack =>
-        val pAscent = stack.mallocInt(1)
-        val pDescent = stack.mallocInt(1)
-        val pLineGap = stack.mallocInt(1)
-        stbtt_GetFontVMetrics(info, pAscent, pDescent, pLineGap)
-        val ascent = pAscent.get(0)
-        val descent = pDescent.get(0)
-        val lineGap = pLineGap.get(0)
-        (ascent, descent, lineGap)
+        IO:
+          val pAscent = stack.mallocInt(1)
+          val pDescent = stack.mallocInt(1)
+          val pLineGap = stack.mallocInt(1)
+          stbtt_GetFontVMetrics(info, pAscent, pDescent, pLineGap)
+          val ascent = pAscent.get(0)
+          val descent = pDescent.get(0)
+          val lineGap = pLineGap.get(0)
+          (ascent, descent, lineGap)
   end getFontMetrics
   
   def apply() : IO[Truetype] =
-    IO:
-      val ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
-      val info = STBTTFontinfo.create
-      if (!stbtt_InitFont(info, ttf))
-        throw new IllegalStateException("Failed to initialize font information.")
-
-      val (ascent, descent, lineGap) = getFontMetrics(info).get
-      Truetype(ttf, info, ascent, descent, lineGap)
+    for
+      (ttf, info) <- IO:
+        val ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
+        val info = STBTTFontinfo.create
+        if !stbtt_InitFont(info, ttf) then
+          throw new IllegalStateException("Failed to initialize font information.")
+        (ttf, info)
+      (ascent, descent, lineGap) <- getFontMetrics(info)
+    yield Truetype(ttf, info, ascent, descent, lineGap)
   end apply
 
   def initLoop(self: Truetype, fontDemo : FontDemo, BITMAP_W: Int, BITMAP_H: Int): Resource[IO, STBTTBakedChar.Buffer] =
@@ -214,7 +216,7 @@ object Truetype:
 
   def fontResource(state: State, line: StyledText, title: String) : Resource[IO, FontDemo] =
     Resource.make(
-      initFD(state, line, title).map(FontDemo(_, line, state))
+      initWindow(state, line, title).map(FontDemo(_, line, state))
     )(fontDemo =>
       IO:
         fontDemo.destroy()

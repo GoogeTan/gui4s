@@ -16,7 +16,6 @@ import org.lwjgl.system.{Callback, MemoryStack, Platform}
 import java.lang.Math.{max, min}
 import java.util.Objects
 import java.util.regex.Pattern
-import scala.util.{Try, Using}
 
 final case class OGLWindow(
                             window: Long,
@@ -151,12 +150,9 @@ def initWindow(state : State, title : String) : IO[Long] =
   yield res
 end initWindow
 
-def initFD(state: State, line: StyledText, title: String): IO[OGLWindow] =
+def initWindow(state: State, line: StyledText, title: String): IO[OGLWindow] =
   for
-    _ <-
-      errorCallbackToPrint *>
-        ensureGlfwInit *>
-        defaultWindowHints
+    _ <- errorCallbackToPrint *> ensureGlfwInit *> defaultWindowHints
     window <- initWindow(state, title)
     res <-
       IO:
@@ -171,7 +167,7 @@ def initFD(state: State, line: StyledText, title: String): IO[OGLWindow] =
         res
     _ <- registerCallbacks(state, res, line)
   yield res
-end initFD
+end initWindow
 
 def registerCallbacks(state: State, oglWindow: OGLWindow, line: StyledText) : IO[Unit] =
   IO:
