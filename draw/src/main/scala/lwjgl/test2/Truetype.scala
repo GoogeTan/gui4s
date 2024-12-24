@@ -4,6 +4,8 @@ package lwjgl.test2
 import lwjgl.IOUtil.ioResourceToByteBuffer
 import lwjgl.test2.FontDemo.linesOfText
 
+import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.syntax.all.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.{glfwPollEvents, glfwSwapBuffers, glfwWindowShouldClose}
 import org.lwjgl.opengl.GL11.*
@@ -37,57 +39,67 @@ object Truetype:
         (ascent, descent, lineGap)
   end getFontMetrics
   
-  def apply() : Truetype =
-    val ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
-    val info = STBTTFontinfo.create
-    if (!stbtt_InitFont(info, ttf))
-      throw new IllegalStateException("Failed to initialize font information.")
+  def apply() : IO[Truetype] =
+    IO:
+      val ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
+      val info = STBTTFontinfo.create
+      if (!stbtt_InitFont(info, ttf))
+        throw new IllegalStateException("Failed to initialize font information.")
 
-    val (ascent, descent, lineGap) = getFontMetrics(info).get
-    Truetype(ttf, info, ascent, descent, lineGap)
+      val (ascent, descent, lineGap) = getFontMetrics(info).get
+      Truetype(ttf, info, ascent, descent, lineGap)
   end apply
 
-  def initLoop(self: Truetype, fontDemo : FontDemo, BITMAP_W: Int, BITMAP_H: Int): STBTTBakedChar.Buffer =
-    val texID = glGenTextures
-    val cdata = STBTTBakedChar.malloc(96)
-    val bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H)
-    stbtt_BakeFontBitmap(self.ttf, fontDemo.line.fontHeight * fontDemo.state.contentScaleY, bitmap, BITMAP_W, BITMAP_H, 32, cdata)
-    glBindTexture(GL_TEXTURE_2D, texID)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, BITMAP_W, BITMAP_H, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    glClearColor(43f / 255f, 43f / 255f, 43f / 255f, 0f) // BG color
+  def initLoop(self: Truetype, fontDemo : FontDemo, BITMAP_W: Int, BITMAP_H: Int): Resource[IO, STBTTBakedChar.Buffer] =
+    Resource.make(
+      IO:
+        val texID = glGenTextures
+        val cdata = STBTTBakedChar.malloc(96)
+        val bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H)
+        stbtt_BakeFontBitmap(self.ttf, fontDemo.line.fontHeight * fontDemo.state.contentScaleY, bitmap, BITMAP_W, BITMAP_H, 32, cdata)
+        glBindTexture(GL_TEXTURE_2D, texID)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, BITMAP_W, BITMAP_H, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glClearColor(43f / 255f, 43f / 255f, 43f / 255f, 0f) // BG color
 
-    glColor3f(169f / 255f, 183f / 255f, 198f / 255f) // Text color
+        glColor3f(169f / 255f, 183f / 255f, 198f / 255f) // Text color
 
-    glEnable(GL_TEXTURE_2D)
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    cdata
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        cdata
+    )(a =>
+      IO:
+        a.free()
+    )
   end initLoop
 
-  def loopStep(self : Truetype, fontDemo : FontDemo, cdata : STBTTBakedChar.Buffer, BITMAP_W : Int, BITMAP_H : Int) : Unit =
-    glfwPollEvents()
-    glClear(GL_COLOR_BUFFER_BIT)
-    val scaleFactor = 1.0f + fontDemo.state.scale * 0.25f
-    glPushMatrix()
-    // Zoom
-    glScalef(scaleFactor, scaleFactor, 1f)
-    // Scroll
-    glTranslatef(4.0f, fontDemo.line.fontHeight * 0.5f + 4.0f - fontDemo.state.lineOffset * fontDemo.line.fontHeight, 0f)
-    renderText(self, fontDemo, cdata, BITMAP_W, BITMAP_H)
-    glPopMatrix()
-    glfwSwapBuffers(fontDemo.window.window)
+  def loopStep(self : Truetype, fontDemo : FontDemo, cdata : STBTTBakedChar.Buffer, BITMAP_W : Int, BITMAP_H : Int) : IO[Unit] =
+    IO:
+      glfwPollEvents()
+      glClear(GL_COLOR_BUFFER_BIT)
+      val scaleFactor = 1.0f + fontDemo.state.scale * 0.25f
+      glPushMatrix()
+      // Zoom
+      glScalef(scaleFactor, scaleFactor, 1f)
+      // Scroll
+      glTranslatef(4.0f, fontDemo.line.fontHeight * 0.5f + 4.0f - fontDemo.state.lineOffset * fontDemo.line.fontHeight, 0f)
+      renderText(self, fontDemo, cdata, BITMAP_W, BITMAP_H)
+      glPopMatrix()
+      glfwSwapBuffers(fontDemo.window.window)
   end loopStep
 
-  def loop(self : Truetype, fontDemo : FontDemo): Unit =
+  def shouldNotClose(window : Long) : IO[Boolean] =
+    IO:
+      !glfwWindowShouldClose(window)
+
+  def loop(self : Truetype, fontDemo : FontDemo): IO[Unit] =
     val BITMAP_W = 512 * fontDemo.state.contentScaleX.round
     val BITMAP_H = 512 * fontDemo.state.contentScaleY.round
-    val cdata = initLoop(self, fontDemo, BITMAP_W, BITMAP_H)
-    while !glfwWindowShouldClose(fontDemo.window.window) do
-      loopStep(self, fontDemo, cdata, BITMAP_W, BITMAP_H)
-    end while
-    cdata.free()
+    initLoop(self, fontDemo, BITMAP_W, BITMAP_H).use(cdata =>
+      loopStep(self, fontDemo, cdata, BITMAP_W, BITMAP_H).whileM_(shouldNotClose(fontDemo.window.window))
+    )
   end loop
 
   private def scaled(center: Float, offset: Float, factor: Float) =
@@ -200,23 +212,23 @@ object Truetype:
     1
   end getCP
 
-  def run(state: State, line: StyledText, title: String): Unit =
-    val self = Truetype()
-    val fontDemo = FontDemo(initFD(state, line, title), line, state)
-    try
-      loop(self, fontDemo)
-    finally
-      try
+  def fontResource(state: State, line: StyledText, title: String) : Resource[IO, FontDemo] =
+    Resource.make(
+      initFD(state, line, title).map(FontDemo(_, line, state))
+    )(fontDemo =>
+      IO:
         fontDemo.destroy()
-      catch
-        case e: Exception =>
-          e.printStackTrace()
-      end try
-    end try
+    )
+  end fontResource
+
+  def run(state: State, line: StyledText, title: String): IO[Unit] =
+    for
+      self <- Truetype()
+      _ <- fontResource(state, line, title).use(loop(self, _))
+    yield ()
   end run
 
-  @main
-  def test() : Unit =
+  def test() : IO[Unit] =
     val text = "Hello from \n test!"
     run(
       State(0, 0, 0, false, 0, true, false),
@@ -225,3 +237,7 @@ object Truetype:
     )
   end test
 end Truetype
+
+object Test2 extends IOApp:
+  override def run(args : List[String]) : IO[ExitCode] =
+    Truetype.test().evalOn(MainThread) *> ExitCode.Success.pure[IO]

@@ -3,6 +3,7 @@ package lwjgl.test2
 
 import lwjgl.GLFWUtil.glfwInvoke
 
+import cats.effect.IO
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -104,35 +105,62 @@ def initFrameBuffer(monitor : Long, self : State, ww : Int, wh : Int) : Try[(Int
         (ww * self.contentScaleX.round, wh * self.contentScaleY.round)
 end initFrameBuffer
 
+def errorCallbackToPrint : IO[Unit] =
+  IO:
+    GLFWErrorCallback.createPrint.set
 
-def initFD(state: State, line: StyledText, title: String): OGLWindow =
-  GLFWErrorCallback.createPrint.set
-  if (!glfwInit)
-    throw new IllegalStateException("Unable to initialize GLFW")
-  glfwDefaultWindowHints()
-  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
-  val monitor = glfwGetPrimaryMonitor
-  val (framebufferW, framebufferH) = initFrameBuffer(monitor, state, 800, 600).get
-  val window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL)
-  if (window == NULL)
-    throw new RuntimeException("Failed to create the GLFW window")
-  // Center window
-  val vidmode = Objects.requireNonNull(glfwGetVideoMode(monitor))
-  glfwSetWindowPos(window, (vidmode.width - framebufferW) / 2, (vidmode.height - framebufferH) / 2)
-  // Create context
-  glfwMakeContextCurrent(window)
-  GL.createCapabilities
-  val debugProc = GLUtil.setupDebugMessageCallback
-  glfwSwapInterval(1)
-  glfwShowWindow(window)
-  val res = OGLWindow(window, 800, 600, debugProc)
-  val self = FontDemo(res, line, state)
-  glfwInvoke(window, windowSizeChanged2(self, _, _, _), framebufferSizeChanged)
-  registerCallbacks(self)
-  
-  res
+def ensureGlfwInit : IO[Unit] =
+  (
+    IO:
+      glfwInit()
+  ).ifM(
+    IO.unit,
+    IO.raiseError(new IllegalStateException("Unable to initialize GLFW"))
+  )
+
+def defaultWindowHints : IO[Unit] =
+  IO:
+    glfwDefaultWindowHints()
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
+
+def initWindow(state : State, title : String) : IO[Long] =
+  IO:
+    val monitor = glfwGetPrimaryMonitor
+    val (framebufferW, framebufferH) = initFrameBuffer(monitor, state, 800, 600).get
+    val window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL)
+    if window == NULL then
+      throw new RuntimeException("Failed to create the GLFW window")
+    // Center window
+    val vidmode = Objects.requireNonNull(glfwGetVideoMode(monitor))
+    glfwSetWindowPos(window, (vidmode.width - framebufferW) / 2, (vidmode.height - framebufferH) / 2)
+    window
+
+def initFD(state: State, line: StyledText, title: String): IO[OGLWindow] =
+  errorCallbackToPrint *>
+    ensureGlfwInit *>
+    defaultWindowHints *>
+    IO:
+      val monitor = glfwGetPrimaryMonitor
+      val (framebufferW, framebufferH) = initFrameBuffer(monitor, state, 800, 600).get
+      val window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL)
+      if (window == NULL)
+        throw new RuntimeException("Failed to create the GLFW window")
+      // Center window
+      val vidmode = Objects.requireNonNull(glfwGetVideoMode(monitor))
+      glfwSetWindowPos(window, (vidmode.width - framebufferW) / 2, (vidmode.height - framebufferH) / 2)
+      // Create context
+      glfwMakeContextCurrent(window)
+      GL.createCapabilities
+      val debugProc = GLUtil.setupDebugMessageCallback
+      glfwSwapInterval(1)
+      glfwShowWindow(window)
+      val res = OGLWindow(window, 800, 600, debugProc)
+      val self = FontDemo(res, line, state)
+      glfwInvoke(window, windowSizeChanged2(self, _, _, _), framebufferSizeChanged)
+      registerCallbacks(self)
+      res
 end initFD
 
 def registerCallbacks(self : FontDemo) : Unit =
