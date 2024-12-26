@@ -3,7 +3,7 @@ package lwjgl.test2
 
 import lwjgl.GLFWUtil.glfwInvoke
 
-import cats.effect.{IO, Resource}
+import cats.effect.{IO, Ref, Resource}
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -15,7 +15,6 @@ import org.lwjgl.system.{Callback, MemoryStack, Platform}
 
 import java.lang.Math.{max, min}
 import java.util.Objects
-import java.util.regex.Pattern
 
 final case class OGLWindow(
                             window: Long,
@@ -23,14 +22,15 @@ final case class OGLWindow(
                             var wh: Int,
                             debugProc: Callback | Null,
                           ):
-  def destroy(): Unit =
-    GL.setCapabilities(null)
-    if (debugProc != null)
-      debugProc.free()
-    glfwFreeCallbacks(window)
-    glfwDestroyWindow(window)
-    glfwTerminate()
-    Objects.requireNonNull(glfwSetErrorCallback(null)).free()
+  def destroy(): IO[Unit] =
+    IO:
+      GL.setCapabilities(null)
+      if (debugProc != null)
+        debugProc.free()
+      glfwFreeCallbacks(window)
+      glfwDestroyWindow(window)
+      glfwTerminate()
+      Objects.requireNonNull(glfwSetErrorCallback(null)).free()
   end destroy
 end OGLWindow
 
@@ -55,6 +55,32 @@ def lineHeight(styledText: StyledText, state: State): Float =
   styledText.fontHeight * (1.0f + state.scale * 0.25f)
 end lineHeight
 
+def lineHeight(state : FontDemo): Float =
+  state.line.fontHeight * (1.0f + state.state.scale * 0.25f)
+end lineHeight
+
+def setLineOffset[F[_]](state : Ref[F, FontDemo], offset : Int) : F[Unit] =
+  state.update(
+    demo =>
+      demo.copy(
+        state = demo.state.copy(
+          lineOffset = max(0, min(offset, demo.line.lineCount - (demo.window.wh / lineHeight(demo)).toInt))
+        )
+      )
+  )
+end setLineOffset
+
+def setScale[F[_]](state : Ref[F, FontDemo], scale : Int) : F[Unit] =
+  state.update(
+    a =>
+      a.copy(
+        state = a.state.copy(
+          scale = scale
+        )
+      )
+  )
+end setScale
+
 def setLineOffset(offset: Float, state: State, line: StyledText, window: OGLWindow): Unit =
   setLineOffset(offset.round, state, line, window)
 end setLineOffset
@@ -72,22 +98,7 @@ final case class FontDemo(
                             window : OGLWindow,
                             line : StyledText,
                             state : State
-                          ):
-  def destroy(): Unit =
-    window.destroy()
-  end destroy
-end FontDemo
-
-object FontDemo:
-  def linesOfText(text : String) : Int =
-    var lc = 0
-    val m = Pattern.compile("^.*$", Pattern.MULTILINE).matcher(text)
-    while m.find do
-      lc += 1
-    end while
-    lc
-  end linesOfText
-end FontDemo
+                          )
 
 def stackPushResource : Resource[IO, MemoryStack] =
   Resource.fromAutoCloseable(
@@ -96,7 +107,7 @@ def stackPushResource : Resource[IO, MemoryStack] =
   )
 end stackPushResource
 
-def initFrameBuffer(monitor : Long, self : State, ww : Int, wh : Int) : IO[(Int, Int)] =
+def initFrameBuffer(monitor: Long, self: State, windowWidth: Int, windowHeight: Int) : IO[(Int, Int)] =
   stackPushResource.use:
     s =>
       IO:
@@ -106,9 +117,9 @@ def initFrameBuffer(monitor : Long, self : State, ww : Int, wh : Int) : IO[(Int,
         self.contentScaleX = px.get(0)
         self.contentScaleY = py.get(0)
         if Platform.get eq Platform.MACOSX then
-          (ww, wh)
+          (windowWidth, windowHeight)
         else
-          (ww * self.contentScaleX.round, wh * self.contentScaleY.round)
+          (windowWidth * self.contentScaleX.round, windowHeight * self.contentScaleY.round)
 end initFrameBuffer
 
 def errorCallbackToPrint : IO[Unit] =
@@ -150,23 +161,27 @@ def initWindow(state : State, title : String) : IO[Long] =
   yield res
 end initWindow
 
-def initWindow(state: State, line: StyledText, title: String): IO[OGLWindow] =
-  for
-    _ <- errorCallbackToPrint *> ensureGlfwInit *> defaultWindowHints
-    window <- initWindow(state, title)
-    res <-
-      IO:
-        // Create context
-        glfwMakeContextCurrent(window)
-        GL.createCapabilities
-        val debugProc = GLUtil.setupDebugMessageCallback
-        glfwSwapInterval(1)
-        glfwShowWindow(window)
-        val res = OGLWindow(window, 800, 600, debugProc)
-        glfwInvoke(window, windowSizeChanged2(state, res, line, _, _, _), framebufferSizeChanged)
-        res
-    _ <- registerCallbacks(state, res, line)
-  yield res
+def initWindow(state: State, line: StyledText, title: String): Resource[IO, OGLWindow] =
+  Resource.make(
+    for
+      _ <- errorCallbackToPrint *> ensureGlfwInit *> defaultWindowHints
+      window <- initWindow(state, title)
+      res <-
+        IO:
+          // Create context
+          glfwMakeContextCurrent(window)
+          GL.createCapabilities
+          val debugProc = GLUtil.setupDebugMessageCallback
+          glfwSwapInterval(1)
+          glfwShowWindow(window)
+          val res = OGLWindow(window, 800, 600, debugProc)
+          glfwInvoke(window, windowSizeChanged2(state, res, line, _, _, _), framebufferSizeChanged)
+          res
+      _ <- registerCallbacks(state, res, line)
+    yield res
+  )(
+    _.destroy()
+  )
 end initWindow
 
 def registerCallbacks(state: State, oglWindow: OGLWindow, line: StyledText) : IO[Unit] =
@@ -222,6 +237,11 @@ end registerCallbacks
 def framebufferSizeChanged(window: Long, width: Int, height: Int): Unit =
   glViewport(0, 0, width, height)
 end framebufferSizeChanged
+
+def platformIsNotMac: IO[Boolean] =
+  IO:
+    Platform.get ne Platform.MACOSX
+
 
 def windowSizeChanged2(state: State, oglWindow: OGLWindow, line: StyledText, window: Long, widthIn: Int, heightIn: Int): Unit =
   var width = widthIn

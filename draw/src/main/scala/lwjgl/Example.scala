@@ -83,13 +83,11 @@ object Example extends App:
   end init
   
   private def loop(): Unit =
-  {
     GL.createCapabilities
     val vertices = Array(0.0f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f)
     val vertexBuffer = memAllocFloat(vertices.length)
     vertexBuffer.put(vertices).flip
-    while (!glfwWindowShouldClose(window))
-    {
+    while !glfwWindowShouldClose(window) do
       glfwPollEvents()
       glClear(GL_COLOR_BUFFER_BIT)
       
@@ -101,9 +99,9 @@ object Example extends App:
       glDrawArrays(GL_TRIANGLES, 0, 3)
       glDisableClientState(GL_VERTEX_ARRAY)
       glfwSwapBuffers(window)
-    }
+    end while
     memFree(vertexBuffer)
     glfwDestroyWindow(window)
     glfwTerminate()
-  }
+  end loop
 end Example

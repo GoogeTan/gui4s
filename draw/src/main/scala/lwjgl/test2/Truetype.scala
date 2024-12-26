@@ -2,7 +2,7 @@ package me.katze.gui4s.draw
 package lwjgl.test2
 
 import lwjgl.IOUtil.ioResourceToByteBuffer
-import lwjgl.test2.FontDemo.linesOfText
+import lwjgl.test2.linesOfText
 
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
@@ -15,7 +15,7 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 
 import java.nio.{ByteBuffer, IntBuffer}
-import scala.util.{Try, Using}
+import scala.util.Using
 
 final case class Truetype(
                             var ttf: ByteBuffer = null,
@@ -215,12 +215,7 @@ object Truetype:
   end getCP
 
   def fontResource(state: State, line: StyledText, title: String) : Resource[IO, FontDemo] =
-    Resource.make(
-      initWindow(state, line, title).map(FontDemo(_, line, state))
-    )(fontDemo =>
-      IO:
-        fontDemo.destroy()
-    )
+    initWindow(state, line, title).map(FontDemo(_, line, state))
   end fontResource
 
   def run(state: State, line: StyledText, title: String): IO[Unit] =
