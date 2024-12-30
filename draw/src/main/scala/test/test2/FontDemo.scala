@@ -127,8 +127,10 @@ def errorCallbackToPrint : IO[Unit] =
     GLFWErrorCallback.createPrint.set
 
 def ensureGlfwInit : IO[Unit] =
-  IO:
-    glfwInit().ifM(
+  (
+    IO:
+      glfwInit()
+  ).ifM(
     IO.unit,
     IO.raiseError(new IllegalStateException("Unable to initialize GLFW"))
   )
