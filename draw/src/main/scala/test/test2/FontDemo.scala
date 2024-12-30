@@ -1,7 +1,7 @@
 package me.katze.gui4s.draw
-package lwjgl.test2
+package test.test2
 
-import lwjgl.GLFWUtil.glfwInvoke
+import test.GLFWUtil.glfwInvoke
 
 import cats.effect.{IO, Ref, Resource}
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
@@ -127,10 +127,8 @@ def errorCallbackToPrint : IO[Unit] =
     GLFWErrorCallback.createPrint.set
 
 def ensureGlfwInit : IO[Unit] =
-  (
-    IO:
-      glfwInit()
-  ).ifM(
+  IO:
+    glfwInit().ifM(
     IO.unit,
     IO.raiseError(new IllegalStateException("Unable to initialize GLFW"))
   )

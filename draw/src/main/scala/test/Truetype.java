@@ -1,4 +1,4 @@
-package me.katze.gui4s.draw.lwjgl;
+package me.katze.gui4s.draw.test;
 
 import org.lwjgl.*;
 import org.lwjgl.stb.*;
@@ -8,7 +8,7 @@ import java.io.*;
 import java.nio.*;
 
 import static java.lang.Math.*;
-import static me.katze.gui4s.draw.lwjgl.IOUtil.ioResourceToByteBuffer;
+import static me.katze.gui4s.draw.test.IOUtil.ioResourceToByteBuffer;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.stb.STBTruetype.*;
@@ -53,7 +53,7 @@ public final class Truetype extends FontDemo {
 
     public static void main(String[] args) {
         String fontPath = "JetBrainsMono-Regular.ttf";
-        new me.katze.gui4s.draw.lwjgl.Truetype(fontPath).run("STB Truetype Demo");
+        new Truetype(fontPath).run("STB Truetype Demo");
     }
 
     private STBTTBakedChar.Buffer init(int BITMAP_W, int BITMAP_H) {

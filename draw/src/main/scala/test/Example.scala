@@ -1,5 +1,5 @@
 package me.katze.gui4s.draw
-package lwjgl
+package test
 
 import org.lwjgl.*
 import org.lwjgl.glfw.*

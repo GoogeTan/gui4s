@@ -1,5 +1,5 @@
 package me.katze.gui4s.draw
-package lwjgl.test2
+package test.test2
 
 import java.util.regex.Pattern
 

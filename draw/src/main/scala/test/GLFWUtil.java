@@ -1,4 +1,4 @@
-package me.katze.gui4s.draw.lwjgl;
+package me.katze.gui4s.draw.test;
 /*
  * Copyright LWJGL. All rights reserved.
  * License terms: https://www.lwjgl.org/license

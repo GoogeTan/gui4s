@@ -1,4 +1,4 @@
-package me.katze.gui4s.draw.lwjgl;
+package me.katze.gui4s.draw.test;
 import org.lwjgl.*;
 
 import java.io.*;

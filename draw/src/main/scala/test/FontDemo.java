@@ -1,4 +1,4 @@
-package me.katze.gui4s.draw.lwjgl;
+package me.katze.gui4s.draw.test;
 
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.regex.*;
 
 import static java.lang.Math.*;
-import static me.katze.gui4s.draw.lwjgl.GLFWUtil.glfwInvoke;
+import static me.katze.gui4s.draw.test.GLFWUtil.glfwInvoke;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;

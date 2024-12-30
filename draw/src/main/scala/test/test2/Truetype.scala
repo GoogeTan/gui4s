@@ -1,8 +1,7 @@
 package me.katze.gui4s.draw
-package lwjgl.test2
+package test.test2
 
-import lwjgl.IOUtil.ioResourceToByteBuffer
-import lwjgl.test2.linesOfText
+import test.IOUtil.ioResourceToByteBuffer
 
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
