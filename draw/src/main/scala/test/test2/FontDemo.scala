@@ -3,6 +3,7 @@ package test.test2
 
 import test.GLFWUtil.glfwInvoke
 
+import cats.effect.kernel.Sync
 import cats.effect.{IO, Ref, Resource}
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
@@ -100,9 +101,9 @@ final case class FontDemo(
                             state : State
                           )
 
-def stackPushResource : Resource[IO, MemoryStack] =
+def stackPushResource[F[_] : Sync](using impure : Impure[F]) : Resource[F, MemoryStack] =
   Resource.fromAutoCloseable(
-    IO:
+    impure.impure:
       stackPush
   )
 end stackPushResource
