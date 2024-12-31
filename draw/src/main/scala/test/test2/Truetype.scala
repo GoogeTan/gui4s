@@ -16,7 +16,7 @@ import org.lwjgl.system.MemoryStack.stackPush
 import java.nio.{ByteBuffer, IntBuffer}
 import scala.util.Using
 
-final case class Truetype(
+final case class Truetype private(
                             var ttf: ByteBuffer = null,
                             var info: STBTTFontinfo = null,
                             var ascent: Int = 0,
@@ -25,8 +25,8 @@ final case class Truetype(
                           )
 
 object Truetype:
-  def getFontMetrics(info : STBTTFontinfo) : IO[(Int, Int, Int)] =
-    stackPushResource.use:
+  def getFontMetrics(info : STBTTFontinfo)(using Impure[IO]) : IO[(Int, Int, Int)] =
+    stackPushResource[IO].use:
       stack =>
         IO:
           val pAscent = stack.mallocInt(1)
@@ -39,7 +39,7 @@ object Truetype:
           (ascent, descent, lineGap)
   end getFontMetrics
   
-  def apply() : IO[Truetype] =
+  def apply(using Impure[IO]) : IO[Truetype] =
     for
       (ttf, info) <- IO:
         val ttf = ioResourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
@@ -213,18 +213,18 @@ object Truetype:
     1
   end getCP
 
-  def fontResource(state: State, line: StyledText, title: String) : Resource[IO, FontDemo] =
+  def fontResource(state: State, line: StyledText, title: String)(using Impure[IO]) : Resource[IO, FontDemo] =
     initWindow(state, line, title).map(FontDemo(_, line, state))
   end fontResource
 
-  def run(state: State, line: StyledText, title: String): IO[Unit] =
+  def run(state: State, line: StyledText, title: String)(using i : Impure[IO]): IO[Unit] =
     for
-      self <- Truetype()
+      self <- Truetype.apply(using i)
       _ <- fontResource(state, line, title).use(loop(self, _))
     yield ()
   end run
 
-  def test() : IO[Unit] =
+  def test(using Impure[IO]) : IO[Unit] =
     val text = "Hello from \n test!"
     run(
       State(0, 0, 0, false, 0, true, false),
@@ -236,4 +236,5 @@ end Truetype
 
 object Test2 extends IOApp:
   override def run(args : List[String]) : IO[ExitCode] =
-    Truetype.test().evalOn(MainThread) *> ExitCode.Success.pure[IO]
+    given Impure[IO] = ContextImpure(MainThread, SimpleImpure)
+    Truetype.test.evalOn(MainThread) *> ExitCode.Success.pure[IO]

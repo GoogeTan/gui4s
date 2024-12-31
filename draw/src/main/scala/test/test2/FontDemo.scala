@@ -108,8 +108,8 @@ def stackPushResource[F[_] : Sync](using impure : Impure[F]) : Resource[F, Memor
   )
 end stackPushResource
 
-def initFrameBuffer(monitor: Long, self: State, windowWidth: Int, windowHeight: Int) : IO[(Int, Int)] =
-  stackPushResource.use:
+def initFrameBuffer(monitor: Long, self: State, windowWidth: Int, windowHeight: Int)(using Impure[IO]) : IO[(Int, Int)] =
+  stackPushResource[IO].use:
     s =>
       IO:
         val px = s.mallocFloat(1)
@@ -147,7 +147,7 @@ def initMonitor : IO[Long] =
   IO:
     glfwGetPrimaryMonitor
 
-def initWindow(state : State, title : String) : IO[Long] =
+def initWindow(state : State, title : String)(using Impure[IO]) : IO[Long] =
   for
     monitor <- initMonitor
     (framebufferW, framebufferH) <- initFrameBuffer(monitor, state, 800, 600)
@@ -162,7 +162,7 @@ def initWindow(state : State, title : String) : IO[Long] =
   yield res
 end initWindow
 
-def initWindow(state: State, line: StyledText, title: String): Resource[IO, OGLWindow] =
+def initWindow(state: State, line: StyledText, title: String)(using Impure[IO]): Resource[IO, OGLWindow] =
   Resource.make(
     for
       _ <- errorCallbackToPrint *> ensureGlfwInit *> defaultWindowHints
