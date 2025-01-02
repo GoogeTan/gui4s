@@ -3,8 +3,11 @@ package test.test2
 
 import test.GLFWUtil.glfwInvoke
 
+import cats.Monad
 import cats.effect.kernel.Sync
 import cats.effect.{IO, Ref, Resource}
+import me.katze.gui4s.draw.glfw.{Glfw, Size}
+import cats.syntax.all.*
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -161,6 +164,11 @@ def initWindow(state : State, title : String)(using Impure[IO]) : IO[Long] =
       window
   yield res
 end initWindow
+
+def initWindow2[F[_] : Monad](title : String, glfw : Glfw[F]) : Resource[F, glfw.Window] =
+  Resource.eval(
+    glfw.createPrintErrorCallback *> glfw.initGlfw 
+  ) *> glfw.createWindow(title, Size(800, 600), false, true, true)
 
 def initWindow(state: State, line: StyledText, title: String)(using Impure[IO]): Resource[IO, OGLWindow] =
   Resource.make(

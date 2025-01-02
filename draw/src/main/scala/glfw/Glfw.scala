@@ -1,6 +1,8 @@
 package me.katze.gui4s.draw
 package glfw
 
+import cats.effect.Resource
+
 trait Glfw[F[_]]:
   type Window
 
@@ -12,7 +14,7 @@ trait Glfw[F[_]]:
                     visible : Boolean,
                     resizeable : Boolean,
                     debugContext : Boolean,
-                  ) : F[Window]
+                  ) : Resource[F, Window]
 
   def centerWindow(window : Window) : F[Unit]
   def makeVisible(window : Window) : F[Unit]

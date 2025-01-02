@@ -1,8 +1,10 @@
 package me.katze.gui4s.draw
 package test.test2
 
+import stbtt.{FontMetrics, Stbtt}
 import test.IOUtil.ioResourceToByteBuffer
 
+import cats.Monad
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import org.lwjgl.BufferUtils
@@ -23,6 +25,21 @@ final case class Truetype private(
                             var descent: Int = 0,
                             var lineGap: Int = 0,
                           )
+
+final case class Font[T](ttf : ByteBuffer, info : T, fontMetrics: FontMetrics)
+
+object Font:
+  def apply[F[_] : Monad](resource: io.Resource[F], stbtt : Stbtt[F]) : F[Font[stbtt.FontInfo]] =
+    for
+      ttf <- resource.resourceToByteBuffer("JetBrainsMono-Regular.ttf", 512 * 1024)
+      font <- stbtt.createFontInfo(ttf)
+      fontMetrics <- stbtt.getFontMetrics(font)
+    yield Font(ttf, font, fontMetrics)
+  end apply
+  
+  def bake[F[_], T](font : Font[T], stbtt: Stbtt[F] { type FontInfo = T }, fontHeight : Int, bitmapWidth : Int, bitmapHeight : Int) : Resource[F, stbtt.BakedCharBuffer] =
+    stbtt.bakeFont(font.ttf, fontHeight, bitmapWidth, bitmapHeight)
+end Font
 
 object Truetype:
   def getFontMetrics(info : STBTTFontinfo)(using Impure[IO]) : IO[(Int, Int, Int)] =
@@ -125,12 +142,11 @@ object Truetype:
           i += getCP(fontDemo.line.text, to, i, pCodePoint)
           val cp = pCodePoint.get(0)
           if cp == '\n' then
-            if (fontDemo.state.lineBBEnabled)
-            {
+            if fontDemo.state.lineBBEnabled then
               glEnd()
               renderLineBB(self, fontDemo, lineStart, i - 1, y.get(0), scale)
               glBegin(GL_QUADS)
-            }
+            end if
             lineY = y.get(0) + (self.ascent - self.descent + self.lineGap) * scale
             y.put(0, lineY)
             x.put(0, 0.0f)
@@ -157,7 +173,7 @@ object Truetype:
           end if
         end while
         glEnd()
-        if (fontDemo.state.lineBBEnabled)
+        if fontDemo.state.lineBBEnabled then
           renderLineBB(self, fontDemo, lineStart, fontDemo.line.text.length, lineY, scale)
         end if
   end renderText

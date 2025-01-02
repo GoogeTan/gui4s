@@ -4,10 +4,11 @@ package glfw
 import cats.MonadError
 import cats.effect.{MonadCancel, Resource}
 import cats.syntax.all.*
+import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.{GL, GLUtil}
-import org.lwjgl.system.{MemoryStack, MemoryUtil}
+import org.lwjgl.system.{Callback, MemoryStack, MemoryUtil}
 
 import java.util.Objects
 
@@ -17,7 +18,7 @@ final class GlfwImpl[F[_]](
                             impure: Impure[F],
                             stackPush : Resource[F, MemoryStack]
                           )(using MonadCancel[F, Throwable]) extends Glfw[F]:
-  final case class OglWindow(id : Long)
+  final case class OglWindow(id : Long, procs : Callback | Null)
 
   override type Window = OglWindow
 
@@ -84,19 +85,37 @@ final class GlfwImpl[F[_]](
   def currentMonitor : F[Long] =
     impure.impure(glfwGetPrimaryMonitor()).ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
 
+  def debugMessageCallback : F[Callback | Null] =
+    impure.impure(GLUtil.setupDebugMessageCallback())
+  end debugMessageCallback
+  
   override def createWindow(
                              title: String,
                              size : Size,
                              visible: Boolean,
                              resizeable: Boolean,
                              debugContext: Boolean
-                           ): F[OglWindow] =
-    for
-      _ <- windowHints(visible, resizeable, debugContext)
-      monitor <- currentMonitor
-      (scaleX, scaleY) <- monitorScale(monitor)
-      id <- createWindowId(size.width * scaleX.round, size.height * scaleY.round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
-    yield OglWindow(id)
+                           ): Resource[F, OglWindow] =
+    Resource.make(
+      for
+        _ <- windowHints(visible, resizeable, debugContext)
+        monitor <- currentMonitor
+        (scaleX, scaleY) <- monitorScale(monitor)
+        id <- createWindowId(size.width * scaleX.round, size.height * scaleY.round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
+        callback <- debugMessageCallback
+      yield OglWindow(id, callback)
+    )(a => 
+        impure.impure:
+          if a.procs != null then 
+            a.procs.free()
+          end if
+
+          GL.setCapabilities(null)
+          glfwFreeCallbacks(a.id)
+          glfwDestroyWindow(a.id)
+          glfwTerminate()
+          Objects.requireNonNull(glfwSetErrorCallback(null)).free()
+    )
   end createWindow
 
   def createWindowId(width : Int, height : Int, title : CharSequence, monitor : Long) : F[Long] =
