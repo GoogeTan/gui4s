@@ -15,8 +15,8 @@ final class FreeTypeImpl[F[_] : Sync](
                                     makeUnfailurable : [T] =>  (() => T) => F[T],
                                    ) extends FontLibrary[F]:
   override type Font = FT_Face
-  override type Library = Long 
-  
+  override type Library = Long
+
   def stackPushR : Resource[F, MemoryStack] =
     Resource.fromAutoCloseable(makeUnfailurable(() => MemoryStack.stackPush()))
   end stackPushR
@@ -125,7 +125,20 @@ final class FreeTypeImpl[F[_] : Sync](
       )
     )
   end charBrightness
-  
+
+  def brightnessToChar(value : Int) : Char =
+    if value > 220 then
+      '@'
+    else if value > 169 then
+      '*'
+    else if value > 84 then
+      '.'
+    else
+      ' '
+    end if
+  end brightnessToChar
+
+
   def printChar(char : Char)(using c : Console[F]) : F[Unit] =
     loadLibAndFont("JetBrainsMono-Regular.ttf").use(
       (lib, font) =>
@@ -134,15 +147,9 @@ final class FreeTypeImpl[F[_] : Sync](
           _ <- setPixelSize(font, 0, 32)
           _ <- loadGlyph(font, index, FT_LOAD_COLOR)
           _ <- renderToContainer(font, FT_RENDER_MODE_NORMAL)
-          bitmap = font.glyph().bitmap()
-          buffer = bitmap.buffer(1000)
-          chars = for
-            i <- 0 until bitmap.rows
-            j <- 0 until bitmap.width()
-            value = (buffer.get(i * bitmap.pitch()+ j).toInt + 256) % 256
-            charr = if value > 220 then "@" else if value > 169 then "*" else if value > 84 then "." else " "
-          yield charr + (if j + 1 == bitmap.width() then "\n" else "")
-          _ <- c.println(chars.mkString)
+          brightnesses <- charBrightness(font)
+          chars = brightnesses.map(_.map(brightnessToChar).mkString).mkString("\n")
+          _ <- c.println(chars)
         yield ()
     )
 end FreeTypeImpl
@@ -159,4 +166,4 @@ object Test extends IOApp:
             Right(c())
       ),
       [T] => a => EitherT(IO(Right(a())))
-    ).printChar('0').value *> IO(ExitCode.Success)
+    ).printChar('щ').value *> IO(ExitCode.Success)
