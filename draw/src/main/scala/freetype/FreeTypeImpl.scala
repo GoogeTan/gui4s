@@ -97,7 +97,7 @@ final class FreeTypeImpl[F[_] : Sync](
         )
   end renderToContainer
 
-  override def renderChar(font : FT_Face, fontHeight : Int, char: Char): F[List[List[Int]]] =
+  override def renderChar(font : FT_Face, fontHeight : Int, char: Char): F[CharGlyph] =
     for
       index <- charIndex(font, char)
       _ <- setPixelSize(font, 0, fontHeight)
@@ -114,14 +114,19 @@ final class FreeTypeImpl[F[_] : Sync](
     yield (lib, font)
   end loadLibAndFont
 
-  def charBrightness(font : FT_Face) : F[List[List[Int]]] =
+  def charBrightness(font : FT_Face) : F[CharGlyph] =
     makeUnfailurable(() =>
       val bitmap = font.glyph().bitmap()
       val buffer = bitmap.buffer(1000)
-      (0 until bitmap.rows).toList.map(i =>
-        (0 until bitmap.width()).map(j =>
-          (buffer.get(i * bitmap.pitch()+ j).toInt + 256) % 256
-        ).toList
+      CharGlyph(
+        bitmap.rows(),
+        bitmap.width(),
+        (
+          for
+            i <- 0 until bitmap.rows
+            j <- 0 until bitmap.width()
+          yield buffer.get(i * bitmap.pitch() + j)
+        ).toArray
       )
     )
   end charBrightness
@@ -137,33 +142,4 @@ final class FreeTypeImpl[F[_] : Sync](
       ' '
     end if
   end brightnessToChar
-
-
-  def printChar(char : Char)(using c : Console[F]) : F[Unit] =
-    loadLibAndFont("JetBrainsMono-Regular.ttf").use(
-      (lib, font) =>
-        for
-          index <- charIndex(font, char)
-          _ <- setPixelSize(font, 0, 32)
-          _ <- loadGlyph(font, index, FT_LOAD_COLOR)
-          _ <- renderToContainer(font, FT_RENDER_MODE_NORMAL)
-          brightnesses <- charBrightness(font)
-          chars = brightnesses.map(_.map(brightnessToChar).mkString).mkString("\n")
-          _ <- c.println(chars)
-        yield ()
-    )
 end FreeTypeImpl
-
-object Test extends IOApp:
-  override def run(args: List[String]): IO[ExitCode] =
-    new FreeTypeImpl[[U] =>> EitherT[IO, Int, U]](
-      [T] => a => EitherT(
-        IO:
-          val (b, c) = a()
-          if b != 0 then
-            Left(b)
-          else
-            Right(c())
-      ),
-      [T] => a => EitherT(IO(Right(a())))
-    ).printChar('щ').value *> IO(ExitCode.Success)
