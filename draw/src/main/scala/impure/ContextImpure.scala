@@ -1,7 +1,9 @@
 package me.katze.gui4s.draw
+package impure
 
-import cats.effect.{Async, IO}
 import cats.effect.syntax.all.*
+import cats.effect.{Async, IO}
+
 import scala.concurrent.ExecutionContext
 
 final class ContextImpure[F[_] : Async](ec : ExecutionContext, initial : Impure[F]) extends Impure[F]:

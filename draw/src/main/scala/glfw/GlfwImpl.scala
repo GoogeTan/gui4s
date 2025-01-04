@@ -1,6 +1,8 @@
 package me.katze.gui4s.draw
 package glfw
 
+import impure.Impure
+
 import cats.MonadError
 import cats.effect.{MonadCancel, Resource}
 import cats.syntax.all.*

@@ -1,14 +1,13 @@
 package me.katze.gui4s.draw
 package lwjgl
 
-import cats.effect.Resource
+import java.nio.ShortBuffer
 
 trait Lwjgl[F[_]]:
-  type Texture
-  type Capabilities
-  
-  def createCapabilities : Resource[F, Capabilities]
-  
-  
+  type BrightnessTexture
+
+  def loadBrightnessTexture(width : Int, height : Int, data : ShortBuffer) : F[BrightnessTexture]
+
+  def renderBrightnessTexture(brightnessTexture: BrightnessTexture) : F[Unit]
 end Lwjgl
   
