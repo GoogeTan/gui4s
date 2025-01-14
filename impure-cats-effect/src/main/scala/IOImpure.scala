@@ -1,7 +1,7 @@
-package me.katze.gui4s.draw
-package impure
+package me.katze.gui4s.impure.cats.effect
 
 import cats.effect.IO
+import me.katze.gui4s.impure.{Impure, ImpureError}
 
 object IOImpure extends Impure[IO] with ImpureError[IO, Throwable]:
   override def impure[A](trunk: => A): IO[A] =

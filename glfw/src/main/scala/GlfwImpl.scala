@@ -1,26 +1,22 @@
-package me.katze.gui4s.draw
-package glfw
-
-import impure.Impure
+package me.katze.gui4s.glfw
 
 import cats.MonadError
 import cats.effect.{MonadCancel, Resource}
 import cats.syntax.all.*
+import me.katze.gui4s.impure.Impure
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.{GL, GLUtil}
-import org.lwjgl.system.{Callback, MemoryStack, MemoryUtil}
+import org.lwjgl.system.{MemoryStack, MemoryUtil}
 
 import java.util.Objects
-
 
 final class GlfwImpl[F[_]](
                             unsafeRunF : [A] => F[A] => A,
                             impure: Impure[F],
                             stackPush : Resource[F, MemoryStack]
                           )(using MonadCancel[F, Throwable]) extends Glfw[F]:
-  final case class OglWindow(id : Long, procs : Callback | Null)
+  final case class OglWindow(id : Long)
 
   override type Window = OglWindow
 
@@ -37,10 +33,10 @@ final class GlfwImpl[F[_]](
           )
   end centerWindow
 
-  override def createOGLContext(window: OglWindow): F[Unit] =
-    impure.impure:
+  override def createOGLContext(window: OglWindow, createCapabilities : F[Unit]): F[Unit] =
+    impure.impure(
       glfwMakeContextCurrent(window.id)
-      GL.createCapabilities()
+    ) *> createCapabilities
   end createOGLContext
 
   override def windowResizeCallback(window: OglWindow, callback: Size => F[Unit]): F[Unit] =
@@ -49,6 +45,7 @@ final class GlfwImpl[F[_]](
         window.id,
         (_, w, h) => unsafeRunF(callback(Size(w, h)))
       )
+  end windowResizeCallback
 
   override def makeVisible(window: OglWindow): F[Unit] =
     impure.impure:
@@ -86,33 +83,23 @@ final class GlfwImpl[F[_]](
 
   def currentMonitor : F[Long] =
     impure.impure(glfwGetPrimaryMonitor()).ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
-
-  def debugMessageCallback : F[Callback | Null] =
-    impure.impure(GLUtil.setupDebugMessageCallback())
-  end debugMessageCallback
   
   override def createWindow(
-                             title: String,
-                             size : Size,
-                             visible: Boolean,
-                             resizeable: Boolean,
-                             debugContext: Boolean
-                           ): Resource[F, OglWindow] =
+                              title: String,
+                              size : Size,
+                              visible: Boolean,
+                              resizeable: Boolean,
+                              debugContext: Boolean
+                            ): Resource[F, OglWindow] =
     Resource.make(
       for
         _ <- windowHints(visible, resizeable, debugContext)
         monitor <- currentMonitor
         (scaleX, scaleY) <- monitorScale(monitor)
         id <- createWindowId(size.width * scaleX.round, size.height * scaleY.round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
-        callback <- debugMessageCallback
-      yield OglWindow(id, callback)
+      yield OglWindow(id)
     )(a => 
         impure.impure:
-          if a.procs != null then 
-            a.procs.free()
-          end if
-
-          GL.setCapabilities(null)
           glfwFreeCallbacks(a.id)
           glfwDestroyWindow(a.id)
           glfwTerminate()
@@ -155,9 +142,6 @@ final class GlfwImpl[F[_]](
   override def createPrintErrorCallback: F[Unit] =
     impure.impure(GLFWErrorCallback.createPrint.set())
   end createPrintErrorCallback
-
-  override def setupDebugMessageCallback: F[Unit] =
-    impure.impure(GLUtil.setupDebugMessageCallback())
 
   override def pollEvents: F[Unit] =
     impure.impure(glfwPollEvents())

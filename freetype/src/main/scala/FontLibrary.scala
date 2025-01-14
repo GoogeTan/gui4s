@@ -1,5 +1,4 @@
-package me.katze.gui4s.draw
-package freetype
+package me.katze.gui4s.freetype
 
 import cats.effect.Resource
 

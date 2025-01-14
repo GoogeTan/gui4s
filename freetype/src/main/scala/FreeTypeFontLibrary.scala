@@ -1,11 +1,9 @@
-package me.katze.gui4s.draw
-package freetype
-
-import impure.ImpureError
+package me.katze.gui4s.freetype
 
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
+import me.katze.gui4s.impure.ImpureError
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.freetype.*
 import org.lwjgl.util.freetype.FreeType.*
@@ -104,15 +102,13 @@ final class FreeTypeFontLibrary[F[_] : Sync](impure : ImpureError[F, Int]) exten
   end setPixelSize
 
   def renderToContainer(face : FT_Face, renderMode : Int) : F[Unit] =
-    stackPushR.use:
-      stack =>
-        impure.impureTry:
-          val error = FT_Render_Glyph(face.glyph(), renderMode)
-          if error != 0 then
-            Left(error)
-          else
-            Right(())
-          end if
+    impure.impureTry:
+      val error = FT_Render_Glyph(face.glyph(), renderMode)
+      if error != 0 then
+        Left(error)
+      else
+        Right(())
+      end if
   end renderToContainer
 
   override def rasterChar(font : FT_Face, fontHeight : Int, char: Char): F[CharGlyph] =
@@ -151,16 +147,4 @@ final class FreeTypeFontLibrary[F[_] : Sync](impure : ImpureError[F, Int]) exten
         )
       )
   end charBrightness
-
-  def brightnessToChar(value : Int) : Char =
-    if value > 220 then
-      '@'
-    else if value > 169 then
-      '*'
-    else if value > 84 then
-      '.'
-    else
-      ' '
-    end if
-  end brightnessToChar
 end FreeTypeFontLibrary

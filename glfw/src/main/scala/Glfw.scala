@@ -1,5 +1,4 @@
-package me.katze.gui4s.draw
-package glfw
+package me.katze.gui4s.glfw
 
 import cats.effect.Resource
 
@@ -18,9 +17,8 @@ trait Glfw[F[_]]:
 
   def centerWindow(window : Window) : F[Unit]
   def makeVisible(window : Window) : F[Unit]
-  def setupDebugMessageCallback : F[Unit]
   def swapInterval(interval : Int) : F[Unit]
-  def createOGLContext(window : Window) : F[Unit]
+  def createOGLContext(window : Window, createCapabilities : F[Unit]) : F[Unit]
   def shouldClose(window : Window) : F[Boolean]
   def markForBeingClosed(window: Window) : F[Unit]
 

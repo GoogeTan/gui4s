@@ -22,48 +22,41 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("me.katze")
   )*/
 
+def scalaCOptions(scalaVersion : String) = {
+  if (scalaVersion.startsWith("2.12"))
+    "-Ywarn-unused-import"
+  else
+    "-Wunused:imports"
+}
+
+def catsLibs = List("org.typelevel" %% "cats-core" % "2.12.0")
+def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.5.7")
+def fs2Libs = List("co.fs2" %% "fs2-core" % "3.10.2")
+def testLibs = List(
+  "org.scalatest" %% "scalatest" % "3.2.19" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.17.1" % "test"
+)
+
 lazy val layout = (project in file("layout"))
   .settings(
     name := "layout",
     idePackagePrefix := Some(s"$packagePrefix.layout"),
-    libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-core" % "2.12.0",
-      "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.17.1" % "test"
-    ),
+    libraryDependencies ++= catsLibs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalafixOnCompile := true,
-    scalacOptions +=
-      {
-        if (scalaVersion.value.startsWith("2.12"))
-          "-Ywarn-unused-import"
-        else
-          "-Wunused:imports"
-      }
-
+    scalacOptions += scalaCOptions(scalaVersion.value)
   )
 
 lazy val widget = (project in file("widget"))
   .settings(
     name := "layout",
     idePackagePrefix := Some(s"$packagePrefix.widget"),
-    libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-core" % "2.12.0",
-      "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.17.1" % "test",
-      "co.fs2" %% "fs2-core" % "3.10.2",
-    ),
+    libraryDependencies ++= catsLibs ++ testLibs ++ fs2Libs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalafixOnCompile := true,
-    scalacOptions +=
-      {
-        if (scalaVersion.value.startsWith("2.12"))
-          "-Ywarn-unused-import"
-        else
-          "-Wunused:imports"
-      }
+    scalacOptions += scalaCOptions(scalaVersion.value)
   )
 
 lazy val os = Option(System.getProperty("os.name", ""))
@@ -74,26 +67,81 @@ lazy val os = Option(System.getProperty("os.name", ""))
 }
 lazy val lwjglVersion = "3.3.5"
 
+lazy val impure = (project in file("impure"))
+  .settings(
+    name := "impure",
+    idePackagePrefix := Some(s"$packagePrefix.impure"),
+    coverageEnabled := true,
+    wartremoverErrors := Warts.allBut(Warts.all*),
+    scalafixOnCompile := true,
+    scalacOptions += scalaCOptions(scalaVersion.value)
+  )
+
+lazy val impureCats = (project in file("impure-cats"))
+  .settings(
+    name := "impure",
+    idePackagePrefix := Some(s"$packagePrefix.impure.cats"),
+    libraryDependencies ++= catsLibs,
+    coverageEnabled := true,
+    wartremoverErrors := Warts.allBut(Warts.all*),
+    scalafixOnCompile := true,
+    scalacOptions += scalaCOptions(scalaVersion.value)
+  ).dependsOn(impure)
+
+lazy val impureCatsEffect = (project in file("impure-cats-effect"))
+  .settings(
+    name := "impure",
+    idePackagePrefix := Some(s"$packagePrefix.impure.cats.effect"),
+    libraryDependencies ++= catsEffectLibs,
+    coverageEnabled := true,
+    wartremoverErrors := Warts.allBut(Warts.all*),
+    scalafixOnCompile := true,
+    scalacOptions += scalaCOptions(scalaVersion.value)
+  ).dependsOn(impure)
+
+lazy val freetype = (project in file("freetype"))
+  .settings(
+    name := "freetype",
+    idePackagePrefix := Some(s"$packagePrefix.freetype"),
+    libraryDependencies ++= catsEffectLibs ++ testLibs ++ Seq(
+      "org.lwjgl" % "lwjgl-freetype" % lwjglVersion,
+      "org.lwjgl" % "lwjgl"        % lwjglVersion,
+      "org.lwjgl" % "lwjgl-freetype" % lwjglVersion classifier s"natives-$os",
+      "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-$os",
+    ),
+    coverageEnabled := true,
+    wartremoverErrors := Warts.allBut(Warts.all*),
+    scalafixOnCompile := true,
+    scalacOptions += scalaCOptions(scalaVersion.value)
+  ).dependsOn(impure)
+
+lazy val glfw = (project in file("glfw"))
+  .settings(
+    name := "glfw",
+    idePackagePrefix := Some(s"$packagePrefix.glfw"),
+    libraryDependencies ++= catsEffectLibs ++ testLibs ++ Seq(
+      "org.lwjgl" % "lwjgl-glfw" % lwjglVersion,
+      "org.lwjgl" % "lwjgl"        % lwjglVersion,
+      "org.lwjgl" % "lwjgl-glfw" % lwjglVersion classifier s"natives-$os",
+      "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-$os",
+    ),
+    coverageEnabled := true,
+    wartremoverErrors := Warts.allBut(Warts.all*),
+    scalafixOnCompile := true,
+    scalacOptions += scalaCOptions(scalaVersion.value)
+  ).dependsOn(impure)
+
 lazy val draw = (project in file("draw"))
   .settings(
-    name := "layout",
+    name := "draw",
     idePackagePrefix := Some(s"$packagePrefix.draw"),
-    libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-core" % "2.12.0",
-      "org.typelevel" %% "cats-effect" % "3.5.7",
-      "org.typelevel" %% "cats-core" % "2.12.0",
-      "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.18.1" % "test",
-      "co.fs2" %% "fs2-core" % "3.11.0",
-
-      "org.lwjgl" % "lwjgl-freetype" % lwjglVersion,
+    libraryDependencies ++= catsEffectLibs ++ testLibs ++ Seq(
       "org.lwjgl" % "lwjgl"        % lwjglVersion,
       "org.lwjgl" % "lwjgl-opengl" % lwjglVersion,
       "org.lwjgl" % "lwjgl-glfw"   % lwjglVersion,
       "org.lwjgl" % "lwjgl-stb"    % lwjglVersion,
       "org.lwjgl" % "lwjgl-assimp" % lwjglVersion,
       "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion,
-      "org.lwjgl" % "lwjgl-freetype" % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-opengl" % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-glfw"   % lwjglVersion classifier s"natives-$os",
@@ -105,36 +153,17 @@ lazy val draw = (project in file("draw"))
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalafixOnCompile := true,
-    scalacOptions +=
-      {
-        if (scalaVersion.value.startsWith("2.12"))
-          "-Ywarn-unused-import"
-        else
-          "-Wunused:imports"
-      }
-  ).dependsOn(widget)
+    scalacOptions += scalaCOptions(scalaVersion.value)
+  ).dependsOn(widget).dependsOn(impure)
 
 lazy val example = (project in file("example"))
   .settings(
     name := "example",
     idePackagePrefix := Some(s"$packagePrefix.example"),
-    libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-core" % "2.12.0",
-      "org.typelevel" %% "cats-effect" % "3.5.4",
-      "co.fs2" %% "fs2-core" % "3.10.2",
-      "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.17.1" % "test",
-      "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
-    ),
+    libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalafixOnCompile := true,
-    scalacOptions +=
-      {
-        if (scalaVersion.value.startsWith("2.12"))
-          "-Ywarn-unused-import"
-        else
-          "-Wunused:imports"
-      }
+    scalacOptions += scalaCOptions(scalaVersion.value)
   ).dependsOn(widget).dependsOn(draw).dependsOn(layout)
 

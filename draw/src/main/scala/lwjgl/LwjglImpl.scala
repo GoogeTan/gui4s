@@ -1,13 +1,18 @@
 package me.katze.gui4s.draw
 package lwjgl
 
-import impure.Impure
-
+import cats.effect.Sync
+import cats.effect.kernel.Resource
+import me.katze.gui4s.impure.Impure
+import org.lwjgl.glfw.GLFW.glfwSetErrorCallback
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.{GL, GLUtil}
+import org.lwjgl.system.Callback
 
 import java.nio.{IntBuffer, ShortBuffer}
+import java.util.Objects
 
-class LwjglImpl[F[_]](impure: Impure[F]) extends Lwjgl[F]:
+class LwjglImpl[F[_] : Sync](impure: Impure[F]) extends Lwjgl[F]:
   override type BrightnessTexture = Int
 
   override def loadBrightnessTexture(width: Int, height: Int, data: ShortBuffer): F[BrightnessTexture] =
@@ -48,5 +53,17 @@ class LwjglImpl[F[_]](impure: Impure[F]) extends Lwjgl[F]:
 
       glEnd()
   end renderBrightnessTexture
+  
+  def debugMessageCallback : Resource[F, Callback | Null] =
+    Resource.make(
+      impure.impure(GLUtil.setupDebugMessageCallback())
+    )(
+      callback => 
+        impure.impure:
+          if callback != null then
+            callback.free()
+          end if
+    )
+  end debugMessageCallback
 end LwjglImpl
 
