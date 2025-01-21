@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package draw
 
 import cats.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 import me.katze.gui4s.layout.*
 import me.katze.gui4s.layout.bound.{AxisBounds, Bounds}
 

@@ -1,12 +1,11 @@
 package me.katze.gui4s.example
 
-import task.*
 import update.*
 
 import cats.effect.std.{AtomicCell, Queue}
-import cats.effect.syntax.all.{*, given}
+import cats.effect.syntax.all.*
 import cats.effect.{Concurrent, ExitCode}
-import cats.syntax.all.{*, given}
+import cats.syntax.all.given
 import cats.{Monad, MonadError}
 
 /**

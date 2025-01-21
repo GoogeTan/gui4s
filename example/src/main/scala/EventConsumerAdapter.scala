@@ -6,7 +6,7 @@ import task.{RunnableIO, Task, TaskSet}
 import update.{EventConsumer, EventProcessResult}
 
 import cats.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.given
 import me.katze.gui4s.widget.stateful.{KillTasks, Path}
 import me.katze.gui4s.widget.{EventResult, EventResultP, Widget, foldLeftComposition}
 

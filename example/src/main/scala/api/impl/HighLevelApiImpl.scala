@@ -5,14 +5,11 @@ import api.*
 import draw.*
 
 import cats.*
-import cats.data.*
-import cats.syntax.all.{*, given}
 import me.katze.gui4s.layout.Axis
-import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, KillTasks, RaiseEvent, RichTypeChecker, State, StatefulDraw, TaskFinished, TaskResultCatcher}
-import me.katze.gui4s.widget.{Widget, library}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.given
+import me.katze.gui4s.widget.library.{*, given}
+import me.katze.gui4s.widget.stateful.*
+import me.katze.gui4s.widget.{Widget, library}
 
 type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, MU] =
   [Event]

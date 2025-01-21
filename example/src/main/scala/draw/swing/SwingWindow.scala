@@ -7,7 +7,7 @@ import cats.effect.IO
 
 import java.awt.Frame
 import javax.swing.JFrame
-import scala.math.Numeric.Implicits.{*, given}
+import scala.math.Numeric.Implicits.*
 
 final class SwingWindow[MU : Numeric](frame: JFrame, component: SwingWindowComponent) extends Window[IO, MU]:
   override def size: IO[(MU, MU)] =

@@ -1,7 +1,7 @@
 package me.katze.gui4s.layout
 package linear
 
-import scala.math.Numeric.Implicits.given
+import scala.math.Numeric.Implicits.*
 
 final case class SizedElement[T](size: T, coordinateOfStart: T):
   def coordinateOfEnd(using n : Numeric[T]): T = size + coordinateOfStart

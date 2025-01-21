@@ -5,13 +5,11 @@ import api.impl.LayoutPlacementMeta
 import api.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
 import cats.*
-import cats.syntax.all.given
 import me.katze.gui4s.layout
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Placed, Sized}
-
-import scala.math.Fractional.Implicits.{*, given}
+import scala.math.Fractional.Implicits.*
 
 def mainAxisStrategyPlacement[MU : Fractional](strategy: MainAxisPlacementStrategy[MU], elements: List[MU], space : => MU): List[MU] =
   (

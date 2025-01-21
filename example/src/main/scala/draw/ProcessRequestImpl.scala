@@ -1,12 +1,11 @@
 package me.katze.gui4s.example
 package draw
 
-import draw.Window
 import update.{ApplicationRequest, ProcessRequest}
 
 import cats.*
 import cats.effect.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.given
 
 final class ProcessRequestImpl[F[_] : Applicative, MU : Numeric](window: Window[F, MU]) extends ProcessRequest[F, ApplicationRequest]:
   extension (request: ApplicationRequest)

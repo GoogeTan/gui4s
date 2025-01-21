@@ -10,22 +10,18 @@ import update.{ApplicationRequest, CatsFiber, MultiMap, ProcessRequest, Standard
 import cats.*
 import cats.data.*
 import cats.effect.*
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
-import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.stateful.{EventReaction, Path, TaskFinished}
-import me.katze.gui4s.example.given
-import me.katze.gui4s.widget.library.given
+import me.katze.gui4s.layout.*
+import me.katze.gui4s.widget.library.*
 import cats.effect.std.{AtomicCell, Queue}
 import draw.swing.{SwingApi, SwingWindow}
 
-import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.impure.cats.effect.IOImpure
 import me.katze.gui4s.layout.given
-import me.katze.gui4s.widget.{EventResult, Widget, given}
-import me.katze.gui4s.widget.stateful.{*, given}
+import me.katze.gui4s.widget.{EventResult, given}
 import me.katze.gui4s.widget
+import me.katze.gui4s.widget.stateful.{EventReaction, KillTasks, Path, TaskFinished}
 
 import scala.math.Numeric.Implicits.*
 

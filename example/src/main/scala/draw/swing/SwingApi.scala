@@ -5,13 +5,11 @@ import api.impl.DrawMonadT
 import draw.{DrawApi, Window}
 
 import cats.effect.IO
-import cats.syntax.all.{*, given}
 import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
 
 import java.awt.event.*
 import javax.swing.JFrame
-import scala.math.Numeric.Implicits.{*, given}
 
 final class SwingApi[MU : Numeric] private(
                                             override val window: Window[IO, MU], 

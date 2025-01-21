@@ -7,7 +7,7 @@ import cats.effect.*
 
 import java.awt.Color
 import java.awt.image.BufferedImage
-import scala.math.Numeric.Implicits.{*, given}
+import scala.math.Numeric.Implicits.*
 import scala.swing.Font
 
 final class SwingDraw[

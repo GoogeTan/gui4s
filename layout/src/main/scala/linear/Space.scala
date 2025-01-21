@@ -1,7 +1,7 @@
 package me.katze.gui4s.layout
 package linear
 
-import scala.math.Numeric.Implicits.given
+import scala.math.Numeric.Implicits.*
 
 def spaceBetweenElements[T: Numeric](elements : List[SizedElement[T]]): List[T] =
   def helper(previousEnd: T, starts : List[SizedElement[T]]) : List[T] =

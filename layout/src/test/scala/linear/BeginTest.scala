@@ -24,5 +24,5 @@ class BeginTest extends AnyFlatSpec:
     )
 
   "placeBeginMany with one element" should "be 0" in:
-    assert(placeBeginMany(List(2)) == List(0))
+    assert(placeBeginMany(List(2)) == List(SizedElement(2, 0)))
 end BeginTest
