@@ -1,5 +1,6 @@
 package me.katze.gui4s.example
 
+import task.*
 import update.*
 
 import cats.effect.std.{AtomicCell, Queue}
@@ -60,16 +61,22 @@ type DrawLoopExceptionHandler[F[_], Error] = Error => F[Option[ExitCode]]
 def drawLoop[
   F[+_] : MonadErrorT[Error],
   Error
-](renderExceptionHandler : DrawLoopExceptionHandler[F, Error], beginDraw : F[Unit], endDraw : F[Unit])(drawCurrentWidget : F[Unit]) : F[ExitCode] =
-  Monad[F].tailRecM[None.type, ExitCode](
-    None
-  )(_ =>
-      (beginDraw *> drawCurrentWidget *> endDraw)
-        .as(None)
-        .handleErrorWith(renderExceptionHandler)
-        .map(_.toRight(None))
+](renderExceptionHandler : DrawLoopExceptionHandler[F, Error])(drawCurrentWidget : F[Unit]) : F[ExitCode] =
+  runWhileNoError(
+    drawCurrentWidget,
+    renderExceptionHandler
   )
 end drawLoop
+
+def runWhileNoError[F[_] : MonadErrorT[InternalError], InternalError, ExternalError](effect: F[Unit], recover: InternalError => F[Option[ExternalError]]) : F[ExternalError] =
+  Monad[F].tailRecM[None.type, ExternalError](
+    None
+  )(_ =>
+    effect
+      .as(Left(None))
+      .handleErrorWith(error => recover(error).map(_.toRight(None)))
+  )
+end runWhileNoError
 
 def updateLoop[
                 F[+_] : Monad,
@@ -88,19 +95,18 @@ end updateLoop
 
 def doIfLeft[F[_] : Monad, A, B](f : A => F[Unit])(value : Either[A, B]) : F[Either[A, B]] =
   value match
-    case Left(value)  => f(value).map(_ => Left(value))
+    case Left(value)  => f(value).as(Left(value))
     case Right(value) => Right(value).pure[F]
   end match
 end doIfLeft
 
 
 /**
- * TODO Написать норм описание, что тут происходит. А лучше поработать над неймингом, чтобы вопросов не возникало
+ * Одна итерация обновления виджетов. Ожидает появления события, обновляет дерево и выполняет все запросы виджета.
  *
  * @param widget Виджет, который принимает внешние события
  * @param eventSource Даёт следующее событие. Возможно ожидание.
- * @tparam DownEvent Тип внешнего события виджета
- * @return
+ * @return Left(widget), если обновление должно продолжиться, Right(ExitCode) иначе
  */
 def updateStep[
               F[+_] : Monad,

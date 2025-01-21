@@ -4,15 +4,13 @@ package lwjgl
 import cats.effect.Sync
 import cats.effect.kernel.Resource
 import me.katze.gui4s.impure.Impure
-import org.lwjgl.glfw.GLFW.glfwSetErrorCallback
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.{GL, GLUtil}
+import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.Callback
 
 import java.nio.{IntBuffer, ShortBuffer}
-import java.util.Objects
 
-class LwjglImpl[F[_] : Sync](impure: Impure[F]) extends Lwjgl[F]:
+class OpenGLImpl[F[_] : Sync](impure: Impure[F]) extends OpenGL[F]:
   override type BrightnessTexture = Int
 
   override def loadBrightnessTexture(width: Int, height: Int, data: ShortBuffer): F[BrightnessTexture] =
@@ -65,5 +63,5 @@ class LwjglImpl[F[_] : Sync](impure: Impure[F]) extends Lwjgl[F]:
           end if
     )
   end debugMessageCallback
-end LwjglImpl
+end OpenGLImpl
 

@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 final case class EventReaction[+WidgetTask, +State, +ParentUpEvent](
                                                                       newState   : State,
                                                                       parentEvent: List[ParentUpEvent],
-                                                                      ios        : List[(WidgetTask, Boolean)]
+                                                                      ios        : List[WidgetTask]
                                                                     ):
   def mapState[NewState](f : State => NewState) : EventReaction[WidgetTask, NewState, ParentUpEvent] =
     EventReaction(f(newState), parentEvent, ios)
@@ -33,7 +33,7 @@ given[Task]: BiMonad[[A, B] =>> EventReaction[Task, A, B]] with
     def helper(
                 a: A,
                 parentEvent: List[E],
-                ios        : List[(Task, Boolean)]
+                ios        : List[Task]
               )(
                 f: A => EventReaction[Task, Either[A, B], E]
               ) : EventReaction[Task, B, E] =

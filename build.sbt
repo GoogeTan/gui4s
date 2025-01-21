@@ -166,5 +166,6 @@ lazy val example = (project in file("example"))
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions += scalaCOptions(scalaVersion.value)
-  ).dependsOn(widget).dependsOn(draw).dependsOn(layout).dependsOn(loops)
+  )
+  .dependsOn(widget, draw, layout, loops, impure, impureCatsEffect)
 

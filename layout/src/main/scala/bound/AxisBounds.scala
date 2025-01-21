@@ -4,7 +4,7 @@ package bound
 import scala.math.Ordered.orderingToOrdered
 
 final case class AxisBounds[+T : Numeric](min: Option[T], max: Option[T]):
-  assert(min.zip(max).forall(_ <= _))
+  assert(min.zip(max).forall(_ <= _), "Maximum must be more them minimum")
   
   def fixed: Boolean = min == max
   def finite : Boolean = max.isDefined

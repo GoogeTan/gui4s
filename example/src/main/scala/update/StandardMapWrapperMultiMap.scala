@@ -2,6 +2,10 @@ package me.katze.gui4s.example
 package update
 
 final case class StandardMapWrapperMultiMap[K, V](realMap: Map[K, Set[V]]) extends MultiMap[K, V]:
+  def this() =
+    this(Map())
+  end this
+  
   override def add(key : K, value: V): MultiMap[K, V] =
     StandardMapWrapperMultiMap(
       realMap

@@ -1,6 +1,4 @@
 package me.katze.gui4s.example
 package task
 
-import cats.effect.Fiber
-
-final case class IOOnThread[F[_]](keepAfterWidgetDeath: Boolean, fiberControl: Fiber[F, Throwable, Unit])
+final case class IOOnThread[Fiber](keepAfterWidgetDeath: Boolean, fiberControl: Fiber)

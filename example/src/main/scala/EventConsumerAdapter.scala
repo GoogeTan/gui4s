@@ -2,13 +2,13 @@ package me.katze.gui4s.example
 
 import draw.Drawable
 import place.RunPlacement
-import task.TaskSet
+import task.{RunnableIO, Task, TaskSet}
 import update.{EventConsumer, EventProcessResult}
 
 import cats.*
 import cats.syntax.all.{*, given}
-import me.katze.gui4s.widget.{EventResult, EventResultP, Widget, foldLeftComposition}
 import me.katze.gui4s.widget.stateful.{KillTasks, Path}
+import me.katze.gui4s.widget.{EventResult, EventResultP, Widget, foldLeftComposition}
 
 final case class EventConsumerAdapter[
   F[+_] : Monad,

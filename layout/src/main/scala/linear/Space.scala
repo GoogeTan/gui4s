@@ -6,7 +6,7 @@ import scala.math.Numeric.Implicits.given
 def spaceBetweenElements[T: Numeric](elements : List[SizedElement[T]]): List[T] =
   def helper(previousEnd: T, starts : List[SizedElement[T]]) : List[T] =
     starts match
-      case SizedElement(start, size) :: others =>
+      case SizedElement(size, start) :: others =>
         (start - previousEnd) :: helper(start + size, others)
       case Nil => Nil
     end match

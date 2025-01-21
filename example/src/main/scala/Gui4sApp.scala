@@ -4,8 +4,8 @@ import api.impl.{DrawMonad, HighLevelApiImpl, LayoutPlacement, LayoutPlacementMe
 import api.{HighLevelApi, LabelApi, LayoutApi}
 import draw.{NotifyDrawLoopWindow, ProcessRequestImpl, windowBounds}
 import place.{RunPlacement, additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
-import task.{IOOnThread, MultiMap, RefTaskSet, StlWrapperMultiMap, WidgetTaskImpl, runWidgetTask}
-import update.ApplicationRequest
+import task.{ContramapTaskSet, IOOnThread, RefTaskSet, RunnableIO, WidgetTaskImpl}
+import update.{ApplicationRequest, CatsFiber, MultiMap, ProcessRequest, StandardMapWrapperMultiMap}
 
 import cats.*
 import cats.data.*
@@ -15,15 +15,15 @@ import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.{EventReaction, Path, TaskFinished}
-import update.ProcessRequest
-
 import me.katze.gui4s.example.given
 import me.katze.gui4s.widget.library.given
 import cats.effect.std.{AtomicCell, Queue}
 import draw.swing.{SwingApi, SwingWindow}
 
+import me.katze.gui4s.impure.Impure
+import me.katze.gui4s.impure.cats.effect.IOImpure
 import me.katze.gui4s.layout.given
-import me.katze.gui4s.widget.{EventResult, RunnableIO, Widget, given}
+import me.katze.gui4s.widget.{EventResult, Widget, given}
 import me.katze.gui4s.widget.stateful.{*, given}
 import me.katze.gui4s.widget
 
@@ -57,18 +57,22 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   type Update[+Task] = [A, B] =>> EventResult[Task, A, B]
   type TextStyle = Unit
   
-  given[Task] : LiftEventReaction[Update[Task], Task] with
-    override def lift[A, B](reaction: EventReaction[Task, A, B]): Update[Task][A, B] =
-      EventResult[Task, A, B](reaction.newState, reaction.parentEvent, reaction.ios.map(RunnableIO(_, Path(List("_ROOT_")), _))) // TODO Проверить, что тут правда нужен пустой путь
+  given runnableLiftEventReaction[Task] : LiftEventReaction[Update[Task], Task] with
+    override def lift[A, B](reaction: EventReaction[Task, A, B]): EventResult[Task, A, B] =
+      EventResult(
+        reaction.newState, 
+        reaction.parentEvent,
+        reaction.ios
+      )
     end lift
-  end given
+  end runnableLiftEventReaction
   
   private def runDraw(draw: DrawT[MU][Unit]) : IO[Unit] =
     draw.run(Numeric[MU].zero, Numeric[MU].zero)
   end runDraw
   
   enum RecompositionAction:
-    case Task(task : RunnableIO[WidgetTaskImpl[IO, Any]])
+    case Task(task : RunnableIO[IO, Any])
     case KillTasksFor(path : Path)
   end RecompositionAction
 
@@ -80,18 +84,14 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     for
       queue <- Queue.unbounded[IO, DownEvent]
       (drawApi, destroyDrawApi) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
-      taskMap <- Ref.of[IO, MultiMap[Path, IOOnThread[IO]]](StlWrapperMultiMap(Map()))
-      taskSet = RefTaskSet[IO, WidgetTaskImpl[IO, Any]](
-        taskMap, 
-        (path, task) => startWidgetTask(task, offerTask(queue, path, _))
-      )
-
+      taskMap <- AtomicCell[IO].of[MultiMap[Path, IOOnThread[CatsFiber[IO, Throwable, Any]]]](new StandardMapWrapperMultiMap())
+      taskSet = RefTaskSet[IO, RunnableIO[IO, Any], CatsFiber[IO, Throwable, Any]](taskMap)
       widgetApi = new HighLevelApiImpl[
-        Update[WidgetTaskImpl[IO, Any]],
+        Update[RunnableIO[WidgetTaskT[IO], Any]],
         Draw[MU, Unit],
         Place,
         Recomposition,
-        WidgetTaskT[IO],
+        [T] =>> RunnableIO[WidgetTaskT[IO], T],
         MU,
         TextStyle,
         DownEvent
@@ -102,10 +102,10 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
       rootWidget <- rootWidget[widgetApi.type](using widgetApi).runPlacement
 
       widget <- AtomicCell[IO].of(
-        EventConsumerAdapter[IO, Draw[MU, Unit], Place, Recomposition, WidgetTaskImpl[IO, Any], ApplicationRequest, DownEvent](
+        EventConsumerAdapter[IO, Draw[MU, Unit], Place, Recomposition, RunnableIO[WidgetTaskT[IO], Any], ApplicationRequest, DownEvent](
           Path(List("ROOT")),
           rootWidget,
-          taskSet,
+          ContramapTaskSet(taskSet, a => RunnableIO(a.io(offerTask(queue, a.owner, _)), a.owner, a.keepAliveAfterOwnerDetach, IOImpure)),
           _.traverse_ {
             case RecompositionAction.Task(task) => taskSet.pushTask(task)
             case RecompositionAction.KillTasksFor(path) => taskSet.killTasksFor(path)
@@ -113,19 +113,14 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
         )
       )
       graphics = drawApi.graphics[DrawT[MU]]
-      code <- applicationLoop[IO, ApplicationRequest, DownEvent, [A, B] =>> EventConsumerAdapter[IO, DrawT[MU][Unit], Place, Recomposition, WidgetTaskImpl[IO, Any], A, B]](
+      code <- applicationLoop[IO, ApplicationRequest, DownEvent, [A, B] =>> EventConsumerAdapter[IO, DrawT[MU][Unit], Place, Recomposition, RunnableIO[WidgetTaskT[IO], Any], A, B]](
         eventBus = queue,
         widgetCell = widget,
-        drawLoop = currentWidget => drawLoop(drawLoopExceptionHandler, runDraw(graphics.beginDraw), runDraw(graphics.endDraw))(currentWidget.map(_.draw).flatMap(runDraw)),
+        drawLoop = currentWidget => drawLoop(drawLoopExceptionHandler)(runDraw(graphics.beginDraw) *> currentWidget.map(_.draw).flatMap(runDraw) *> runDraw(graphics.endDraw)),
         updateLoop = updateLoop
       ).flatMap(_.join)
     yield code
   end run
-
-  private def startWidgetTask[F[+_] : Concurrent, T](task: WidgetTaskImpl[F, T], resultDrain: T => F[Unit]): F[Fiber[F, Throwable, Unit]] =
-    // TODO add execution context
-    Concurrent[F].start(runWidgetTask(task, resultDrain))
-  end startWidgetTask
 
   def offerTask[F[+_]](queue: Queue[F, ? >: TaskFinished], at: Path, taskResult: Any) : F[Unit] =
     queue.offer(TaskFinished(at, taskResult))
@@ -137,9 +132,9 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     end sizeText
   end given
   
-  private def containerPlacementCurried[RE]: LayoutPlacement[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, RE, DownEvent, MU] =
+  private def containerPlacementCurried[RE]: LayoutPlacement[Update[RunnableIO[WidgetTaskT[IO], Any]], DrawT[MU][Unit], Place, RE, DownEvent, MU] =
     [Event] => (axis : Axis, elements, main, additional) =>
-      weightedRowColumnPlace[MU, widget.Widget[Update[WidgetTaskImpl[IO, Any]], DrawT[MU][Unit], Place, RE, Event, DownEvent]](
+      weightedRowColumnPlace[MU, widget.Widget[Update[RunnableIO[WidgetTaskT[IO], Any]], DrawT[MU][Unit], Place, RE, Event, DownEvent]](
         axis,
         elements.map(widget => MaybeWeighted(None, widget)),
         rowColumnPlace(_, _, 

@@ -9,7 +9,7 @@ type EventResultP[WT] = [A, B] =>> EventResult[WT, A, B]
 final case class EventResult[+WidgetTask, +FreeWidget, +UpEvent](
                                                                   widget: FreeWidget, 
                                                                   upEvent: List[UpEvent],
-                                                                  ios   : List[RunnableIO[WidgetTask]]
+                                                                  ios   : List[WidgetTask]
                                                                 )
 
 
@@ -33,7 +33,7 @@ given[Task]: BiMonad[[A, B] =>> EventResult[Task, A, B]] with
     def helper(
                 a: A,
                 parentEvent: List[E],
-                ios        : List[RunnableIO[Task]]
+                ios        : List[Task]
               )(
                 f: A => EventResult[Task, Either[A, B], E]
               ) : EventResult[Task, B, E] =
