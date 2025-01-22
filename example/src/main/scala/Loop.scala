@@ -58,7 +58,7 @@ end applicationLoop
 type DrawLoopExceptionHandler[F[_], Error] = Error => F[Option[ExitCode]]
 
 def drawLoop[
-  F[+_] : MonadErrorT[Error],
+  F[_] : MonadErrorT[Error],
   Error
 ](renderExceptionHandler : DrawLoopExceptionHandler[F, Error])(drawCurrentWidget : F[Unit]) : F[ExitCode] =
   runWhileNoError(

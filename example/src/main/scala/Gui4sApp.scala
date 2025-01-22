@@ -2,9 +2,9 @@ package me.katze.gui4s.example
 
 import api.impl.{DrawMonad, HighLevelApiImpl, LayoutPlacement, LayoutPlacementMeta}
 import api.{HighLevelApi, LabelApi, LayoutApi}
-import draw.{NotifyDrawLoopWindow, ProcessRequestImpl, windowBounds}
+import draw.{Drawable, NotifyDrawLoopWindow, ProcessRequestImpl, SimpleDrawApi, windowBounds}
 import place.{RunPlacement, additionalAxisStrategyPlacement, mainAxisStrategyPlacement, rowColumnPlace, unpack}
-import task.{ContramapTaskSet, IOOnThread, RefTaskSet, RunnableIO, WidgetTaskImpl}
+import task.{ContramapTaskSet, IOOnThread, RefTaskSet, RunnableIO, TaskSet, WidgetTaskImpl}
 import update.{ApplicationRequest, CatsFiber, MultiMap, ProcessRequest, StandardMapWrapperMultiMap}
 
 import cats.*
@@ -14,7 +14,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.*
 import me.katze.gui4s.widget.library.*
-import cats.effect.std.{AtomicCell, Queue}
+import cats.effect.std.{AtomicCell, Console, Queue, QueueSink}
 import draw.swing.{SwingApi, SwingWindow}
 
 import me.katze.gui4s.impure.cats.effect.IOImpure
@@ -67,21 +67,31 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     draw.run(Numeric[MU].zero, Numeric[MU].zero)
   end runDraw
   
-  enum RecompositionAction:
-    case Task(task : RunnableIO[IO, Any])
+  enum RecompositionAction[Task]:
+    case Task(task : Task)
     case KillTasksFor(path : Path)
   end RecompositionAction
 
+  def runInQueueTaskSet(taskMap : AtomicCell[IO, MultiMap[Path, IOOnThread[CatsFiber[IO, Throwable, Any]]]], queue : QueueSink[IO, DownEvent]) : TaskSet[IO, RunnableIO[WidgetTaskT[IO], Any]] =
+    ContramapTaskSet(
+      RefTaskSet[IO, RunnableIO[IO, Any], CatsFiber[IO, Throwable, Any]](
+        taskMap
+      ),
+      a => RunnableIO(a.io(offerTask(queue, a.owner, _ : Any)), a.owner, a.keepAliveAfterOwnerDetach, IOImpure)
+    )
+  end runInQueueTaskSet
+
+  type Recomposition = List[RecompositionAction[RunnableIO[WidgetTaskT[IO], Any]]]
+
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   final override def run(args: List[String]): IO[ExitCode] =
-    type Recomposition = List[RecompositionAction]
     given KillTasks[Recomposition] = path => List(RecompositionAction.KillTasksFor(path))
 
     for
       queue <- Queue.unbounded[IO, DownEvent]
       (drawApi, destroyDrawApi) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
       taskMap <- AtomicCell[IO].of[MultiMap[Path, IOOnThread[CatsFiber[IO, Throwable, Any]]]](new StandardMapWrapperMultiMap())
-      taskSet = RefTaskSet[IO, RunnableIO[IO, Any], CatsFiber[IO, Throwable, Any]](taskMap)
+      taskSet = runInQueueTaskSet(taskMap, queue)
       widgetApi = new HighLevelApiImpl[
         Update[RunnableIO[WidgetTaskT[IO], Any]],
         Draw[MU, Unit],
@@ -101,24 +111,37 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
         EventConsumerAdapter[IO, Draw[MU, Unit], Place, Recomposition, RunnableIO[WidgetTaskT[IO], Any], ApplicationRequest, DownEvent](
           Path(List("ROOT")),
           rootWidget,
-          ContramapTaskSet(taskSet, a => RunnableIO(a.io(offerTask(queue, a.owner, _)), a.owner, a.keepAliveAfterOwnerDetach, IOImpure)),
-          _.traverse_ {
-            case RecompositionAction.Task(task) => taskSet.pushTask(task)
-            case RecompositionAction.KillTasksFor(path) => taskSet.killTasksFor(path)
-          }
+          taskSet,
+          runRecompositionInTaskSet(taskSet, _)
         )
       )
       graphics = drawApi.graphics[DrawT[MU]]
       code <- applicationLoop[IO, ApplicationRequest, DownEvent, [A, B] =>> EventConsumerAdapter[IO, DrawT[MU][Unit], Place, Recomposition, RunnableIO[WidgetTaskT[IO], Any], A, B]](
         eventBus = queue,
         widgetCell = widget,
-        drawLoop = currentWidget => drawLoop(drawLoopExceptionHandler)(runDraw(graphics.beginDraw) *> currentWidget.map(_.draw).flatMap(runDraw) *> runDraw(graphics.endDraw)),
+        drawLoop = simpleGraphicsDrawLoop(graphics, runDraw),
         updateLoop = updateLoop
       ).flatMap(_.join)
     yield code
   end run
 
-  def offerTask[F[+_]](queue: Queue[F, ? >: TaskFinished], at: Path, taskResult: Any) : F[Unit] =
+  def simpleGraphicsDrawLoop[F[+_] : Async : Console, Draw : Monoid](graphics: SimpleDrawApi[MU, Draw], runDraw: Draw => F[Unit]) : DrawLoop[F, Drawable[Draw]] =
+    currentWidget =>
+      drawLoop(drawLoopExceptionHandler)(currentWidget.map(widget => graphics.beginDraw |+| widget.draw |+| graphics.endDraw).flatMap(runDraw))
+  end simpleGraphicsDrawLoop
+
+  def runRecompositionInTaskSet[F[+_] : Applicative, Task](taskSet: TaskSet[F, Task], recomposition: List[RecompositionAction[Task]]) : F[Unit] =
+    recomposition.traverse_(runRecompositionActionInTaskSet(taskSet, _))
+  end runRecompositionInTaskSet
+
+  def runRecompositionActionInTaskSet[F[+_], Task](taskSet: TaskSet[F, Task], recompositionAction: RecompositionAction[Task]) : F[Unit] =
+    recompositionAction match
+      case RecompositionAction.Task(task) => taskSet.pushTask(task)
+      case RecompositionAction.KillTasksFor(path) => taskSet.killTasksFor(path)
+    end match
+  end runRecompositionActionInTaskSet
+
+  def offerTask[F[+_]](queue: QueueSink[F, ? >: TaskFinished], at: Path, taskResult: Any) : F[Unit] =
     queue.offer(TaskFinished(at, taskResult))
   end offerTask
 
@@ -139,7 +162,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
       ).map(unpack)
   end containerPlacementCurried
 
-  private def drawLoopExceptionHandler(exception: Throwable): IO[Option[ExitCode]] =
-    IO.println(s"Error in draw loop: $exception").map(_ => Some(ExitCode.Error))
+  private def drawLoopExceptionHandler[F[_] : Functor](exception: Throwable)(using c : Console[F]): F[Option[ExitCode]] =
+    c.println(s"Error in draw loop: $exception").map(_ => Some(ExitCode.Error))
   end drawLoopExceptionHandler
 end Gui4sApp
