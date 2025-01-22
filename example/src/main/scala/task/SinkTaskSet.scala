@@ -3,15 +3,15 @@ package task
 
 import update.{MultiMap, StandardMapWrapperMultiMap}
 
-import cats.effect.IO
+import cats.effect.Ref
 import cats.effect.kernel.Concurrent
-import cats.effect.std.{AtomicCell, QueueSink}
+import cats.effect.std.QueueSink
 import cats.syntax.all.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 
 def runInQueueTaskSet[F[+_] : Concurrent, DownEvent >: TaskFinished](
-                                                                      taskMap : AtomicCell[F, MultiMap[Path, IOOnThread[Fiber[F]]]],
+                                                                      taskMap : Ref[F, MultiMap[Path, IOOnThread[Fiber[F]]]],
                                                                       queue : QueueSink[F, DownEvent],
                                                                       impure : Impure[F]
                                                                     ) : TaskSet[F, RunnableIO[EventProducingEffectT[F], Any]] =
@@ -27,7 +27,7 @@ def runInQueueTaskSet[F[+_] : Concurrent, DownEvent >: TaskFinished](
                                                                       queue  : QueueSink[F, DownEvent],
                                                                       impure : Impure[F]
                                                                     ): F[TaskSet[F, RunnableIO[EventProducingEffectT[F], Any]]] =
-  AtomicCell[F]
+  Ref[F]
     .of(new StandardMapWrapperMultiMap())
     .map(runInQueueTaskSet(_, queue, impure))
 end runInQueueTaskSet

@@ -12,7 +12,7 @@ import update.*
 import cats.*
 import cats.data.*
 import cats.effect.*
-import cats.effect.std.{AtomicCell, Console, Queue}
+import cats.effect.std.{Console, Queue}
 import cats.syntax.all.*
 import me.katze.gui4s.impure.cats.effect.IOImpure
 import me.katze.gui4s.layout.{*, given}
@@ -54,7 +54,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
 
       rootWidget <- rootWidget[widgetApi.type](using widgetApi).runPlacement
 
-      widget <- AtomicCell[IO].of(
+      widget <- Ref[IO].of(
         EventConsumerAdapter(
           pathToRoot = Path(List("ROOT")),
           rootWidget,

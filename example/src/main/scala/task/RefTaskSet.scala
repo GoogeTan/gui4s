@@ -4,12 +4,12 @@ package task
 import update.MultiMap
 
 import cats.*
-import cats.effect.std.AtomicCell
+import cats.effect.Ref
 import cats.syntax.all.*
 import me.katze.gui4s.widget.stateful.Path
 
 final case class RefTaskSet[F[+_] : Monad, -T <: Task[F, FiberControl], FiberControl <: Fiber[F]](
-                                                                                                    runningTaskSet: AtomicCell[F, MultiMap[Path, IOOnThread[FiberControl]]]
+                                                                                                    runningTaskSet: Ref[F, MultiMap[Path, IOOnThread[FiberControl]]]
                                                                                                   ) extends TaskSet[F, T]:
   override def killTasksFor(path: Path): F[Unit] =
     runningTaskSet

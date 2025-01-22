@@ -2,9 +2,9 @@ package me.katze.gui4s.example
 
 import update.*
 
-import cats.effect.std.{AtomicCell, Queue}
+import cats.effect.std.Queue
 import cats.effect.syntax.all.*
-import cats.effect.{Concurrent, ExitCode}
+import cats.effect.{Concurrent, ExitCode, Ref}
 import cats.syntax.all.given
 import cats.{Monad, MonadError}
 
@@ -34,7 +34,7 @@ def applicationLoop[
   Widget[_, _]
 ](
     eventBus     : Queue[F, DownEvent],
-    widgetCell   : AtomicCell[F, Widget[UpEvent, DownEvent]],
+    widgetCell   : Ref[F, Widget[UpEvent, DownEvent]],
     drawLoop     : DrawLoop[F, Widget[UpEvent, DownEvent]],
     updateLoop   : UpdateLoop[F, Widget, UpEvent, DownEvent]
 ): F[ApplicationControl[F, DownEvent]] =
