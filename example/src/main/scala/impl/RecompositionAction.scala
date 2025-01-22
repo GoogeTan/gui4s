@@ -10,7 +10,7 @@ enum RecompositionAction[Task]:
   case KillTasksFor(path: Path)
 end RecompositionAction
 
-def runRecompositionActionInTaskSet[F[+_], Task](taskSet: TaskSet[F, Task], recompositionAction: RecompositionAction[Task]) : F[Unit] =
+def runRecompositionActionInTaskSet[F[_], Task](taskSet: TaskSet[F, Task], recompositionAction: RecompositionAction[Task]) : F[Unit] =
   recompositionAction match
     case RecompositionAction.Task(task) => taskSet.pushTask(task)
     case RecompositionAction.KillTasksFor(path) => taskSet.killTasksFor(path)

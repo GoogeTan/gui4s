@@ -1,10 +1,12 @@
 package me.katze.gui4s.example
 package task
 
-import update.MultiMap
+import update.{MultiMap, StandardMapWrapperMultiMap}
 
+import cats.effect.IO
 import cats.effect.kernel.Concurrent
 import cats.effect.std.{AtomicCell, QueueSink}
+import cats.syntax.all.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 
@@ -19,6 +21,15 @@ def runInQueueTaskSet[F[+_] : Concurrent, DownEvent >: TaskFinished](
     ),
     a => RunnableIO(a.io(offerTask(queue, a.owner, _ : Any)), a.owner, a.keepAliveAfterOwnerDetach, impure)
   )
+end runInQueueTaskSet
+
+def runInQueueTaskSet[F[+_] : Concurrent, DownEvent >: TaskFinished](
+                                                                      queue  : QueueSink[F, DownEvent],
+                                                                      impure : Impure[F]
+                                                                    ): F[TaskSet[F, RunnableIO[EventProducingEffectT[F], Any]]] =
+  AtomicCell[F]
+    .of(new StandardMapWrapperMultiMap())
+    .map(runInQueueTaskSet(_, queue, impure))
 end runInQueueTaskSet
 
 
