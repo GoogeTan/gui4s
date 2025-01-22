@@ -36,39 +36,42 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
 
     for
       queue <- Queue.unbounded[IO, DownEvent]
-      (drawApi, destroyDrawApi) <- SwingApi.invoke[IO, MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent, IOImpure), queue.offer(WindowResized)), IOImpure).allocated
-      taskSet <- runInQueueTaskSet(queue, IOImpure)
-      given LayoutDraw[Draw[IO, MU, Unit], LayoutPlacementMeta[MU]] = layoutDrawImpl[DrawT[IO, MU], MU]
-      widgetApi = new HighLevelApiImpl[
-        Update[RunnableIO[EventProducingEffectT[IO], Any]],
-        Draw[IO, MU, Unit],
-        Place,
-        Recomposition,
-        [T] =>> RunnableIO[EventProducingEffectT[IO], T],
-        MU,
-        TextStyle,
-        DownEvent
-      ](drawApi.graphics, containerPlacementCurried)
-      given RunPlacement[IO, Place] = MeasurableRunPlacement(windowBounds(drawApi.window))
-      given ProcessRequest[IO, ApplicationRequest] = ProcessRequestImpl(drawApi.window)
+      code <- SwingApi.invoke[IO, MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent, IOImpure), queue.offer(WindowResized)), IOImpure).use(drawApi =>
+        for
+          taskSet <- runInQueueTaskSet(queue, IOImpure)
+          given LayoutDraw[Draw[IO, MU, Unit], LayoutPlacementMeta[MU]] = layoutDrawImpl[DrawT[IO, MU], MU]
+          widgetApi = new HighLevelApiImpl[
+            Update[RunnableIO[EventProducingEffectT[IO], Any]],
+            Draw[IO, MU, Unit],
+            Place,
+            Recomposition,
+            [T] =>> RunnableIO[EventProducingEffectT[IO], T],
+            MU,
+            TextStyle,
+            DownEvent
+          ](drawApi.graphics, containerPlacementCurried)
+          given RunPlacement[IO, Place] = MeasurableRunPlacement(windowBounds(drawApi.window))
+          given ProcessRequest[IO, ApplicationRequest] = ProcessRequestImpl(drawApi.window)
 
-      rootWidget <- rootWidget[widgetApi.type](using widgetApi).runPlacement
+          rootWidget <- rootWidget[widgetApi.type](using widgetApi).runPlacement
 
-      widget <- Ref[IO].of(
-        EventConsumerAdapter(
-          pathToRoot = Path(List("ROOT")),
-          rootWidget,
-          taskSet = taskSet,
-          runRecomposition = runRecompositionInTaskSet(taskSet, _)
-        )
+          widget <- Ref[IO].of(
+            EventConsumerAdapter(
+              pathToRoot = Path(List("ROOT")),
+              rootWidget,
+              taskSet = taskSet,
+              runRecomposition = runRecompositionInTaskSet(taskSet, _)
+            )
+          )
+          graphics = drawApi.graphics[DrawT[IO, MU]]
+          code <- applicationLoop(
+            eventBus = queue,
+            widgetCell = widget,
+            drawLoop = simpleGraphicsDrawLoop(graphics, runDraw),
+            updateLoop = updateLoop
+          ).flatMap(_.join)
+        yield code
       )
-      graphics = drawApi.graphics[DrawT[IO, MU]]
-      code <- applicationLoop(
-        eventBus = queue,
-        widgetCell = widget,
-        drawLoop = simpleGraphicsDrawLoop(graphics, runDraw),
-        updateLoop = updateLoop
-      ).flatMap(_.join)
     yield code
   end run
 
