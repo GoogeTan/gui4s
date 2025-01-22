@@ -1,25 +1,21 @@
 package me.katze.gui4s.example
 package impl
 
-import api.impl.{DrawMonad, LayoutPlacementMeta}
+import api.impl.DrawMonad
 
-import cats.Applicative
 import cats.data.ReaderT
-import cats.effect.IO
-import cats.syntax.all.*
-import me.katze.gui4s.widget.library.LayoutDraw
 
 import scala.math.Numeric.Implicits.*
 
-type Draw[MU, T] = ReaderT[IO, (MU, MU), T]
-type DrawT[MU] = [T] =>> Draw[MU, T]
+type Draw[F[_], MU, T] = ReaderT[F, (MU, MU), T]
+type DrawT[F[_], MU] = [T] =>> Draw[F, MU, T]
 
-def runDraw[MU : Numeric](draw: DrawT[MU][Unit]): IO[Unit] =
+def runDraw[F[_], MU : Numeric](draw: Draw[F, MU, Unit]): F[Unit] =
   draw.run(Numeric[MU].zero, Numeric[MU].zero)
 end runDraw
 
-given [MU: Numeric] : DrawMonad[DrawT[MU], MU] with
-  override def move[T](dx: MU, dy: MU, effect: Draw[MU, T]): Draw[MU, T] =
+given [F[_], MU: Numeric] : DrawMonad[DrawT[F, MU], MU] with
+  override def move[T](dx: MU, dy: MU, effect: Draw[F, MU, T]): Draw[F, MU, T] =
     ReaderT.apply((x, y) => effect.run(x + dx, y + dy))
   end move
 end given

@@ -29,19 +29,19 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   type TextStyle = Unit
 
   type Recomposition = List[RecompositionAction[RunnableIO[EventProducingEffectT[IO], Any]]]
+  given KillTasks[Recomposition] = path => List(RecompositionAction.KillTasksFor(path))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   final override def run(args: List[String]): IO[ExitCode] =
-    given KillTasks[Recomposition] = path => List(RecompositionAction.KillTasksFor(path))
 
     for
       queue <- Queue.unbounded[IO, DownEvent]
       (drawApi, destroyDrawApi) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
       taskSet <- runInQueueTaskSet(queue, IOImpure)
-      given LayoutDraw[Draw[MU, Unit], LayoutPlacementMeta[MU]] = layoutDrawImpl[DrawT[MU], MU]
+      given LayoutDraw[Draw[IO, MU, Unit], LayoutPlacementMeta[MU]] = layoutDrawImpl[DrawT[IO, MU], MU]
       widgetApi = new HighLevelApiImpl[
         Update[RunnableIO[EventProducingEffectT[IO], Any]],
-        Draw[MU, Unit],
+        Draw[IO, MU, Unit],
         Place,
         Recomposition,
         [T] =>> RunnableIO[EventProducingEffectT[IO], T],
@@ -62,7 +62,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
           runRecomposition = runRecompositionInTaskSet(taskSet, _)
         )
       )
-      graphics = drawApi.graphics[DrawT[MU]]
+      graphics = drawApi.graphics[DrawT[IO, MU]]
       code <- applicationLoop(
         eventBus = queue,
         widgetCell = widget,
