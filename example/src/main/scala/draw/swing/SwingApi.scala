@@ -4,38 +4,40 @@ package draw.swing
 import api.impl.DrawMonadT
 import draw.{DrawApi, Window}
 
-import cats.effect.IO
+import cats.effect.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
+import me.katze.gui4s.impure.Impure
 
 import java.awt.event.*
 import javax.swing.JFrame
 
-final class SwingApi[MU : Numeric] private(
-                                            override val window: Window[IO, MU], 
-                                            component : SwingWindowComponent
-                                          ) extends DrawApi[IO, MU]:
+final class SwingApi[F[_], MU : Numeric] private(
+                                                  override val window: Window[F, MU],
+                                                  component : SwingWindowComponent,
+                                                  impure: Impure[F]
+                                                ) extends DrawApi[F, MU]:
   
 
-  override def graphics[Draw[_] : DrawMonadT[MU]](using Lift[IO, Draw, (MU, MU)]) =
-    SwingDraw(component)
+  override def graphics[Draw[_] : DrawMonadT[MU]](using Lift[F, Draw, (MU, MU)]) =
+    SwingDraw(component, impure)
   end graphics
 end SwingApi
 
 object SwingApi:
-  def invoke[MU : Numeric](window : (JFrame, SwingWindowComponent) => Window[IO, MU]) : Resource[IO, DrawApi[IO, MU]] =
+  def invoke[F[_] : Async, MU : Numeric](window: (JFrame, SwingWindowComponent) => Window[F, MU], impure: Impure[F]) : Resource[F, DrawApi[F, MU]] =
     for
-      dispatcher <- Dispatcher.sequential[IO]
-      (window, component) <- initResource(dispatcher, window)
-    yield SwingApi[MU](window, component)
+      dispatcher <- Dispatcher.sequential[F]
+      (window, component) <- initResource(dispatcher, window, impure)
+    yield SwingApi[F, MU](window, component, impure)
   end invoke
   
-  def initResource[MU : Numeric](dispatcher: Dispatcher[IO], window : (JFrame, SwingWindowComponent) => Window[IO, MU]) : Resource[IO, (Window[IO, MU], SwingWindowComponent)] =
-    Resource.eval(init(dispatcher, window))
+  def initResource[F[_], MU : Numeric](dispatcher: Dispatcher[F], window : (JFrame, SwingWindowComponent) => Window[F, MU], impure: Impure[F]) : Resource[F, (Window[F, MU], SwingWindowComponent)] =
+    Resource.eval(init(dispatcher, window, impure))
   end initResource
   
-  def init[MU : Numeric](dispatcher: Dispatcher[IO], windowFabric : (JFrame, SwingWindowComponent) => Window[IO, MU]) : IO[(Window[IO, MU], SwingWindowComponent)] =
-    IO:
+  def init[F[_], MU : Numeric](dispatcher: Dispatcher[F], windowFabric : (JFrame, SwingWindowComponent) => Window[F, MU], impure: Impure[F]) : F[(Window[F, MU], SwingWindowComponent)] =
+    impure.impure:
       val frame = new JFrame("Image Drawing Component")
       frame.setSize(600, 600)
       val comp = new SwingWindowComponent()

@@ -36,7 +36,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
 
     for
       queue <- Queue.unbounded[IO, DownEvent]
-      (drawApi, destroyDrawApi) <- SwingApi.invoke[MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent), queue.offer(WindowResized))).allocated
+      (drawApi, destroyDrawApi) <- SwingApi.invoke[IO, MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent, IOImpure), queue.offer(WindowResized)), IOImpure).allocated
       taskSet <- runInQueueTaskSet(queue, IOImpure)
       given LayoutDraw[Draw[IO, MU, Unit], LayoutPlacementMeta[MU]] = layoutDrawImpl[DrawT[IO, MU], MU]
       widgetApi = new HighLevelApiImpl[
