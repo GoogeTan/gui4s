@@ -12,8 +12,9 @@ import update.*
 import cats.*
 import cats.data.*
 import cats.effect.*
-import cats.effect.std.{Console, Queue}
+import cats.effect.std.{Console, Queue, QueueSink}
 import cats.syntax.all.*
+import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.impure.cats.effect.IOImpure
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget
@@ -27,25 +28,25 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
   type Place[+T] = Measurable[MU, T]
   type Update[+Task] = [A, B] =>> EventResult[Task, A, B]
   type TextStyle = Unit
+  type Task[T] = RunnableIO[EventProducingEffectT[IO], T]
 
   type Recomposition = List[RecompositionAction[RunnableIO[EventProducingEffectT[IO], Any]]]
   given KillTasks[Recomposition] = path => List(RecompositionAction.KillTasksFor(path))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   final override def run(args: List[String]): IO[ExitCode] =
-
     for
       queue <- Queue.unbounded[IO, DownEvent]
-      code <- SwingApi.invoke[IO, MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent, IOImpure), queue.offer(WindowResized)), IOImpure).use(drawApi =>
+      code <- createSwingDrawApi(queue, IOImpure).use(drawApi =>
         for
           taskSet <- runInQueueTaskSet(queue, IOImpure)
           given LayoutDraw[Draw[IO, MU, Unit], LayoutPlacementMeta[MU]] = layoutDrawImpl[DrawT[IO, MU], MU]
           widgetApi = new HighLevelApiImpl[
-            Update[RunnableIO[EventProducingEffectT[IO], Any]],
+            Update[Task[Any]],
             Draw[IO, MU, Unit],
             Place,
             Recomposition,
-            [T] =>> RunnableIO[EventProducingEffectT[IO], T],
+            Task,
             MU,
             TextStyle,
             DownEvent
@@ -74,6 +75,10 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
       )
     yield code
   end run
+
+  def createSwingDrawApi[F[_] : Async](queue : QueueSink[F, DownEvent], impure : Impure[F]) : Resource[F, DrawApi[F, MU]] =
+    SwingApi.invoke[F, MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent, impure), queue.offer(WindowResized)), impure)
+  end createSwingDrawApi
 
   def simpleGraphicsDrawLoop[F[+_] : Async : Console, Draw : Monoid](graphics: SimpleDrawApi[MU, Draw], runDraw: Draw => F[Unit]) : DrawLoop[F, Drawable[Draw]] =
     currentWidget =>
