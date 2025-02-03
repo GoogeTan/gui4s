@@ -3,7 +3,6 @@ package draw.swing
 
 import draw.{SimpleDrawApi, TextStyle}
 
-import cats.effect.*
 import me.katze.gui4s.impure.Impure
 
 import java.awt.Color

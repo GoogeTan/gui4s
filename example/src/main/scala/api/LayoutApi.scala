@@ -1,8 +1,6 @@
 package me.katze.gui4s.example
 package api
 
-import api.impl.*
-
 trait LayoutApi[-MU] extends HighLevelApi:
   def row[Event](
                   children : List[Widget[Event]],

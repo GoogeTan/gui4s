@@ -13,8 +13,8 @@ given [T: Typeable]: Typeable[(T, T)] = (a : Any) => a match // Если зам�
   case _ => None
 end given
 
-@SuppressWarnings(Array("org.wartremover.warts.Throw")) // Приложение должно падать точно, если тип не совпал
+@SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.Any")) // Приложение должно падать точно, если тип не совпал
 given[T](using TT : Typeable[T]): RichTypeChecker[T] = 
   (value : Any, errorText : String) => 
-    TT.unapply(value).getOrElse(throw Exception(s"Cast failed. Expected $TT found $errorText", Exception(errorText)))
+    TT.unapply(value).getOrElse[T](throw Exception(s"Cast failed. Expected $TT found $errorText", Exception(errorText)))
 end given

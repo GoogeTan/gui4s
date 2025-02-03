@@ -2,7 +2,7 @@ import sbt.Keys.libraryDependencies
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.5.1"
+ThisBuild / scalaVersion := "3.6.2"
 
 addCompilerPlugin("org.wartremover" %% "wartremover" % "3.2.5" cross CrossVersion.full)
 
@@ -22,19 +22,21 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("me.katze")
   )*/
 
-def scalaCOptions(scalaVersion : String) = {
-  if (scalaVersion.startsWith("2.12"))
-    "-Ywarn-unused-import"
-  else
-    "-Wunused:imports"
-}
+def scalaCOptions(scalaVersion : String) =
+  List(
+    if (scalaVersion.startsWith("2.12"))
+      "-Ywarn-unused-import"
+    else
+      "-Wunused:imports",
+    "-Ykind-projector"
+  )
 
-def catsLibs = List("org.typelevel" %% "cats-core" % "2.12.0")
+def catsLibs = List("org.typelevel" %% "cats-core" % "2.13.0")
 def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.5.7")
-def fs2Libs = List("co.fs2" %% "fs2-core" % "3.10.2")
+def fs2Libs = List("co.fs2" %% "fs2-core" % "3.11.0")
 def testLibs = List(
   "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-  "org.scalacheck" %% "scalacheck" % "1.17.1" % "test"
+  "org.scalacheck" %% "scalacheck" % "1.18.1" % "test"
 )
 
 lazy val layout = (project in file("layout"))
@@ -44,7 +46,7 @@ lazy val layout = (project in file("layout"))
     libraryDependencies ++= catsLibs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
 
 lazy val widget = (project in file("widget"))
@@ -54,7 +56,7 @@ lazy val widget = (project in file("widget"))
     libraryDependencies ++= catsLibs ++ testLibs ++ fs2Libs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
 
 lazy val os = Option(System.getProperty("os.name", ""))
@@ -71,7 +73,7 @@ lazy val impure = (project in file("impure"))
     idePackagePrefix := Some(s"$packagePrefix.impure"),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
 
 lazy val impureCats = (project in file("impure-cats"))
@@ -81,7 +83,7 @@ lazy val impureCats = (project in file("impure-cats"))
     libraryDependencies ++= catsLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
 
 lazy val impureCatsEffect = (project in file("impure-cats-effect"))
@@ -91,7 +93,7 @@ lazy val impureCatsEffect = (project in file("impure-cats-effect"))
     libraryDependencies ++= catsEffectLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
 
 lazy val freetype = (project in file("freetype"))
@@ -106,7 +108,7 @@ lazy val freetype = (project in file("freetype"))
     ),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
 
 lazy val glfw = (project in file("glfw"))
@@ -121,7 +123,7 @@ lazy val glfw = (project in file("glfw"))
     ),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
 
 lazy val draw = (project in file("draw"))
@@ -145,7 +147,7 @@ lazy val draw = (project in file("draw"))
     mainClass := Some("me.katze.gui4s.example.lwjgl.Example"),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(widget).dependsOn(impure)
 
 lazy val loops = (project in file("loops"))
@@ -155,7 +157,7 @@ lazy val loops = (project in file("loops"))
     libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
 
 lazy val example = (project in file("example"))
@@ -165,7 +167,7 @@ lazy val example = (project in file("example"))
     libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ List("org.scala-lang.modules" %% "scala-swing" % "3.0.0"),
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
-    scalacOptions += scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
   .dependsOn(widget, draw, layout, loops, impure, impureCatsEffect)
 

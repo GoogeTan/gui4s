@@ -80,7 +80,7 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     SwingApi.invoke[F, MU]((frame, windowComponent) => NotifyDrawLoopWindow(SwingWindow(frame, windowComponent, impure), queue.offer(WindowResized)), impure)
   end createSwingDrawApi
 
-  def simpleGraphicsDrawLoop[F[+_] : Async : Console, Draw : Monoid](graphics: SimpleDrawApi[MU, Draw], runDraw: Draw => F[Unit]) : DrawLoop[F, Drawable[Draw]] =
+  def simpleGraphicsDrawLoop[F[+_] : {Async, Console}, Draw : Monoid](graphics: SimpleDrawApi[MU, Draw], runDraw: Draw => F[Unit]) : DrawLoop[F, Drawable[Draw]] =
     currentWidget =>
       drawLoop(drawLoopExceptionHandler)(
         currentWidget.map(widget => graphics.drawFrame(widget.draw)).flatMap(runDraw)
@@ -98,6 +98,8 @@ trait Gui4sApp[MU : Fractional] extends IOApp:
     end sizeText
   end given
 
+  // TODO Почему-то ругается на эни в интерполяции строки...
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   private def drawLoopExceptionHandler[F[_] : Functor](exception: Throwable)(using c : Console[F]): F[Option[ExitCode]] =
     c.println(s"Error in draw loop: $exception").map(_ => Some(ExitCode.Error))
   end drawLoopExceptionHandler

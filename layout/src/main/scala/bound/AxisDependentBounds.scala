@@ -13,7 +13,9 @@ final case class AxisDependentBounds[+T](mainAxis : AxisBounds[T], additionalAxi
   
   def additionalAxisMaxValue : Option[T] = additionalAxis.max
   
-  override def toString: String = s"AxisDependentBounds(axis=${axis}, mainAxis(min=${mainAxis.min}, max=${mainAxis.max}), additionalAxis(min=${additionalAxis.min}, max=${additionalAxis.max}))"
+  // TODO Почему-то ругается на эни в интерполяции строки...
+  @SuppressWarnings(Array("org.wartremover.warts.Any")) 
+  override def toString: String = s"AxisDependentBounds(axis=$axis, mainAxis(min=${mainAxis.min}, max=${mainAxis.max}), additionalAxis(min=${additionalAxis.min}, max=${additionalAxis.max}))"
 end AxisDependentBounds
 
 object AxisDependentBounds:

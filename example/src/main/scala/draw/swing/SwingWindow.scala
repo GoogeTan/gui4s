@@ -3,7 +3,6 @@ package draw.swing
 
 import draw.Window
 
-import cats.effect.IO
 import me.katze.gui4s.impure.Impure
 
 import java.awt.Frame
