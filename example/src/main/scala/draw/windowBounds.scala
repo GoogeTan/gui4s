@@ -6,7 +6,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.layout.*
 import me.katze.gui4s.layout.bound.{AxisBounds, Bounds}
 
-def windowBounds[F[_] : Functor, MU : Numeric](window: Window[F, MU]) : F[Bounds[MU]] =
+def windowBounds[F[_] : Functor, MeasurementUnit : Numeric](window: Window[F, MeasurementUnit]) : F[Bounds[MeasurementUnit]] =
   window.size
     .map((width, height) => Bounds(
       AxisBounds(None, Some(width)),

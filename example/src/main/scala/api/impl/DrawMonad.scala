@@ -1,8 +1,8 @@
 package me.katze.gui4s.example
 package api.impl
 
-type DrawMonadT[MU] = [F[_]] =>> DrawMonad[F, MU]
+type DrawMonadT[MeasurementUnit] = [F[_]] =>> DrawMonad[F, MeasurementUnit]
 
-trait DrawMonad[F[_], MU]:
-  def move[T](dx : MU, dy : MU, effect : F[T]) : F[T]
+trait DrawMonad[F[_], MeasurementUnit]:
+  def move[T](dx : MeasurementUnit, dy : MeasurementUnit, effect : F[T]) : F[T]
 end DrawMonad

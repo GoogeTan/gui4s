@@ -48,7 +48,7 @@ final class LayoutWidget[
   end aliveWidgets
 
   override def recomposed(currentPath : Path, states : Map[String, StateTree[Recomposition]]): Recomposition =
-    children.foldMap((child, meta) => child.recomposed(currentPath, states))
+    children.foldMap((child, _) => child.recomposed(currentPath, states))
   end recomposed
 end LayoutWidget
 

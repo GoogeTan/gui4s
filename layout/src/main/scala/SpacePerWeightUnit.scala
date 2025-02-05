@@ -23,16 +23,16 @@ final case class SpacePerWeightUnit[T : Fractional](allTheWeight: Int, freeSpace
   end spaceForWeight
 end SpacePerWeightUnit
 
-def spacePerWeightForContainerElements[MU : Fractional, T](
-                                            elements : List[MaybeWeighted[Measurable[MU, T]]],
-                                            constraints: AxisDependentBounds[MU]
-                                          ) : SpacePerWeightUnit[MU] =
+def spacePerWeightForContainerElements[MeasurementUnit : Fractional, T](
+                                                                         elements : List[MaybeWeighted[Measurable[MeasurementUnit, T]]],
+                                                                         constraints: AxisDependentBounds[MeasurementUnit]
+                                          ) : SpacePerWeightUnit[MeasurementUnit] =
   val allTheWeight = elements.mapFilter(_.weight).sum
   val allTheSpace = constraints.mainAxis.maxValueUnsafe
   val nonWeightedElementsSpace = fixedSpace(elements, constraints.axis, constraints.bounds)
   if nonWeightedElementsSpace > allTheSpace then
     // Если фиксированные элементы заняли больше места, чем было свободного, то на взвешенные элементы места не остаётся.
-    SpacePerWeightUnit(allTheWeight, Fractional[MU].zero)
+    SpacePerWeightUnit(allTheWeight, Fractional[MeasurementUnit].zero)
   else
     val freeSpace = allTheSpace - nonWeightedElementsSpace
     SpacePerWeightUnit(allTheWeight, freeSpace)
@@ -42,10 +42,10 @@ end spacePerWeightForContainerElements
 /**
  * Считает суммарный размер всех элементов без веса.
  */
-def fixedSpace[MU : Numeric, T](children : List[MaybeWeighted[Measurable[MU,T]]], mainAxis : Axis, bounds : Bounds[MU]) : MU =
+def fixedSpace[MeasurementUnit: Numeric, T](children : List[MaybeWeighted[Measurable[MeasurementUnit,T]]], mainAxis : Axis, bounds : Bounds[MeasurementUnit]) : MeasurementUnit =
   children.map {
     case MaybeWeighted(None, value) =>
       value.placeInside(bounds).mainAxisValue(mainAxis)
-    case _ => Numeric[MU].zero
+    case _ => Numeric[MeasurementUnit].zero
   }.sum
 end fixedSpace

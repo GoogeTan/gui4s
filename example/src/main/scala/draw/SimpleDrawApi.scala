@@ -4,10 +4,10 @@ package draw
 import cats.kernel.Monoid
 import cats.syntax.monoid.*
 
-trait SimpleDrawApi[MU, F]:
-  def text(x : MU, y : MU, text : String, style: TextStyle) : F
+trait SimpleDrawApi[MeasurementUnit, F]:
+  def text(x : MeasurementUnit, y : MeasurementUnit, text : String, style: TextStyle) : F
   
-  def rectangle(x : MU, y : MU, width : MU, height : MU, color : Int) : F
+  def rectangle(x : MeasurementUnit, y : MeasurementUnit, width : MeasurementUnit, height : MeasurementUnit, color : Int) : F
   
   def beginDraw : F
   def endDraw : F

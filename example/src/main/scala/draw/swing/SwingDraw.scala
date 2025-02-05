@@ -12,13 +12,13 @@ import scala.swing.Font
 
 final class SwingDraw[
   F[_],
-  Draw[_], 
-  MU : Numeric
+  Draw[_],
+  MeasurementUnit : Numeric
 ](
   canvas: SwingWindowComponent,
   impure: Impure[F]
-)(using lift : Lift[F, Draw, (MU, MU)]) extends SimpleDrawApi[MU, Draw[Unit]]:
-  override def rectangle(x: MU, y: MU, width: MU, height: MU, color : Int): Draw[Unit] =
+)(using lift : Lift[F, Draw, (MeasurementUnit, MeasurementUnit)]) extends SimpleDrawApi[MeasurementUnit, Draw[Unit]]:
+  override def rectangle(x: MeasurementUnit, y: MeasurementUnit, width: MeasurementUnit, height: MeasurementUnit, color : Int): Draw[Unit] =
     lift.lift(zero =>
       impure.impure:
         canvas.graphics.setColor(Color(color))
@@ -27,7 +27,7 @@ final class SwingDraw[
   end rectangle
   
   
-  override def text(x: MU, y: MU, text: String, style: TextStyle): Draw[Unit] =
+  override def text(x: MeasurementUnit, y: MeasurementUnit, text: String, style: TextStyle): Draw[Unit] =
     lift.lift((ox, oy) =>
       impure.impure:
         val font = Font("Comis Sans MS", Font.Plain, style.size)

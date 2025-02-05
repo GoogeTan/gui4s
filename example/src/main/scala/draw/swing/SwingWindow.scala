@@ -9,13 +9,13 @@ import java.awt.Frame
 import javax.swing.JFrame
 import scala.math.Numeric.Implicits.*
 
-final class SwingWindow[F[_], MU : Numeric](frame: JFrame, component: SwingWindowComponent, impure: Impure[F]) extends Window[F, MU]:
-  override def size: F[(MU, MU)] =
+final class SwingWindow[F[_], MeasurementUnit : Numeric](frame: JFrame, component: SwingWindowComponent, impure: Impure[F]) extends Window[F, MeasurementUnit]:
+  override def size: F[(MeasurementUnit, MeasurementUnit)] =
     impure.impure:
-      (Numeric[MU].fromInt(frame.getWidth), Numeric[MU].fromInt(frame.getHeight))
+      (Numeric[MeasurementUnit].fromInt(frame.getWidth), Numeric[MeasurementUnit].fromInt(frame.getHeight))
   end size
 
-  override def resize(width: MU, height: MU): F[Unit] =
+  override def resize(width: MeasurementUnit, height: MeasurementUnit): F[Unit] =
     impure.impure:
       frame.setExtendedState(Frame.NORMAL)
       frame.setUndecorated(false)

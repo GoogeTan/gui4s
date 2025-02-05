@@ -28,7 +28,7 @@ def scalaCOptions(scalaVersion : String) =
       "-Ywarn-unused-import"
     else
       "-Wunused:imports",
-    "-Ykind-projector"
+    "-Xkind-projector"
   )
 
 def catsLibs = List("org.typelevel" %% "cats-core" % "2.13.0")

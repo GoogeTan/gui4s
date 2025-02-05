@@ -11,33 +11,33 @@ import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.*
 import me.katze.gui4s.widget.{Widget, library}
 
-type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, MU] =
+type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, MeasurementUnit] =
   [Event]
-    => (Axis, List[Place[Widget[Update, Draw, Place, Recompose, Event, DownEvent]]], MainAxisPlacementStrategy[MU], AdditionalAxisPlacementStrategy)
-    => Place[List[(Widget[Update, Draw, Place, Recompose, Event, DownEvent], LayoutPlacementMeta[MU])]]
+    => (Axis, List[Place[Widget[Update, Draw, Place, Recompose, Event, DownEvent]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy)
+    => Place[List[(Widget[Update, Draw, Place, Recompose, Event, DownEvent], LayoutPlacementMeta[MeasurementUnit])]]
 
 final class HighLevelApiImpl[
-  Update[+_, +_]: BiMonad : CatchEvents : RaiseEvent,
+  Update[+_, +_]: {BiMonad, CatchEvents, RaiseEvent},
   Draw : Monoid,
-  Place[+_] : LabelPlacementT[LayoutPlacementMeta[MU], TextStyle] : FlatMap,
-  RecompositionIn : Monoid : KillTasks,
+  Place[+_] : {LabelPlacementT[LayoutPlacementMeta[MeasurementUnit], TextStyle], FlatMap},
+  RecompositionIn : {Monoid, KillTasks},
   WidgetTaskIn[+_],
-  MU,
+  MeasurementUnit,
   -TextStyle,
   SystemEvent >: TaskFinished
 ](
     using
       LiftEventReaction[Update, WidgetTaskIn[Any]],
-      LayoutDraw[Draw, LayoutPlacementMeta[MU]]
+      LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
 )(
-    val drawApi : SimpleDrawApi[MU, Draw],
-    val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MU]
-) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MU]:
+   val drawApi : SimpleDrawApi[MeasurementUnit, Draw],
+   val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MeasurementUnit]
+) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MeasurementUnit]:
   override type WidgetTask[+T] = WidgetTaskIn[T]
   override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, RecompositionIn, Event, SystemEvent]]
   override type Recomposition = RecompositionIn
   
-  given textDraw: LabelDraw[Draw, LayoutPlacementMeta[MU]] = (text, meta) => drawApi.text(meta.x, meta.y, text, TextStyle(18, 0, 400))
+  given textDraw: LabelDraw[Draw, LayoutPlacementMeta[MeasurementUnit]] = (text, meta) => drawApi.text(meta.x, meta.y, text, TextStyle(18, 0, 400))
   
   override def label(text: String, style : TextStyle): Widget[Nothing] =
     library.labelWidget(library.drawOnlyWidget, text, style)
@@ -65,7 +65,7 @@ final class HighLevelApiImpl[
 
   override def column[Event](
                               children          : List[Widget[Event]],
-                              verticalStrategy  : MainAxisPlacementStrategy[MU],
+                              verticalStrategy  : MainAxisPlacementStrategy[MeasurementUnit],
                               horizontalStrategy: AdditionalAxisPlacementStrategy
                             ): Widget[Event] =
     linearLayout(
@@ -77,9 +77,9 @@ final class HighLevelApiImpl[
   end column
 
   override def row[Event](
-                            children          : List[Widget[Event]],
-                            horizontalStrategy: MainAxisPlacementStrategy[MU],
-                            verticalStrategy  : AdditionalAxisPlacementStrategy
+                           children          : List[Widget[Event]],
+                           horizontalStrategy: MainAxisPlacementStrategy[MeasurementUnit],
+                           verticalStrategy  : AdditionalAxisPlacementStrategy
                           ): Widget[Event] =
     linearLayout(
       children = children,
@@ -90,12 +90,12 @@ final class HighLevelApiImpl[
   end row
 
   private def linearLayout[Event](
-                                    children              : List[Widget[Event]],
-                                    axis                  : Axis,
-                                    mainAxisStrategy      : MainAxisPlacementStrategy[MU],
-                                    additionalAxisStrategy: AdditionalAxisPlacementStrategy,
+                                   children              : List[Widget[Event]],
+                                   axis                  : Axis,
+                                   mainAxisStrategy      : MainAxisPlacementStrategy[MeasurementUnit],
+                                   additionalAxisStrategy: AdditionalAxisPlacementStrategy,
                                   )(using Widget[Event] =:= Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]): Widget[Event] =
-    layoutWidget[Update, Draw, Place, Recomposition, LayoutPlacementMeta[MU], Event, SystemEvent](children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
+    layoutWidget[Update, Draw, Place, Recomposition, LayoutPlacementMeta[MeasurementUnit], Event, SystemEvent](children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
   end linearLayout
   
   

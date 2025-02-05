@@ -6,26 +6,26 @@ import cats.FlatMap
 
 import scala.annotation.tailrec
 
-type MeasurableT[MU] = [T] =>> Measurable[MU, T]
+type MeasurableT[MeasurementUnit] = [T] =>> Measurable[MeasurementUnit, T]
 
-trait Measurable[MU, +T]:
-  def placeInside(constrains: Bounds[MU]): Sized[MU, T]
+trait Measurable[MeasurementUnit, +T]:
+  def placeInside(constrains: Bounds[MeasurementUnit]): Sized[MeasurementUnit, T]
 end Measurable
 
-given[MU]: FlatMap[MeasurableT[MU]] with
-  override def flatMap[A, B](fa: Measurable[MU, A])
-                            (f: A => Measurable[MU, B]): Measurable[MU, B] =
-    (constrains: Bounds[MU]) => f(fa.placeInside(constrains).value).placeInside(constrains)
+given[MeasurementUnit]: FlatMap[MeasurableT[MeasurementUnit]] with
+  override def flatMap[A, B](fa: Measurable[MeasurementUnit, A])
+                            (f: A => Measurable[MeasurementUnit, B]): Measurable[MeasurementUnit, B] =
+    (constrains: Bounds[MeasurementUnit]) => f(fa.placeInside(constrains).value).placeInside(constrains)
 
-  override def map[A, B](fa: Measurable[MU, A])(f: A => B): Measurable[MU, B] = c =>
+  override def map[A, B](fa: Measurable[MeasurementUnit, A])(f: A => B): Measurable[MeasurementUnit, B] = c =>
     val placed = fa.placeInside(c)
     Sized(f(placed.value), placed.width, placed.height)
   end map
 
-  override def tailRecM[A, B](a: A)(f: A => Measurable[MU, Either[A, B]]): Measurable[MU, B] =
+  override def tailRecM[A, B](a: A)(f: A => Measurable[MeasurementUnit, Either[A, B]]): Measurable[MeasurementUnit, B] =
     c =>
       @tailrec
-      def helper(a : A)(f: A => Measurable[MU, Either[A, B]]): Sized[MU, B] =
+      def helper(a : A)(f: A => Measurable[MeasurementUnit, Either[A, B]]): Sized[MeasurementUnit, B] =
         f(a).placeInside(c) match
           case Sized(Left(a), _, _) => helper(a)(f)
           case Sized(Right(value), w, h) => Sized(value, w, h)

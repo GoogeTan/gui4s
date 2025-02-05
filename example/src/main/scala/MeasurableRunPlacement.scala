@@ -7,8 +7,8 @@ import me.katze.gui4s.layout.{Measurable, MeasurableT}
 import me.katze.gui4s.layout.bound.Bounds
 import cats.syntax.all.*
 
-final class MeasurableRunPlacement[F[_] : Applicative, MU : Numeric](bounds: F[Bounds[MU]]) extends RunPlacement[F, MeasurableT[MU]]:
-  override def run[T](toPlace: Measurable[MU, T]): F[T] =
+final class MeasurableRunPlacement[F[_] : Applicative, MeasurementUnit : Numeric](bounds: F[Bounds[MeasurementUnit]]) extends RunPlacement[F, MeasurableT[MeasurementUnit]]:
+  override def run[T](toPlace: Measurable[MeasurementUnit, T]): F[T] =
     bounds
       .map(bounds => toPlace.placeInside(bounds))
       .map(_.value)

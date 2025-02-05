@@ -3,8 +3,8 @@ package draw
 
 import api.impl.DrawMonadT
 
-trait DrawApi[F[_], MU : Numeric]:
-  val window : Window[F, MU]
-  def graphics[Draw[_] : DrawMonadT[MU]](using Lift[F, Draw, (MU, MU)]) : SimpleDrawApi[MU, Draw[Unit]]
+trait DrawApi[F[_], MeasurementUnit : Numeric]:
+  val window : Window[F, MeasurementUnit]
+  def graphics[Draw[_] : DrawMonadT[MeasurementUnit]](using Lift[F, Draw, (MeasurementUnit, MeasurementUnit)]) : SimpleDrawApi[MeasurementUnit, Draw[Unit]]
 end DrawApi
 
