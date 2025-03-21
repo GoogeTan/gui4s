@@ -1,8 +1,13 @@
+import jdk.internal.util.OperatingSystem
 import sbt.Keys.libraryDependencies
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.6.2"
+
+val libPath = sys.env.get("LD_LIBRARY_PATH").get
+
+javaOptions += s"-Djava.library.path=$libPath"
 
 addCompilerPlugin("org.wartremover" %% "wartremover" % "3.2.5" cross CrossVersion.full)
 
@@ -59,13 +64,7 @@ lazy val widget = (project in file("widget"))
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
 
-lazy val os = Option(System.getProperty("os.name", ""))
-  .map(_.substring(0, 3).toLowerCase) match {
-  case Some("win") => "windows"
-  case Some("mac") => "macos"
-  case _           => "linux"
-}
-lazy val lwjglVersion = "3.3.5"
+lazy val lwjglVersion = "3.3.6"
 
 lazy val impure = (project in file("impure"))
   .settings(
@@ -95,6 +94,13 @@ lazy val impureCatsEffect = (project in file("impure-cats-effect"))
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
+
+lazy val os = Option(System.getProperty("os.name", ""))
+  .map(_.substring(0, 3).toLowerCase) match {
+  case Some("win") => "windows"
+  case Some("mac") => "macos"
+  case _           => "linux"
+}
 
 lazy val freetype = (project in file("freetype"))
   .settings(
@@ -126,25 +132,32 @@ lazy val glfw = (project in file("glfw"))
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
 
+def when[T](cond : Boolean)(value : => T) : Option[T] =
+  if (cond) Some(value) else None
+
 lazy val draw = (project in file("draw"))
   .settings(
     name := "draw",
-    idePackagePrefix := Some(s"$packagePrefix.draw"),
+    //idePackagePrefix := Some(s"$packagePrefix.draw"),
     libraryDependencies ++= catsEffectLibs ++ testLibs ++ Seq(
       "org.lwjgl" % "lwjgl"        % lwjglVersion,
       "org.lwjgl" % "lwjgl-opengl" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-vulkan" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-shaderc" % lwjglVersion,
       "org.lwjgl" % "lwjgl-glfw"   % lwjglVersion,
       "org.lwjgl" % "lwjgl-stb"    % lwjglVersion,
       "org.lwjgl" % "lwjgl-assimp" % lwjglVersion,
       "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion,
       "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-opengl" % lwjglVersion classifier s"natives-$os",
+      "org.lwjgl" % "lwjgl-shaderc" % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-glfw"   % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-stb"    % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-assimp" % lwjglVersion classifier s"natives-$os",
-      "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion classifier s"natives-$os"
-    ),
-    mainClass := Some("me.katze.gui4s.example.lwjgl.Example"),
+      "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion classifier s"natives-$os",
+      "org.joml" % "joml" % "1.9.25"
+    ) ++ when(os == "macos")("org.lwjgl" % "lwjgl-vulkan" % lwjglVersion classifier s"natives-$os"),
+    mainClass := Some(" me.katze.gui4s.draw.lwjgl.Example"),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
