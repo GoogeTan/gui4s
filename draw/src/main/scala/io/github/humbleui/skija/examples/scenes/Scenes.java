@@ -1,8 +1,11 @@
 package io.github.humbleui.skija.examples.scenes;
 
+import io.github.humbleui.skija.Canvas;
+
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import io.github.humbleui.skija.*;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.TreeMap;
 
 public class Scenes {
     public static TreeMap<String, Scene> scenes;

@@ -1,14 +1,16 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
 import io.github.humbleui.skija.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FontVariationsScene extends Scene {
     public final Typeface _interV;
     public final Map<FontVariation, Font> fontCache = new HashMap<>();
 
     public FontVariationsScene() {
-        _interV = Typeface.makeFromFile(file("assets/fonts/Inter-V.ttf"));
+        _interV = Typeface.makeFromFile(file("fonts/Inter-V.ttf"));
     }
 
     public void drawLine(Canvas canvas, Font font, int color) {

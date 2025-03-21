@@ -1,8 +1,10 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
-import java.util.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.Path;
+import io.github.humbleui.skija.ShadowUtils;
+import io.github.humbleui.types.Point3;
 
 public class ShadowUtilsScene extends Scene {
     @Override

@@ -1,10 +1,16 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
-import java.util.stream.*;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.shaper.Shaper;
+import io.github.humbleui.skija.shaper.ShapingOptions;
+import io.github.humbleui.skija.shaper.TextBlobBuilderRunHandler;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RunHandlerScene extends Scene {
     public final Font lato36;
@@ -14,7 +20,7 @@ public class RunHandlerScene extends Scene {
     public final Paint textFill = new Paint().setColor(0xFF000000);
 
     public RunHandlerScene() {
-        lato36 = new Font(Typeface.makeFromFile(file("assets/fonts/Lato-Regular.ttf")), 36);
+        lato36 = new Font(Typeface.makeFromFile(file("fonts/Lato-Regular.ttf")), 36);
         inter9 = new Font(inter, 9);
 
         _variants = new String[] {

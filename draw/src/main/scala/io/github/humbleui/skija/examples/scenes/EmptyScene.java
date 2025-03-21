@@ -1,6 +1,6 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import io.github.humbleui.skija.*;
+import io.github.humbleui.skija.Canvas;
 
 public class EmptyScene extends Scene {
     @Override

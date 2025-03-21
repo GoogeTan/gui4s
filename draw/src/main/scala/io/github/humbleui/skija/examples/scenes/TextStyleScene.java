@@ -1,9 +1,10 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.Arrays;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.impl.*;
+import io.github.humbleui.skija.impl.OperatingSystem;
 import io.github.humbleui.skija.paragraph.*;
+
+import java.util.Arrays;
 
 public class TextStyleScene extends Scene {
     public FontCollection fc = new FontCollection();
@@ -11,7 +12,7 @@ public class TextStyleScene extends Scene {
 
     public TextStyleScene() {
         fc.setDefaultFontManager(FontMgr.getDefault());
-        slabo = Typeface.makeFromFile(file("assets/fonts/Slabo13px-Regular.ttf"));
+        slabo = Typeface.makeFromFile(file("fonts/Slabo13px-Regular.ttf"));
     }
 
     public void drawLine(Canvas canvas, String text, TextStyle ts) {

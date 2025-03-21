@@ -1,11 +1,12 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
-import java.util.stream.*;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
 import io.github.humbleui.skija.paragraph.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class TextLineScene extends Scene {
     private Paint fill = new Paint().setColor(0xFFCC3333);

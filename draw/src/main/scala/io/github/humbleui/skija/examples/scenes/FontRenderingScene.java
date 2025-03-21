@@ -1,7 +1,7 @@
 package io.github.humbleui.skija.examples.scenes;
 
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
+import io.github.humbleui.skija.shaper.Shaper;
 
 public class FontRenderingScene extends Scene {
     public Typeface _inter;
@@ -11,8 +11,8 @@ public class FontRenderingScene extends Scene {
     public float    _dpi = 0;
 
     public FontRenderingScene() {
-        _inter       = Typeface.makeFromFile(file("assets/fonts/Inter-Regular.otf"));
-        _interV      = Typeface.makeFromFile(file("assets/fonts/Inter-V.ttf"));
+        _inter       = Typeface.makeFromFile(file("fonts/Inter-Regular.otf"));
+        _interV      = Typeface.makeFromFile(file("fonts/Inter-V.ttf"));
         _interHinted = inter;
         _paint       = new Paint().setColor(0xFF000000);
         _variants    = new String[] { "Identity", "Scaled" };

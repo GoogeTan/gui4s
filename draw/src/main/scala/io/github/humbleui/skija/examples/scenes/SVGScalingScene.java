@@ -1,12 +1,12 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
-import java.util.stream.*;
-import io.github.humbleui.skija.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Data;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.PaintMode;
 import io.github.humbleui.skija.svg.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
 
 public class SVGScalingScene extends Scene {
     public final Paint border = new Paint().setColor(0xFF3333CC).setMode(PaintMode.STROKE).setStrokeWidth(1);

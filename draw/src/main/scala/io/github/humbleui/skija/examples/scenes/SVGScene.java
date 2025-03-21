@@ -1,12 +1,19 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
-import java.util.stream.*;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.svg.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.svg.SVGDOM;
+import io.github.humbleui.skija.svg.SVGLengthContext;
+import io.github.humbleui.skija.svg.SVGLengthType;
+import io.github.humbleui.skija.svg.SVGSVG;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
 
 public class SVGScene extends Scene {
     public Thread _thread = null;

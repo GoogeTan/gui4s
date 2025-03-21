@@ -1,7 +1,10 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.PaintMode;
+import io.github.humbleui.skija.Shader;
+import io.github.humbleui.types.RRect;
 
 public class SquaresScene extends Scene {
     static long start = System.currentTimeMillis();

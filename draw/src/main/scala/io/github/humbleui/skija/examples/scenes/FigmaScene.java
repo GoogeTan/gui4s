@@ -1,10 +1,14 @@
 package io.github.humbleui.skija.examples.scenes;
 
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.IRect;
+import io.github.humbleui.types.RRect;
+import io.github.humbleui.types.Rect;
+
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FigmaScene extends Scene {
     private Font uiFont;
@@ -24,7 +28,7 @@ public class FigmaScene extends Scene {
         uiFontSmall.setSubpixel(true);
         metrics.put(uiFontSmall, uiFontSmall.getMetrics());
 
-        try (var medium = Typeface.makeFromFile(file("assets/fonts/InterHinted-Bold.ttf"));) {
+        try (var medium = Typeface.makeFromFile(file("fonts/InterHinted-Bold.ttf"));) {
             uiFontBold = new Font(medium, 11);
             uiFontBold.setSubpixel(true);
             metrics.put(uiFontBold, uiFontBold.getMetrics());

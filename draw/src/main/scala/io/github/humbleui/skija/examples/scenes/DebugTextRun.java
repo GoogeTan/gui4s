@@ -1,9 +1,9 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import io.github.humbleui.types.*;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.Font;
+import io.github.humbleui.skija.shaper.RunInfo;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
 
 public class DebugTextRun {
     public RunInfo _info;

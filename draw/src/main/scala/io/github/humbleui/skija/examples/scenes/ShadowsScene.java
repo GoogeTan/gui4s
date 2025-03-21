@@ -1,9 +1,12 @@
 package io.github.humbleui.skija.examples.scenes;
 
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.Point3;
+import io.github.humbleui.types.RRect;
+import io.github.humbleui.types.Rect;
+
 import java.io.IOException;
 import java.nio.file.Files;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
 
 public class ShadowsScene extends Scene {
     protected final Image figma;

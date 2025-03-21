@@ -1,10 +1,11 @@
 package io.github.humbleui.skija.examples.scenes;
 
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.Rect;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
 
 public class ColorFiltersScene extends Scene {
     Image image;

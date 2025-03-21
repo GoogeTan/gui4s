@@ -1,14 +1,18 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.io.*;
-import java.nio.file.*;
-import java.nio.file.Path;
-
-import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.resources.*;
-import io.github.humbleui.skija.sksg.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.PaintMode;
+import io.github.humbleui.skija.resources.CachingResourceProvider;
+import io.github.humbleui.skija.resources.DataURIResourceProviderProxy;
+import io.github.humbleui.skija.resources.FileResourceProvider;
 import io.github.humbleui.skija.skottie.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.sksg.InvalidationController;
+import io.github.humbleui.types.Rect;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class SkottieScene extends Scene {
     private Animation animation;
@@ -24,7 +28,7 @@ public class SkottieScene extends Scene {
     };
 
     public SkottieScene() throws IOException {
-        _variants = Files.list(Path.of(file("assets/animations"))).map(Path::getFileName).map(Path::toString).sorted().toArray(String[]::new);
+        _variants = Files.list(Path.of(file("animations"))).map(Path::getFileName).map(Path::toString).sorted().toArray(String[]::new);
         _variantIdx = 7;
     }
 
@@ -37,7 +41,7 @@ public class SkottieScene extends Scene {
             error = null;
 
             try {
-                var dir = file("assets/animations");
+                var dir = file("animations");
                 var resourceProvider = CachingResourceProvider.make(DataURIResourceProviderProxy.make(FileResourceProvider.make(dir, false), false));
                 animation = new AnimationBuilder(AnimationBuilderFlag.DEFER_IMAGE_LOADING, AnimationBuilderFlag.PREFER_EMBEDDED_FONTS)
                         .setLogger(logger)
@@ -49,7 +53,7 @@ public class SkottieScene extends Scene {
         }
 
         if (animation == null) {
-            drawStringCentered(canvas, "assets/animations/" + _variants[_variantIdx] + ": " + error, width / 2, height / 2, inter13, blackFill);
+            drawStringCentered(canvas, "animations/" + _variants[_variantIdx] + ": " + error, width / 2, height / 2, inter13, blackFill);
             return;
         }
 

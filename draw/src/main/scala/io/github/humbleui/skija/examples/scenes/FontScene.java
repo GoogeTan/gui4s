@@ -1,9 +1,11 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.shaper.Shaper;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
+
+import java.util.Objects;
 
 public class FontScene extends Scene {
     public Typeface _inter;
@@ -27,12 +29,12 @@ public class FontScene extends Scene {
     public float    _dpi = 0;
 
     public FontScene() {
-        _inter          = Typeface.makeFromFile(file("assets/fonts/Inter-Regular.otf"));
-        _interV         = Typeface.makeFromFile(file("assets/fonts/Inter-V.ttf"));
+        _inter          = Typeface.makeFromFile(file("fonts/Inter-Regular.otf"));
+        _interV         = Typeface.makeFromFile(file("fonts/Inter-V.ttf"));
         _interHinted    = inter;
-        _jbMono         = Typeface.makeFromFile(file("assets/fonts/JetBrainsMono-Regular.ttf"));
-        _testKern       = Typeface.makeFromFile(file("assets/fonts/TestKERNOne.otf"));
-        _testSubpixel   = Typeface.makeFromFile(file("assets/fonts/TestSubpixel-Regular.otf"));
+        _jbMono         = Typeface.makeFromFile(file("fonts/JetBrainsMono-Regular.ttf"));
+        _testKern       = Typeface.makeFromFile(file("fonts/TestKERNOne.otf"));
+        _testSubpixel   = Typeface.makeFromFile(file("fonts/TestSubpixel-Regular.otf"));
         _paint          = new Paint().setColor(0xFF000000);
         _stroke         = new Paint().setColor(0xFF2a9d8f).setMode(PaintMode.STROKE).setStrokeWidth(2).setPathEffect(PathEffect.makeDash(new float[] {6, 2}, 0));
         _boundaryPaint  = new Paint().setColor(0xFFe76f51).setMode(PaintMode.STROKE);

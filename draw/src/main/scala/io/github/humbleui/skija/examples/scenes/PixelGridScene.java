@@ -1,7 +1,11 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.PaintMode;
+import io.github.humbleui.skija.PaintStrokeCap;
+import io.github.humbleui.types.RRect;
+import io.github.humbleui.types.Rect;
 
 public class PixelGridScene extends Scene {
     @Override

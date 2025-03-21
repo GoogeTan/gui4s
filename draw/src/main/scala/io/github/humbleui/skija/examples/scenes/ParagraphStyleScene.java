@@ -1,8 +1,9 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.Arrays;
 import io.github.humbleui.skija.*;
 import io.github.humbleui.skija.paragraph.*;
+
+import java.util.Arrays;
 
 public class ParagraphStyleScene extends Scene {
     public FontCollection fc = new FontCollection();
@@ -10,7 +11,7 @@ public class ParagraphStyleScene extends Scene {
 
     public ParagraphStyleScene() {
         fc.setDefaultFontManager(FontMgr.getDefault());
-        slabo = Typeface.makeFromFile(file("assets/fonts/Slabo13px-Regular.ttf"));
+        slabo = Typeface.makeFromFile(file("fonts/Slabo13px-Regular.ttf"));
     }
 
     public void drawLine(Canvas canvas, String text, ParagraphStyle ps, float width) {

@@ -1,7 +1,9 @@
 package io.github.humbleui.skija.examples.scenes;
 
 import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.RRect;
+import io.github.humbleui.types.Rect;
 
 public class PathsScene extends Scene {
     @Override

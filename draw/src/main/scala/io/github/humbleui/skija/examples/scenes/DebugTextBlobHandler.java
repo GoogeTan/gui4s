@@ -1,11 +1,15 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
-import java.util.stream.*;
-import io.github.humbleui.types.*;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.Font;
+import io.github.humbleui.skija.TextBlob;
+import io.github.humbleui.skija.TextBlobBuilder;
+import io.github.humbleui.skija.shaper.RunHandler;
+import io.github.humbleui.skija.shaper.RunInfo;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DebugTextBlobHandler implements RunHandler, AutoCloseable {
     public final TextBlobBuilder _builder;

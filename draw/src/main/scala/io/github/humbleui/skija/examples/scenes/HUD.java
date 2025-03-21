@@ -1,9 +1,15 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.impl.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.FontMetrics;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.impl.Stats;
+import io.github.humbleui.types.RRect;
+import io.github.humbleui.types.Rect;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class HUD {
     public long t0 = System.nanoTime();

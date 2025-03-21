@@ -1,7 +1,11 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.stream.*;
-import io.github.humbleui.skija.*;
+import io.github.humbleui.skija.BreakIterator;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Font;
+import io.github.humbleui.skija.TextLine;
+
+import java.util.stream.Collectors;
 
 public class BreakIteratorScene extends Scene {
     Font mono11 = new Font(jbMono, 11);

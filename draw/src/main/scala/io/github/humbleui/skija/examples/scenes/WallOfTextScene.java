@@ -1,12 +1,13 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.io.*;
-import java.nio.file.*;
-
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
 import io.github.humbleui.skija.paragraph.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.shaper.Shaper;
+import io.github.humbleui.skija.shaper.ShapingOptions;
+import io.github.humbleui.types.Rect;
+
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class WallOfTextScene extends Scene {
     private Font font = null;
@@ -18,7 +19,7 @@ public class WallOfTextScene extends Scene {
     private FontCollection fc = null;
 
     public WallOfTextScene() throws IOException {
-        words = Files.lines(java.nio.file.Path.of(file("assets/texts/google-10000-english.txt")))
+        words = Files.lines(java.nio.file.Path.of(file("texts/google-10000-english.txt")))
                     .sorted()
                     .limit(1000)
                     .toArray(String[]::new);

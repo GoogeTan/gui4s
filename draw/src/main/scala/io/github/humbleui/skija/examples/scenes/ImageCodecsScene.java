@@ -1,11 +1,16 @@
 package io.github.humbleui.skija.examples.scenes;
 
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Image;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.PaintMode;
+import io.github.humbleui.types.Rect;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ImageCodecsScene extends Scene {
     public List<Pair<String, Image>> images = new ArrayList<>();

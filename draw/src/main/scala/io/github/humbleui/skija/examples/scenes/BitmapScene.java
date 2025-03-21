@@ -1,8 +1,13 @@
 package io.github.humbleui.skija.examples.scenes;
 
 import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
-import java.util.*;
+import io.github.humbleui.types.IRect;
+import io.github.humbleui.types.RRect;
+import io.github.humbleui.types.Rect;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class BitmapScene extends Scene {
     private List<Pair<Path, Integer>> shapes = new ArrayList<>(100);

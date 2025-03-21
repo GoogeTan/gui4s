@@ -1,11 +1,10 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
-import java.util.stream.*;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
 import io.github.humbleui.skija.paragraph.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.shaper.Shaper;
+import io.github.humbleui.skija.shaper.ShapingOptions;
+import io.github.humbleui.types.Rect;
 
 public class TextShapeBenchScene extends Scene {
     public final Font font;

@@ -1,11 +1,13 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.nio.*;
-import java.nio.file.*;
-import java.nio.file.Path;
-import java.io.*;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.types.Rect;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class RuntimeEffectScene extends Scene {
     public final Image _texture;

@@ -1,8 +1,10 @@
 package io.github.humbleui.skija.examples.scenes;
 
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.shaper.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.shaper.Shaper;
+import io.github.humbleui.skija.shaper.ShapingOptions;
+import io.github.humbleui.types.Point;
+import io.github.humbleui.types.Rect;
 
 public class ShapersScene extends Scene {
     public final Font firaCode11;
@@ -10,7 +12,7 @@ public class ShapersScene extends Scene {
     public final Paint fill = new Paint().setColor(0xFF000000);
 
     public ShapersScene() {
-        firaCode11 = new Font(Typeface.makeFromFile(file("assets/fonts/FiraCode-Regular.ttf")), 11);
+        firaCode11 = new Font(Typeface.makeFromFile(file("fonts/FiraCode-Regular.ttf")), 11);
     }
 
     public void drawWithShaper(Canvas canvas, float maxWidth, int color, String name, Shaper shaper) {

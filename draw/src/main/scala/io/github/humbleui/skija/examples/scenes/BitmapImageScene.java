@@ -1,13 +1,14 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.io.*;
-import java.nio.*;
-import java.nio.file.*;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.function.*;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.types.Rect;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class BitmapImageScene extends Scene {
     public final Image image;

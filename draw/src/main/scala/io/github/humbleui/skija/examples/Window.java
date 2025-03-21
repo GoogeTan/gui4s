@@ -1,38 +1,21 @@
-package me.katze.gui4s.draw.skija;
+package io.github.humbleui.skija.examples;
+
+import io.github.humbleui.skija.*;
+import io.github.humbleui.skija.examples.scenes.HUD;
+import io.github.humbleui.skija.examples.scenes.Pair;
+import io.github.humbleui.skija.examples.scenes.Scenes;
+import io.github.humbleui.skija.impl.Library;
+import io.github.humbleui.skija.impl.Stats;
+import io.github.humbleui.types.IRect;
+import org.lwjgl.opengl.GL;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
-
-import static org.lwjgl.glfw.Callbacks.*;
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
-import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.examples.scenes.*;
-import io.github.humbleui.skija.impl.*;
-import io.github.humbleui.types.*;
-
-public class Main {
-    public static void main(String [] args) throws Exception {
-        GLFWErrorCallback.createPrint(System.err).set();
-        if (!glfwInit())
-            throw new IllegalStateException("Unable to initialize GLFW");
-
-        GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        int width = (int) (vidmode.width() * 0.75);
-        int height = (int) (vidmode.height() * 0.75);
-        IRect bounds = IRect.makeXYWH(
-                Math.max(0, (vidmode.width() - width) / 2),
-                Math.max(0, (vidmode.height() - height) / 2),
-                width,
-                height);
-        new Window().run(bounds);
-    }
-}
-
-class Window {
+public class Window {
     public long window;
     public int width;
     public int height;
@@ -149,7 +132,7 @@ class Window {
             Library.load();
         context = DirectContext.makeGL();
 
-        GLFW.glfwSetWindowSizeCallback(window, (window, width, height) -> {
+        org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback(window, (window, width, height) -> {
             updateDimensions();
             initSkia();
             draw();

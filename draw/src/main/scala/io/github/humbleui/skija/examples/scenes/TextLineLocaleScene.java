@@ -1,11 +1,9 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import java.util.*;
-import java.util.stream.*;
 import io.github.humbleui.skija.*;
 import io.github.humbleui.skija.shaper.*;
-import io.github.humbleui.skija.paragraph.*;
-import io.github.humbleui.types.*;
+
+import java.util.Iterator;
 
 // TODO: doesn’t work on macOS
 

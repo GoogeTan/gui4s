@@ -1,7 +1,9 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import io.github.humbleui.skija.Canvas;
+import io.github.humbleui.skija.Color;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.types.Rect;
 
 public class PythagorasScene extends Scene {
     private int    color1   = 0xFFcc5333;

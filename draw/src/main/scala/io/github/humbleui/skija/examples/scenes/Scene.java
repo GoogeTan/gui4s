@@ -1,14 +1,15 @@
 package io.github.humbleui.skija.examples.scenes;
 
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.Rect;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import io.github.humbleui.skija.*;
-import io.github.humbleui.types.*;
+import java.util.Locale;
 
 public abstract class Scene {
-    public static final Typeface inter = Typeface.makeFromFile(file("/fonts/InterHinted-Regular.ttf"));
-    public static final Typeface jbMono = Typeface.makeFromFile(file("/fonts/JetBrainsMono-Regular.ttf"));
+    public static final Typeface inter = Typeface.makeFromFile(file("fonts/InterHinted-Regular.ttf"));
+    public static final Typeface jbMono = Typeface.makeFromFile(file("fonts/JetBrainsMono-Regular.ttf"));
     public static final Font     inter13 = new Font(inter, 13).setSubpixel(true);
     public static final Paint    blackFill = new Paint().setColor(0xFF000000);
 
@@ -39,7 +40,7 @@ public abstract class Scene {
             System.err.println("Couldn't create file");
             return null;
         }
-        return pathToSelf + "/assets/" + path;
+        return pathToSelf + "/draw/skija_examples_assets/" + path;
     }
 
     public static void drawStringCentered(Canvas canvas, String text, float x, float y, Font font, Paint paint) {

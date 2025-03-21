@@ -1,22 +1,21 @@
 package io.github.humbleui.skija.examples.scenes;
 
-import io.github.humbleui.skija.*;
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.Font;
 import io.github.humbleui.skija.Image;
-import io.github.humbleui.types.IRect;
 import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.IRect;
 import io.github.humbleui.types.Point;
 import io.github.humbleui.types.Rect;
 
 import javax.swing.*;
-import javax.swing.plaf.metal.DefaultMetalTheme;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import javax.swing.plaf.metal.OceanTheme;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SwingScene extends Scene {

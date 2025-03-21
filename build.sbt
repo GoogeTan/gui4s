@@ -156,7 +156,7 @@ lazy val draw = (project in file("draw"))
       "io.github.humbleui" % "skija-shared" % "0.116.4",
       "io.github.humbleui" % "skija-linux-x64" % "0.116.4",
     ),
-    mainClass := Some(" me.katze.gui4s.draw.skija.TrueMain"),
+    mainClass := Some("io.github.humbleui.skija.example.Main"),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
