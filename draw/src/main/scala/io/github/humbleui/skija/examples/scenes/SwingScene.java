@@ -10,7 +10,7 @@ import io.github.humbleui.types.Point;
 import io.github.humbleui.types.Rect;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.HeadlessException;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Arrays;
