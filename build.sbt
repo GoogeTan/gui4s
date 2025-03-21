@@ -132,9 +132,6 @@ lazy val glfw = (project in file("glfw"))
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
 
-def when[T](cond : Boolean)(value : => T) : Option[T] =
-  if (cond) Some(value) else None
-
 lazy val draw = (project in file("draw"))
   .settings(
     name := "draw",
@@ -155,9 +152,11 @@ lazy val draw = (project in file("draw"))
       "org.lwjgl" % "lwjgl-stb"    % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-assimp" % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion classifier s"natives-$os",
-      "org.joml" % "joml" % "1.9.25"
-    ) ++ when(os == "macos")("org.lwjgl" % "lwjgl-vulkan" % lwjglVersion classifier s"natives-$os"),
-    mainClass := Some(" me.katze.gui4s.draw.lwjgl.Example"),
+      "org.joml" % "joml" % "1.10.8",
+      "io.github.humbleui" % "skija-shared" % "0.116.4",
+      "io.github.humbleui" % "skija-linux-x64" % "0.116.4",
+    ),
+    mainClass := Some(" me.katze.gui4s.draw.skija.TrueMain"),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)

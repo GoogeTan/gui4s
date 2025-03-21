@@ -5,12 +5,7 @@ mkShell rec {
     glfw
     openssl
     libz
-	vulkan-tools
-	vulkan-validation-layers
-	vulkan-extension-layer
-	vulkan-headers
-	vulkan-loader
-	vulkan-utility-libraries
+    libGL
     # ...
   ];
   LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
