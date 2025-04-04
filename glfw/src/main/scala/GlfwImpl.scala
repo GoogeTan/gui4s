@@ -1,7 +1,7 @@
 package me.katze.gui4s.glfw
 
 import cats.MonadError
-import cats.effect.{MonadCancel, Resource}
+import cats.effect.{MonadCancel, Resource, Sync}
 import cats.syntax.all.*
 import me.katze.gui4s.impure.Impure
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
@@ -11,12 +11,15 @@ import org.lwjgl.system.{MemoryStack, MemoryUtil}
 
 import java.util.Objects
 
-final class GlfwImpl[F[_]](
-                            unsafeRunF : [A] => F[A] => A,
-                            impure: Impure[F],
-                            stackPush : Resource[F, MemoryStack]
-                          )(using MonadCancel[F, Throwable]) extends Glfw[F]:
-  final case class OglWindow(id : Long)
+def stackPush[F[_] : {Sync, Impure as I}] : Resource[F, MemoryStack] =
+  Resource.fromAutoCloseable(I.impure(MemoryStack.stackPush()))
+end stackPush
+
+final case class OglWindow(id : Long) // TODO move into a class
+
+final class GlfwImpl[F[_] : {Impure as impure, Sync}](
+                                                        unsafeRunF : [A] => F[A] => A,
+                                                      ) extends Glfw[F]:
 
   override type Window = OglWindow
 

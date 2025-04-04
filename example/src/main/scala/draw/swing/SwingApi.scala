@@ -16,22 +16,24 @@ import javax.swing.JFrame
 def SwingApi[
               F[_] : Async, 
               MeasurementUnit : Numeric, 
-              Draw[_] : DrawMonadT[MeasurementUnit]
+              Draw : DrawMonadT[MeasurementUnit]
             ](
               impure: Impure[F], 
-              onResized : F[Unit]
-            )(using Lift[F, Draw, SwingDrawState[F[Unit], MeasurementUnit]]): Resource[F, DrawApi[F, MeasurementUnit, Draw[Unit]]] =
+              onResized : F[Unit],
+              
+            ): Resource[F, DrawApi[F, MeasurementUnit, Draw]] =
+  /*
   for
     dispatcher <- Dispatcher.sequential[F]
     component <- initResource(dispatcher, impure, onResized)
-  yield DrawApi[F, MeasurementUnit, Draw[Unit]](
+  yield DrawApi[F, MeasurementUnit, Draw](
     impure.impure:
       new Bounds(
         Numeric[MeasurementUnit].fromInt(component.getWidth),
         Numeric[MeasurementUnit].fromInt(component.getHeight)
       ),
     new SwingSimpleDrawApi(component, impure)
-  )
+  )*/???
 end SwingApi
 
 def initResource[F[_], MeasurementUnit : Numeric](dispatcher: Dispatcher[F], impure: Impure[F], onResized : F[Unit]) : Resource[F, SwingWindowComponent] =

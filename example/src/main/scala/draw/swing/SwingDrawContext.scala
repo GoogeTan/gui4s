@@ -17,8 +17,8 @@ def runSwingDraw[F[+_], MeasurementUnit : Numeric](draw: SwingDraw[F, Measuremen
   draw.run(SwingDrawState(Numeric[MeasurementUnit].zero, Numeric[MeasurementUnit].zero))
 end runSwingDraw
 
-given [F[+_], MeasurementUnit: Numeric] : DrawMonad[SwingDrawT[F, MeasurementUnit], MeasurementUnit] with
-  override def move[T](dx: MeasurementUnit, dy: MeasurementUnit, effect: SwingDraw[F, MeasurementUnit, T]): SwingDraw[F, MeasurementUnit, T] =
+given [F[+_], MeasurementUnit: Numeric] : DrawMonad[SwingDraw[F, MeasurementUnit, Unit], MeasurementUnit] with
+  override def move[T](dx: MeasurementUnit, dy: MeasurementUnit, effect: SwingDraw[F, MeasurementUnit, Unit]): SwingDraw[F, MeasurementUnit, Unit] =
     ReaderT.apply((s) => effect.run(s.copy(x = s.x + dx, y = s.y + dy)))
   end move
 end given

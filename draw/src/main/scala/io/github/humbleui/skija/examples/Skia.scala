@@ -7,13 +7,15 @@ import me.katze.gui4s.impure.Impure
 
 object Skia:
   final case class SkiaRenderTarget(
+                                      directContext: DirectContext,
                                       target : BackendRenderTarget,
                                       surface: Surface,
                                       canvas : Canvas
                                     )
   
-  def initSkia[F[_] : {Impure, Sync}](context : DirectContext, width : Float, height : Float, dpi : Float) : Resource[F, SkiaRenderTarget] =
+  def initSkia[F[_] : {Impure, Sync}](width : Float, height : Float, dpi : Float) : Resource[F, SkiaRenderTarget] =
     for
+      context <- makeContext
       renderTarget <- makeGl(
         (width * dpi).toInt, (height * dpi).toInt, FramebufferFormat.GR_GL_RGBA8
       )
@@ -26,9 +28,15 @@ object Skia:
         Some(new SurfaceProps(PixelGeometry.RGB_H))
       )
       canvas <- Resource.eval(getOrMakeCanvas(surface))
-    yield SkiaRenderTarget(renderTarget, surface, canvas)
+    yield SkiaRenderTarget(context, renderTarget, surface, canvas)
   end initSkia
 
+  def makeContext[F[_] : {Impure as I, Sync}]:Resource[F, DirectContext] =
+    Resource.fromAutoCloseable(
+      I.impure:
+        DirectContext.makeGL()
+    )
+  
   def getOrMakeCanvas[F[_] : Impure as I](surface: Surface) : F[Canvas] =
     I.impure(surface.getCanvas)
   end getOrMakeCanvas
