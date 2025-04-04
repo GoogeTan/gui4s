@@ -79,16 +79,19 @@ end runWhileNoError
 
 def updateLoop[
                 F[+_] : Monad,
-                PlacedWidget <: EventConsumer[F[PlacedWidget], F, UpEvent, DownEvent],
+                Update[+_, +_],
+                PlacedWidget <: EventConsumer[Update, F[PlacedWidget], UpEvent, DownEvent],
                 UpEvent,
                 DownEvent
               ](
+                runUpdate  : [A] => Update[A, UpEvent] => F[Either[ExitCode, A]]
+              )(
                   initial: PlacedWidget,
                   pushNew: PlacedWidget => F[Unit],
                   nextEvent: F[DownEvent],
-              )(using ProcessRequest[F, UpEvent]) : F[ExitCode] =
+              ) : F[ExitCode] =
   Monad[F].tailRecM(initial)(
-    updateStep(_, nextEvent) >>= doIfLeft(pushNew)
+    updateStep(_, nextEvent, runUpdate) >>= doIfLeft(pushNew)
   )
 end updateLoop
 
@@ -109,21 +112,20 @@ end doIfLeft
  */
 def updateStep[
               F[+_] : Monad,
-              PlacedWidget <: EventConsumer[F[PlacedWidget], F, UpEvent, DownEvent],
+              Update[+_, +_],
+              PlacedWidget <: EventConsumer[Update, F[PlacedWidget], UpEvent, DownEvent],
               UpEvent,
               DownEvent
             ](
                 widget     : PlacedWidget,
                 eventSource: F[DownEvent],
-            )(using ProcessRequest[F, UpEvent]): F[Either[PlacedWidget, ExitCode]] =
+                runUpdate  : [A] => Update[A, UpEvent] => F[Either[ExitCode, A]]
+            ): F[Either[PlacedWidget, ExitCode]] =
   for
     event         <- eventSource
-    eventResult   <- widget.processEvent(event)
-    placedWidget  <- eventResult.widget
-    exit          <- processRequests(eventResult.events)
-  yield exit.toRight(placedWidget)
+    exitCodeOrWidget   <- runUpdate[F[PlacedWidget]](widget.processEvent(event))
+    res <- exitCodeOrWidget match
+      case Left(value) => Right(value).pure[F]
+      case Right(value) => value.map(Left(_))
+  yield res
 end updateStep
-
-def processRequests[F[_] : Monad, UpEvent](requests : List[UpEvent])(using ProcessRequest[F, UpEvent]) : F[Option[ExitCode]] =
-  requests.collectFirstSomeM(_.process)
-end processRequests

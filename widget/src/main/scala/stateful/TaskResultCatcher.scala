@@ -5,10 +5,10 @@ import cats.*
 import cats.syntax.all.*
 
 final class TaskResultCatcher[
-  +Update[+_, +_] : BiMonad : RaiseEvent,
+  +Update[+_, +_] : {BiMonad, RaiseEvent},
   +Draw,
   +Place[+_] : FlatMap,
-  Recomposition : Semigroup : KillTasks,
+  Recomposition,
   +RaiseableEvent : RichTypeChecker,
   -HandleableEvent >: TaskFinished
 ](
@@ -55,6 +55,6 @@ final class TaskResultCatcher[
   end childrenStates
 
   override def recomposed(currentPath : Path, states : Map[String, StateTree[Recomposition]]): Recomposition =
-    child.recomposed(currentPath, states) combine summon[KillTasks[Recomposition]].killDetachableTasks(currentPath)
+    child.recomposed(currentPath, states) // TODO kill tasks on detach |+| KT.killDetachableTasks(currentPath)
   end recomposed
 end TaskResultCatcher

@@ -20,7 +20,7 @@ final class HighLevelApiImpl[
   Update[+_, +_]: {BiMonad, CatchEvents, RaiseEvent},
   Draw : Monoid,
   Place[+_] : {TextPlacementT[LayoutPlacementMeta[MeasurementUnit], TextStyle], FlatMap},
-  RecompositionIn : {Monoid, KillTasks},
+  RecompositionIn : {Monoid},
   WidgetTaskIn[+_],
   MeasurementUnit,
   -TextStyle,
@@ -28,16 +28,14 @@ final class HighLevelApiImpl[
 ](
     using
       LiftEventReaction[Update, WidgetTaskIn[Any]],
-      LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
+      LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
+      LabelDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
 )(
-    val drawApi : SimpleDrawApi[MeasurementUnit, Draw],
     val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MeasurementUnit]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MeasurementUnit]:
   override type WidgetTask[+T] = WidgetTaskIn[T]
   override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, RecompositionIn, Event, SystemEvent]]
   override type Recomposition = RecompositionIn
-  
-  given textDraw: LabelDraw[Draw, LayoutPlacementMeta[MeasurementUnit]] = (text, meta) => drawApi.text(meta.x, meta.y, text, TextStyle(18, 0, 400))
   
   override def label(text: String, style : TextStyle): Widget[Nothing] =
     library.labelWidget(library.drawOnlyWidget, text, style)

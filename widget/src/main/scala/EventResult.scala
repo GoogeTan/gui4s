@@ -7,8 +7,8 @@ import scala.annotation.tailrec
 type EventResultP[WT] = [A, B] =>> EventResult[WT, A, B]
 
 final case class EventResult[+WidgetTask, +FreeWidget, +UpEvent](
-                                                                  widget: FreeWidget, 
-                                                                  upEvent: List[UpEvent],
+                                                                  widget: FreeWidget,
+                                                                  events: List[UpEvent],
                                                                   ios   : List[WidgetTask]
                                                                 )
 
@@ -19,7 +19,7 @@ given[Task]: BiMonad[[A, B] =>> EventResult[Task, A, B]] with
     val newValue = f(value.widget)
     EventResult(
       newValue.widget,
-      value.upEvent ++ newValue.upEvent,
+      value.events ++ newValue.events,
       value.ios ++ newValue.ios
     )
   end flatMap_
@@ -56,7 +56,7 @@ end given
 given[Task] : CatchEvents[[A, B] =>> EventResult[Task, A, B]] with
   extension [W, E](old: EventResult[Task, W, E])
     override def catchEvents: EventResult[Task, (W, List[E]), Nothing] =
-      EventResult[Task, (W, List[E]), Nothing]((old.widget, old.upEvent), Nil, old.ios)
+      EventResult[Task, (W, List[E]), Nothing]((old.widget, old.events), Nil, old.ios)
     end catchEvents
   end extension
 end given  

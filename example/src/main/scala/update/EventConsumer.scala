@@ -1,7 +1,9 @@
 package me.katze.gui4s.example
 package update
 
+import me.katze.gui4s.widget.EventResult
+
 @FunctionalInterface
-trait EventConsumer[+FreeWidget, +F[+_], +UpEvent, -DownEvent]:
-  def processEvent(event : DownEvent) : F[EventProcessResult[FreeWidget, UpEvent]]
+trait EventConsumer[Update[+_, +_], +FreeWidget, +UpEvent, -DownEvent]:
+  def processEvent(event : DownEvent) : Update[FreeWidget, UpEvent]
 end EventConsumer
