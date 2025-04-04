@@ -16,7 +16,7 @@ def labelWidget[
 ]
     (using
         textDraw : LabelDraw[Draw, LabelPlacementMeta],
-        textIsPlaceable : LabelPlacement[Place[LabelPlacementMeta], TextStyle])
+        textIsPlaceable : TextPlacement[Place[LabelPlacementMeta], TextStyle])
     (
       drawOnlyWidget : (Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]], Draw) => Widget[Update, Draw, Place, LeftComposition, Nothing, Any],
       text : String, 

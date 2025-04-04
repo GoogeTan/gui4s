@@ -19,7 +19,7 @@ type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, Meas
 final class HighLevelApiImpl[
   Update[+_, +_]: {BiMonad, CatchEvents, RaiseEvent},
   Draw : Monoid,
-  Place[+_] : {LabelPlacementT[LayoutPlacementMeta[MeasurementUnit], TextStyle], FlatMap},
+  Place[+_] : {TextPlacementT[LayoutPlacementMeta[MeasurementUnit], TextStyle], FlatMap},
   RecompositionIn : {Monoid, KillTasks},
   WidgetTaskIn[+_],
   MeasurementUnit,
@@ -30,8 +30,8 @@ final class HighLevelApiImpl[
       LiftEventReaction[Update, WidgetTaskIn[Any]],
       LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
 )(
-   val drawApi : SimpleDrawApi[MeasurementUnit, Draw],
-   val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MeasurementUnit]
+    val drawApi : SimpleDrawApi[MeasurementUnit, Draw],
+    val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MeasurementUnit]
 ) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MeasurementUnit]:
   override type WidgetTask[+T] = WidgetTaskIn[T]
   override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, RecompositionIn, Event, SystemEvent]]

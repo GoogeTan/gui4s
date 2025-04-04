@@ -26,8 +26,6 @@ final case class EventConsumerAdapter[
 )(
   using RunPlacement[F, Place]
 ) extends EventConsumer[F[EventConsumerAdapter[F, Draw, Place, Recomposition, WidgetTask, UpEvent, DownEvent]], F, UpEvent, DownEvent] with Drawable[Draw]:
-  type PlacedWidget = Widget[EventResultP[WidgetTask], Draw, Place, Recomposition, UpEvent, DownEvent]
-
   override def processEvent(event: DownEvent): F[EventProcessResult[F[EventConsumerAdapter[F, Draw, Place, Recomposition, WidgetTask, UpEvent, DownEvent]], UpEvent]] =
     val EventResult(newWidget, systemRequests, ios) = placedWidget.handleDownEvent(pathToRoot, event)
     ios.traverse_(taskSet.pushTask) 

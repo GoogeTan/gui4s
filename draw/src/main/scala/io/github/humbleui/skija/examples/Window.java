@@ -23,22 +23,9 @@ public class Window {
     public int xpos = 0;
     public int ypos = 0;
     public boolean vsync = true;
-    public boolean stats = true;
-    private int[] refreshRates;
-    private String os = System.getProperty("os.name").toLowerCase();
-
-    private int[] getRefreshRates() {
-        var monitors = glfwGetMonitors();
-        int[] res = new int[monitors.capacity()];
-        for (int i=0; i < monitors.capacity(); ++i) {
-            res[i] = glfwGetVideoMode(monitors.get(i)).refreshRate();
-        }
-        return res;
-    }
+    private static final String os = System.getProperty("os.name").toLowerCase();
 
     public void run(IRect bounds) {
-        refreshRates = getRefreshRates();
-
         createWindow(bounds);
         loop();
 
@@ -109,7 +96,7 @@ public class Window {
                 /*fbId*/0,
                 FramebufferFormat.GR_GL_RGBA8);
 
-        surface = Surface.makeFromBackendRenderTarget(
+        surface = Surface.wrapBackendRenderTarget(
                 context,
                 renderTarget,
                 SurfaceOrigin.BOTTOM_LEFT,

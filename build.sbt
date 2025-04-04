@@ -1,13 +1,15 @@
-import jdk.internal.util.OperatingSystem
 import sbt.Keys.libraryDependencies
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.6.2"
 
-val libPath = sys.env.get("LD_LIBRARY_PATH").get
+sys.env.get("LD_LIBRARY_PATH") match {
+  case Some(libPath) =>
+    javaOptions += s"-Djava.library.path=$libPath"
+  case _ => javaOptions += ""
+}
 
-javaOptions += s"-Djava.library.path=$libPath"
 
 addCompilerPlugin("org.wartremover" %% "wartremover" % "3.2.5" cross CrossVersion.full)
 
@@ -132,6 +134,11 @@ lazy val glfw = (project in file("glfw"))
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(impure)
 
+lazy val skijaLibs = List(
+  "io.github.humbleui" % "skija-shared" % "0.116.4",
+  "io.github.humbleui" % s"skija-$os-x64" % "0.116.4",
+)
+
 lazy val draw = (project in file("draw"))
   .settings(
     name := "draw",
@@ -153,9 +160,7 @@ lazy val draw = (project in file("draw"))
       "org.lwjgl" % "lwjgl-assimp" % lwjglVersion classifier s"natives-$os",
       "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion classifier s"natives-$os",
       "org.joml" % "joml" % "1.10.8",
-      "io.github.humbleui" % "skija-shared" % "0.116.4",
-      "io.github.humbleui" % "skija-linux-x64" % "0.116.4",
-    ),
+    ) ++ skijaLibs,
     mainClass := Some("io.github.humbleui.skija.example.Main"),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
@@ -176,10 +181,10 @@ lazy val example = (project in file("example"))
   .settings(
     name := "example",
     idePackagePrefix := Some(s"$packagePrefix.example"),
-    libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ List("org.scala-lang.modules" %% "scala-swing" % "3.0.0"),
+    libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List("org.scala-lang.modules" %% "scala-swing" % "3.0.0"),
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
-  .dependsOn(widget, draw, layout, loops, impure, impureCatsEffect)
+  .dependsOn(widget, draw, layout, loops, impure, impureCatsEffect, glfw)
 

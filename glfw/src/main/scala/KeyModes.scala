@@ -10,13 +10,13 @@ package me.katze.gui4s.glfw
  * @param numLockActive True if the Num Lock key is enabled.
  */
 final case class KeyModes(
-                           shiftActive : Boolean,
-                           controlActive : Boolean,
-                           altActive : Boolean,
-                           superActive : Boolean,
-                           capsLockActive : Boolean,
-                           numLockActive : Boolean
-                         )
+                            shiftActive : Boolean,
+                            controlActive : Boolean,
+                            altActive : Boolean,
+                            superActive : Boolean,
+                            capsLockActive : Boolean,
+                            numLockActive : Boolean
+                          )
 
 object KeyModes:
   def fromMask(mask : Int) : KeyModes =

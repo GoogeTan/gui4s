@@ -5,6 +5,10 @@ import scala.math.Ordered.orderingToOrdered
 
 // TODO Написать, что max=None кодирует отсутсвие верхнего предела => бесконечность
 final case class AxisBounds[+T : Numeric](min: Option[T], max: Option[T]):
+  def this(max : T) =
+    this(None, Some(max))
+  end this
+  
   assert(min.zip(max).forall(_ <= _), "Maximum must be more them minimum")
   
   def fixed: Boolean = min == max

@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package draw
 
-import cats.kernel.Monoid
+import cats.kernel.Semigroup
 import cats.syntax.monoid.*
 
 trait SimpleDrawApi[MeasurementUnit, F]:
@@ -12,7 +12,7 @@ trait SimpleDrawApi[MeasurementUnit, F]:
   def beginDraw : F
   def endDraw : F
   
-  def drawFrame(frame : F)(using m : Monoid[F]) : F =
+  def drawFrame(frame : F)(using m : Semigroup[F]) : F =
     beginDraw |+| frame |+| endDraw
   end drawFrame
 end SimpleDrawApi

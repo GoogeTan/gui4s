@@ -1,7 +1,7 @@
 package me.katze.gui4s.layout
 package bound
 
-final case class AxisDependentBounds[+T](mainAxis : AxisBounds[T], additionalAxis : AxisBounds[T], axis : Axis):
+final case class AxisDependentBounds[+T : Numeric](mainAxis : AxisBounds[T], additionalAxis : AxisBounds[T], axis : Axis):
   val bounds : Bounds[T] =
     axis match
       case Axis.Vertical => Bounds(additionalAxis, mainAxis)
@@ -19,7 +19,7 @@ final case class AxisDependentBounds[+T](mainAxis : AxisBounds[T], additionalAxi
 end AxisDependentBounds
 
 object AxisDependentBounds:
-  def fromConstraints[T](constraints: Bounds[T], axis: Axis) : AxisDependentBounds[T] = AxisDependentBounds(
+  def fromConstraints[T : Numeric](constraints: Bounds[T], axis: Axis) : AxisDependentBounds[T] = AxisDependentBounds(
     if axis == Axis.Vertical then constraints.vertical else constraints.horizontal,
     if axis == Axis.Vertical then constraints.horizontal else constraints.vertical,
     axis

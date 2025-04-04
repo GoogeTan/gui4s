@@ -64,16 +64,22 @@ final class GlfwImpl[F[_]](
 
   override def frameBufferResizeCallback(window: OglWindow, callback: Size => F[Unit]): F[Unit] =
     impure.impure:
-      glfwSetFramebufferSizeCallback(window.id, (_, w, h) =>
+      val old = glfwSetFramebufferSizeCallback(window.id, (_, w, h) =>
         unsafeRunF(callback(Size(w, h)))
       )
+      if old != null then
+        old.free()
+      end if
   end frameBufferResizeCallback
 
   override def keyCallback(window: OglWindow, callback: (Int, Int, KeyAction, KeyModes) => F[Unit]): F[Unit] =
     impure.impure:
-      glfwSetKeyCallback(window.id, (_, key, scancode, action, modes) =>
+      val old = glfwSetKeyCallback(window.id, (_, key, scancode, action, modes) =>
         unsafeRunF(callback(key, scancode, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
       )
+      if old != null then
+        old.free()
+      end if  
   end keyCallback
 
   override def swapInterval(interval: Int): F[Unit] =
@@ -82,7 +88,9 @@ final class GlfwImpl[F[_]](
   end swapInterval
 
   def currentMonitor : F[Long] =
-    impure.impure(glfwGetPrimaryMonitor()).ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
+    impure.impure(glfwGetPrimaryMonitor())
+      .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
+  end currentMonitor
   
   override def createWindow(
                               title: String,
@@ -103,7 +111,10 @@ final class GlfwImpl[F[_]](
           glfwFreeCallbacks(a.id)
           glfwDestroyWindow(a.id)
           glfwTerminate()
-          Objects.requireNonNull(glfwSetErrorCallback(null)).free()
+          val oldCallback = glfwSetErrorCallback(null)
+          if oldCallback != null then 
+            oldCallback.free()
+          end if
     )
   end createWindow
 
@@ -174,5 +185,36 @@ final class GlfwImpl[F[_]](
           Size(width.get(0), height.get(0))
         })
   end frameBufferSize
+
+  override def scrollCallback(window: OglWindow, callback: (Double, Double) => F[Unit]): F[Unit] =
+    impure.impure:
+      val old = glfwSetScrollCallback(window.id, (_, xoffset, yoffset) => unsafeRunF[Unit](callback(xoffset, yoffset)))
+      if old != null then
+        old.free()
+      end if
+  end scrollCallback
+
+  override def cursorPosCallback(window: OglWindow, callback: (Double, Double) => F[Unit]): F[Unit] =
+    impure.impure:
+      val old = glfwSetCursorPosCallback(window.id, (_, xpos, ypos) => unsafeRunF[Unit](callback(xpos, ypos)))
+      if old != null then
+        old.free()
+      end if
+  end cursorPosCallback
+
+  override def mouseButtonCallback(window: OglWindow, callback: (Int, KeyAction, KeyModes) => F[Unit]): F[Unit] =
+    impure.impure:
+      val old = glfwSetMouseButtonCallback(window.id, (_, key, action, modes) =>
+        unsafeRunF(callback(key, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
+      )
+      if old != null then
+        old.free()
+      end if
+  end mouseButtonCallback
+
+  override def swapBuffers(window : Window): F[Unit] =
+    impure.impure:
+      glfwSwapBuffers(window.id)
+  end swapBuffers
 end GlfwImpl
 
