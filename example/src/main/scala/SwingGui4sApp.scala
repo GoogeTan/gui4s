@@ -32,7 +32,7 @@ abstract class SwingGui4sApp extends Gui4sApp[MeasurableT[Float], Update[Task[An
       )
     ),
   containerPlacementCurried(ENErrors),
-  MeasurableRunPlacement(_),
+  SkijaMeasurableRunPlacement(_),
   a => a,
   [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO]
 )

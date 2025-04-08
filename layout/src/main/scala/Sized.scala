@@ -2,6 +2,10 @@ package me.katze.gui4s.layout
 
 // TODO имена получше для методов. Не отражают суть.
 final case class Sized[+MeasurementUnit, +T](value : T, width : MeasurementUnit, height : MeasurementUnit):
+  def mapValue[B](f : T => B) : Sized[MeasurementUnit, B] =
+    Sized(f(value), width, height)
+  end mapValue
+  
   def mainAxisValue(axis : Axis) : MeasurementUnit =
     axis match
       case Axis.Vertical => height

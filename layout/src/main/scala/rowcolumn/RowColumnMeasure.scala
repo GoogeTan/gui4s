@@ -7,15 +7,15 @@ import bound.withMaxValue
 def measure[MeasurementUnit : Fractional, T](
                                               children : List[MaybeWeighted[Measurable[MeasurementUnit, T]]],
                                               constraints: AxisDependentBounds[MeasurementUnit]
-                                             ) : List[Sized[MeasurementUnit, T]] =
+                                              ) : List[Sized[MeasurementUnit, T]] =
   val weightValue = spacePerWeightForContainerElements(children, constraints)
   measureWithWeight(children, weightValue, constraints)
 end measure
 
 def measureWithWeight[MeasurementUnit: Fractional, T](
-                                                       children : List[MaybeWeighted[Measurable[MeasurementUnit, T]]],
-                                                       context: SpacePerWeightUnit[MeasurementUnit],
-                                                       constraints: AxisDependentBounds[MeasurementUnit]
+                                                        children : List[MaybeWeighted[Measurable[MeasurementUnit, T]]],
+                                                        context: SpacePerWeightUnit[MeasurementUnit],
+                                                        constraints: AxisDependentBounds[MeasurementUnit]
                                                       ) : List[Sized[MeasurementUnit, T]] =
   children.map:
     case MaybeWeighted(None, value) =>
@@ -28,7 +28,7 @@ def constrainsWithWeight[MeasurementUnit : Fractional](
                                                         weight : Int,
                                                         context: SpacePerWeightUnit[MeasurementUnit],
                                                         constraints: AxisDependentBounds[MeasurementUnit]
-                                                       ) : AxisDependentBounds[MeasurementUnit] =
+                                                        ) : AxisDependentBounds[MeasurementUnit] =
   constraints.copy(mainAxis = constraints.mainAxis.withMaxValue(Some(context.spaceForWeight(weight))))
 end constrainsWithWeight
 

@@ -12,9 +12,19 @@ import me.katze.gui4s.widget.stateful.*
 import me.katze.gui4s.widget.{Widget, library}
 
 type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, MeasurementUnit] =
+  LP[Place, MeasurementUnit, [Event] =>> Widget[Update, Draw, Place, Recompose, Event, DownEvent]]
+
+type LP[Place[_], MeasurementUnit, W[_]] =
   [Event]
-    => (Axis, List[Place[Widget[Update, Draw, Place, Recompose, Event, DownEvent]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy)
-    => Place[List[(Widget[Update, Draw, Place, Recompose, Event, DownEvent], LayoutPlacementMeta[MeasurementUnit])]]
+    => (Axis, List[Place[W[Event]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy)
+    => Place[List[(W[Event], LayoutPlacementMeta[MeasurementUnit])]]
+
+def higherLP[F[_], G[_], MU, W[_]](a : LP[F, MU, W])(using I : InjectK[G, F]) : LP[G, MU, W] =
+  [E] => (axis : Axis, lst : List[G[W[E]]], maxinAxisStrategy : MainAxisPlacementStrategy[MU], add : AdditionalAxisPlacementStrategy) =>
+    I.unapply(
+      a(axis, lst.map(I(_)), maxinAxisStrategy, add)
+    ).get
+end higherLP
 
 final class HighLevelApiImpl[
   Update[+_, +_]: {BiMonad, CatchEvents, RaiseEvent},

@@ -1,8 +1,7 @@
 package me.katze.gui4s.draw.skija
 
-import cats.effect.IO
 import me.katze.gui4s.impure.Impure
-import org.lwjgl.glfw.GLFW.{GLFW_FALSE, GLFW_RESIZABLE, GLFW_TRUE, GLFW_VISIBLE, glfwDefaultWindowHints, glfwWindowHint}
+import org.lwjgl.glfw.GLFW.*
 
 final case class Window(handle : Long, enableVSync : Boolean, resizable : Boolean, width : Int, height : Int, dpi : Float, mouseX : Int, mouseY : Int)
 

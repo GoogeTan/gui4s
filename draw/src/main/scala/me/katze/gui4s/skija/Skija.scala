@@ -5,6 +5,25 @@ import io.github.humbleui.skija.FontStyle
 import io.github.humbleui.skija.shaper.ShapingOptions
 import io.github.humbleui.types.Point
 
+trait Canvas[+F[_], T, -MU]:
+  def saveState(canvas : T) : F[Int]
+  def loadState(canvas : T, canvasSavePoint: Int) : F[Unit]
+  def translate(canvas : T, x : MU, y : MU) : F[Unit]
+end Canvas
+
+trait Text[F[_], -MU]:
+  type Typeface
+  
+  def makTypefaceFromFile(name : String, style: FontStyle*) : Resource[F, Typeface]
+  val defaultTypeface : Resource[F, Typeface]
+  
+  extension(value : Typeface)
+    def bold : Boolean
+    def italic :Boolean
+    def fixedPitch : Boolean
+  end extension
+  
+
 trait Skija[F[_]]:
   type Typeface
 
@@ -51,11 +70,11 @@ trait Skija[F[_]]:
   type CanvasSavePoint
 
   type Paint
-  def defaltPaint : Resource[F, Paint]
+  def defaultPaint : Resource[F, Paint]
 
   def saveState(canvas : Canvas) : F[CanvasSavePoint]
   def loadState(canvas: Canvas, canvasSavePoint: CanvasSavePoint) : F[Unit]
   def translate(canvas : Canvas) : F[Unit]
-  def drawTextBlob(canvas: Canvas, x : Float, y : Float, paint : Paint) : F[Unit]
+  def drawTextBlob(canvas: Canvas, blob : TextBlob, x : Float, y : Float, paint : Paint) : F[Unit]
 
 end Skija
