@@ -1,10 +1,11 @@
 package me.katze.gui4s.example
 package draw.skija
 
+import api.impl.LayoutPlacementMeta
+import draw.TextStyle
+
 import cats.data.ReaderT
 import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.example.api.impl.LayoutPlacementMeta
-import me.katze.gui4s.example.draw.TextStyle
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.widget.library.TextPlacement
 

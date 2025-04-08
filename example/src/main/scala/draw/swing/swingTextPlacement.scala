@@ -1,10 +1,11 @@
 package me.katze.gui4s.example
 package draw.swing
 
-import me.katze.gui4s.example.api.impl.LayoutPlacementMeta
+import api.impl.LayoutPlacementMeta
+
+import cats.Id
 import me.katze.gui4s.layout.{Measurable, Sized}
 import me.katze.gui4s.widget.library.TextPlacement
-import cats.Id
 
 given swingTextPlacement[MeasurementUnit : Fractional]: TextPlacement[Measurable[Id, MeasurementUnit, LayoutPlacementMeta[MeasurementUnit]], Any] with
   override def sizeText(text: String, options: Any): Measurable[Id, MeasurementUnit, LayoutPlacementMeta[MeasurementUnit]] =
