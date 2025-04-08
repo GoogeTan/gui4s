@@ -26,7 +26,7 @@ def SkijaApi[F[_] : {Impure, Monad}, W](
   SkijaSimpleDrawApi[F, W](glfw)
 )
   
-given skijaLayoutDraw[F[_] : {Impure, Applicative}, Window]: LayoutDraw[SkijaDraw[F, Window], LayoutPlacementMeta[Float]] =
+given skijaLayoutDraw[F[_] : {Impure, Monad}, Window]: LayoutDraw[SkijaDraw[F, Window], LayoutPlacementMeta[Float]] =
   layoutDrawImpl[SkijaDraw[F, Window], Float]
 
 given skijaTextDraw[Window, MeasurementUnit, Draw](using api : SimpleDrawApi[MeasurementUnit, Draw]): LabelDraw[Draw, LayoutPlacementMeta[MeasurementUnit]] =

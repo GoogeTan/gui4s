@@ -4,24 +4,27 @@ package rowcolumn
 import bound.AxisDependentBounds
 import bound.withMaxValue
 
-def measure[MeasurementUnit : Fractional, T](
-                                              children : List[MaybeWeighted[Measurable[MeasurementUnit, T]]],
-                                              constraints: AxisDependentBounds[MeasurementUnit]
-                                              ) : List[Sized[MeasurementUnit, T]] =
-  val weightValue = spacePerWeightForContainerElements(children, constraints)
-  measureWithWeight(children, weightValue, constraints)
+import cats.{Applicative, Monad}
+import cats.syntax.all.*
+
+def measure[F[+_] : Monad, MeasurementUnit : Fractional, T](
+                                                                    children : List[MaybeWeighted[Measurable[F, MeasurementUnit, T]]],
+                                                                    constraints: AxisDependentBounds[MeasurementUnit]
+                                                                    ) : F[List[Sized[MeasurementUnit, T]]] =
+  spacePerWeightForContainerElements(children, constraints)
+    .flatMap(weightValue => measureWithWeight(children, weightValue, constraints))
 end measure
 
-def measureWithWeight[MeasurementUnit: Fractional, T](
-                                                        children : List[MaybeWeighted[Measurable[MeasurementUnit, T]]],
-                                                        context: SpacePerWeightUnit[MeasurementUnit],
-                                                        constraints: AxisDependentBounds[MeasurementUnit]
-                                                      ) : List[Sized[MeasurementUnit, T]] =
-  children.map:
+def measureWithWeight[F[+_] : Applicative, MeasurementUnit: Fractional, T](
+                                                                              children : List[MaybeWeighted[Measurable[F, MeasurementUnit, T]]],
+                                                                              context: SpacePerWeightUnit[MeasurementUnit],
+                                                                              constraints: AxisDependentBounds[MeasurementUnit]
+                                                                              ) : F[List[Sized[MeasurementUnit, T]]] =
+  children.traverse:
     case MaybeWeighted(None, value) =>
-      value.placeInside(constraints.bounds)
+      value(constraints.bounds)
     case MaybeWeighted(Some(weight), value) =>
-      value.placeInside(constrainsWithWeight(weight, context, constraints).bounds)
+      value(constrainsWithWeight(weight, context, constraints).bounds)
 end measureWithWeight
 
 def constrainsWithWeight[MeasurementUnit : Fractional](
