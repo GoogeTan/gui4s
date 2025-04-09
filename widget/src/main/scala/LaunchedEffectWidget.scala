@@ -4,18 +4,17 @@ import stateful.{BiMonad, Path}
 
 import cats.FlatMap
 
-private final case class LaunchedEffectState(value : List[Any])
-
 final case class LaunchedEffectWidget[
   Update[+_, +_] : BiMonad,
   Draw,
   Place[+_] : FlatMap,
   Recomposition,
   UpEvent,
-  DownEvent
+  DownEvent,
+  Keys
 ](
   name : String,
-  keys : List[Any],
+  keys : Keys,
   taskOnChange : Path => Recomposition,
   nothingToDo : Recomposition,
   nothingToDraw : Draw,
@@ -23,6 +22,9 @@ final case class LaunchedEffectWidget[
   stateTypeMismatchRecompositionError: (Any, Path) => Recomposition,
   stateTypeMismatchPlaceError: (Any, Path) => Place[Nothing]
 ) extends Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]:
+
+  private final case class LaunchedEffectState(oldKeys: Keys)
+
   override def handleDownEvent(
                                 pathToParent: Path, event: DownEvent
                               ): Update[Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]], UpEvent] =

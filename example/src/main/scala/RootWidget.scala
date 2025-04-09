@@ -3,12 +3,12 @@ package me.katze.gui4s.example
 import draw.Drawable
 import place.RunPlacement
 import task.TaskSet
-import update.{EventConsumer}
+import update.EventConsumer
 
 import cats.*
 import cats.syntax.all.given
 import me.katze.gui4s.widget.stateful.{BiMonad, Path}
-import me.katze.gui4s.widget.{EventResult, EventResultP, Widget, foldLeftComposition}
+import me.katze.gui4s.widget.{EventResult, EventResultP, Widget, collectQuitCompositionReactions}
 
 final case class RootWidget[
   F[+_] : Monad,
@@ -30,7 +30,7 @@ final case class RootWidget[
       for
         newPlacedWidget <- newWidget.runPlacement
         _ <- runRecomposition(newPlacedWidget.recomposed(pathToRoot, placedWidget.childrenStates))
-        _ <- foldLeftComposition[Recomposition](placedWidget.childrenStates, newPlacedWidget.childrenStates).traverse_(runRecomposition)
+        _ <- collectQuitCompositionReactions[Recomposition](placedWidget.childrenStates, newPlacedWidget.childrenStates).traverse_(runRecomposition)
       yield copy(placedWidget = newPlacedWidget),
     )
   end processEvent
