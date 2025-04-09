@@ -4,6 +4,7 @@ package stateful
 import cats.Monad
 
 import scala.annotation.targetName
+import scala.collection.View.Updated
 
 trait BiMonad[F[+_, +_]]:
   def flatMap_[A, B, C](value : F[A, B])(f: A => F[C, B]): F[C, B]
@@ -14,6 +15,9 @@ trait BiMonad[F[+_, +_]]:
     def flatMap[C](f : A => F[C, B]) : F[C, B] = flatMap_(value)(f)
     @targetName("aliasForFlatMap")
     def >>=[C](f: A => F[C, B]) : F[C, B] = flatMap(f)
+    
+    def *>[C](newValue : F[C, B]) : F[C, B] = flatMap(_ => newValue)
+    def <*[C](newValue : F[C, B]) : F[A, B] = flatMap(a => newValue.map(_ => a))
   end extension
 
   extension[A](value : A)
@@ -26,9 +30,9 @@ object BiMonad:
   def apply[F[+_, +_]](using a : BiMonad[F]): BiMonad[F] = a
 end BiMonad
 
-given biMonadIsMonad[F[+_, +_]: BiMonad, T] : Monad[[A] =>> F[A, T]] with
+given biMonadIsMonad[F[+_, +_]: BiMonad as BM, T] : Monad[[A] =>> F[A, T]] with
   override def flatMap[A, B](fa: F[A, T])(f: A => F[B, T]): F[B, T] =
-    summon[BiMonad[F]].flatMap_(fa)(f)
+    BM.flatMap_(fa)(f)
   end flatMap
 
   override def pure[A](x: A): F[A, T] =
@@ -36,6 +40,6 @@ given biMonadIsMonad[F[+_, +_]: BiMonad, T] : Monad[[A] =>> F[A, T]] with
   end pure
 
   override def tailRecM[A, B](a: A)(f: A => F[Either[A, B], T]): F[B, T] =
-    summon[BiMonad[F]].tailRecM(a)(f)
+    BM.tailRecM(a)(f)
   end tailRecM
 end biMonadIsMonad

@@ -9,7 +9,7 @@ import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.*
-import me.katze.gui4s.widget.{Widget, library}
+import me.katze.gui4s.widget.{Widget, drawOnlyWidget, library, textWidget}
 
 type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, MeasurementUnit] =
   LP[Place, MeasurementUnit, [Event] =>> Widget[Update, Draw, Place, Recompose, Event, DownEvent]]
@@ -36,20 +36,20 @@ final class HighLevelApiImpl[
   -TextStyle,
   SystemEvent >: TaskFinished
 ](
-    using
-      LiftEventReaction[Update, WidgetTaskIn[Any]],
-      LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
-      LabelDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
+                               using
+                               LiftEventReaction[Update, WidgetTaskIn[Any]],
+                               LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
+                               TextDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
 )(
     val placement : LayoutPlacement[Update, Draw, Place, RecompositionIn, SystemEvent, MeasurementUnit]
-) extends HighLevelApi with LabelApi[TextStyle] with StatefulApi with LayoutApi[MeasurementUnit]:
+) extends HighLevelApi with TextWidgetApi[TextStyle] with StatefulApi with LayoutApi[MeasurementUnit]:
   override type WidgetTask[+T] = WidgetTaskIn[T]
   override type Widget[+Event] = Place[me.katze.gui4s.widget.Widget[Update, Draw, Place, RecompositionIn, Event, SystemEvent]]
   override type Recomposition = RecompositionIn
   
-  override def label(text: String, style : TextStyle): Widget[Nothing] =
-    library.labelWidget(library.drawOnlyWidget, text, style)
-  end label
+  override def text(text: String, style : TextStyle): Widget[Nothing] =
+    library.textWidget(library.drawOnlyWidget, text, style)
+  end text
   
   given statefulDraw : StatefulDraw[Draw] with
     override def drawStateful[T](name : String, state : State[?, ?, T, ?], childTree: me.katze.gui4s.widget.Widget[?, Draw, ?, ?, ?, ?]): Draw = childTree.draw

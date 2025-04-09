@@ -1,5 +1,4 @@
 package me.katze.gui4s.widget
-package library
 
 import stateful.{BiMonad, Path}
 
@@ -60,6 +59,7 @@ final case class LaunchedEffectWidget[
       case None =>
         asFree
     end match
+  end mergeWithState
 
   override def aliveWidgets(currentPath: Path): Set[Path] =
     Set(currentPath.appendLast(name))

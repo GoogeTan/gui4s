@@ -6,8 +6,8 @@ import cats.syntax.all.*
 import me.katze.gui4s.widget
 
 final case class Stateful[
-  Update[+_, +_] : BiMonad : CatchEvents,
-  Draw : StatefulDraw, 
+  Update[+_, +_] : {BiMonad, CatchEvents},
+  Draw : StatefulDraw as SD, 
   Place[+_] : FlatMap,
   Recomposition,
   RaiseableEvent,
@@ -31,7 +31,7 @@ final case class Stateful[
   end freeStateful
 
   override def draw: Draw = 
-    summon[StatefulDraw[Draw]].drawStateful(this.name, this.state, this.childTree)
+    SD.drawStateful(this.name, this.state, this.childTree)
   end draw
   
   override def handleDownEvent(pathToParent: Path, event: HandleableEvent): StatefulUpdateResult =

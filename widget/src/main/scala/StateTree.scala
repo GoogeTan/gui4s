@@ -1,7 +1,7 @@
 package me.katze.gui4s.widget
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
-final case class StateTree[Dealloc](
+final case class StateTree[+Dealloc](
   state: Any,
   leftComposition: Dealloc,
   childrenStates: Map[String, StateTree[Dealloc]]

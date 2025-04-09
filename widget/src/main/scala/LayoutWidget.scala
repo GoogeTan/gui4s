@@ -1,10 +1,10 @@
 package me.katze.gui4s.widget
-package library
 
+import library.LayoutDraw
 import stateful.{BiMonad, Path, given}
 
-import cats.{FlatMap, Monoid}
 import cats.syntax.all.*
+import cats.{FlatMap, Monoid}
 
 final class LayoutWidget[
   Update[+_, +_] : BiMonad,
@@ -18,7 +18,7 @@ final class LayoutWidget[
     children : List[(Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent], ChildrenMeta)],
     placeChildren: List[Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]]] => Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]]
 )(
-    using LayoutDraw[Draw, ChildrenMeta]
+    using LD : LayoutDraw[Draw, ChildrenMeta]
 ) extends me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]:
 
   override def handleDownEvent(pathToParent: Path, event: DownEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]], UpEvent] =
@@ -40,7 +40,7 @@ final class LayoutWidget[
   end childrenStates
 
   override def draw: Draw =
-    summon[LayoutDraw[Draw, ChildrenMeta]].drawChildren(children.map(child => (child._1.draw, child._2)))
+    LD.drawChildren(children.map(child => (child._1.draw, child._2)))
   end draw
 
   override def aliveWidgets(currentPath: Path): Set[Path] =

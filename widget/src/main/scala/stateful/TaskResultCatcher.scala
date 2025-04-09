@@ -5,11 +5,11 @@ import cats.*
 import cats.syntax.all.*
 
 final class TaskResultCatcher[
-  +Update[+_, +_] : {BiMonad, RaiseEvent},
+  +Update[+_, +_] : {BiMonad, RaiseEvent as RE},
   +Draw,
   +Place[+_] : FlatMap,
   Recomposition,
-  +RaiseableEvent : RichTypeChecker,
+  +RaiseableEvent : RichTypeChecker as RTC,
   -HandleableEvent >: TaskFinished
 ](
    name : String,
@@ -33,11 +33,7 @@ final class TaskResultCatcher[
   end handleDownEvent
 
   private def onTaskFinished(pathToParent : Path, newEvent: Any, event : HandleableEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
-    val eventToRaise = summon[RichTypeChecker[RaiseableEvent]].tryCast(newEvent, "Event type mismatch")
-    for
-      _ <- summon[RaiseEvent[Update]].raise(eventToRaise)
-      res <- child.handleDownEvent(pathToParent, event)
-    yield res
+    RE.raise(RTC.tryCast(newEvent, "Event type mismatch")) *> child.handleDownEvent(pathToParent, event)
   end onTaskFinished
 
   override def aliveWidgets(currentPath: Path): Set[Path] =

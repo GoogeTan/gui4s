@@ -7,7 +7,7 @@ import cats.*
 import cats.syntax.all.*
 
 def statefulWidget[
-  Update[+_, +_] : BiMonad : CatchEvents,
+  Update[+_, +_] : {BiMonad, CatchEvents},
   Draw : StatefulDraw,
   Place[+_] : FlatMap,
   Recomposition,
@@ -32,7 +32,7 @@ def statefulWidget[
 end statefulWidget
 
 def statefulWidget[
-  Update[+_, +_] : BiMonad : CatchEvents,
+  Update[+_, +_] : {BiMonad, CatchEvents},
   Draw : StatefulDraw,
   Place[+_] : FlatMap,
   Recomposition,

@@ -1,22 +1,22 @@
 package me.katze.gui4s.widget
-package library
 
+import library.{Empty, TextDraw, TextPlacement}
 import stateful.{BiMonad, CatchEvents}
 
 import cats.FlatMap
 import cats.syntax.all.*
 
-def labelWidget[
-  Update[+_, +_] : BiMonad : CatchEvents,
+def textWidget[
+  Update[+_, +_] : {BiMonad, CatchEvents},
   Draw,
   Place[+_] : FlatMap,
   LeftComposition : Empty,
-  LabelPlacementMeta,
+  TextPlacementMeta,
   TextStyle
 ]
     (using
-        textDraw : LabelDraw[Draw, LabelPlacementMeta],
-        textIsPlaceable : TextPlacement[Place[LabelPlacementMeta], TextStyle])
+      textDraw : TextDraw[Draw, TextPlacementMeta],
+      textIsPlaceable : TextPlacement[Place[TextPlacementMeta], TextStyle])
     (
       drawOnlyWidget : (Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]], Draw) => Widget[Update, Draw, Place, LeftComposition, Nothing, Any],
       text : String, 
@@ -24,5 +24,5 @@ def labelWidget[
     ) : Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]] =
   textIsPlaceable.sizeText(text, style).map:
     placementMetadata =>
-      drawOnlyWidget(labelWidget(drawOnlyWidget, text, style), textDraw.drawString(text, placementMetadata))
-end labelWidget
+      drawOnlyWidget(textWidget(drawOnlyWidget, text, style), textDraw.drawString(text, placementMetadata))
+end textWidget

@@ -7,13 +7,13 @@ import impl.{*, given}
 
 import cats.Monoid
 import cats.effect.IO
-import me.katze.gui4s.widget.library.{LabelDraw, LayoutDraw}
+import me.katze.gui4s.widget.library.{TextDraw, LayoutDraw}
 
 given swingLayoutDraw[Draw : Monoid, MeasurementUnit : Numeric]: LayoutDraw[SwingDraw[IO, MeasurementUnit, Unit], LayoutPlacementMeta[MeasurementUnit]] =
   ???//layoutDrawImpl[SwingDrawT[IO, MeasurementUnit], MeasurementUnit]
 end swingLayoutDraw
 
-given swingTextDraw[MeasurementUnit](using api : SimpleDrawApi[MeasurementUnit, SwingDraw[IO, MeasurementUnit, Unit]]): LabelDraw[SwingDraw[IO, MeasurementUnit, Unit], LayoutPlacementMeta[MeasurementUnit]] =
+given swingTextDraw[MeasurementUnit](using api : SimpleDrawApi[MeasurementUnit, SwingDraw[IO, MeasurementUnit, Unit]]): TextDraw[SwingDraw[IO, MeasurementUnit, Unit], LayoutPlacementMeta[MeasurementUnit]] =
   (text, meta) =>
     api.text(meta.x, meta.y, text, TextStyle(18, 0, 400))
 end swingTextDraw
