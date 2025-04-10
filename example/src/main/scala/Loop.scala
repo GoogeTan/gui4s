@@ -4,20 +4,29 @@ import update.*
 
 import cats.effect.std.Queue
 import cats.effect.syntax.all.*
-import cats.effect.{Concurrent, ExitCode, Ref}
+import cats.effect.{Async, Concurrent, ExitCode, Ref}
 import cats.syntax.all.given
 import cats.{Monad, MonadError}
+
+import scala.concurrent.ExecutionContext
 
 /**
  * Принимает способ получить нынешнее дерево виджетов и возвращает бесконечный цикл отрисовки. Завершается только в случае ошибки.
  */
-type DrawLoop[F[+_], -Widget] = F[Widget] => F[ExitCode]
+type DrawLoop[F[_], -Widget] = F[Widget] => F[ExitCode]
 
+def runDrawLoopOn[F[_]: Async, W](loop : DrawLoop[F, W], context : ExecutionContext) : DrawLoop[F, W] =
+  w => loop(w).evalOn(context)
+end runDrawLoopOn
 
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).
  */
 type UpdateLoop[F[+_], Widget[_, _], UpEvent, DownEvent] = (Widget[UpEvent, DownEvent], Widget[UpEvent, DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
+
+def runUpdateLoopOn[F[_]: Async, W[_, _], U, D](loop : UpdateLoop[F, W, U, D], context : ExecutionContext) : UpdateLoop[F, W, U, D] =
+  (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
+end runUpdateLoopOn
 
 /**
  * Каррированная версия MonadError.
@@ -86,9 +95,9 @@ def updateLoop[
               ](
                 runUpdate  : [A] => Update[A, UpEvent] => F[Either[ExitCode, A]]
               )(
-                  initial: PlacedWidget,
-                  pushNew: PlacedWidget => F[Unit],
-                  nextEvent: F[DownEvent],
+                initial: PlacedWidget,
+                pushNew: PlacedWidget => F[Unit],
+                nextEvent: F[DownEvent],
               ) : F[ExitCode] =
   Monad[F].tailRecM(initial)(
     updateStep(_, nextEvent, runUpdate) >>= doIfLeft(pushNew)

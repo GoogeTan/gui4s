@@ -4,7 +4,6 @@ package stateful
 import cats.Monad
 
 import scala.annotation.targetName
-import scala.collection.View.Updated
 
 trait BiMonad[F[+_, +_]]:
   def flatMap_[A, B, C](value : F[A, B])(f: A => F[C, B]): F[C, B]

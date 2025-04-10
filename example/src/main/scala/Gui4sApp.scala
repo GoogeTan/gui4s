@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 
 import api.impl.{HighLevelApiImpl, LayoutPlacement, LayoutPlacementMeta}
-import api.{HighLevelApi, TextWidgetApi, LayoutApi}
+import api.{LayoutApi, TextWidgetApi}
 import draw.*
 import impl.{*, given}
 import place.*
@@ -13,52 +13,47 @@ import cats.effect.std.{Queue, QueueSink}
 import cats.syntax.all.*
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.{TextDraw, LayoutDraw, LiftEventReaction, TextPlacement}
+import me.katze.gui4s.widget.library.{LayoutDraw, LiftEventReaction, TextDraw, TextPlacement}
 import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, Path, RaiseEvent}
 
-trait Gui4sApp[
-  Place[+_] : FlatMap,
-  Update[+_, +_] : {BiMonad, CatchEvents, RaiseEvent},
-  Recomposition : {Monoid},
-  Task[+_],
-  MeasurementUnit : Fractional,
-  Draw : Monoid,
-  TextStyle
+import scala.concurrent.ExecutionContext
+
+def runApplicationLoops[
+  F[+_] : Async,
+  Place[+_],
+  Update[+_, +_],
+  MeasurementUnit,
+  Draw,
+  UpEvent,
+  DownEvent,
+  RootWidget[+A, -B] <: EventConsumer[Update, F[RootWidget[A, B]], A, B] & Drawable[Draw],
 ](
-    val drawApi: QueueSink[IO, DownEvent] => Resource[IO, (
-        IO[Bounds[MeasurementUnit]],
-        DrawLoop[IO, Drawable[Draw]],
-        LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
-        TextDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
+    drawApi: QueueSink[F, DownEvent] => Resource[F, (
+        RunPlacement[F, Place], 
+        DrawLoop[F, Drawable[Draw]], 
+        Place[RootWidget[UpEvent, DownEvent]]
       )
     ],
-    val containerPlacement : LayoutPlacement[Update, Draw, Place, Recomposition, DownEvent, MeasurementUnit],
-    val runPlacement : IO[Bounds[MeasurementUnit]] => RunPlacement[IO, Place],
-    val runRecomposition : Recomposition => IO[Unit],
-    val runUpdate: [A] => Update[A, ApplicationRequest] => IO[Either[ExitCode, A]]
-)(
-  using
-  TextPlacement[Place[LayoutPlacementMeta[MeasurementUnit]], TextStyle],
-  LiftEventReaction[Update, Task[Any]]
-) extends IOApp:
-  def rootWidget[T <: HighLevelApi & LayoutApi[MeasurementUnit] & TextWidgetApi[TextStyle]](using api: T) : api.Widget[ApplicationRequest]
-  
-  final override def run(args: List[String]): IO[ExitCode] =
-    for
-      eventBus <- Queue.unbounded[IO, DownEvent]
-      code <- drawApi(eventBus).use((windowSize, drawLoop, layoutDraw, textDraw) =>
-        given layoutDraw.type = layoutDraw
-        given textDraw.type = textDraw
-        val widgetApi = new HighLevelApiImpl(containerPlacement)
-        given RunPlacement[IO, Place] = runPlacement(windowSize)
-        for
-          rootWidget <- rootWidget[widgetApi.type](using widgetApi).runPlacement
-          widget <- Ref[IO].of(RootWidget(Path(List("ROOT")), rootWidget, runRecomposition))
-          code <- applicationLoop(eventBus, widget, drawLoop, updateLoop(runUpdate)).flatMap(_.join)
-        yield code
-      )
-    yield code
-  end run
-end Gui4sApp
-
-
+    updateLoopExecutionContext : ExecutionContext,
+    runUpdate: [A] => Update[A, UpEvent] => F[Either[ExitCode, A]]
+) : F[ExitCode] =
+  for
+    eventBus <- Queue.unbounded[F, DownEvent]
+    code <- drawApi(eventBus).use((runPlacement, drawLoop, freeRootWidget) =>
+      given runPlacement.type = runPlacement
+      for
+        rootWidget <- freeRootWidget.runPlacement
+        widgetCell <- Ref[F].of(rootWidget)
+        code <- applicationLoop(
+          eventBus,
+          widgetCell,
+          drawLoop,
+          runUpdateLoopOn(
+            updateLoop(runUpdate),
+            updateLoopExecutionContext
+          )
+        ).flatMap(_.join)
+      yield code
+    )
+  yield code
+end runApplicationLoops

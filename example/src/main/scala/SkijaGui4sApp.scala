@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 
 import draw.*
-import draw.skija.*
+import draw.skija.{SkijaSimpleDrawApi, *}
 import impl.{ENErrors, WindowResized, containerPlacementCurried}
 import place.RunPlacement
 import task.{EventProducingEffectT, RunnableIO}
@@ -15,22 +15,49 @@ import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.cats.effect.{IOImpure, given}
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
+import me.katze.gui4s.widget.stateful.TaskFinished
 import me.katze.gui4s.widget.{EventResult, given}
 
-@SuppressWarnings(Array("org.wartremover.warts.Any"))
-abstract class SkijaGui4sApp extends Gui4sApp[MeasurableT[IO, Float], Update[Task[Any]], Recomposition, Task, Float, SkijaDraw[IO, OglWindow], Any](
-  queue => 
-    SkijaSimpleDrawApi.createForTests.map((api, glfw, window, rt, shaper) =>
+import scala.concurrent.ExecutionContext
+
+def skijaApp(
+              updateLoopExecutionContext : ExecutionContext,
+              drawLoopExecutionContext: ExecutionContext,
+            ) =
+  runApplicationLoops[
+    IO,
+    MeasurableT[IO, Float], 
+    Update[Task[Any]],
+    Float, 
+    SkijaDraw[IO, OglWindow],
+    ApplicationRequest,
+    TaskFinished,
+    [A, B] =>> RootWidget[
+      IO,
+      SkijaDraw[IO, OglWindow],
+      MeasurableT[IO, Float],
+      Update[Task[Any]],
+      Recomposition,
+      A,
+      B,
+    ]
+  ](
+    downEventSink => SkijaSimpleDrawApi.createForTests.map((simpleDrawApi, glfw, window, rt, shaper) =>
       (
-        glfw.windowSize(window).map(a => new Bounds(a.width, a.height)),
-        simpleGraphicsDrawLoop[IO, Float, SkijaDraw[IO, OglWindow]](api, draw => draw.run(SkijaDrawState(rt.directContext, window, rt.canvas, shaper))),
+        MeasurableRunPlacement(glfw.windowSize(window).map(a => new Bounds(a.width, a.height))),
+        runDrawLoopOn(
+          simpleGraphicsDrawLoop[IO, Float, SkijaDraw[IO, OglWindow]](
+            simpleDrawApi, 
+            draw => draw.run(SkijaDrawState(rt.directContext, window, rt.canvas, shaper))
+          ),
+          drawLoopExecutionContext
+        ),
         ???,
-        ???
       )
     ),
-  containerPlacementCurried(ENErrors),
-  MeasurableRunPlacement(_),
-  a => a,
-  [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO]
-)
+    updateLoopExecutionContext,
+    [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+  )
+end skijaApp
+
 

@@ -8,9 +8,9 @@ import me.katze.gui4s.example.draw.{DrawApi, SimpleDrawApi}
 
 import scala.math.Numeric.Implicits.*
 
-final case class SwingDrawState[F, MU](x : MU, y : MU)
+final case class SwingDrawState[MU](x : MU, y : MU)
 
-type SwingDraw[F[_], MeasurementUnit, T] = ReaderT[F, SwingDrawState[F[Unit], MeasurementUnit], T]
+type SwingDraw[F[_], MeasurementUnit, T] = ReaderT[F, SwingDrawState[MeasurementUnit], T]
 type SwingDrawT[F[_], MeasurementUnit] = [T] =>> SwingDraw[F, MeasurementUnit, T]
 
 def runSwingDraw[F[+_], MeasurementUnit : Numeric](draw: SwingDraw[F, MeasurementUnit, Unit]): F[Unit] =
@@ -18,7 +18,7 @@ def runSwingDraw[F[+_], MeasurementUnit : Numeric](draw: SwingDraw[F, Measuremen
 end runSwingDraw
 
 given [F[+_], MeasurementUnit: Numeric] : DrawMonad[SwingDraw[F, MeasurementUnit, Unit], MeasurementUnit] with
-  override def move[T](dx: MeasurementUnit, dy: MeasurementUnit, effect: SwingDraw[F, MeasurementUnit, Unit]): SwingDraw[F, MeasurementUnit, Unit] =
+  override def move(dx: MeasurementUnit, dy: MeasurementUnit, effect: SwingDraw[F, MeasurementUnit, Unit]): SwingDraw[F, MeasurementUnit, Unit] =
     ReaderT.apply((s) => effect.run(s.copy(x = s.x + dx, y = s.y + dy)))
   end move
 end given

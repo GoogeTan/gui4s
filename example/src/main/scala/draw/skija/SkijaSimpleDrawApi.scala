@@ -25,7 +25,7 @@ final case class SkijaDrawState[+Window](context : DirectContext, window : Windo
 type SkijaDraw[F[_], +W] = ReaderT[F, SkijaDrawState[W], Unit]
 
 given [F[_] : {Impure, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] with
-  override def move[T](dx: Float, dy: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
+  override def move(dx: Float, dy: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
     ReaderT[F, SkijaDrawState[Window], Unit].apply(
       state =>
         TestFuncs[F].moveAndBack(state.canvas, dx, dy, effect.run(state))
@@ -33,7 +33,7 @@ given [F[_] : {Impure, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] w
 end given
 
 given[F[_] : Applicative, W]: Monoid[SkijaDraw[F, W]] with
-  override def empty: SkijaDraw[F, W] = ReaderT.pure(())
+  override def empty: SkijaDraw[F, W] = ReaderT.pure[F, SkijaDrawState[W], Unit](())
 
   override def combine(x: SkijaDraw[F, W], y: SkijaDraw[F, W]): SkijaDraw[F, W] =
     ReaderT[F, SkijaDrawState[W], Unit]:

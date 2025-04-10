@@ -12,14 +12,15 @@ import scala.swing.Font
 
 final class SwingSimpleDrawApi[
   F[_],
-  Draw[_],
+  Draw,
   MeasurementUnit : Numeric
 ](
   canvas: SwingWindowComponent,
-  impure: Impure[F]
-)(using lift : Lift[F, Draw, SwingDrawState[F[Unit], MeasurementUnit]]) extends SimpleDrawApi[MeasurementUnit, Draw[Unit]]:
-  override def rectangle(x: MeasurementUnit, y: MeasurementUnit, width: MeasurementUnit, height: MeasurementUnit, color : Int): Draw[Unit] =
-    lift.lift(state =>
+  impure: Impure[F],
+  lift : (SwingDrawState[MeasurementUnit] => F[Unit]) => Draw
+) extends SimpleDrawApi[MeasurementUnit, Draw]:
+  override def rectangle(x: MeasurementUnit, y: MeasurementUnit, width: MeasurementUnit, height: MeasurementUnit, color : Int): Draw =
+    lift(state =>
       impure.impure:
         canvas.graphics.setColor(Color(color))
         canvas.graphics.fillRect((state.x + x).toInt, (state.y + y).toInt, width.toInt, height.toInt)
@@ -27,8 +28,8 @@ final class SwingSimpleDrawApi[
   end rectangle
   
   
-  override def text(x: MeasurementUnit, y: MeasurementUnit, text: String, style: TextStyle): Draw[Unit] =
-    lift.lift(state =>
+  override def text(x: MeasurementUnit, y: MeasurementUnit, text: String, style: TextStyle): Draw =
+    lift(state =>
       impure.impure:
         val font = Font("Comis Sans MS", Font.Plain, style.size)
         canvas.graphics.setColor(Color(style.color))
@@ -38,15 +39,15 @@ final class SwingSimpleDrawApi[
     )
   end text
   
-  override def endDraw: Draw[Unit] =
-    lift.lift(_ =>
+  override def endDraw: Draw =
+    lift(_ =>
       impure.impure:
         canvas.repaint()
     )
   end endDraw
   
-  override def beginDraw: Draw[Unit] =
-    lift.lift(_ =>
+  override def beginDraw: Draw =
+    lift(_ =>
       impure.impure:
         canvas.setImage(new BufferedImage(canvas.getWidth, canvas.getHeight, BufferedImage.TYPE_INT_ARGB))
     )

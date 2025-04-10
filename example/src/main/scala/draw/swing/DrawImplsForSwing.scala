@@ -10,7 +10,7 @@ import cats.effect.IO
 import me.katze.gui4s.widget.library.{TextDraw, LayoutDraw}
 
 given swingLayoutDraw[Draw : Monoid, MeasurementUnit : Numeric]: LayoutDraw[SwingDraw[IO, MeasurementUnit, Unit], LayoutPlacementMeta[MeasurementUnit]] =
-  ???//layoutDrawImpl[SwingDrawT[IO, MeasurementUnit], MeasurementUnit]
+  layoutDrawImpl[SwingDraw[IO, MeasurementUnit, Unit], MeasurementUnit]
 end swingLayoutDraw
 
 given swingTextDraw[MeasurementUnit](using api : SimpleDrawApi[MeasurementUnit, SwingDraw[IO, MeasurementUnit, Unit]]): TextDraw[SwingDraw[IO, MeasurementUnit, Unit], LayoutPlacementMeta[MeasurementUnit]] =

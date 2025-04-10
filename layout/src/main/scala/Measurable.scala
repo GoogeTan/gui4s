@@ -5,8 +5,6 @@ import bound.Bounds
 import cats.*
 import cats.syntax.all.*
 
-import scala.annotation.tailrec
-
 type MeasurableT[F[+_], MeasurementUnit] = [T] =>> Measurable[F, MeasurementUnit, T]
 
 type Measurable[+F[+_], MeasurementUnit, +T] = Bounds[MeasurementUnit] =>  F[Sized[MeasurementUnit, T]]

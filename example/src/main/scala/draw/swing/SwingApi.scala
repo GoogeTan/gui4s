@@ -20,9 +20,8 @@ def SwingApi[
             ](
               impure: Impure[F], 
               onResized : F[Unit],
-              
+              lift : (SwingDrawState[MeasurementUnit] => F[Unit]) => Draw
             ): Resource[F, DrawApi[F, MeasurementUnit, Draw]] =
-  /*
   for
     dispatcher <- Dispatcher.sequential[F]
     component <- initResource(dispatcher, impure, onResized)
@@ -32,8 +31,8 @@ def SwingApi[
         Numeric[MeasurementUnit].fromInt(component.getWidth),
         Numeric[MeasurementUnit].fromInt(component.getHeight)
       ),
-    new SwingSimpleDrawApi(component, impure)
-  )*/???
+    new SwingSimpleDrawApi(component, impure, lift)
+  )
 end SwingApi
 
 def initResource[F[_], MeasurementUnit : Numeric](dispatcher: Dispatcher[F], impure: Impure[F], onResized : F[Unit]) : Resource[F, SwingWindowComponent] =

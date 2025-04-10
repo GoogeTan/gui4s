@@ -3,9 +3,7 @@ package api
 
 import me.katze.gui4s.widget.stateful.{EventReaction, RichTypeChecker}
 
-trait StatefulApi extends HighLevelApi:
-  type Recomposition
-
+trait StatefulApi[Widget[_], WidgetTask[_], Recomposition]:
   def stateful[T: Equiv, ParentEvent, ChildEvent](
                                                     name        : String,
                                                     initialState: T,
