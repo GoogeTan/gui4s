@@ -15,7 +15,7 @@ import me.katze.gui4s.widget.library.TextPlacement
 final case class SkijaTextStyle(font: Font, paint: Paint)
 final case class SkijaPlacedText(textBlob: TextBlob, paint: Paint)
 
-given skijaTextPlacement[F[_] : Impure as I]: TextPlacement[Shaper, SkijaTextStyle, Measurable[F, Float, SkijaPlacedText]] with
+given skijaTextPlacement[F[+_] : Impure as I]: TextPlacement[Shaper, SkijaTextStyle, Measurable[F, Float, SkijaPlacedText]] with
   override def sizeText(text: String, shaper : Shaper, options: SkijaTextStyle):  Measurable[F, Float, SkijaPlacedText] =
     bounds =>
       I:

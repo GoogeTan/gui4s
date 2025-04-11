@@ -7,7 +7,7 @@ import me.katze.gui4s.layout.{Measurable, MeasurableT}
 import me.katze.gui4s.layout.bound.Bounds
 import cats.syntax.all.*
 
-final class MeasurableRunPlacement[F[_] : Monad, G[_], MeasurementUnit : Numeric](
+final class MeasurableRunPlacement[F[_] : Monad, G[+_], MeasurementUnit : Numeric](
                                                                                     bounds: F[Bounds[MeasurementUnit]]
                                                                                   )(
                                                                                       using I : InjectK[G, F]

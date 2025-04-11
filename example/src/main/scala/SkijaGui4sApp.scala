@@ -15,12 +15,22 @@ import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.cats.effect.{IOImpure, given}
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
-import me.katze.gui4s.widget.stateful.TaskFinished
-import me.katze.gui4s.widget.{EventResult, given}
+import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
+import me.katze.gui4s.widget.{EventResult, Widget, given}
 
 import scala.concurrent.ExecutionContext
 
 def skijaApp(
+              widget : SkijaBackend[IO] => Measurable[IO, Float,
+                Widget[
+                  Update[Task[Any]],
+                  SkijaDraw[IO, OglWindow],
+                  MeasurableT[IO, Float],
+                  IO[Unit],
+                  ApplicationRequest,
+                  TaskFinished
+                ]
+              ],
               updateLoopExecutionContext : ExecutionContext,
               drawLoopExecutionContext: ExecutionContext,
             ) =
@@ -44,12 +54,34 @@ def skijaApp(
       drawLoopExecutionContext
     ),
     backend => runUpdateLoopOn(
-      updateLoop(
+      updateLoop[
+        IO,
+        Update[Task[Any]], 
+        RootWidget[IO, SkijaDraw[IO, OglWindow], MeasurableT[IO, Float], Update[Task[Any]], IO[Unit], ApplicationRequest, TaskFinished],
+        ApplicationRequest,
+        TaskFinished
+      ](
         [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
       ),
       updateLoopExecutionContext
     ),
-    backend => ???
+    backend =>
+      given RunPlacement[IO, MeasurableT[IO, Float]] = MeasurableRunPlacement(backend.windowBounds)
+      widget(backend).map(widget =>
+        RootWidget[
+          IO,
+          SkijaDraw[IO, OglWindow],
+          MeasurableT[IO, Float],
+          Update[Task[Any]],
+          Recomposition,
+          ApplicationRequest,
+          TaskFinished,
+        ](
+          Path(List("ROOT")),
+          widget,
+          identity
+        )
+      ).runPlacement
   )
 end skijaApp
 

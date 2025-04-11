@@ -22,11 +22,12 @@ import io.github.humbleui.skija.{Canvas, DirectContext, Font, Paint, Typeface}
 import io.github.humbleui.types.Rect
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
+import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.TestFuncs
 
-final case class SkijaDrawState[F[_], +Window](context : DirectContext, glfw: Glfw[F, Window], window : Window, canvas : Canvas)
+final case class SkijaDrawState[F[_], Window](context : DirectContext, glfw: Glfw[F, Window], window : Window, canvas : Canvas)
 
-type SkijaDraw[F[_], +Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
+type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 
 given [F[_] : {Impure, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] with
   override def move(dx: Float, dy: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
@@ -68,7 +69,11 @@ final case class SkijaBackend[F[_]](
                                       glfw : Glfw[F, OglWindow],
                                       window: OglWindow,
                                       renderTarget : SkiaRenderTarget
-                                    )
+                                    ):
+  def windowBounds(using Functor[F]) : F[Bounds[Float]] =
+    glfw.windowSize(window).map(a => new Bounds(a.width, a.height))
+  end windowBounds
+end SkijaBackend
 
 object SkijaSimpleDrawApi:
   def createForTests[F[+_] : {Impure as I, Async}] : Resource[F, SkijaBackend[F]] =
@@ -83,7 +88,7 @@ object SkijaSimpleDrawApi:
 end SkijaSimpleDrawApi
 
 
-def skijaDrawLoop[F[_] : {Console, Impure}, Window](using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
+def skijaDrawLoop[F[+_] : {Console, Impure}, Window](using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
   currentWidget =>
     drawLoop(drawLoopExceptionHandler)(
       currentWidget.map(widget =>

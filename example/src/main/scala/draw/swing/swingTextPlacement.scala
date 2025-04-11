@@ -8,7 +8,7 @@ import me.katze.gui4s.layout.{Measurable, Sized}
 import me.katze.gui4s.widget.library.TextPlacement
 
 given swingTextPlacement[MeasurementUnit : Fractional]: TextPlacement[Any, Any, Measurable[Id, MeasurementUnit, LayoutPlacementMeta[MeasurementUnit]]] with
-  override def sizeText(text: String, options: Any): Measurable[Id, MeasurementUnit, LayoutPlacementMeta[MeasurementUnit]] =
+  override def sizeText(text: String, shaper : Any, options: Any): Measurable[Id, MeasurementUnit, LayoutPlacementMeta[MeasurementUnit]] =
     _ => Sized(
       LayoutPlacementMeta(
         Fractional[MeasurementUnit].zero, 

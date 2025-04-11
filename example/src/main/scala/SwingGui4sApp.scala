@@ -2,23 +2,16 @@ package me.katze.gui4s.example
 
 import draw.swing.{*, given}
 import draw.{*, given}
-import update.ApplicationRequest
-
-import cats.Id
-import cats.effect.{ExitCode, IO}
-import cats.syntax.all.*
-import impl.{WindowResized, *}
-
-import me.katze.gui4s.example.{*, given}
-import draw.skija.{SkijaDrawState, SkijaSimpleDrawApi}
-import impl.{*, given}
+import impl.{WindowResized, given}
 import place.RunPlacement
 import task.{EventProducingEffectT, RunnableIO}
+import update.ApplicationRequest
 
 import cats.data.ReaderT
-import me.katze.gui4s.glfw.OglWindow
+import cats.effect.{ExitCode, IO}
+import cats.syntax.all.*
+import me.katze.gui4s.example.given
 import me.katze.gui4s.impure.cats.effect.IOImpure
-import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.layout.{MeasurableT, given}
 import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
 import me.katze.gui4s.widget.{EventResult, Widget, given}
@@ -63,7 +56,13 @@ def swingApp(
           drawLoopExecutionContext
         ),
         runUpdateLoopOn(
-          updateLoop(
+          updateLoop[
+            IO,
+            Update[Task[Any]],
+            RootWidget[IO, SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Update[Task[Any]], Recomposition, ApplicationRequest, TaskFinished | WindowResized.type],
+            ApplicationRequest,
+            TaskFinished | WindowResized.type
+          ](
             [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
           ),
           updateLoopExecutionContext

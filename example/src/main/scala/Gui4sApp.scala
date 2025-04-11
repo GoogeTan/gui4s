@@ -45,7 +45,7 @@ def runApplicationLoopsWithBackend[
 end runApplicationLoopsWithBackend
 
 def runApplicationLoops[
-  F[_] : Async,
+  F[+_] : Async,
   DownEvent,
   RootWidget[_],
 ](
