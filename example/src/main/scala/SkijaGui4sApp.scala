@@ -24,7 +24,7 @@ def skijaApp(
               updateLoopExecutionContext : ExecutionContext,
               drawLoopExecutionContext: ExecutionContext,
             ) =
-  runApplicationLoops[
+  runApplicationLoopsWithBackend[
     IO,
     TaskFinished,
     [B] =>> RootWidget[
@@ -35,26 +35,21 @@ def skijaApp(
       Recomposition,
       ApplicationRequest,
       B,
-    ]
+    ],
+    SkijaBackend[IO]
   ](
-    downEventSink => SkijaSimpleDrawApi.createForTests.map(backend =>
-      (
-        runDrawLoopOn(
-          simpleGraphicsDrawLoop[IO, Float, SkijaDraw[IO, OglWindow]](
-            backend.drawApi, 
-            draw => draw.run(SkijaDrawState(backend.renderTarget.directContext, backend.window, backend.renderTarget.canvas))
-          ),
-          drawLoopExecutionContext
-        ),
-        runUpdateLoopOn(
-          updateLoop(
-            [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
-          ),
-          updateLoopExecutionContext
-        ),
-        ???,
-      )
+    downEventSink => SkijaSimpleDrawApi.createForTests,
+    backend => runDrawLoopOn(
+      skijaDrawLoop[IO, OglWindow],
+      drawLoopExecutionContext
     ),
+    backend => runUpdateLoopOn(
+      updateLoop(
+        [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+      ),
+      updateLoopExecutionContext
+    ),
+    backend => ???
   )
 end skijaApp
 

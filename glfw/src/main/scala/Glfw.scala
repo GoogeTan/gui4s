@@ -2,9 +2,7 @@ package me.katze.gui4s.glfw
 
 import cats.effect.Resource
 
-trait Glfw[F[_]]:
-  type Window
-
+trait Glfw[F[_], Window]:
   def createPrintErrorCallback : F[Unit]
   def initGlfw : F[Unit]
   def createWindow(

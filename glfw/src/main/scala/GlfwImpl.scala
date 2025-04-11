@@ -19,9 +19,7 @@ final case class OglWindow(id : Long) // TODO move into a class
 
 final class GlfwImpl[F[_] : {Impure as impure, Sync}](
                                                         unsafeRunF : [A] => F[A] => A,
-                                                      ) extends Glfw[F]:
-
-  override type Window = OglWindow
+                                                      ) extends Glfw[F, OglWindow]:
 
   override def centerWindow(window: OglWindow): F[Unit] =
     windowSize(window).flatMap:
@@ -215,7 +213,7 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
       end if
   end mouseButtonCallback
 
-  override def swapBuffers(window : Window): F[Unit] =
+  override def swapBuffers(window : OglWindow): F[Unit] =
     impure.impure:
       glfwSwapBuffers(window.id)
   end swapBuffers
