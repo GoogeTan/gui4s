@@ -18,40 +18,55 @@ import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, Path, RaiseEvent}
 
 import scala.concurrent.ExecutionContext
 
-def runApplicationLoops[
+def runApplicationLoopsWithBackend[
   F[+_] : Async,
-  Place[+_],
-  Update[+_, +_],
-  MeasurementUnit,
-  Draw,
-  UpEvent,
   DownEvent,
-  RootWidget[+A, -B] <: EventConsumer[Update, F[RootWidget[A, B]], A, B] & Drawable[Draw],
+  RootWidget[_],
+  Backend
 ](
-    drawApi: QueueSink[F, DownEvent] => Resource[F, (
-        RunPlacement[F, Place], 
-        DrawLoop[F, Drawable[Draw]], 
-        Place[RootWidget[UpEvent, DownEvent]]
+    backend : QueueSink[F, DownEvent] => Resource[F, Backend],
+    drawLoop : Backend => DrawLoop[F, RootWidget[DownEvent]],
+    updateLoop : Backend => UpdateLoop[F, RootWidget, DownEvent],
+    rootWidget : Backend => F[RootWidget[DownEvent]]
+) : F[ExitCode] =
+  runApplicationLoops[
+    F,
+    DownEvent,
+    RootWidget
+  ](
+    sink => backend(sink).map(state =>
+      (
+        drawLoop(state),
+        updateLoop(state),
+        rootWidget(state)
       )
-    ],
-    updateLoopExecutionContext : ExecutionContext,
-    runUpdate: [A] => Update[A, UpEvent] => F[Either[ExitCode, A]]
+    )
+  )
+end runApplicationLoopsWithBackend
+
+def runApplicationLoops[
+  F[_] : Async,
+  DownEvent,
+  RootWidget[_],
+](
+  loops: QueueSink[F, DownEvent] => Resource[F, (
+      DrawLoop[F, RootWidget[DownEvent]],
+      UpdateLoop[F, RootWidget, DownEvent],
+      F[RootWidget[DownEvent]],
+    )
+  ],
 ) : F[ExitCode] =
   for
     eventBus <- Queue.unbounded[F, DownEvent]
-    code <- drawApi(eventBus).use((runPlacement, drawLoop, freeRootWidget) =>
-      given runPlacement.type = runPlacement
+    code <- loops(eventBus).use((drawLoop, updateLoop, freeRootWidget) =>
       for
-        rootWidget <- freeRootWidget.runPlacement
+        rootWidget <- freeRootWidget
         widgetCell <- Ref[F].of(rootWidget)
         code <- applicationLoop(
           eventBus,
           widgetCell,
           drawLoop,
-          runUpdateLoopOn(
-            updateLoop(runUpdate),
-            updateLoopExecutionContext
-          )
+          updateLoop,
         ).flatMap(_.join)
       yield code
     )

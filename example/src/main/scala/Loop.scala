@@ -15,16 +15,16 @@ import scala.concurrent.ExecutionContext
  */
 type DrawLoop[F[_], -Widget] = F[Widget] => F[ExitCode]
 
-def runDrawLoopOn[F[_]: Async, W](loop : DrawLoop[F, W], context : ExecutionContext) : DrawLoop[F, W] =
+def runDrawLoopOn[F[_]: Async, Widget](loop : DrawLoop[F, Widget], context : ExecutionContext) : DrawLoop[F, Widget] =
   w => loop(w).evalOn(context)
 end runDrawLoopOn
 
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).
  */
-type UpdateLoop[F[+_], Widget[_, _], UpEvent, DownEvent] = (Widget[UpEvent, DownEvent], Widget[UpEvent, DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
+type UpdateLoop[F[+_], -Widget[_], +DownEvent] = (Widget[DownEvent], Widget[DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
 
-def runUpdateLoopOn[F[_]: Async, W[_, _], U, D](loop : UpdateLoop[F, W, U, D], context : ExecutionContext) : UpdateLoop[F, W, U, D] =
+def runUpdateLoopOn[F[_]: Async, Widget[_], HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
   (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
 end runUpdateLoopOn
 
@@ -38,14 +38,13 @@ type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
  */
 def applicationLoop[
   F[+_] : Concurrent, 
-  UpEvent,
   DownEvent, 
-  Widget[_, _]
+  Widget[_]
 ](
     eventBus     : Queue[F, DownEvent],
-    widgetCell   : Ref[F, Widget[UpEvent, DownEvent]],
-    drawLoop     : DrawLoop[F, Widget[UpEvent, DownEvent]],
-    updateLoop   : UpdateLoop[F, Widget, UpEvent, DownEvent]
+    widgetCell   : Ref[F, Widget[DownEvent]],
+    drawLoop     : DrawLoop[F, Widget[DownEvent]],
+    updateLoop   : UpdateLoop[F, Widget, DownEvent]
 ): F[ApplicationControl[F, DownEvent]] =
   for
     initialWidget <- widgetCell.get

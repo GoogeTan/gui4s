@@ -12,17 +12,19 @@ def textWidget[
   Place[+_] : FlatMap,
   LeftComposition : Empty,
   TextPlacementMeta,
-  TextStyle
+  TextStyle,
+  Shaper,
 ]
     (using
       textDraw : TextDraw[Draw, TextPlacementMeta],
-      textIsPlaceable : TextPlacement[Place[TextPlacementMeta], TextStyle])
+      textIsPlaceable : TextPlacement[Shaper, TextStyle, Place[TextPlacementMeta]])
     (
       drawOnlyWidget : (Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]], Draw) => Widget[Update, Draw, Place, LeftComposition, Nothing, Any],
-      text : String, 
+      text : String,
+      shaper : Shaper,
       style : TextStyle
     ) : Place[Widget[Update, Draw, Place, LeftComposition, Nothing, Any]] =
-  textIsPlaceable.sizeText(text, style).map:
+  textIsPlaceable.sizeText(text, shaper, style).map:
     placementMetadata =>
-      drawOnlyWidget(textWidget(drawOnlyWidget, text, style), textDraw.drawString(text, placementMetadata))
+      drawOnlyWidget(textWidget(drawOnlyWidget, text, shaper, style), textDraw.drawString(text, placementMetadata))
 end textWidget

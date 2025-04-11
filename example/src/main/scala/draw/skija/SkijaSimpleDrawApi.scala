@@ -15,12 +15,12 @@ import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Canvas, DirectContext, Font, Paint, Typeface}
 import io.github.humbleui.types.Rect
 import me.katze.gui4s.example.api.impl.DrawMonad
-import me.katze.gui4s.glfw.*
+import me.katze.gui4s.glfw.{Glfw, *}
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.skija.TestFuncs
 import cats.syntax.all.*
 
-final case class SkijaDrawState[+Window](context : DirectContext, window : Window, canvas : Canvas, shaper: Shaper)
+final case class SkijaDrawState[+Window](context : DirectContext, window : Window, canvas : Canvas)
 
 type SkijaDraw[F[_], +W] = ReaderT[F, SkijaDrawState[W], Unit]
 
@@ -58,7 +58,7 @@ final case class SkijaSimpleDrawApi[F[_] : {Impure as I, Monad as M}, W](G : Glf
     ReaderT[F, SkijaDrawState[G.Window], Unit](state =>
       I:
         val font = new Font(Typeface.makeDefault())
-        val blob = state.shaper.shape(text, font.setSize(style.size))
+        val blob = ??? // state.shaper.shape(text, font.setSize(style.size))
         state.canvas.drawTextBlob(blob, x, y, new Paint().setColor(style.color))
         ()
     )
@@ -73,16 +73,22 @@ final case class SkijaSimpleDrawApi[F[_] : {Impure as I, Monad as M}, W](G : Glf
   end rectangle
 end SkijaSimpleDrawApi
 
+final case class SkijaBackend[F[_]](
+                                      drawApi : SimpleDrawApi[Float, ReaderT[F, SkijaDrawState[OglWindow], Unit]],
+                                      glfw : Glfw[F] {type Window = OglWindow},
+                                      window: OglWindow,
+                                      renderTarget : SkiaRenderTarget 
+                                    )
+
 object SkijaSimpleDrawApi:
-  def createForTests[F[+_] : {Impure as I, Async}] : Resource[F, (SimpleDrawApi[Float, ReaderT[F, SkijaDrawState[OglWindow], Unit]], Glfw[F] {type Window = OglWindow}, OglWindow, SkiaRenderTarget, Shaper)] =
+  def createForTests[F[+_] : {Impure as I, Async}] : Resource[F, SkijaBackend[F]] =
     for
       dispatcher <- Dispatcher.sequential[F]
       glfw = GlfwImpl[F]([T] => (value : F[T]) => dispatcher.unsafeRunSync(value))
       dpi <- effect.Resource.eval(glfw.monitorScale(0))
       rt <- Skia.initSkia(500, 500, dpi._1)
       window <- glfw.createWindow("Test", Size(500, 500), true, true, true)
-      shaper <- Resource.fromAutoCloseable(I(Shaper.make()))
-    yield (new SkijaSimpleDrawApi(glfw), glfw, window, rt, shaper)
+    yield SkijaBackend(new SkijaSimpleDrawApi(glfw), glfw, window, rt)
   end createForTests
 end SkijaSimpleDrawApi
     

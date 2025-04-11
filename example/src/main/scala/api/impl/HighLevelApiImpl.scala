@@ -23,11 +23,12 @@ type LayoutPlacementGeneralized[Place[_], MeasurementUnit, W[_]] =
 final class HighLevelApiImpl[
   Update[+_, +_]: {BiMonad, CatchEvents, RaiseEvent},
   Draw : Monoid,
-  Place[+_] : {TextPlacementT[LayoutPlacementMeta[MeasurementUnit], TextStyle], FlatMap},
+  Place[+_] : {TextPlacementT[Shaper, TextStyle, LayoutPlacementMeta[MeasurementUnit]], FlatMap},
   Recomposition : {Monoid},
   WidgetTask[+_],
   MeasurementUnit,
   -TextStyle,
+  -Shaper,
   SystemEvent >: TaskFinished
 ](
     using
@@ -36,14 +37,14 @@ final class HighLevelApiImpl[
       TextDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
 )(
     val placement : LayoutPlacement[Update, Draw, Place, Recomposition, SystemEvent, MeasurementUnit]
-) extends TextWidgetApi[Place[widget.Widget[Update, Draw, Place, Recomposition, Nothing, SystemEvent]], TextStyle]
+) extends TextWidgetApi[Place[widget.Widget[Update, Draw, Place, Recomposition, Nothing, SystemEvent]], Shaper, TextStyle]
       with StatefulApi[[Event] =>> Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]], WidgetTask, Recomposition]
       with LayoutApi[[Event] =>> Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]], MeasurementUnit]:
 
   type Widget[+Event] = Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]
 
-  override def text(text: String, style : TextStyle): Widget[Nothing] =
-    textWidget(drawOnlyWidget, text, style)
+  override def text(text: String, shaper : Shaper, style : TextStyle): Widget[Nothing] =
+    textWidget(drawOnlyWidget, text, shaper, style)
   end text
   
   override def stateful[T: Equiv, ParentEvent, ChildEvent](

@@ -38,19 +38,14 @@ def swingApp(
             ) : IO[ExitCode] =
   runApplicationLoops[
     IO,
-    MeasurableT[IO, Float],
-    Update[Task[Any]],
-    Float,
-    SwingDraw[IO, Float, Unit],
-    ApplicationRequest,
     TaskFinished | WindowResized.type,
-    [A, B] =>> RootWidget[
+    [B] =>> RootWidget[
       IO,
       SwingDraw[IO, Float, Unit],
       MeasurableT[IO, Float],
       Update[Task[Any]],
       Recomposition,
-      A,
+      ApplicationRequest,
       B,
     ]
   ](
@@ -63,29 +58,24 @@ def swingApp(
       //swingLayoutDraw[SwingDraw[IO, Float, Unit], Float],
       //swingTextDraw(using api.graphics)
       (
-        rp,
         runDrawLoopOn(
           simpleGraphicsDrawLoop[IO, Float, SwingDraw[IO, Float, Unit]](api.graphics, runSwingDraw),
           drawLoopExecutionContext
         ),
-        rootWidget.map(wt =>
-            RootWidget[
-            IO,
-            SwingDraw[IO, Float, Unit],
-            MeasurableT[IO, Float],
-            Update[Task[Any]],
-            Recomposition,
-            ApplicationRequest,
-            TaskFinished | WindowResized.type,
-          ](
-              Path(List("ROOT")),
-              wt,
-              a => a *> IO.unit
-          )
-        )
+        runUpdateLoopOn(
+          updateLoop(
+            [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+          ),
+          updateLoopExecutionContext
         ),
+        rootWidget.map(wt =>
+          RootWidget(
+            Path(List("ROOT")),
+            wt,
+            identity
+          )
+        ).runPlacement,
+      ),
     ),
-    updateLoopExecutionContext,
-    [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
   )
 end swingApp

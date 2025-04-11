@@ -26,37 +26,35 @@ def skijaApp(
             ) =
   runApplicationLoops[
     IO,
-    MeasurableT[IO, Float], 
-    Update[Task[Any]],
-    Float, 
-    SkijaDraw[IO, OglWindow],
-    ApplicationRequest,
     TaskFinished,
-    [A, B] =>> RootWidget[
+    [B] =>> RootWidget[
       IO,
       SkijaDraw[IO, OglWindow],
       MeasurableT[IO, Float],
       Update[Task[Any]],
       Recomposition,
-      A,
+      ApplicationRequest,
       B,
     ]
   ](
-    downEventSink => SkijaSimpleDrawApi.createForTests.map((simpleDrawApi, glfw, window, rt, shaper) =>
+    downEventSink => SkijaSimpleDrawApi.createForTests.map(backend =>
       (
-        MeasurableRunPlacement(glfw.windowSize(window).map(a => new Bounds(a.width, a.height))),
         runDrawLoopOn(
           simpleGraphicsDrawLoop[IO, Float, SkijaDraw[IO, OglWindow]](
-            simpleDrawApi, 
-            draw => draw.run(SkijaDrawState(rt.directContext, window, rt.canvas, shaper))
+            backend.drawApi, 
+            draw => draw.run(SkijaDrawState(backend.renderTarget.directContext, backend.window, backend.renderTarget.canvas))
           ),
           drawLoopExecutionContext
+        ),
+        runUpdateLoopOn(
+          updateLoop(
+            [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+          ),
+          updateLoopExecutionContext
         ),
         ???,
       )
     ),
-    updateLoopExecutionContext,
-    [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
   )
 end skijaApp
 
