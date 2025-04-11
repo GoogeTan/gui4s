@@ -26,7 +26,7 @@ def skijaApp(
                   Update[Task[Any]],
                   SkijaDraw[IO, OglWindow],
                   MeasurableT[IO, Float],
-                  IO[Unit],
+                  Recomposition,
                   ApplicationRequest,
                   TaskFinished
                 ]
