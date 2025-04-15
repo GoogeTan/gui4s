@@ -15,7 +15,7 @@ import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.cats.effect.{IOImpure, given}
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
-import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
+import me.katze.gui4s.widget.stateful.{Path, TaskFinished, given}
 import me.katze.gui4s.widget.{EventResult, Widget, given}
 
 import scala.concurrent.ExecutionContext
@@ -23,11 +23,10 @@ import scala.concurrent.ExecutionContext
 def skijaApp(
               widget : SkijaBackend[IO] => Measurable[IO, Float,
                 Widget[
-                  Update[Task[Any]],
+                  Update[Task[Any], ApplicationRequest],
                   SkijaDraw[IO, OglWindow],
                   MeasurableT[IO, Float],
                   Recomposition,
-                  ApplicationRequest,
                   TaskFinished
                 ]
               ],
@@ -41,9 +40,8 @@ def skijaApp(
       IO,
       SkijaDraw[IO, OglWindow],
       MeasurableT[IO, Float],
-      Update[Task[Any]],
+      Update[Task[Any], ApplicationRequest],
       Recomposition,
-      ApplicationRequest,
       B,
     ],
     SkijaBackend[IO]
@@ -56,12 +54,11 @@ def skijaApp(
     backend => runUpdateLoopOn(
       updateLoop[
         IO,
-        Update[Task[Any]], 
-        RootWidget[IO, SkijaDraw[IO, OglWindow], MeasurableT[IO, Float], Update[Task[Any]], IO[Unit], ApplicationRequest, TaskFinished],
-        ApplicationRequest,
+        Update[Task[Any], ApplicationRequest],
+        RootWidget[IO, SkijaDraw[IO, OglWindow], MeasurableT[IO, Float], Update[Task[Any], ApplicationRequest], IO[Unit], TaskFinished],
         TaskFinished
       ](
-        [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+        [T] => (update : Update[Task[Any], ApplicationRequest][T]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
       ),
       updateLoopExecutionContext
     ),
@@ -72,9 +69,8 @@ def skijaApp(
           IO,
           SkijaDraw[IO, OglWindow],
           MeasurableT[IO, Float],
-          Update[Task[Any]],
+          Update[Task[Any], ApplicationRequest],
           Recomposition,
-          ApplicationRequest,
           TaskFinished,
         ](
           Path(List("ROOT")),

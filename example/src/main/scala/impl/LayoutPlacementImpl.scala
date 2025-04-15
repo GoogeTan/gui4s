@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package impl
 
-import api.impl.LayoutPlacement
+import api.impl.LayoutPlacementGeneralized
 import place.*
 
 import cats.*
@@ -10,11 +10,10 @@ import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.Widget
 
-def containerPlacementCurried[F[+_] : Monad, Update[+_, +_], Draw, Recomposition, DownEvent, MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors): LayoutPlacement[Update, Draw, MeasurableT[F, MeasurementUnit], Recomposition, DownEvent, MeasurementUnit] =
-  [Event] => (axis: Axis, elements, main, additional) =>
-    weightedRowColumnPlace[F, MeasurementUnit, Widget[Update, Draw, MeasurableT[F, MeasurementUnit], Recomposition, Event, DownEvent]](
+def containerPlacementCurried[F[+_] : Monad, Widget, MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors): LayoutPlacementGeneralized[MeasurableT[F, MeasurementUnit], MeasurementUnit, Widget] =
+  (axis, elements, main, additional) =>
+    weightedRowColumnPlace[F, MeasurementUnit, Widget](
       axis,
       elements.map(widget => MaybeWeighted(None, widget)),
       rowColumnPlace(_, _,

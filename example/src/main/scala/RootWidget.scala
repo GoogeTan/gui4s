@@ -14,18 +14,17 @@ final case class RootWidget[
   F[+_] : Monad,
   Draw,
   Place[+_],
-  Update[+_, +_] : BiMonad,
+  Update[+_] : Monad,
   Recomposition,
-  UpEvent,
   DownEvent,
 ](
   pathToRoot : Path,
-  placedWidget: Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent],
+  placedWidget: Widget[Update, Draw, Place, Recomposition, DownEvent],
   runRecomposition : Recomposition => F[Unit]
 )(
   using RunPlacement[F, Place]
-) extends EventConsumer[Update, F[RootWidget[F, Draw, Place, Update, Recomposition, UpEvent, DownEvent]], UpEvent, DownEvent] with Drawable[Draw]:
-  override def processEvent(event: DownEvent): Update[F[RootWidget[F, Draw, Place, Update, Recomposition, UpEvent, DownEvent]], UpEvent] =
+) extends EventConsumer[Update, F[RootWidget[F, Draw, Place, Update, Recomposition, DownEvent]], DownEvent] with Drawable[Draw]:
+  override def processEvent(event: DownEvent): Update[F[RootWidget[F, Draw, Place, Update, Recomposition, DownEvent]]] =
     placedWidget.handleDownEvent(pathToRoot, event).map(newWidget =>
       for
         newPlacedWidget <- newWidget.runPlacement

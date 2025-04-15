@@ -4,34 +4,33 @@ import library.LayoutDraw
 import stateful.{BiMonad, Path, given}
 
 import cats.syntax.all.*
-import cats.{FlatMap, Monoid}
+import cats.{FlatMap, Monad, Monoid}
 
 final class LayoutWidget[
-  Update[+_, +_] : BiMonad,
+  Update[+_] : Monad,
   Draw,
   Place[+_] : FlatMap,
   Recomposition : Monoid,
-  UpEvent,
   DownEvent,
   ChildrenMeta
 ](
-    children : List[(Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent], ChildrenMeta)],
-    placeChildren: List[Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]]] => Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]]
+    children : List[(Widget[Update, Draw, Place, Recomposition, DownEvent], ChildrenMeta)],
+    placeChildren: List[Place[Widget[Update, Draw, Place, Recomposition, DownEvent]]] => Place[Widget[Update, Draw, Place, Recomposition, DownEvent]]
 )(
     using LD : LayoutDraw[Draw, ChildrenMeta]
-) extends me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]:
+) extends me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, DownEvent]:
 
-  override def handleDownEvent(pathToParent: Path, event: DownEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]], UpEvent] =
+  override def handleDownEvent(pathToParent: Path, event: DownEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, DownEvent]]] =
     children
-      .traverse[[T] =>> Update[T, UpEvent], Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]]](_._1.handleDownEvent(pathToParent, event))
+      .traverse(_._1.handleDownEvent(pathToParent, event))
       .map(newChildren => placeChildren(newChildren).flatMap(_.mergeWithState(pathToParent, childrenStates)))
   end handleDownEvent
 
-  override def asFree: Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]] =
+  override def asFree: Place[Widget[Update, Draw, Place, Recomposition, DownEvent]] =
     placeChildren(children.map(_._1.asFree))
   end asFree
 
-  override def mergeWithState(pathToParent: Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]] =
+  override def mergeWithState(pathToParent: Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, DownEvent]] =
     placeChildren(children.map(_._1.mergeWithState(pathToParent, oldState)))
   end mergeWithState
 

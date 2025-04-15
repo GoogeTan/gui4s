@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 
 import draw.swing.{*, given}
 import draw.{*, given}
-import impl.{WindowResized, given}
+import impl.WindowResized
 import place.RunPlacement
 import task.{EventProducingEffectT, RunnableIO}
 import update.ApplicationRequest
@@ -10,21 +10,20 @@ import update.ApplicationRequest
 import cats.data.ReaderT
 import cats.effect.{ExitCode, IO}
 import cats.syntax.all.*
-import me.katze.gui4s.example.given
 import me.katze.gui4s.impure.cats.effect.IOImpure
 import me.katze.gui4s.layout.{MeasurableT, given}
-import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
+import me.katze.gui4s.widget.stateful.{Path, TaskFinished, given}
 import me.katze.gui4s.widget.{EventResult, Widget, given}
 
 import scala.concurrent.ExecutionContext
 
-type Update[+Task] = [A, B] =>> EventResult[Task, A, B]
+type Update[+Task, UpEvent] = [W] =>> EventResult[Task, W, UpEvent]
 type Task[T] = RunnableIO[EventProducingEffectT[IO], T]
 type Recomposition = IO[Unit]
 
 def swingApp(
               rootWidget : MeasurableT[IO, Float][
-                Widget[Update[Task[Any]], SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Recomposition, ApplicationRequest, TaskFinished | WindowResized.type]
+                Widget[Update[Task[Any], ApplicationRequest], SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Recomposition, TaskFinished | WindowResized.type]
               ],
               updateLoopExecutionContext : ExecutionContext,
               drawLoopExecutionContext: ExecutionContext,
@@ -36,9 +35,8 @@ def swingApp(
       IO,
       SwingDraw[IO, Float, Unit],
       MeasurableT[IO, Float],
-      Update[Task[Any]],
+      Update[Task[Any], ApplicationRequest],
       Recomposition,
-      ApplicationRequest,
       B,
     ]
   ](
@@ -58,12 +56,11 @@ def swingApp(
         runUpdateLoopOn(
           updateLoop[
             IO,
-            Update[Task[Any]],
-            RootWidget[IO, SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Update[Task[Any]], Recomposition, ApplicationRequest, TaskFinished | WindowResized.type],
-            ApplicationRequest,
+            Update[Task[Any], ApplicationRequest],
+            RootWidget[IO, SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Update[Task[Any], ApplicationRequest], Recomposition, TaskFinished | WindowResized.type],
             TaskFinished | WindowResized.type
           ](
-            [T] => (update : Update[Task[Any]][T, ApplicationRequest]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+            [T] => (update : Update[Task[Any], ApplicationRequest][T]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
           ),
           updateLoopExecutionContext
         ),

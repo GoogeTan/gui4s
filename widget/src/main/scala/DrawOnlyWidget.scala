@@ -1,25 +1,25 @@
 package me.katze.gui4s.widget
 
-import stateful.{BiMonad, Path}
+import library.Empty
+import stateful.Path
 
-import cats.FlatMap
 import cats.syntax.all.*
-import me.katze.gui4s.widget.library.Empty
+import cats.{Applicative, FlatMap}
 
 def drawOnlyWidget[
-  Update[+_, +_] : BiMonad,
+  Update[+_] : Applicative,
   Draw,
   Place[+_] : FlatMap,
   Recomposition : Empty as E
-](asFreeIn: Place[Widget[Update, Draw, Place, Recomposition, Nothing, Any]], drawIn: Draw): Widget[Update, Draw, Place, Recomposition, Nothing, Any] =
-  case object DrawOnlyWidget extends Widget[Update, Draw, Place, Recomposition, Nothing, Any]:
-    override def handleDownEvent(pathToParent: Path, event: Any): Update[Place[Widget[Update, Draw, Place, Recomposition, Nothing, Any]], Nothing] = asFree.asMonad
+](asFreeIn: Place[Widget[Update, Draw, Place, Recomposition, Any]], drawIn: Draw): Widget[Update, Draw, Place, Recomposition, Any] =
+  case object DrawOnlyWidget extends Widget[Update, Draw, Place, Recomposition, Any]:
+    override def handleDownEvent(pathToParent: Path, event: Any): Update[Place[Widget[Update, Draw, Place, Recomposition, Any]]] = asFree.pure
 
-    override def mergeWithState(pathToParent: Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, Nothing, Any]] = asFree
+    override def mergeWithState(pathToParent: Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, Any]] = asFree
 
     override def childrenStates: Map[String, StateTree[Recomposition]] = Map()
 
-    override val asFree: Place[Widget[Update, Draw, Place, Recomposition, Nothing, Any]] = asFreeIn
+    override val asFree: Place[Widget[Update, Draw, Place, Recomposition, Any]] = asFreeIn
     
     override val draw  : Draw = drawIn
 

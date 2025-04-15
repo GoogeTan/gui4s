@@ -10,18 +10,17 @@ import me.katze.gui4s.widget
 type LayoutPlacementStrategy[Widget, PlacedWidget, PlacementEffect[+_], ChildrenMeta] =  List[Widget] => PlacementEffect[List[(PlacedWidget, ChildrenMeta)]]
 
 def layoutWidget[
-  Update[+_, +_] : BiMonad,
+  Update[+_] : Monad,
   Draw,
   Place[+_] : FlatMap,
   Recomposition : Monoid,
   ChildrenMeta,
-  Event,
   DownEvent,
 ](
   using LayoutDraw[Draw, ChildrenMeta]
 )(
-  children         : List[Place[Widget[Update, Draw, Place, Recomposition, Event, DownEvent]]],
-  placementStrategy: LayoutPlacementStrategy[Place[Widget[Update, Draw, Place, Recomposition, Event, DownEvent]], Widget[Update, Draw, Place, Recomposition, Event, DownEvent], Place, ChildrenMeta]
-): Place[Widget[Update, Draw, Place, Recomposition, Event, DownEvent]] =
+  children         : List[Place[Widget[Update, Draw, Place, Recomposition, DownEvent]]],
+  placementStrategy: LayoutPlacementStrategy[Place[Widget[Update, Draw, Place, Recomposition, DownEvent]], Widget[Update, Draw, Place, Recomposition, DownEvent], Place, ChildrenMeta]
+): Place[Widget[Update, Draw, Place, Recomposition, DownEvent]] =
   placementStrategy(children).map(LayoutWidget(_, layoutWidget(_, placementStrategy)))
 end layoutWidget

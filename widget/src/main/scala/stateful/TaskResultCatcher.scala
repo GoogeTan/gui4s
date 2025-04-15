@@ -5,26 +5,27 @@ import cats.*
 import cats.syntax.all.*
 
 final class TaskResultCatcher[
-  +Update[+_, +_] : {BiMonad, RaiseEvent as RE},
+  +Update[+_] : {Monad},
   +Draw,
   +Place[+_] : FlatMap,
   Recomposition,
-  +RaiseableEvent : RichTypeChecker as RTC,
   -HandleableEvent >: TaskFinished
 ](
    name : String,
    nothingToDraw : Draw,
-   child : Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent],
-) extends Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]:
+   child : Widget[Update, Draw, Place, Recomposition, HandleableEvent],
+)(
+ using RE : RaiseEvent[Update[Unit]]
+) extends Widget[Update, Draw, Place, Recomposition, HandleableEvent]:
   override def draw: Draw = nothingToDraw
 
-  override def mergeWithState(pathToParent : Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]] =
+  override def mergeWithState(pathToParent : Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]] =
     child
       .mergeWithState(pathToParent, oldState)
       .map(TaskResultCatcher(name, nothingToDraw, _))
   end mergeWithState
 
-  override def handleDownEvent(pathToParent : Path, event: HandleableEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
+  override def handleDownEvent(pathToParent : Path, event: HandleableEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]]] =
     event match
       case TaskFinished(path, newEvent) if path == pathToParent.appendLast(name) =>
         onTaskFinished(pathToParent, newEvent, event)
@@ -32,15 +33,15 @@ final class TaskResultCatcher[
     end match
   end handleDownEvent
 
-  private def onTaskFinished(pathToParent : Path, newEvent: Any, event : HandleableEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]], RaiseableEvent] =
-    RE.raise(RTC.tryCast(newEvent, "Event type mismatch")) *> child.handleDownEvent(pathToParent, event)
+  private def onTaskFinished(pathToParent : Path, newEvent: Any, event : HandleableEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]]] =
+    RE.raise(newEvent) *> child.handleDownEvent(pathToParent, event)
   end onTaskFinished
 
   override def aliveWidgets(currentPath: Path): Set[Path] =
     child.aliveWidgets(currentPath)
   end aliveWidgets
 
-  override def asFree: Place[Widget[Update, Draw, Place, Recomposition, RaiseableEvent, HandleableEvent]] =
+  override def asFree: Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]] =
     child
       .asFree
       .map(TaskResultCatcher(name, nothingToDraw, _))

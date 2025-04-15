@@ -2,15 +2,14 @@ package me.katze.gui4s.widget
 
 import stateful.{BiMonad, Path}
 
-import cats.FlatMap
+import cats.{FlatMap, Monad}
+import cats.syntax.all.*
 
 final case class LaunchedEffectWidget[
-  Update[+_, +_] : BiMonad,
+  Update[+_] : Monad,
   Draw,
   Place[+_] : FlatMap,
   Recomposition,
-  UpEvent,
-  DownEvent,
   Keys
 ](
   name : String,
@@ -18,17 +17,17 @@ final case class LaunchedEffectWidget[
   taskOnChange : Path => Recomposition,
   nothingToDo : Recomposition,
   nothingToDraw : Draw,
-  override val asFree: Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]],
+  override val asFree: Place[Widget[Update, Draw, Place, Recomposition, Any]],
   stateTypeMismatchRecompositionError: (Any, Path) => Recomposition,
   stateTypeMismatchPlaceError: (Any, Path) => Place[Nothing]
-) extends Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]:
+) extends Widget[Update, Draw, Place, Recomposition, Any]:
 
   private final case class LaunchedEffectState(oldKeys: Keys)
 
   override def handleDownEvent(
-                                pathToParent: Path, event: DownEvent
-                              ): Update[Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]], UpEvent] =
-    asFree.asMonad
+                                pathToParent: Path, event: Any
+                              ): Update[Place[Widget[Update, Draw, Place, Recomposition, Any]]] =
+    asFree.pure
   end handleDownEvent
 
   override def recomposed(
@@ -52,7 +51,7 @@ final case class LaunchedEffectWidget[
   override def mergeWithState(
                                 pathToParent: Path,
                                 oldState    : Map[String, StateTree[Recomposition]]
-                              ): Place[Widget[Update, Draw, Place, Recomposition, UpEvent, DownEvent]] =
+                              ): Place[Widget[Update, Draw, Place, Recomposition, Any]] =
     oldState.get(name) match
       case Some(StateTree(LaunchedEffectState(oldKeys), _, _)) =>
         copy(keys = oldKeys).asFree

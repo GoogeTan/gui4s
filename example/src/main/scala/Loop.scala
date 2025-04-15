@@ -87,12 +87,11 @@ end runWhileNoError
 
 def updateLoop[
                 F[+_] : Monad,
-                Update[+_, +_],
-                PlacedWidget <: EventConsumer[Update, F[PlacedWidget], UpEvent, DownEvent],
-                UpEvent,
+                Update[+_],
+                PlacedWidget <: EventConsumer[Update, F[PlacedWidget], DownEvent],
                 DownEvent
               ](
-                runUpdate  : [A] => Update[A, UpEvent] => F[Either[ExitCode, A]]
+                runUpdate  : [A] => Update[A] => F[Either[ExitCode, A]]
               )(
                 initial: PlacedWidget,
                 pushNew: PlacedWidget => F[Unit],
@@ -120,14 +119,13 @@ end doIfLeft
  */
 def updateStep[
               F[+_] : Monad,
-              Update[+_, +_],
-              PlacedWidget <: EventConsumer[Update, F[PlacedWidget], UpEvent, DownEvent],
-              UpEvent,
+              Update[+_],
+              PlacedWidget <: EventConsumer[Update, F[PlacedWidget], DownEvent],
               DownEvent
             ](
                 widget     : PlacedWidget,
                 eventSource: F[DownEvent],
-                runUpdate  : [A] => Update[A, UpEvent] => F[Either[ExitCode, A]]
+                runUpdate  : [A] => Update[A] => F[Either[ExitCode, A]]
             ): F[Either[PlacedWidget, ExitCode]] =
   for
     event         <- eventSource

@@ -2,26 +2,24 @@ package me.katze.gui4s.example
 package api.impl
 
 import api.*
-import draw.*
+import draw.given
 
 import cats.*
 import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.stateful.*
+import me.katze.gui4s.widget.stateful.{*, given}
 import me.katze.gui4s.widget.{Widget, drawOnlyWidget, textWidget}
-import me.katze.gui4s.example.draw.given
 
-type LayoutPlacement[Update[+_, +_], Draw, Place[+_], Recompose, DownEvent, MeasurementUnit] =
-  LayoutPlacementGeneralized[Place, MeasurementUnit, [Event] =>> Widget[Update, Draw, Place, Recompose, Event, DownEvent]]
+type LayoutPlacement[Update[+_], Draw, Place[+_], Recompose, DownEvent, MeasurementUnit] =
+  LayoutPlacementGeneralized[Place, MeasurementUnit, Widget[Update, Draw, Place, Recompose, DownEvent]]
 
-type LayoutPlacementGeneralized[Place[_], MeasurementUnit, W[_]] =
-  [Event]
-    => (Axis, List[Place[W[Event]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy)
-    => Place[List[(W[Event], LayoutPlacementMeta[MeasurementUnit])]]
+type LayoutPlacementGeneralized[Place[_], MeasurementUnit, W] =
+   (Axis, List[Place[W]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy)
+    => Place[List[(W, LayoutPlacementMeta[MeasurementUnit])]]
 
 final class HighLevelApiImpl[
-  Update[+_, +_]: {BiMonad, CatchEvents, RaiseEvent},
+  Update[+_, +_]: {BiMonad, CatchEvents},
   Draw : Monoid,
   Place[+_] : {TextPlacementT[Shaper, TextStyle, LayoutPlacementMeta[MeasurementUnit]], FlatMap},
   Recomposition : {Monoid},
@@ -34,14 +32,16 @@ final class HighLevelApiImpl[
     using
       LiftEventReaction[Update, WidgetTask[Any]],
       LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
-      TextDraw[Draw, LayoutPlacementMeta[MeasurementUnit]]
+      TextDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
+     
 )(
-    val placement : LayoutPlacement[Update, Draw, Place, Recomposition, SystemEvent, MeasurementUnit]
-) extends TextWidgetApi[Place[widget.Widget[Update, Draw, Place, Recomposition, Nothing, SystemEvent]], Shaper, TextStyle]
-      with StatefulApi[[Event] =>> Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]], WidgetTask, Recomposition]
-      with LayoutApi[[Event] =>> Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]], MeasurementUnit]:
+    val placement : [Event] => () => LayoutPlacement[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent, MeasurementUnit],
+    val raiseEvent : [Event] => () => RaiseEvent[Update[Unit, Event]]
+) extends TextWidgetApi[Place[widget.Widget[[W] =>> Update[W, Nothing], Draw, Place, Recomposition, SystemEvent]], Shaper, TextStyle]
+      with StatefulApi[[Event] =>> Place[widget.Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]], WidgetTask, Recomposition]
+      with LayoutApi[[Event] =>> Place[widget.Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]], MeasurementUnit]:
 
-  type Widget[+Event] = Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]
+  type Widget[+Event] = Place[widget.Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]]
 
   override def text(text: String, shaper : Shaper, style : TextStyle): Widget[Nothing] =
     textWidget(drawOnlyWidget, text, shaper, style)
@@ -94,12 +94,13 @@ final class HighLevelApiImpl[
                                     axis                  : Axis,
                                     mainAxisStrategy      : MainAxisPlacementStrategy[MeasurementUnit],
                                     additionalAxisStrategy: AdditionalAxisPlacementStrategy,
-                                  )(using Widget[Event] =:= Place[widget.Widget[Update, Draw, Place, Recomposition, Event, SystemEvent]]): Widget[Event] =
-    layoutWidget[Update, Draw, Place, Recomposition, LayoutPlacementMeta[MeasurementUnit], Event, SystemEvent](children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
+                                  ): Widget[Event] =
+    layoutWidget[[W] =>> Update[W, Event], Draw, Place, Recomposition, LayoutPlacementMeta[MeasurementUnit], SystemEvent](children, placement[Event]()(axis, _, mainAxisStrategy, additionalAxisStrategy))
   end linearLayout
   
   
-  private def addTaskResultCatcher[T](using RichTypeChecker[T])(name: String)(initial: Place[widget.Widget[Update, Draw, Place, Recomposition, T, SystemEvent]]) : Place[widget.Widget[Update, Draw, Place, Recomposition, T, SystemEvent]] =
+  private def addTaskResultCatcher[T](using RichTypeChecker[T])(name: String)(initial: Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]]) : Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]] =
+    given RaiseEvent[Update[Unit, T]] = raiseEvent[T]()
     FlatMap[Place].map(initial)(TaskResultCatcher(name, Monoid[Draw].empty, _))
   end addTaskResultCatcher
 end HighLevelApiImpl
