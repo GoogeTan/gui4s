@@ -1,6 +1,6 @@
 package me.katze.gui4s.widget
 
-import stateful.{BiMonad, CatchEvents, RaiseEvent, RichTypeChecker}
+import stateful.{BiMonad, CatchEvents, RaiseEvent, RichTypeChecker, panic}
 
 import scala.annotation.tailrec
 
@@ -49,9 +49,9 @@ end given
 
 given[Event : RichTypeChecker as RTC, Task] : RaiseEvent[EventResult[Task, Unit, Event]] with
   override def raise(event: Any): EventResult[Task, Unit, Event] =
-    EventResult((), List(RTC.tryCast(event, "Event type mismatch")), Nil)
+    EventResult((), List(RTC.tryCast(event).getOrElse(panic("Event type mismatch"))), Nil)
   end raise
-end given  
+end given
 
 given[Task] : CatchEvents[[A, B] =>> EventResult[Task, A, B]] with
   extension [W, E](old: EventResult[Task, W, E])

@@ -1,7 +1,7 @@
 package me.katze.gui4s.widget
 package library
 
-import me. katze. gui4s. widget. stateful.EventReaction
+import stateful.EventReaction
 
 trait LiftEventReaction[
   Update[+_, +_],

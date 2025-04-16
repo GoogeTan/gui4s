@@ -37,15 +37,11 @@ final class TaskResultCatcher[
     RE.raise(newEvent) *> child.handleDownEvent(pathToParent, event)
   end onTaskFinished
 
-  override def aliveWidgets(currentPath: Path): Set[Path] =
-    child.aliveWidgets(currentPath)
-  end aliveWidgets
-
-  override def asFree: Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]] =
+  override def asUnplaced: Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]] =
     child
-      .asFree
+      .asUnplaced
       .map(TaskResultCatcher(name, nothingToDraw, _))
-  end asFree
+  end asUnplaced
 
   override def childrenStates: Map[String, StateTree[Recomposition]] =
     child.childrenStates

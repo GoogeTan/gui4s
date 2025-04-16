@@ -1,9 +1,9 @@
 package me.katze.gui4s.widget
 
-import stateful.{BiMonad, Path}
+import stateful.Path
 
-import cats.{FlatMap, Monad}
 import cats.syntax.all.*
+import cats.{FlatMap, Monad}
 
 final case class LaunchedEffectWidget[
   Update[+_] : Monad,
@@ -12,22 +12,21 @@ final case class LaunchedEffectWidget[
   Recomposition,
   Keys
 ](
-  name : String,
-  keys : Keys,
-  taskOnChange : Path => Recomposition,
-  nothingToDo : Recomposition,
-  nothingToDraw : Draw,
-  override val asFree: Place[Widget[Update, Draw, Place, Recomposition, Any]],
-  stateTypeMismatchRecompositionError: (Any, Path) => Recomposition,
-  stateTypeMismatchPlaceError: (Any, Path) => Place[Nothing]
+    name : String,
+    keys : Keys,
+    taskOnChange : Path => Recomposition,
+    nothingToDo : Recomposition,
+    nothingToDraw : Draw,
+    override val asUnplaced: Place[Widget[Update, Draw, Place, Recomposition, Any]],
+    stateTypeMismatchRecompositionError: (Any, Path) => Recomposition,
+    stateTypeMismatchPlaceError: (Any, Path) => Place[Nothing]
 ) extends Widget[Update, Draw, Place, Recomposition, Any]:
-
   private final case class LaunchedEffectState(oldKeys: Keys)
 
   override def handleDownEvent(
                                 pathToParent: Path, event: Any
                               ): Update[Place[Widget[Update, Draw, Place, Recomposition, Any]]] =
-    asFree.pure
+    asUnplaced.pure
   end handleDownEvent
 
   override def recomposed(
@@ -54,17 +53,13 @@ final case class LaunchedEffectWidget[
                               ): Place[Widget[Update, Draw, Place, Recomposition, Any]] =
     oldState.get(name) match
       case Some(StateTree(LaunchedEffectState(oldKeys), _, _)) =>
-        copy(keys = oldKeys).asFree
+        copy(keys = oldKeys).asUnplaced
       case Some(StateTree(value, _, _)) =>
         stateTypeMismatchPlaceError(value, pathToParent.appendLast(this.name))
       case None =>
-        asFree
+        asUnplaced
     end match
   end mergeWithState
-
-  override def aliveWidgets(currentPath: Path): Set[Path] =
-    Set(currentPath.appendLast(name))
-  end aliveWidgets
 
   override def childrenStates: Map[String, StateTree[Recomposition]] =
     Map(name -> StateTree[Recomposition](LaunchedEffectState(keys), nothingToDo, Map()))

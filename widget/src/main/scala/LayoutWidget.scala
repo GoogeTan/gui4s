@@ -1,7 +1,7 @@
 package me.katze.gui4s.widget
 
 import library.LayoutDraw
-import stateful.{BiMonad, Path, given}
+import stateful.Path
 
 import cats.syntax.all.*
 import cats.{FlatMap, Monad, Monoid}
@@ -26,9 +26,9 @@ final class LayoutWidget[
       .map(newChildren => placeChildren(newChildren).flatMap(_.mergeWithState(pathToParent, childrenStates)))
   end handleDownEvent
 
-  override def asFree: Place[Widget[Update, Draw, Place, Recomposition, DownEvent]] =
-    placeChildren(children.map(_._1.asFree))
-  end asFree
+  override def asUnplaced: Place[Widget[Update, Draw, Place, Recomposition, DownEvent]] =
+    placeChildren(children.map(_._1.asUnplaced))
+  end asUnplaced
 
   override def mergeWithState(pathToParent: Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, DownEvent]] =
     placeChildren(children.map(_._1.mergeWithState(pathToParent, oldState)))
@@ -41,10 +41,6 @@ final class LayoutWidget[
   override def draw: Draw =
     LD.drawChildren(children.map(child => (child._1.draw, child._2)))
   end draw
-
-  override def aliveWidgets(currentPath: Path): Set[Path] =
-    children.foldMap(_._1.aliveWidgets(currentPath))
-  end aliveWidgets
 
   override def recomposed(currentPath : Path, states : Map[String, StateTree[Recomposition]]): Recomposition =
     children.foldMap((child, _) => child.recomposed(currentPath, states))

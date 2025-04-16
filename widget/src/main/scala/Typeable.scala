@@ -1,6 +1,7 @@
 package me.katze.gui4s.widget
 
 import stateful.RichTypeChecker
+
 import scala.reflect.Typeable
 
 @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
@@ -15,6 +16,6 @@ end given
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.Any")) // Приложение должно падать точно, если тип не совпал
 given[T : Typeable as TT]: RichTypeChecker[T] = 
-  (value : Any, errorText : String) => 
-    TT.unapply(value).getOrElse[T](throw Exception(s"Cast failed. Expected $TT found $errorText", Exception(errorText)))
+  (value : Any) => 
+    TT.unapply(value)
 end given

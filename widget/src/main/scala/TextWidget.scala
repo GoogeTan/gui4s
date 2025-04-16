@@ -3,8 +3,8 @@ package me.katze.gui4s.widget
 import library.{Empty, TextDraw, TextPlacement}
 import stateful.{BiMonad, CatchEvents}
 
-import cats.{Applicative, FlatMap, Monad}
 import cats.syntax.all.*
+import cats.{Applicative, FlatMap, Monad}
 
 def textWidget[
   Update[+_] : Applicative,

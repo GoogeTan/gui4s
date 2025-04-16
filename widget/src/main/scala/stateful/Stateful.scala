@@ -39,19 +39,19 @@ final case class Stateful[
     onChildUpdate(pathToSelf, this.childTree.handleDownEvent(pathToSelf, event))
   end handleDownEvent
 
-  override def asFree: FreeWidgetTree[RaiseableEvent] =
-    freeStateful(this.state, this.childTree.asFree)
-  end asFree
+  override def asUnplaced: FreeWidgetTree[RaiseableEvent] =
+    freeStateful(this.state, this.childTree.asUnplaced)
+  end asUnplaced
 
   override def mergeWithState(pathToParent: Path, oldState: Map[String, StateTree[Recomposition]]): FreeWidgetTree[RaiseableEvent] =
     val pathToSelf = pathToParent.appendLast(name)
     oldState.get(this.name) match
       case Some(prevStateTree) =>
         val newState = this.state.mergeWithOldState(prevStateTree.state)
-        val mergedChildTree = mergeFreeTrees(pathToSelf, this.childTree.asFree, newState.render)
+        val mergedChildTree = mergeFreeTrees(pathToSelf, this.childTree.asUnplaced, newState.render)
         freeStateful(newState, mergedChildTree)  
       case None =>
-        asFree
+        asUnplaced
     end match
   end mergeWithState
 
@@ -63,7 +63,7 @@ final case class Stateful[
   private def onChildUpdate(pathToSelf: Path, newChildF: Update[FreeWidgetTree[ChildRaiseableEvent], ChildRaiseableEvent]) : StatefulUpdateResult =
     for
       (newChild, events) <- newChildF.catchEvents
-      (newState, newTree) <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], (InternalState, FreeWidgetTree[ChildRaiseableEvent])]((this.state, mergeFreeTrees(pathToSelf, this.childTree.asFree, newChild)))(
+      (newState, newTree) <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], (InternalState, FreeWidgetTree[ChildRaiseableEvent])]((this.state, mergeFreeTrees(pathToSelf, this.childTree.asUnplaced, newChild)))(
         (stateAndTree, event) =>
           stateAndTree._1.handleEvent(event).map(
             newState => (newState, mergeFreeTrees(pathToSelf, stateAndTree._2, newState.render))
@@ -72,11 +72,6 @@ final case class Stateful[
     yield freeStateful(newState, newTree)
   end onChildUpdate
 
-  override def aliveWidgets(currentPath: Path): Set[Path] =
-    val pathToSelf = currentPath.appendFirst(name)
-    Set(pathToSelf) ++ childTree.aliveWidgets(pathToSelf)
-  end aliveWidgets
-  
   private def mergeFreeTrees[A](pathToSelf: Path, oldOne: Place[WidgetTree[A]], newOne: Place[WidgetTree[A]]) : Place[WidgetTree[A]] =
     FlatMap[Place].flatMap2(oldOne, newOne)((newPlaced, oldPlaced) => newPlaced.mergeWithState(pathToSelf, oldPlaced.childrenStates))
   end mergeFreeTrees
