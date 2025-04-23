@@ -20,7 +20,7 @@ trait BiMonad[F[+_, +_]]:
   end extension
 
   extension[A](value : A)
-    // TODO Исправить имя, чтобы не колапсилось с кошачьим
+    // TODO Исправить имя, чтобы не мешалось кошачьим
     def asMonad : F[A, Nothing]
   end extension
 end BiMonad

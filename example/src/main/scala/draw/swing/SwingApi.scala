@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package draw.swing
 
 import api.impl.DrawMonadT
-import draw.{DrawApi}
+import draw.DrawApi
 
 import cats.effect.Async
 import cats.effect.kernel.Resource

@@ -17,13 +17,13 @@ import me.katze.gui4s.widget.{EventResult, Widget, given}
 
 import scala.concurrent.ExecutionContext
 
-type Update[+Task, UpEvent] = [W] =>> EventResult[Task, W, UpEvent]
+type Update[UpEvent] = [W] =>> EventResult[W, UpEvent]
 type Task[T] = RunnableIO[EventProducingEffectT[IO], T]
 type Recomposition = IO[Unit]
 
 def swingApp(
               rootWidget : MeasurableT[IO, Float][
-                Widget[Update[Task[Any], ApplicationRequest], SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Recomposition, TaskFinished | WindowResized.type]
+                Widget[Update[ApplicationRequest], SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Recomposition, TaskFinished | WindowResized.type]
               ],
               updateLoopExecutionContext : ExecutionContext,
               drawLoopExecutionContext: ExecutionContext,
@@ -35,7 +35,7 @@ def swingApp(
       IO,
       SwingDraw[IO, Float, Unit],
       MeasurableT[IO, Float],
-      Update[Task[Any], ApplicationRequest],
+      Update[ApplicationRequest],
       Recomposition,
       B,
     ]
@@ -56,11 +56,11 @@ def swingApp(
         runUpdateLoopOn(
           updateLoop[
             IO,
-            Update[Task[Any], ApplicationRequest],
-            RootWidget[IO, SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Update[Task[Any], ApplicationRequest], Recomposition, TaskFinished | WindowResized.type],
+            Update[ApplicationRequest],
+            RootWidget[IO, SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Update[ApplicationRequest], Recomposition, TaskFinished | WindowResized.type],
             TaskFinished | WindowResized.type
           ](
-            [T] => (update : Update[Task[Any], ApplicationRequest][T]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+            [T] => (update : Update[ApplicationRequest][T]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
           ),
           updateLoopExecutionContext
         ),

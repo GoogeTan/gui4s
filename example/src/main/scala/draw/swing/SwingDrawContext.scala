@@ -4,7 +4,6 @@ package draw.swing
 import api.impl.DrawMonad
 
 import cats.data.ReaderT
-import me.katze.gui4s.example.draw.{DrawApi, SimpleDrawApi}
 
 import scala.math.Numeric.Implicits.*
 
@@ -19,6 +18,6 @@ end runSwingDraw
 
 given [F[+_], MeasurementUnit: Numeric] : DrawMonad[SwingDraw[F, MeasurementUnit, Unit], MeasurementUnit] with
   override def move(dx: MeasurementUnit, dy: MeasurementUnit, effect: SwingDraw[F, MeasurementUnit, Unit]): SwingDraw[F, MeasurementUnit, Unit] =
-    ReaderT.apply((s) => effect.run(s.copy(x = s.x + dx, y = s.y + dy)))
+    ReaderT.apply(s => effect.run(s.copy(x = s.x + dx, y = s.y + dy)))
   end move
 end given

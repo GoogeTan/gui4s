@@ -1,22 +1,11 @@
 package me.katze.gui4s.example
 
-import api.impl.{HighLevelApiImpl, LayoutPlacement, LayoutPlacementMeta}
-import api.{LayoutApi, TextWidgetApi}
-import draw.*
-import impl.{*, given}
-import place.*
-import update.*
+import impl.given
 
 import cats.*
 import cats.effect.*
 import cats.effect.std.{Queue, QueueSink}
 import cats.syntax.all.*
-import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.{LayoutDraw, LiftEventReaction, TextDraw, TextPlacement}
-import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, Path, RaiseEvent}
-
-import scala.concurrent.ExecutionContext
 
 def runApplicationLoopsWithBackend[
   F[+_] : Async,

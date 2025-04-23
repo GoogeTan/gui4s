@@ -22,3 +22,14 @@ given tupleRTC[A : RichTypeChecker as ARTC, B: RichTypeChecker as BRTC]: RichTyp
     case _ => None
   }
 end tupleRTC
+
+@SuppressWarnings(Array("org.wartremover.warts.Any"))
+given optionRtc[A : RichTypeChecker as ARTC] : RichTypeChecker[Option[A]] with
+  override def tryCast(value: Any): Option[Option[A]] =
+    value match
+      case None => Some(None)
+      case Some(a) => Some(ARTC.tryCast(a))
+      case _ => None
+    end match
+  end tryCast
+end optionRtc

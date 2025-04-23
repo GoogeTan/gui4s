@@ -5,7 +5,6 @@ import stateful.EventReaction
 
 trait LiftEventReaction[
   Update[+_, +_],
-  WidgetTask,
 ]:
-  def lift[A, B](reaction: EventReaction[WidgetTask, A, B]): Update[A, B]
+  def lift[A, B](reaction: EventReaction[A, B, Nothing]): Update[A, B]
 end LiftEventReaction

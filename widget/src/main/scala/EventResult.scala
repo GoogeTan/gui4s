@@ -4,59 +4,54 @@ import stateful.{BiMonad, CatchEvents, RaiseEvent, RichTypeChecker, panic}
 
 import scala.annotation.tailrec
 
-type EventResultP[WT] = [A, B] =>> EventResult[WT, A, B]
-
-final case class EventResult[+WidgetTask, +FreeWidget, +UpEvent](
-                                                                  widget: FreeWidget,
-                                                                  events: List[UpEvent],
-                                                                  ios   : List[WidgetTask]
-                                                                )
+final case class EventResult[+FreeWidget, +UpEvent](
+                                                      widget: FreeWidget,
+                                                      events: List[UpEvent],
+                                                    )
 
 
-given[Task]: BiMonad[[A, B] =>> EventResult[Task, A, B]] with
-  override def flatMap_[A, B, C](value: EventResult[Task, A, B])
-                                (f: A => EventResult[Task, C, B]): EventResult[Task, C, B] =
+given BiMonad[EventResult] with
+  override def flatMap_[A, B, C](value: EventResult[A, B])
+                                (f: A => EventResult[C, B]): EventResult[C, B] =
     val newValue = f(value.widget)
     EventResult(
       newValue.widget,
       value.events ++ newValue.events,
-      value.ios ++ newValue.ios
     )
   end flatMap_
 
   extension [A](value: A)
-    override def asMonad: EventResult[Task, A, Nothing] = EventResult(value, Nil, Nil)
+    override def asMonad: EventResult[A, Nothing] = EventResult(value, Nil)
 
   override def tailRecM[A, B, E](a: A)
-                                (f: A => EventResult[Task, Either[A, B], E]): EventResult[Task, B, E] =
+                                (f: A => EventResult[Either[A, B], E]): EventResult[B, E] =
     @tailrec
     def helper(
                 a: A,
                 parentEvent: List[E],
-                ios        : List[Task]
               )(
-                f: A => EventResult[Task, Either[A, B], E]
-              ) : EventResult[Task, B, E] =
-      val EventResult(aa, ape, aios) = f(a)
+                f: A => EventResult[Either[A, B], E]
+              ) : EventResult[B, E] =
+      val EventResult(aa, ape) = f(a)
       aa match
-        case Left(value) => helper(value, ape ++ parentEvent, ios ++ aios)(f)
-        case Right(value) => EventResult(value, ape ++ parentEvent, ios ++ aios)
+        case Left(value) => helper(value, ape ++ parentEvent)(f)
+        case Right(value) => EventResult(value, ape ++ parentEvent)
       end match
     end helper
-    helper(a, Nil, Nil)(f)
+    helper(a, Nil)(f)
   end tailRecM
 end given
 
-given[Event : RichTypeChecker as RTC, Task] : RaiseEvent[EventResult[Task, Unit, Event]] with
-  override def raise(event: Any): EventResult[Task, Unit, Event] =
-    EventResult((), List(RTC.tryCast(event).getOrElse(panic("Event type mismatch"))), Nil)
+given[Event : RichTypeChecker as RTC, Task] : RaiseEvent[EventResult[Unit, Event]] with
+  override def raise(event: Any): EventResult[Unit, Event] =
+    EventResult((), List(RTC.tryCast(event).getOrElse(panic("Event type mismatch"))))
   end raise
 end given
 
-given[Task] : CatchEvents[[A, B] =>> EventResult[Task, A, B]] with
-  extension [W, E](old: EventResult[Task, W, E])
-    override def catchEvents: EventResult[Task, (W, List[E]), Nothing] =
-      EventResult[Task, (W, List[E]), Nothing]((old.widget, old.events), Nil, old.ios)
+given[Task] : CatchEvents[[A, B] =>> EventResult[A, B]] with
+  extension [W, E](old: EventResult[W, E])
+    override def catchEvents: EventResult[(W, List[E]), Nothing] =
+      EventResult[(W, List[E]), Nothing]((old.widget, old.events), Nil)
     end catchEvents
   end extension
 end given  

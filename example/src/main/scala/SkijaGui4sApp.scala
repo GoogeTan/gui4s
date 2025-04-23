@@ -23,7 +23,7 @@ import scala.concurrent.ExecutionContext
 def skijaApp(
               widget : SkijaBackend[IO] => Measurable[IO, Float,
                 Widget[
-                  Update[Task[Any], ApplicationRequest],
+                  Update[ApplicationRequest],
                   SkijaDraw[IO, OglWindow],
                   MeasurableT[IO, Float],
                   Recomposition,
@@ -40,7 +40,7 @@ def skijaApp(
       IO,
       SkijaDraw[IO, OglWindow],
       MeasurableT[IO, Float],
-      Update[Task[Any], ApplicationRequest],
+      Update[ApplicationRequest],
       Recomposition,
       B,
     ],
@@ -54,11 +54,11 @@ def skijaApp(
     backend => runUpdateLoopOn(
       updateLoop[
         IO,
-        Update[Task[Any], ApplicationRequest],
-        RootWidget[IO, SkijaDraw[IO, OglWindow], MeasurableT[IO, Float], Update[Task[Any], ApplicationRequest], IO[Unit], TaskFinished],
+        Update[ApplicationRequest],
+        RootWidget[IO, SkijaDraw[IO, OglWindow], MeasurableT[IO, Float], Update[ApplicationRequest], IO[Unit], TaskFinished],
         TaskFinished
       ](
-        [T] => (update : Update[Task[Any], ApplicationRequest][T]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+        [T] => (update : Update[ApplicationRequest][T]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
       ),
       updateLoopExecutionContext
     ),
@@ -69,7 +69,7 @@ def skijaApp(
           IO,
           SkijaDraw[IO, OglWindow],
           MeasurableT[IO, Float],
-          Update[Task[Any], ApplicationRequest],
+          Update[ApplicationRequest],
           Recomposition,
           TaskFinished,
         ](

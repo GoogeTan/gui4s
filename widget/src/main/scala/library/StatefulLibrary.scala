@@ -1,33 +1,30 @@
 package me.katze.gui4s.widget
 package library
 
-import stateful.*
+import stateful.{*, given}
 
 import cats.*
 import cats.syntax.all.*
 
 def statefulWidget[
-  Update[+_, +_] : {BiMonad, CatchEvents},
+  Update[+_, +_] : {BiMonad, CatchEvents, LiftEventReaction},
   Draw : StatefulDraw,
   Place[+_] : FlatMap,
   Recomposition,
-  T: Equiv,
+  T: {Equiv, RichTypeChecker},
   ParentEvent, ChildEvent,
   DownEvent,
   WidgetTask[+_]
 ](
-    using liftEventReaction : LiftEventReaction[Update, WidgetTask[Any]]
-)(
     name          : String,
     initialState  : T,
     deallocState : T => Recomposition,
-    eventHandler  : (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent],
+    eventHandler  : (T, ChildEvent) => EventReaction[T, ParentEvent, WidgetTask[ChildEvent]],
     renderState   : T => Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, DownEvent]],
-    typeCheck     : RichTypeChecker[(T, T)]
 ): Place[Widget[[W] =>> Update[W, ParentEvent], Draw, Place, Recomposition, DownEvent]] =
   statefulWidget(
     name,
-    InitialBasedState(initialState, initialState, eventHandler, renderState, typeCheck, deallocState, liftEventReaction)
+    InitialBasedState(initialState, initialState, eventHandler, renderState, summon, deallocState)
   )
 end statefulWidget
 

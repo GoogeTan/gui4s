@@ -5,6 +5,7 @@ import api.*
 import draw.given
 
 import cats.*
+import cats.syntax.all.*
 import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.{*, given}
@@ -23,7 +24,7 @@ final class HighLevelApiImpl[
   Draw : Monoid,
   Place[+_] : {TextPlacementT[Shaper, TextStyle, LayoutPlacementMeta[MeasurementUnit]], FlatMap},
   Recomposition : {Monoid},
-  WidgetTask[+_],
+  WidgetTask[+_] : Functor,
   MeasurementUnit,
   -TextStyle,
   -Shaper,
@@ -33,7 +34,6 @@ final class HighLevelApiImpl[
       LiftEventReaction[Update, WidgetTask[Any]],
       LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
       TextDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
-     
 )(
     val placement : [Event] => () => LayoutPlacement[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent, MeasurementUnit],
     val raiseEvent : [Event] => () => RaiseEvent[Update[Unit, Event]]
@@ -47,22 +47,37 @@ final class HighLevelApiImpl[
     textWidget(drawOnlyWidget, text, shaper, style)
   end text
   
-  override def stateful[T: Equiv, ParentEvent, ChildEvent](
+  override def stateful[T: {Equiv, RichTypeChecker}, ParentEvent, ChildEvent : RichTypeChecker](
                                                             name: String,
                                                             initialState: T,
                                                             dealloc_ : T => Recomposition,
-                                                            eventHandler: (T, ChildEvent) => EventReaction[WidgetTask[ChildEvent], T, ParentEvent]
-                                                          )
-                                                          (renderState: T => Widget[ChildEvent])
-                                                          (
-                                                            using
-                                                              checkEvent : RichTypeChecker[ChildEvent],
-                                                              checkState : RichTypeChecker[(T, T)]
-                                                          ): Widget[ParentEvent] =
-    val render = renderState andThen addTaskResultCatcher[ChildEvent](using checkEvent)(name)
-    statefulWidget[Update, Draw, Place, Recomposition, T, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, dealloc_, eventHandler, render, checkState)
+                                                            eventHandler: (T, ChildEvent) => EventReaction[T, ParentEvent, WidgetTask[ChildEvent]]
+                                                          )(renderState: T => Widget[ChildEvent]): Widget[ParentEvent] =
+    val render = renderState andThen addTaskResultCatcher[ChildEvent](name)
+    statefulWidget[Update, Draw, Place, Recomposition, T, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, dealloc_, eventHandler, render)
   end stateful
 
+  override def stateInBetween[
+    State: {Equiv, RichTypeChecker}, 
+    TransitiveEvent : RichTypeChecker, 
+    OwnEvent : RichTypeChecker
+  ](
+    name: String, 
+    initialState: State, 
+    dealloc: State => Recomposition, 
+    eventHandler: (State, OwnEvent) => EventReaction[State, TransitiveEvent, WidgetTask[OwnEvent]]
+  )(renderState: State => Widget[Either[TransitiveEvent, OwnEvent]]): Widget[TransitiveEvent] =
+    stateful[State, TransitiveEvent, Either[TransitiveEvent, OwnEvent]](
+      name,
+      initialState,
+      dealloc,
+      (state, event) =>
+        event match
+          case Left(transitiveEvent) => EventReaction(state, List(transitiveEvent), Nil)
+          case Right(ownEvent) => eventHandler(state, ownEvent).mapIOS(_.map(Right(_)))
+    )(renderState)
+  end stateInBetween
+  
   override def column[Event](
                               children          : List[Widget[Event]],
                               verticalStrategy  : MainAxisPlacementStrategy[MeasurementUnit],
@@ -99,7 +114,7 @@ final class HighLevelApiImpl[
   end linearLayout
   
   
-  private def addTaskResultCatcher[T](using RichTypeChecker[T])(name: String)(initial: Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]]) : Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]] =
+  private def addTaskResultCatcher[T : RichTypeChecker](name: String)(initial: Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]]) : Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]] =
     given RaiseEvent[Update[Unit, T]] = raiseEvent[T]()
     FlatMap[Place].map(initial)(TaskResultCatcher(name, Monoid[Draw].empty, _))
   end addTaskResultCatcher

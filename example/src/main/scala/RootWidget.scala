@@ -2,13 +2,12 @@ package me.katze.gui4s.example
 
 import draw.Drawable
 import place.RunPlacement
-import task.TaskSet
 import update.EventConsumer
 
 import cats.*
 import cats.syntax.all.given
-import me.katze.gui4s.widget.stateful.{BiMonad, Path}
-import me.katze.gui4s.widget.{EventResult, EventResultP, Widget, collectQuitCompositionReactions}
+import me.katze.gui4s.widget.stateful.Path
+import me.katze.gui4s.widget.{Widget, collectQuitCompositionReactions}
 
 final case class RootWidget[
   F[+_] : Monad,
