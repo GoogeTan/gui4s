@@ -3,8 +3,8 @@ package stateful
 
 trait State[+Update[+_], Dealloc, RaiseableEvent, +Tree, +Task]:
   def render : Tree
-  def handleEvent(event : RaiseableEvent) : (Update[State[Update, Dealloc, RaiseableEvent, Tree]], List[Task])
+  def handleEvent(event : RaiseableEvent) : (Update[State[Update, Dealloc, RaiseableEvent, Tree, Task]], List[Task])
   def state : Any
   def dealloc : Dealloc
-  def mergeWithOldState(oldState: Any) : State[Update, Dealloc, RaiseableEvent, Tree]
+  def mergeWithOldState(oldState: Any) : State[Update, Dealloc, RaiseableEvent, Tree, Task]
 end State

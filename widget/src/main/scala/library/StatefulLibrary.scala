@@ -21,23 +21,27 @@ def statefulWidget[
     deallocState : T => Recomposition,
     eventHandler  : (T, ChildEvent) => EventReaction[T, ParentEvent, WidgetTask[ChildEvent]],
     renderState   : T => Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, DownEvent]],
+    runTasks : List[WidgetTask[ChildEvent]] => Update[Unit, Nothing]
 ): Place[Widget[[W] =>> Update[W, ParentEvent], Draw, Place, Recomposition, DownEvent]] =
-  statefulWidget(
+  statefulWidget_(
     name,
-    InitialBasedState(initialState, initialState, eventHandler, renderState, summon, deallocState)
+    InitialBasedState(initialState, initialState, eventHandler, renderState, summon, deallocState),
+    runTasks,
   )
 end statefulWidget
 
-def statefulWidget[
+def statefulWidget_[
   Update[+_, +_] : {BiMonad, CatchEvents},
   Draw : StatefulDraw,
   Place[+_] : FlatMap,
   Recomposition,
   ParentEvent, ChildEvent,
   DownEvent,
+  Task,
 ](
     name          : String,
-    state : State[[U] =>> Update[U, ParentEvent], Recomposition, ChildEvent, Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, DownEvent]]]
+    state : State[[U] =>> Update[U, ParentEvent], Recomposition, ChildEvent, Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, DownEvent]], Task],
+    runTasks : List[Task] => Update[Unit, Nothing]
 ): Place[Widget[[W] =>> Update[W, ParentEvent], Draw, Place, Recomposition, DownEvent]] =
-  state.render.map(Stateful(name, state, _))
-end statefulWidget
+  state.render.map(Stateful(name, state, _, runTasks))
+end statefulWidget_

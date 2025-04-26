@@ -14,14 +14,16 @@ def resource[
   F[_],
   Recomposition : Empty,
   Event: RichTypeChecker as EventRTC,
-  State: {Equiv as eq, RichTypeChecker as TRTC}
+  State: {Equiv as eq, RichTypeChecker as TRTC},
+  Supervisor
 ](
-  statefulApi: StatefulApi[Widget, WidgetTask, Recomposition],
+  statefulApi: StatefulApi[Widget, WidgetTask, Recomposition, Supervisor],
   runFInRecompisition : F[Unit] => Recomposition,
 )(
   name: String,
   resource: Resource[F, State],
-  body: Option[State] => Widget[Event]
+  body: Option[State] => Widget[Event],
+  globalSupervisor : Supervisor
 )(
   using RichTypeChecker[F[Unit]]
 ): Widget[Event] =
@@ -33,7 +35,8 @@ def resource[
       case None => empty
     },
     (_, newState) =>
-      EventReaction(Some(newState), Nil, Nil)
+      EventReaction(Some(newState), Nil, Nil),
+    globalSupervisor
   ):
     case Some((innerState, _)) =>
       body(Some(innerState)).mapEvent(Left(_))
