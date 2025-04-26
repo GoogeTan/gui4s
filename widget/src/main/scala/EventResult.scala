@@ -1,6 +1,6 @@
 package me.katze.gui4s.widget
 
-import stateful.{BiMonad, CatchEvents, RaiseEvent, RichTypeChecker, panic}
+import stateful.*
 
 import scala.annotation.tailrec
 
@@ -11,14 +11,20 @@ final case class EventResult[+FreeWidget, +UpEvent](
 
 
 given BiMonad[EventResult] with
-  override def flatMap_[A, B, C](value: EventResult[A, B])
-                                (f: A => EventResult[C, B]): EventResult[C, B] =
+  override def flatMapFirst[A, B, C](value: EventResult[A, B])
+                                    (f: A => EventResult[C, B]): EventResult[C, B] =
     val newValue = f(value.widget)
     EventResult(
       newValue.widget,
       value.events ++ newValue.events,
     )
-  end flatMap_
+  end flatMapFirst
+
+
+  extension[A, B](value : EventResult[A, B])
+    override def mapSecond[D](f : B => D) : EventResult[A, D] =
+      EventResult(value.widget, value.events.map(f))
+    end mapSecond
 
   extension [A](value: A)
     override def asMonad: EventResult[A, Nothing] = EventResult(value, Nil)

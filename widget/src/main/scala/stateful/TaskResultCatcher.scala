@@ -12,17 +12,16 @@ final class TaskResultCatcher[
   -HandleableEvent >: TaskFinished
 ](
    name : String,
-   nothingToDraw : Draw,
    child : Widget[Update, Draw, Place, Recomposition, HandleableEvent],
 )(
  using RE : RaiseEvent[Update[Unit]]
 ) extends Widget[Update, Draw, Place, Recomposition, HandleableEvent]:
-  override def draw: Draw = nothingToDraw
+  override def draw: Draw = child.draw 
 
   override def mergeWithState(pathToParent : Path, oldState: Map[String, StateTree[Recomposition]]): Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]] =
     child
       .mergeWithState(pathToParent, oldState)
-      .map(TaskResultCatcher(name, nothingToDraw, _))
+      .map(TaskResultCatcher(name, _))
   end mergeWithState
 
   override def handleDownEvent(pathToParent : Path, event: HandleableEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]]] =
@@ -40,7 +39,7 @@ final class TaskResultCatcher[
   override def asUnplaced: Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]] =
     child
       .asUnplaced
-      .map(TaskResultCatcher(name, nothingToDraw, _))
+      .map(TaskResultCatcher(name, _))
   end asUnplaced
 
   override def childrenStates: Map[String, StateTree[Recomposition]] =

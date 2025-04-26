@@ -22,19 +22,24 @@ final case class EventReaction[+State, +ParentUpEvent, +WidgetTask](
 end EventReaction
 
 given[Task]: BiMonad[[A, B] =>> EventReaction[A, B, Task]] with
-  override def flatMap_[A, B, C](value: EventReaction[A, B, Task])
-                                (f: A => EventReaction[C, B, Task]): EventReaction[C, B, Task] =
+  override def flatMapFirst[A, B, C](value: EventReaction[A, B, Task])
+                                    (f: A => EventReaction[C, B, Task]): EventReaction[C, B, Task] =
     val newValue = f(value.newState)
     EventReaction(
       newValue.newState,
       value.parentEvent ++ newValue.parentEvent,
       value.ios ++ newValue.ios
     )
-  end flatMap_
+  end flatMapFirst
 
+  extension[A, B](value : EventReaction[A, B, Task])
+    override def mapSecond[D](f : B => D) : EventReaction[A, D, Task] =
+      value.mapEvent(f)
+    end mapSecond
+  
   extension [A](value: A)
     override def asMonad: EventReaction[A, Nothing, Task] = EventReaction(value, Nil, Nil)
-
+    
   override def tailRecM[A, B, E](a: A)
                                 (f: A => EventReaction[Either[A, B], E, Task]): EventReaction[B, E, Task] =
     @tailrec

@@ -5,11 +5,13 @@ import cats.effect.Resource
 import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.stateful.{EventReaction, RichTypeChecker, given}
 
+type ResourceWidget[F[_], Widget[_], Supervisor] = [State, Event] => (name : String, resource : Resource[F, State], body : Option[State] => Widget[Event], supervisor : Supervisor) => Widget[Event]
+
 /*
  * Этот код, очевидно, не протестируешь. Надо отрефакторить
  */
 def resource[
-  Widget[_] : MapWidgetLibrary,
+  Widget[_] : MapEventWidget,
   WidgetTask[_],
   F[_],
   Recomposition : Empty,
@@ -17,7 +19,7 @@ def resource[
   State: {Equiv as eq, RichTypeChecker as TRTC},
   Supervisor
 ](
-  statefulApi: StatefulApi[Widget, WidgetTask, Recomposition, Supervisor],
+  statefulApi: StateInBetweenWidget[Widget, WidgetTask, Recomposition, Supervisor],
   runFInRecompisition : F[Unit] => Recomposition,
 )(
   name: String,
@@ -27,7 +29,7 @@ def resource[
 )(
   using RichTypeChecker[F[Unit]]
 ): Widget[Event] =
-  statefulApi.stateInBetween[Option[(State, F[Unit])], Event, (State, F[Unit])](
+  statefulApi[Option[(State, F[Unit])], Event, (State, F[Unit])](
     name,
     None,
     {

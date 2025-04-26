@@ -1,35 +1,110 @@
 package me.katze.gui4s.example
 package api
 
-import me.katze.gui4s.widget.stateful.{EventReaction, RichTypeChecker}
+import cats.{FlatMap, Functor, Monoid}
+import cats.syntax.all.*
+import draw.given
 
-trait StatefulApi[Widget[_], WidgetTask[_], Recomposition, TaskSupervisor]:
-  def stateful[
+import me.katze.gui4s.widget.Widget
+import me.katze.gui4s.widget.library.{LiftEventReaction, statefulWidget as rawStatefulWidget}
+import me.katze.gui4s.widget.stateful.{BiMonad, CatchEvents, EventReaction, RaiseEvent, RichTypeChecker, TaskFinished, TaskResultCatcher, given}
+
+type StatefulWidget[Widget[_], WidgetTask[_], Recomposition, TaskSupervisor] =
+  [
     State: {Equiv, RichTypeChecker},
-    ParentEvent, 
-    ChildEvent : RichTypeChecker
-  ](
-                   name        : String,
-                   initialState: State,
-                   dealloc     : State => Recomposition,
-                   eventHandler: (State, ChildEvent) => EventReaction[State, ParentEvent, WidgetTask[ChildEvent]],
-                   supervisor  : TaskSupervisor
-  )(
+    ParentEvent,
+    ChildEvent: RichTypeChecker
+  ] => (
+    name: String,
+    initialState: State,
+    dealloc: State => Recomposition,
+    eventHandler: (State, ChildEvent) => EventReaction[State, ParentEvent, WidgetTask[ChildEvent]],
+    supervisor: TaskSupervisor
+  ) => (
     renderState: State => Widget[ChildEvent]
-  ): Widget[ParentEvent]
-  
-  // TODO Надо подумать, может такое состояние должно стоять не над, а рядом с детскими состояниями, чтобы его можно было добавлять и убавлять.
-  def stateInBetween[
-    State : {Equiv, RichTypeChecker}, 
-    TransitiveEvent : RichTypeChecker, 
-    OwnEvent : RichTypeChecker
-  ](
-                         name         : String,
-                         initialState : State,
-                         dealloc      : State => Recomposition,
-                         eventHandler : (State, OwnEvent) => EventReaction[State, TransitiveEvent, WidgetTask[OwnEvent]],
-                         supervisor   : TaskSupervisor
-  )(
-    renderState : State => Widget[Either[TransitiveEvent, OwnEvent]]
-  ) : Widget[TransitiveEvent]
-end StatefulApi
+  ) => Widget[ParentEvent]
+
+type StateInBetweenWidget[Widget[_], WidgetTask[_], Recomposition, TaskSupervisor] =
+  [
+    State: {Equiv, RichTypeChecker},
+    TransitiveEvent: RichTypeChecker,
+    OwnEvent: RichTypeChecker
+  ] => (
+    name: String,
+    initialState: State,
+    dealloc: State => Recomposition,
+    eventHandler: (State, OwnEvent) => EventReaction[State, TransitiveEvent, WidgetTask[OwnEvent]],
+    supervisor: TaskSupervisor
+  ) => (
+    renderState: State => Widget[Either[TransitiveEvent, OwnEvent]]
+  ) => Widget[TransitiveEvent]
+
+
+def statefulWidget[
+  Update[+_, +_]: {BiMonad, CatchEvents, LiftEventReaction},
+  Draw,
+  Place[+_] : FlatMap,
+  Recomposition,
+  WidgetTask[+_] : Functor,
+  SystemEvent >: TaskFinished,
+  Supervisor,
+](
+   raiseEvent : [Event] => () => RaiseEvent[Update[Unit, Event]],
+   runOnSupervisor : (Supervisor, List[WidgetTask[Any]]) => Update[Unit, Nothing]
+) : StatefulWidget[[Event] =>> Place[Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]], WidgetTask, Recomposition, Supervisor] =
+  def addTaskResultCatcher[T: RichTypeChecker](name: String)(initial: Place[Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]]): Place[Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]] =
+    given RaiseEvent[Update[Unit, T]] = raiseEvent[T]()
+    Functor[Place].map(initial)(TaskResultCatcher(name, _))
+  end addTaskResultCatcher
+
+  [
+    State: {Equiv, RichTypeChecker},
+    ParentEvent,
+    ChildEvent: RichTypeChecker
+  ] => (
+    name: String,
+    initialState: State,
+    dealloc_ : State => Recomposition,
+    eventHandler: (State, ChildEvent) => EventReaction[State, ParentEvent, WidgetTask[ChildEvent]],
+    supervisor: Supervisor
+  ) => (renderState: State => Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, SystemEvent]]) =>
+    val render = renderState andThen addTaskResultCatcher[ChildEvent](name)
+    rawStatefulWidget[Update, Draw, Place, Recomposition, State, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, dealloc_, eventHandler, render, runOnSupervisor(supervisor, _))
+end statefulWidget
+
+
+// TODO Надо подумать, может такое состояние должно стоять не над, а рядом с детскими состояниями, чтобы его можно было добавлять и убавлять.
+def stateInBetweenWidget[
+  Update[+_, +_] : {BiMonad, CatchEvents, LiftEventReaction},
+  Draw: Monoid,
+  Place[+_] : FlatMap,
+  Recomposition,
+  WidgetTask[+_] : Functor,
+  SystemEvent >: TaskFinished,
+  Supervisor,
+](
+   raiseEvent: [Event] => () => RaiseEvent[Update[Unit, Event]],
+   runOnSupervisor: (Supervisor, List[WidgetTask[Any]]) => Update[Unit, Nothing]
+ ): StateInBetweenWidget[[Event] =>> Place[Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]], WidgetTask, Recomposition, Supervisor] =
+  [
+    State: {Equiv, RichTypeChecker},
+    TransitiveEvent: RichTypeChecker,
+    OwnEvent: RichTypeChecker
+  ] => (
+     name: String,
+     initialState: State,
+     dealloc: State => Recomposition,
+     eventHandler: (State, OwnEvent) => EventReaction[State, TransitiveEvent, WidgetTask[OwnEvent]],
+     supervisor: Supervisor
+  ) => (renderState: State => Place[Widget[[W] =>> Update[W, Either[TransitiveEvent, OwnEvent]], Draw, Place, Recomposition, SystemEvent]]) =>
+      statefulWidget(raiseEvent, runOnSupervisor)[State, TransitiveEvent, Either[TransitiveEvent, OwnEvent]](
+      name,
+      initialState,
+      dealloc,
+      (state, event) =>
+        event match
+          case Left(transitiveEvent) => EventReaction(state, List(transitiveEvent), Nil)
+          case Right(ownEvent) => eventHandler(state, ownEvent).mapIOS(_.map(Right(_))),
+      supervisor
+    )(renderState)
+end stateInBetweenWidget
