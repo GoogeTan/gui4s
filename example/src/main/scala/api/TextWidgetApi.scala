@@ -14,14 +14,15 @@ type TextWidget[Widget, Shaper, TextStyle] = (text : String, shaper : Shaper, te
 def textWidget[
   Update[+_, +_]: BiMonad,
   Draw,
-  Place[+_] : {TextPlacementT[Shaper, TextStyle, LayoutPlacementMeta[MeasurementUnit]], Functor},
+  Place[+_] : {TextPlacementT[Shaper, TextStyle,TextPlacementMeta], Functor},
   Recomposition : Empty,
   MeasurementUnit,
   TextStyle,
+  TextPlacementMeta,
   Shaper,
   SystemEvent,
 ](
-   using TextDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
+   using TextDraw[Draw, TextPlacementMeta],
 ) : TextWidget[Place[widget.Widget[[W] =>> Update[W, Nothing], Draw, Place, Recomposition, SystemEvent]], Shaper, TextStyle] =
   (text: String, shaper: Shaper, style: TextStyle) => rawTextWidget(drawOnlyWidget, text, shaper, style)
 end textWidget 

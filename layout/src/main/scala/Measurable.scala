@@ -9,7 +9,7 @@ type MeasurableT[F[+_], MeasurementUnit] = [T] =>> Measurable[F, MeasurementUnit
 
 type Measurable[+F[+_], MeasurementUnit, +T] = Bounds[MeasurementUnit] =>  F[Sized[MeasurementUnit, T]]
   
-given[F[+_] : Monad, MeasurementUnit]: FlatMap[MeasurableT[F, MeasurementUnit]] with
+given measurableIsFlatMap[F[+_] : Monad, MeasurementUnit]: FlatMap[MeasurableT[F, MeasurementUnit]] with
   override def flatMap[A, B](fa: Measurable[F, MeasurementUnit, A])
                             (f: A => Measurable[F, MeasurementUnit, B]): Measurable[F, MeasurementUnit, B] =
     bounds => fa(bounds).flatMap(sized => f(sized.value)(bounds))
@@ -29,4 +29,4 @@ given[F[+_] : Monad, MeasurementUnit]: FlatMap[MeasurableT[F, MeasurementUnit]] 
 
       helper(a)(f)
   end tailRecM
-end given
+end measurableIsFlatMap

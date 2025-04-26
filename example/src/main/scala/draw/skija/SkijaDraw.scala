@@ -24,6 +24,7 @@ import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.TestFuncs
+import org.lwjgl.opengl.GL
 
 final case class SkijaDrawState[F[_], Window](context : DirectContext, glfw: Glfw[F, Window], window : Window, canvas : Canvas)
 
@@ -50,12 +51,12 @@ end given
 given skijaLayoutDraw[F[_] : {Impure, Monad}, Window]: LayoutDraw[SkijaDraw[F, Window], LayoutPlacementMeta[Float]] =
   layoutDrawImpl[SkijaDraw[F, Window], Float]
 
-given skijaTextDraw[F[_] : Impure as I, Window, MeasurementUnit]: TextDraw[SkijaDraw[F, Window], TextBlob] =
+given skijaTextDraw[F[_] : Impure as I, Window]: TextDraw[SkijaDraw[F, Window], SkijaPlacedText] =
   (text, meta) =>
     ReaderT[F, SkijaDrawState[F, Window], Unit](
       state =>
         I:
-          state.canvas.drawTextBlob(meta, 0, 0, new Paint())
+          state.canvas.drawTextBlob(meta.textBlob, 0, 0, meta.paint)
     )
 end skijaTextDraw
 
@@ -68,7 +69,9 @@ end flush
 final case class SkijaBackend[F[_]](
                                       glfw : Glfw[F, OglWindow],
                                       window: OglWindow,
-                                      renderTarget : SkiaRenderTarget
+                                      renderTarget : SkiaRenderTarget,
+                                      globalDispatcher : Dispatcher[F],
+                                      globalShaper : Shaper,
                                     ):
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
     glfw.windowSize(window).map(a => new Bounds(a.width, a.height))
@@ -80,10 +83,13 @@ object SkijaSimpleDrawApi:
     for
       dispatcher <- Dispatcher.sequential[F]
       glfw = GlfwImpl[F]([T] => (value : F[T]) => dispatcher.unsafeRunSync(value))
-      dpi <- effect.Resource.eval(glfw.monitorScale(0))
-      rt <- Skia.initSkia(500, 500, dpi._1)
+      _ <- effect.Resource.eval(glfw.initGlfw)
       window <- glfw.createWindow("Test", Size(500, 500), true, true, true)
-    yield SkijaBackend(glfw, window, rt)
+      _ <- effect.Resource.eval(glfw.createOGLContext(window, I(GL.createCapabilities())))
+      dpi <- effect.Resource.eval(glfw.currentMonitor >>= glfw.monitorScale)
+      rt <- Skia.initSkia(500, 500, dpi._1)
+      shaper <- Resource.fromAutoCloseable(I(Shaper.make()))
+    yield SkijaBackend(glfw, window, rt, dispatcher, shaper)
   end createForTests
 end SkijaSimpleDrawApi
 
