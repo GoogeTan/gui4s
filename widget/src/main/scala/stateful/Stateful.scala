@@ -1,14 +1,14 @@
 package me.katze.gui4s.widget
 package stateful
 
-import cats.FlatMap
+import cats.{FlatMap, Functor}
 import cats.syntax.all.*
 import me.katze.gui4s.widget
 
 final case class Stateful[
   Update[+_, +_] : {BiMonad, CatchEvents},
   Draw : StatefulDraw as SD, 
-  Place[+_] : FlatMap,
+  Place[+_] : FlatMap, // TODO Здесь нужно что-то более подходящее. Тут есть какой-то костыль и неявное знание о том, как работает Place, мне кажется
   Task,
   Recomposition,
   RaiseableEvent,

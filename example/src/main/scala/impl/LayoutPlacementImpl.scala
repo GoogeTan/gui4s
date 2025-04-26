@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package impl
 
-import api.impl.LayoutPlacementGeneralized
+import api.impl.{LayoutPlacementGeneralized, LayoutPlacementMeta}
 import place.*
 
 import cats.*
@@ -11,7 +11,7 @@ import me.katze.gui4s.example
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
 
-def containerPlacementCurried[F[+_] : Monad, Widget, MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors): LayoutPlacementGeneralized[MeasurableT[F, MeasurementUnit], MeasurementUnit, Widget] =
+def containerPlacementCurried[F[+_] : Monad, Widget, MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors): LayoutPlacementGeneralized[MeasurableT[F, MeasurementUnit], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget] =
   (axis, elements, main, additional) =>
     weightedRowColumnPlace[F, MeasurementUnit, Widget](
       axis,

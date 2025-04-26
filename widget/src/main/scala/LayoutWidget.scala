@@ -18,7 +18,7 @@ final class LayoutWidget[
     placeChildren: List[Place[Widget[Update, Draw, Place, Recomposition, DownEvent]]] => Place[Widget[Update, Draw, Place, Recomposition, DownEvent]]
 )(
     using LD : LayoutDraw[Draw, ChildrenMeta]
-) extends me.katze.gui4s.widget.Widget[Update, Draw, Place, Recomposition, DownEvent]:
+) extends Widget[Update, Draw, Place, Recomposition, DownEvent]:
 
   override def handleDownEvent(pathToParent: Path, event: DownEvent): Update[Place[Widget[Update, Draw, Place, Recomposition, DownEvent]]] =
     children

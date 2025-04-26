@@ -1,8 +1,6 @@
 package me.katze.gui4s.widget
 package library
 
-import stateful.BiMonad
-
 import cats.*
 import cats.syntax.all.given
 import me.katze.gui4s.widget

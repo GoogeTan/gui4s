@@ -16,7 +16,7 @@ import me.katze.gui4s.widget.{Widget, drawOnlyWidget, textWidget}
 final class TextApi[
   Update[+_, +_]: BiMonad,
   Draw,
-  Place[+_] : {TextPlacementT[Shaper, TextStyle, LayoutPlacementMeta[MeasurementUnit]], FlatMap},
+  Place[+_] : {TextPlacementT[Shaper, TextStyle, LayoutPlacementMeta[MeasurementUnit]], Functor},
   Recomposition : Empty,
   MeasurementUnit,
   -TextStyle,
@@ -33,8 +33,8 @@ end TextApi
 final class StatefulApi_[
   Update[+_, +_]: {BiMonad, CatchEvents, LiftEventReaction},
   Draw : Monoid,
-  Place[+_] : { FlatMap},
-  Recomposition : {Monoid},
+  Place[+_] : FlatMap,
+  Recomposition,
   WidgetTask[+_] : Functor,
   SystemEvent >: TaskFinished,
   Supervisor,
@@ -83,17 +83,13 @@ final class StatefulApi_[
 
   private def addTaskResultCatcher[T : RichTypeChecker](name: String)(initial: Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]]) : Place[widget.Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]] =
     given RaiseEvent[Update[Unit, T]] = raiseEvent[T]()
-    FlatMap[Place].map(initial)(TaskResultCatcher(name, Monoid[Draw].empty, _))
+    Functor[Place].map(initial)(TaskResultCatcher(name, Monoid[Draw].empty, _))
   end addTaskResultCatcher
 end StatefulApi_
 
 
-type LayoutPlacement[Update[+_], Draw, Place[+_], Recompose, DownEvent, MeasurementUnit] =
-  LayoutPlacementGeneralized[Place, MeasurementUnit, Widget[Update, Draw, Place, Recompose, DownEvent]]
-
-type LayoutPlacementGeneralized[Place[_], MeasurementUnit, W] =
-  (Axis, List[Place[W]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy)
-    => Place[List[(W, LayoutPlacementMeta[MeasurementUnit])]]
+type LayoutPlacementGeneralized[Place[_], MeasurementUnit, PlacementMeta, Widget] =
+   (Axis, List[Place[Widget]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy) => Place[List[(Widget, PlacementMeta)]]
 
 final class LayoutApi_[
   Update[+_, +_]: BiMonad,
@@ -101,11 +97,13 @@ final class LayoutApi_[
   Place[+_] : FlatMap,
   Recomposition : Monoid,
   MeasurementUnit,
+  PlacementMeta,
   SystemEvent,
 ](
-    using LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]],
+    using LayoutDraw[Draw, PlacementMeta],
 )(
-  val placement : [Event] => () => LayoutPlacement[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent, MeasurementUnit],
+  val placement : [Event] => (Axis, List[Place[Widget[[A] =>> Update[A, Event], Draw, Place, Recomposition, SystemEvent]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy) => 
+    Place[List[(Widget[[A] =>> Update[A, Event], Draw, Place, Recomposition, SystemEvent], PlacementMeta)]],
 ) extends  LayoutApi[[Event] =>> Place[widget.Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]], MeasurementUnit]:
 
   private type Widget[+Event] = Place[widget.Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]]
@@ -142,7 +140,7 @@ final class LayoutApi_[
                                     mainAxisStrategy      : MainAxisPlacementStrategy[MeasurementUnit],
                                     additionalAxisStrategy: AdditionalAxisPlacementStrategy,
                                   ): Widget[Event] =
-    layoutWidget[[W] =>> Update[W, Event], Draw, Place, Recomposition, LayoutPlacementMeta[MeasurementUnit], SystemEvent](children, placement[Event]()(axis, _, mainAxisStrategy, additionalAxisStrategy))
+    layoutWidget[[W] =>> Update[W, Event], Draw, Place, Recomposition, PlacementMeta, SystemEvent](children, placement[Event](axis, _, mainAxisStrategy, additionalAxisStrategy))
   end linearLayout
 end LayoutApi_
 

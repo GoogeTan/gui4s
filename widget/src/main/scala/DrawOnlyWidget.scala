@@ -9,7 +9,7 @@ import cats.{Applicative, FlatMap}
 def drawOnlyWidget[
   Update[+_] : Applicative,
   Draw,
-  Place[+_] : FlatMap,
+  Place[+_],
   Recomposition : Empty as E
 ](asFreeIn: Place[Widget[Update, Draw, Place, Recomposition, Any]], drawIn: Draw): Widget[Update, Draw, Place, Recomposition, Any] =
   case object DrawOnlyWidget extends Widget[Update, Draw, Place, Recomposition, Any]:

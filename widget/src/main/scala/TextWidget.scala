@@ -4,12 +4,12 @@ import library.{Empty, TextDraw, TextPlacement}
 import stateful.{BiMonad, CatchEvents}
 
 import cats.syntax.all.*
-import cats.{Applicative, FlatMap, Monad}
+import cats.{Applicative, FlatMap, Functor, Monad}
 
 def textWidget[
   Update[+_] : Applicative,
   Draw,
-  Place[+_] : FlatMap,
+  Place[+_] : Functor,
   LeftComposition : Empty,
   TextPlacementMeta,
   TextStyle,
