@@ -5,6 +5,6 @@ type LaunchedEffectWidget[Widget[_], WidgetTask[_]] = [Event] => (String, List[A
 type SideEffectWidget[Widget[_], WidgetTask[_]] = [Event] => String => WidgetTask[Event] => Widget[Event]
 
 trait EffectApi[Widget[_], WidgetTask[_]]:
-  def launchedEffect[T](name : String, keys : Any*)(task : WidgetTask[T]) : Widget[T]
-  def sideEffect[T](name : String, task : WidgetTask[T]) : Widget[T]
+  def launchedEffect[Event](name : String, keys : Any*)(task : WidgetTask[Event]) : Widget[Event]
+  def sideEffect[Event](name : String, task : WidgetTask[Event]) : Widget[Event]
 end EffectApi

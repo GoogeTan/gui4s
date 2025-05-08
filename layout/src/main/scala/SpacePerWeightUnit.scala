@@ -13,14 +13,14 @@ import scala.math.Ordered.orderingToOrdered
  * @param allTheWeight Суммарный вес всех элементов в контейнере
  * @param freeSpace Остаток места после установки не взвешенных элементов.
  */
-final case class SpacePerWeightUnit[T : Fractional](allTheWeight: Int, freeSpace: T):
+final case class SpacePerWeightUnit[MeasureableUnit : Fractional](allTheWeight: Int, freeSpace: MeasureableUnit):
   /**
    * Считает, сколько места занимает виджет с данным весом.
    * @param weight Вес элемента
    * @return Количество места, которое он занимает.
    */
-  def spaceForWeight(weight: Int): T =
-    Fractional[T].fromInt(weight) * (freeSpace / Fractional[T].fromInt(allTheWeight))
+  def spaceForWeight(weight: Int): MeasureableUnit =
+    Fractional[MeasureableUnit].fromInt(weight) * (freeSpace / Fractional[MeasureableUnit].fromInt(allTheWeight))
   end spaceForWeight
 end SpacePerWeightUnit
 

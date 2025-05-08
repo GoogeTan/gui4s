@@ -23,6 +23,6 @@ def textWidget[
   SystemEvent,
 ](
    using TextDraw[Draw, TextPlacementMeta],
-) : TextWidget[Place[widget.Widget[[W] =>> Update[W, Nothing], Draw, Place, Recomposition, SystemEvent]], Shaper, TextStyle] =
+) : TextWidget[Place[widget.Widget[[Value] =>> Update[Value, Nothing], Draw, Place, Recomposition, SystemEvent]], Shaper, TextStyle] =
   (text: String, shaper: Shaper, style: TextStyle) => rawTextWidget(drawOnlyWidget, text, shaper, style)
 end textWidget 

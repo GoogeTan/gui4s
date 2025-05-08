@@ -3,8 +3,8 @@ package place
 
 
 trait RunPlacement[+F[_], PlacementEffect[_]]:
-  def run[T](toPalce: PlacementEffect[T]) : F[T]
+  def run[Value](toPalce: PlacementEffect[Value]) : F[Value]
   
-  extension[T](value : PlacementEffect[T])
-    def runPlacement : F[T] = run(value)
+  extension[Value](value : PlacementEffect[Value])
+    def runPlacement : F[Value] = run(value)
 end RunPlacement

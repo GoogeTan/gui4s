@@ -10,7 +10,7 @@ import draw.{Drawable, SimpleDrawApi, TextStyle, drawLoopExceptionHandler}
 import impl.{*, given}
 
 import cats.data.ReaderT
-import cats.effect.Async
+import cats.effect.{Async, IO, Resource}
 import cats.effect.kernel.Resource
 import cats.effect.std.{Console, Dispatcher}
 import cats.syntax.all.*
@@ -23,7 +23,7 @@ import io.github.humbleui.types.Rect
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.skija.TestFuncs
+import me.katze.gui4s.skija.{TestFuncs, *} 
 import org.lwjgl.opengl.GL
 
 final case class SkijaDrawState[F[_], Window](context : DirectContext, glfw: Glfw[F, Window], window : Window, canvas : Canvas)
@@ -38,11 +38,11 @@ given [F[_] : {Impure, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] w
     )
 end given
 
-given[F[_] : Applicative, W]: Monoid[SkijaDraw[F, W]] with
-  override def empty: SkijaDraw[F, W] = ReaderT.pure[F, SkijaDrawState[F, W], Unit](())
+given[F[_] : Applicative, Value]: Monoid[SkijaDraw[F, Value]] with
+  override def empty: SkijaDraw[F, Value] = ReaderT.pure[F, SkijaDrawState[F, Value], Unit](())
 
-  override def combine(x: SkijaDraw[F, W], y: SkijaDraw[F, W]): SkijaDraw[F, W] =
-    ReaderT[F, SkijaDrawState[F, W], Unit]:
+  override def combine(x: SkijaDraw[F, Value], y: SkijaDraw[F, Value]): SkijaDraw[F, Value] =
+    ReaderT[F, SkijaDrawState[F, Value], Unit]:
       state => 
         x(state) *> y(state)
   end combine
@@ -81,13 +81,13 @@ end SkijaBackend
 object SkijaSimpleDrawApi:
   def createForTests[F[+_] : {Impure as I, Async}] : Resource[F, SkijaBackend[F]] =
     for
+      _ <- initGLFW
+      config = WindowConfig(640, 480, "Skija Text Example")
+      window <- createWindow(config)
+      _ <- Resource.eval(setupOpenGL(window))
+      resources <- createRenderResources(config.width, config.height)
       dispatcher <- Dispatcher.sequential[F]
-      glfw = GlfwImpl[F]([T] => (value : F[T]) => dispatcher.unsafeRunSync(value))
-      _ <- effect.Resource.eval(glfw.initGlfw)
-      window <- glfw.createWindow("Test", Size(500, 500), true, true, true)
-      _ <- effect.Resource.eval(glfw.createOGLContext(window, I(GL.createCapabilities())))
-      dpi <- effect.Resource.eval(glfw.currentMonitor >>= glfw.monitorScale)
-      rt <- Skia.initSkia(500, 500, dpi._1)
+      rt <- Skia.initSkia(config.width, config.height, 1)
       shaper <- Resource.fromAutoCloseable(I(Shaper.make()))
     yield SkijaBackend(glfw, window, rt, dispatcher, shaper)
   end createForTests

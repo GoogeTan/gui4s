@@ -61,9 +61,9 @@ given[Task]: BiMonad[[A, B] =>> EventReaction[A, B, Task]] with
 end given
 
 given[Task] : CatchEvents[[A, B] =>> EventReaction[A, B, Task]] with
-  extension [W, E](old: EventReaction[W, E, Task])
-    override def catchEvents: EventReaction[(W, List[E]), Nothing, Task] =
-      EventReaction[(W, List[E]), Nothing, Task]((old.newState, old.parentEvent), Nil, old.ios)
+  extension [Widget, Event](old: EventReaction[Widget, Event, Task])
+    override def catchEvents: EventReaction[(Widget, List[Event]), Nothing, Task] =
+      EventReaction[(Widget, List[Event]), Nothing, Task]((old.newState, old.parentEvent), Nil, old.ios)
     end catchEvents
   end extension
 end given  

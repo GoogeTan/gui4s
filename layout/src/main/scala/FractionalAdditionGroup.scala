@@ -2,12 +2,12 @@ package me.katze.gui4s.layout
 
 import cats.Group
 
-given FractionalAdditionGroup[T : Fractional as F] : Group[T] with
-  override def empty: T = F.zero
+given FractionalAdditionGroup[NumberT : Fractional as F] : Group[NumberT] with
+  override def empty: NumberT = F.zero
 
-  override def combine(x: T, y: T): T = F.plus(x, y)
+  override def combine(x: NumberT, y: NumberT): NumberT = F.plus(x, y)
 
-  override def inverse(a: T): T = F.negate(a) 
+  override def inverse(a: NumberT): NumberT = F.negate(a) 
 end FractionalAdditionGroup
 
   

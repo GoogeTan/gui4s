@@ -52,10 +52,10 @@ def init[MeasurementUnit : Numeric](onResized : () => Unit) : SwingWindowCompone
   frame.addComponentListener(
     new ComponentAdapter:
       override def componentResized(e : ComponentEvent) : Unit =
-        val w = e.getComponent.getWidth
-        val h = e.getComponent.getHeight
-        frame.setSize(w, h)
-        comp.setSize(w, h)
+        val width = e.getComponent.getWidth
+        val height = e.getComponent.getHeight
+        frame.setSize(width, height)
+        comp.setSize(width, height)
         onResized()
       end componentResized
 

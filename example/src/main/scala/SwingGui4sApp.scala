@@ -17,7 +17,7 @@ import me.katze.gui4s.widget.{EventResult, Widget, given}
 
 import scala.concurrent.ExecutionContext
 
-type Update[UpEvent] = [W] =>> EventResult[W, UpEvent]
+type Update[UpEvent] = [Value] =>> EventResult[Value, UpEvent]
 type Recomposition[F[_]] = F[Unit]
 
 def swingApp(
@@ -30,13 +30,13 @@ def swingApp(
   runApplicationLoops[
     IO,
     TaskFinished | WindowResized.type,
-    [B] =>> RootWidget[
+    [DownEvent] =>> RootWidget[
       IO,
       SwingDraw[IO, Float, Unit],
       MeasurableT[IO, Float],
       Update[ApplicationRequest],
       Recomposition[IO],
-      B,
+      DownEvent,
     ]
   ](
     downEventSink => SwingApi[IO, Float, SwingDraw[IO, Float, Unit]](
@@ -59,7 +59,7 @@ def swingApp(
             RootWidget[IO, SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Update[ApplicationRequest], Recomposition[IO], TaskFinished | WindowResized.type],
             TaskFinished | WindowResized.type
           ](
-            [T] => (update : Update[ApplicationRequest][T]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
+            [Event] => (update : Update[ApplicationRequest][Event]) => Right(update.widget).pure[IO] // TODO Сделать настоящий обработчик
           ),
           updateLoopExecutionContext
         ),

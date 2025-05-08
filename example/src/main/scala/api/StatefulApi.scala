@@ -51,9 +51,9 @@ def statefulWidget[
 ](
    raiseEvent : [Event] => () => RaiseEvent[Update[Unit, Event]],
    runOnSupervisor : (Supervisor, List[WidgetTask[Any]]) => Update[Unit, Nothing]
-) : StatefulWidget[[Event] =>> Place[Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]], WidgetTask, Recomposition, Supervisor] =
-  def addTaskResultCatcher[T: RichTypeChecker](name: String)(initial: Place[Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]]): Place[Widget[[W] =>> Update[W, T], Draw, Place, Recomposition, SystemEvent]] =
-    given RaiseEvent[Update[Unit, T]] = raiseEvent[T]()
+) : StatefulWidget[[Event] =>> Place[Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]], WidgetTask, Recomposition, Supervisor] =
+  def addTaskResultCatcher[Event: RichTypeChecker](name: String)(initial: Place[Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]]): Place[Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]] =
+    given RaiseEvent[Update[Unit, Event]] = raiseEvent[Event]()
     Functor[Place].map(initial)(TaskResultCatcher(name, _))
   end addTaskResultCatcher
 
@@ -67,7 +67,7 @@ def statefulWidget[
     dealloc_ : State => Recomposition,
     eventHandler: (State, ChildEvent) => EventReaction[State, ParentEvent, WidgetTask[ChildEvent]],
     supervisor: Supervisor
-  ) => (renderState: State => Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, SystemEvent]]) =>
+  ) => (renderState: State => Place[Widget[[Value] =>> Update[Value, ChildEvent], Draw, Place, Recomposition, SystemEvent]]) =>
     val render = renderState andThen addTaskResultCatcher[ChildEvent](name)
     rawStatefulWidget[Update, Draw, Place, Recomposition, State, ParentEvent, ChildEvent, SystemEvent, WidgetTask](name, initialState, dealloc_, eventHandler, render, runOnSupervisor(supervisor, _))
 end statefulWidget

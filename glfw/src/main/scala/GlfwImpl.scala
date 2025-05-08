@@ -44,7 +44,7 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
     impure.impure:
       glfwSetWindowSizeCallback(
         window.id,
-        (_, w, h) => unsafeRunF(callback(Size(w, h)))
+        (_, width, height) => unsafeRunF(callback(Size(width, height)))
       )
   end windowResizeCallback
 
@@ -65,8 +65,8 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
 
   override def frameBufferResizeCallback(window: OglWindow, callback: Size => F[Unit]): F[Unit] =
     impure.impure:
-      val old = glfwSetFramebufferSizeCallback(window.id, (_, w, h) =>
-        unsafeRunF(callback(Size(w, h)))
+      val old = glfwSetFramebufferSizeCallback(window.id, (_, width, height) =>
+        unsafeRunF(callback(Size(width, height)))
       )
       if old != null then
         old.free()

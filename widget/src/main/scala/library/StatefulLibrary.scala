@@ -11,18 +11,18 @@ def statefulWidget[
   Draw : StatefulDraw,
   Place[+_] : FlatMap,
   Recomposition,
-  T: {Equiv, RichTypeChecker},
+  State: {Equiv, RichTypeChecker},
   ParentEvent, ChildEvent,
   DownEvent,
   WidgetTask[+_]
 ](
-    name          : String,
-    initialState  : T,
-    deallocState : T => Recomposition,
-    eventHandler  : (T, ChildEvent) => EventReaction[T, ParentEvent, WidgetTask[ChildEvent]],
-    renderState   : T => Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, DownEvent]],
-    runTasks : List[WidgetTask[ChildEvent]] => Update[Unit, Nothing]
-): Place[Widget[[W] =>> Update[W, ParentEvent], Draw, Place, Recomposition, DownEvent]] =
+   name          : String,
+   initialState  : State,
+   deallocState : State => Recomposition,
+   eventHandler  : (State, ChildEvent) => EventReaction[State, ParentEvent, WidgetTask[ChildEvent]],
+   renderState   : State => Place[Widget[[Value] =>> Update[Value, ChildEvent], Draw, Place, Recomposition, DownEvent]],
+   runTasks : List[WidgetTask[ChildEvent]] => Update[Unit, Nothing]
+): Place[Widget[[Value] =>> Update[Value, ParentEvent], Draw, Place, Recomposition, DownEvent]] =
   statefulWidget_(
     name,
     InitialBasedState(initialState, initialState, eventHandler, renderState, summon, deallocState),
@@ -39,9 +39,9 @@ def statefulWidget_[
   DownEvent,
   Task,
 ](
-    name          : String,
-    state : State[[U] =>> Update[U, ParentEvent], Recomposition, ChildEvent, Place[Widget[[W] =>> Update[W, ChildEvent], Draw, Place, Recomposition, DownEvent]], Task],
-    runTasks : List[Task] => Update[Unit, Nothing]
-): Place[Widget[[W] =>> Update[W, ParentEvent], Draw, Place, Recomposition, DownEvent]] =
+   name          : String,
+   state : State[[Value] =>> Update[Value, ParentEvent], Recomposition, ChildEvent, Place[Widget[[Value] =>> Update[Value, ChildEvent], Draw, Place, Recomposition, DownEvent]], Task],
+   runTasks : List[Task] => Update[Unit, Nothing]
+): Place[Widget[[Value] =>> Update[Value, ParentEvent], Draw, Place, Recomposition, DownEvent]] =
   state.render.map(Stateful(name, state, _, runTasks))
 end statefulWidget_

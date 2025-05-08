@@ -18,18 +18,18 @@ import me.katze.gui4s.widget.{Widget, given}
 import scala.concurrent.ExecutionContext
 
 def skijaApp[F[+_] : {Async, Console, Impure}](
-                            widget : SkijaBackend[F] => Measurable[F, Float,
-                              Widget[
-                                Update[ApplicationRequest],
-                                SkijaDraw[F, OglWindow],
-                                MeasurableT[F, Float],
-                                Recomposition[F],
-                                TaskFinished
-                              ]
-                            ],
-                            updateLoopExecutionContext : ExecutionContext,
-                            drawLoopExecutionContext: ExecutionContext,
-                          ) =
+                                                widget : SkijaBackend[F] => Measurable[F, Float,
+                                                  Widget[
+                                                    Update[ApplicationRequest],
+                                                    SkijaDraw[F, OglWindow],
+                                                    MeasurableT[F, Float],
+                                                    Recomposition[F],
+                                                    TaskFinished
+                                                  ]
+                                                ],
+                                                updateLoopExecutionContext : ExecutionContext,
+                                                drawLoopExecutionContext: ExecutionContext,
+                                              ) =
   runApplicationLoopsWithBackend[
     F,
     TaskFinished,
@@ -62,7 +62,7 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
         RootWidget[F, SkijaDraw[F, OglWindow], MeasurableT[F, Float], Update[ApplicationRequest], F[Unit], TaskFinished],
         TaskFinished
       ](
-        [T] => (update : Update[ApplicationRequest][T]) => Right(update.widget).pure[F] // TODO Сделать настоящий обработчик
+        [Event] => (update : Update[ApplicationRequest][Event]) => Right(update.widget).pure[F] // TODO Сделать настоящий обработчик
       ),
       updateLoopExecutionContext
     ),

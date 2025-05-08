@@ -9,8 +9,8 @@ import scala.math.Numeric.Implicits.*
 
 final case class SwingDrawState[MU](x : MU, y : MU)
 
-type SwingDraw[F[_], MeasurementUnit, T] = ReaderT[F, SwingDrawState[MeasurementUnit], T]
-type SwingDrawT[F[_], MeasurementUnit] = [T] =>> SwingDraw[F, MeasurementUnit, T]
+type SwingDraw[F[_], MeasurementUnit, Value] = ReaderT[F, SwingDrawState[MeasurementUnit], Value]
+type SwingDrawT[F[_], MeasurementUnit] = [Value] =>> SwingDraw[F, MeasurementUnit, Value]
 
 def runSwingDraw[F[+_], MeasurementUnit : Numeric](draw: SwingDraw[F, MeasurementUnit, Unit]): F[Unit] =
   draw.run(SwingDrawState(Numeric[MeasurementUnit].zero, Numeric[MeasurementUnit].zero))

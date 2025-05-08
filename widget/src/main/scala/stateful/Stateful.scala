@@ -15,19 +15,19 @@ final case class Stateful[
   HandleableEvent,
   ChildRaiseableEvent
 ](
-    name: String,
-    state: State[[W] =>> Update[W, RaiseableEvent], Recomposition, ChildRaiseableEvent, Place[Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent]], Task],
-    childTree: Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent],
-    runTasks : List[Task] => Update[Unit, Nothing]
-)  extends Widget[[E] =>> Update[E, RaiseableEvent], Draw, Place, Recomposition, HandleableEvent]:
-  private type WidgetTree[+A] = Widget[[E] =>> Update[E, A], Draw, Place, Recomposition, HandleableEvent]
-  private type FreeWidgetTree[+A] = Place[WidgetTree[A]]
+   name: String,
+   state: State[[Value] =>> Update[Value, RaiseableEvent], Recomposition, ChildRaiseableEvent, Place[Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent]], Task],
+   childTree: Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent],
+   runTasks : List[Task] => Update[Unit, Nothing]
+)  extends Widget[[Value] =>> Update[Value, RaiseableEvent], Draw, Place, Recomposition, HandleableEvent]:
+  private type WidgetTree[+RaisableEvent] = Widget[[Value] =>> Update[Value, RaisableEvent], Draw, Place, Recomposition, HandleableEvent]
+  private type FreeWidgetTree[+RaisableEvent] = Place[WidgetTree[RaisableEvent]]
   private type StatefulUpdateResult = Update[FreeWidgetTree[RaiseableEvent], RaiseableEvent]
-  private type InternalState = State[[A] =>> Update[A, RaiseableEvent], Recomposition, ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent], Task]
+  private type InternalState = State[[Value] =>> Update[Value, RaiseableEvent], Recomposition, ChildRaiseableEvent, FreeWidgetTree[ChildRaiseableEvent], Task]
 
   private def freeStateful(
                             state: InternalState,
-                            childTree: Place[Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent]]
+                            childTree: Place[Widget[[Value] =>> Update[Value, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent]]
                           ) : FreeWidgetTree[RaiseableEvent] =
     childTree.map(Stateful(name, state, _, runTasks))
   end freeStateful
@@ -65,7 +65,7 @@ final case class Stateful[
   private def onChildUpdate(pathToSelf: Path, newChildF: Update[FreeWidgetTree[ChildRaiseableEvent], ChildRaiseableEvent]) : StatefulUpdateResult =
     for
       (newChild, events) <- newChildF.catchEvents
-      (newState, newTree) <- events.foldLeftM[[T] =>> Update[T, RaiseableEvent], (InternalState, FreeWidgetTree[ChildRaiseableEvent])]((this.state, mergeFreeTrees(pathToSelf, this.childTree.asUnplaced, newChild)))(
+      (newState, newTree) <- events.foldLeftM[[Value] =>> Update[Value, RaiseableEvent], (InternalState, FreeWidgetTree[ChildRaiseableEvent])]((this.state, mergeFreeTrees(pathToSelf, this.childTree.asUnplaced, newChild)))(
         (stateAndTree, event) =>
           val (newState, tasks) = stateAndTree._1.handleEvent(event) // TODO run tasks
           runTasks(tasks) *> newState.map(newState => (newState, mergeFreeTrees(pathToSelf, stateAndTree._2, newState.render)))

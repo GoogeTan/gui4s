@@ -54,10 +54,10 @@ given[Event : RichTypeChecker as RTC, Task] : RaiseEvent[EventResult[Unit, Event
   end raise
 end given
 
-given[Task] : CatchEvents[[A, B] =>> EventResult[A, B]] with
-  extension [W, E](old: EventResult[W, E])
-    override def catchEvents: EventResult[(W, List[E]), Nothing] =
-      EventResult[(W, List[E]), Nothing]((old.widget, old.events), Nil)
+given[Task] : CatchEvents[EventResult] with
+  extension [Widget, Event](old: EventResult[Widget, Event])
+    override def catchEvents: EventResult[(Widget, List[Event]), Nothing] =
+      EventResult[(Widget, List[Event]), Nothing]((old.widget, old.events), Nil)
     end catchEvents
   end extension
 end given  

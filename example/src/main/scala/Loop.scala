@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 type DrawLoop[F[+_], -Widget] = F[Widget] => F[ExitCode]
 
 def runDrawLoopOn[F[+_]: Async, Widget](loop : DrawLoop[F, Widget], context : ExecutionContext) : DrawLoop[F, Widget] =
-  w => loop(w).evalOn(context)
+  widgetSource => loop(widgetSource).evalOn(context)
 end runDrawLoopOn
 
 /**

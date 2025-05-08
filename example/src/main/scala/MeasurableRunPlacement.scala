@@ -12,7 +12,7 @@ final class MeasurableRunPlacement[F[_] : Monad, G[+_], MeasurementUnit : Numeri
                                                                                   )(
                                                                                       using I : InjectK[G, F]
                                                                                     ) extends RunPlacement[F, MeasurableT[G, MeasurementUnit]]:
-  override def run[T](toPlace: Measurable[G, MeasurementUnit, T]): F[T] =
+  override def run[Value](toPlace: Measurable[G, MeasurementUnit, Value]): F[Value] =
     bounds
       .flatMap(bounds => I(toPlace(bounds)))
       .map(_.value)

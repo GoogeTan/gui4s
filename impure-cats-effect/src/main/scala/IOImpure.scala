@@ -14,5 +14,3 @@ given IOImpure : Impure[IO] with ImpureError[IO, Throwable]:
       case Left(error) => IO.raiseError(error)
   end impureTry
 end IOImpure
-
-given Impure[IO] = IOImpure

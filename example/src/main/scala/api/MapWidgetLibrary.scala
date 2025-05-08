@@ -13,7 +13,7 @@ def mapWidget[
   Place[+_] : Functor,
   Recomposition : Monoid,
   DownEvent,
-] : MapEventWidget[[Event] =>> Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, DownEvent]] =
+] : MapEventWidget[[Event] =>> Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, DownEvent]] =
   [A, B] => widget => f =>
     RawMapEventWidget(widget, f)
 end mapWidget

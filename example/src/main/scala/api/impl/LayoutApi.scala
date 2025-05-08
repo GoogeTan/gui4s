@@ -28,9 +28,9 @@ final class LayoutApi_[
 )(
   val placement : [Event] => (Axis, List[Place[Widget[[A] =>> Update[A, Event], Draw, Place, Recomposition, SystemEvent]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy) => 
     Place[List[(Widget[[A] =>> Update[A, Event], Draw, Place, Recomposition, SystemEvent], PlacementMeta)]],
-) extends  LayoutApi[[Event] =>> Place[widget.Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]], MeasurementUnit]:
+) extends LayoutApi[[Event] =>> Place[widget.Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]], MeasurementUnit]:
 
-  private type Widget[+Event] = Place[widget.Widget[[W] =>> Update[W, Event], Draw, Place, Recomposition, SystemEvent]]
+  private type Widget[+Event] = Place[widget.Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]]
 
   override def column[Event](
                               children          : List[Widget[Event]],
