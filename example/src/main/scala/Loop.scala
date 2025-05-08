@@ -15,18 +15,18 @@ import scala.concurrent.ExecutionContext
  */
 type DrawLoop[F[+_], -Widget] = F[Widget] => F[ExitCode]
 
-def runDrawLoopOn[F[+_]: Async, Widget](loop : DrawLoop[F, Widget], context : ExecutionContext) : DrawLoop[F, Widget] =
+def runDrawLoopOnExecutionContext[F[+_]: Async, Widget](loop : DrawLoop[F, Widget], context : ExecutionContext) : DrawLoop[F, Widget] =
   widgetSource => loop(widgetSource).evalOn(context)
-end runDrawLoopOn
+end runDrawLoopOnExecutionContext
 
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).
  */
 type UpdateLoop[F[+_], Widget[_], DownEvent] = (Widget[DownEvent], Widget[DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
 
-def runUpdateLoopOn[F[+_]: Async, Widget[_], HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
+def runUpdateLoopOnExecutionContext[F[+_]: Async, Widget[_], HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
   (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
-end runUpdateLoopOn
+end runUpdateLoopOnExecutionContext
 
 /**
  * Каррированная версия MonadError.

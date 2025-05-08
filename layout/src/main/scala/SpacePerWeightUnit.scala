@@ -46,6 +46,6 @@ end spacePerWeightForContainerElements
 def fixedSpace[F[+_] : Monad, MeasurementUnit: Monoid as M, T](children : List[MaybeWeighted[Measurable[F, MeasurementUnit,T]]], mainAxis : Axis, bounds : Bounds[MeasurementUnit]) : F[MeasurementUnit] =
   children.foldMapM[F, MeasurementUnit]:
     case MaybeWeighted(None, value) =>
-      value(bounds).map(_.mainAxisValue(mainAxis))
+      value(bounds).map(_.lengthAlong(mainAxis))
     case _ => M.empty.pure[F]
 end fixedSpace

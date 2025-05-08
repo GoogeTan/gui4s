@@ -44,8 +44,8 @@ def rowColumnPlace[MeasurementUnit, T](
                                         mainAxisPlace      : (List[MeasurementUnit], AxisBounds[MeasurementUnit]) => List[MeasurementUnit],
                                         additionalAxisPlace: (MeasurementUnit, AxisBounds[MeasurementUnit]) => MeasurementUnit,
                                       ): List[Placed[MeasurementUnit, T]] =
-  val ys = mainAxisPlace(elements.map(_.mainAxisValue(bounds.axis)), bounds.mainAxis)
-  val xs = elements.map(el => additionalAxisPlace(el.additionalAxisValue(bounds.axis), bounds.additionalAxis))
+  val ys = mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis)
+  val xs = elements.map(el => additionalAxisPlace(el.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
 
   Monad[List].map(xs.zip(ys).zip(elements))((coords, value) => Placed(value.value, coords._1, coords._2, value.width, value.height))
 end rowColumnPlace

@@ -21,9 +21,9 @@ object SkijaAppExample extends IOApp:
     skijaColumn(
       (0 until 10).toList.map(
         lineNumber =>
-          skijaText("# line" + lineNumber.toString, new Font(Typeface.makeDefault(), 100), new Paint().setColor(0xFF858585)),
+          skijaText("# line" + lineNumber.toString, new Font(Typeface.makeDefault(), 18), new Paint().setColor(0xFF858585)),
       ),
-      MainAxisPlacementStrategy.Begin(10f),
+      MainAxisPlacementStrategy.Begin(0f),
       AdditionalAxisPlacementStrategy.Center
     )
   end main

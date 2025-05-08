@@ -5,12 +5,14 @@ import draw.skija.*
 import place.RunPlacement
 import update.ApplicationRequest
 
-import cats.effect.Async
+import cats.Monad
 import cats.effect.std.Console
+import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
+import me.katze.gui4s
+import me.katze.gui4s.example
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
-import me.katze.gui4s.impure.cats.effect.given
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.widget.stateful.{Path, TaskFinished, given}
 import me.katze.gui4s.widget.{Widget, given}
@@ -18,66 +20,47 @@ import me.katze.gui4s.widget.{Widget, given}
 import scala.concurrent.ExecutionContext
 
 def skijaApp[F[+_] : {Async, Console, Impure}](
-                            widget : SkijaBackend[F, OglWindow] ?=> Measurable[F, Float,
-                              Widget[
-                                Update[ApplicationRequest],
-                                SkijaDraw[F, OglWindow],
-                                MeasurableT[F, Float],
-                                Recomposition[F],
-                                TaskFinished
-                              ]
-                            ],
-                            updateLoopExecutionContext : ExecutionContext,
-                            drawLoopExecutionContext: ExecutionContext,
-                          ) =
+                                                widget : SkijaBackend[F, OglWindow] ?=> Measurable[F, Float,
+                                                  Widget[
+                                                    Update[ApplicationRequest],
+                                                    SkijaDraw[F, OglWindow],
+                                                    MeasurableT[F, Float],
+                                                    Recomposition[F],
+                                                    TaskFinished
+                                                  ]
+                                                ],
+                                                updateLoopExecutionContext : ExecutionContext,
+                                                drawLoopExecutionContext: ExecutionContext,
+                                              ) =
+  type SkijaRootWidget[DownEvent] = RootWidget[
+    F,
+    SkijaDraw[F, OglWindow],
+    MeasurableT[F, Float],
+    Update[ApplicationRequest],
+    Recomposition[F],
+    DownEvent,
+  ]
+
   runApplicationLoopsWithBackend[
     F,
     TaskFinished,
-    [B] =>> RootWidget[
-      F,
-      SkijaDraw[F, OglWindow],
-      MeasurableT[F, Float],
-      Update[ApplicationRequest],
-      Recomposition[F],
-      B,
-    ],
+    SkijaRootWidget,
     SkijaBackend[F, OglWindow]
   ](
-    downEventSink => SkijaSimpleDrawApi.createForTests[F].evalOn(drawLoopExecutionContext),
-    backend => runDrawLoopOn(
+    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F].evalOn(drawLoopExecutionContext),
+    drawLoop = backend => runDrawLoopOnExecutionContext(
       skijaDrawLoop[F, OglWindow](backend),
       drawLoopExecutionContext
     ),
-    backend => runUpdateLoopOn[F, [B] =>> RootWidget[
-      F,
-      SkijaDraw[F, OglWindow],
-      MeasurableT[F, Float],
-      Update[ApplicationRequest],
-      Recomposition[F],
-      B,
-    ], TaskFinished](
-      updateLoop[
-        F,
-        Update[ApplicationRequest],
-        RootWidget[F, SkijaDraw[F, OglWindow], MeasurableT[F, Float], Update[ApplicationRequest], F[Unit], TaskFinished],
-        TaskFinished
-      ](
-        [Event] => (update : Update[ApplicationRequest][Event]) => Right(update.widget).pure[F] // TODO Сделать настоящий обработчик
-      ),
+    updateLoop = backend => runUpdateLoopOnExecutionContext[F, SkijaRootWidget, TaskFinished](
+      updateLoop(handleApplicationRequests),
       updateLoopExecutionContext
     ),
-    backend =>
+    rootWidget = backend =>
       given RunPlacement[F, MeasurableT[F, Float]] = MeasurableRunPlacement[F, F, Float](backend.windowBounds)
 
       measurableIsFlatMap[F, Float].map(widget(using backend))(widget =>
-        RootWidget[
-          F,
-          SkijaDraw[F, OglWindow],
-          MeasurableT[F, Float],
-          Update[ApplicationRequest],
-          Recomposition[F],
-          TaskFinished,
-        ](
+        RootWidget(
           Path(List("ROOT")),
           widget,
           identity
@@ -86,4 +69,9 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
   )
 end skijaApp
 
-
+def handleApplicationRequests[F[_] : Monad] : [T] => Update[ApplicationRequest][T] => F[Either[ExitCode, T]] =
+  [T] => update => update.events.foldM(Right(update.widget))((_, request) =>
+    request match
+      case ApplicationRequest.CloseApp(code) => Left(code).pure[F]
+  )
+end handleApplicationRequests
