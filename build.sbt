@@ -184,7 +184,8 @@ lazy val example = (project in file("example"))
     libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List("org.scala-lang.modules" %% "scala-swing" % "3.0.0"),
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
-    scalacOptions ++= scalaCOptions(scalaVersion.value)
+    scalacOptions ++= scalaCOptions(scalaVersion.value),
+    mainClass := Some("me.katze.gui4s.example.SkijaAppExample")
   )
   .dependsOn(widget, draw, layout, loops, impure, impureCatsEffect, glfw)
 

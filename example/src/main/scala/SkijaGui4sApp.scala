@@ -18,18 +18,18 @@ import me.katze.gui4s.widget.{Widget, given}
 import scala.concurrent.ExecutionContext
 
 def skijaApp[F[+_] : {Async, Console, Impure}](
-                                                widget : SkijaBackend[F, OglWindow] => Measurable[F, Float,
-                                                  Widget[
-                                                    Update[ApplicationRequest],
-                                                    SkijaDraw[F, OglWindow],
-                                                    MeasurableT[F, Float],
-                                                    Recomposition[F],
-                                                    TaskFinished
-                                                  ]
-                                                ],
-                                                updateLoopExecutionContext : ExecutionContext,
-                                                drawLoopExecutionContext: ExecutionContext,
-                                              ) =
+                            widget : SkijaBackend[F, OglWindow] ?=> Measurable[F, Float,
+                              Widget[
+                                Update[ApplicationRequest],
+                                SkijaDraw[F, OglWindow],
+                                MeasurableT[F, Float],
+                                Recomposition[F],
+                                TaskFinished
+                              ]
+                            ],
+                            updateLoopExecutionContext : ExecutionContext,
+                            drawLoopExecutionContext: ExecutionContext,
+                          ) =
   runApplicationLoopsWithBackend[
     F,
     TaskFinished,
@@ -69,7 +69,7 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
     backend =>
       given RunPlacement[F, MeasurableT[F, Float]] = MeasurableRunPlacement[F, F, Float](backend.windowBounds)
 
-      measurableIsFlatMap[F, Float].map(widget(backend))(widget =>
+      measurableIsFlatMap[F, Float].map(widget(using backend))(widget =>
         RootWidget[
           F,
           SkijaDraw[F, OglWindow],

@@ -64,7 +64,7 @@ def swingApp(
           updateLoopExecutionContext
         ),
         rootWidget.map(wt =>
-          RootWidget(
+          RootWidget[IO, SwingDraw[IO, Float, Unit], MeasurableT[IO, Float], Update[ApplicationRequest], Recomposition[IO], TaskFinished | WindowResized.type](
             Path(List("ROOT")),
             wt,
             identity

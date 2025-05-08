@@ -54,11 +54,10 @@ given skijaLayoutDraw[F[_] : {Impure, Monad}, Window]: LayoutDraw[SkijaDraw[F, W
 
 given skijaTextDraw[F[_] : Impure as I, Window]: TextDraw[SkijaDraw[F, Window], SkijaPlacedText] =
   (text, meta) =>
-    val paint = new Paint().setColor(0xFF000000)
     ReaderT[F, SkijaDrawState[F, Window], Unit](
       state =>
         I:
-          state.canvas.drawTextBlob(meta.textBlob, 0, 0, paint)
+          state.canvas.drawTextBlob(meta.textBlob, 0, 0, meta.paint)
     )
 end skijaTextDraw
 
