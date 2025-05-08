@@ -8,11 +8,7 @@ final case class AxisDependentBounds[+T : Numeric](mainAxis : AxisBounds[T], add
       case Axis.Horizontal => Bounds(mainAxis, additionalAxis)
     end match
   end bounds
-  
-  def mainAxisMaxValue : Option[T] = mainAxis.max
-  
-  def additionalAxisMaxValue : Option[T] = additionalAxis.max
-  
+
   // TODO Почему-то ругается на эни в интерполяции строки...
   @SuppressWarnings(Array("org.wartremover.warts.Any")) 
   override def toString: String = s"AxisDependentBounds(axis=$axis, mainAxis(min=${mainAxis.min}, max=${mainAxis.max}), additionalAxis(min=${additionalAxis.min}, max=${additionalAxis.max}))"

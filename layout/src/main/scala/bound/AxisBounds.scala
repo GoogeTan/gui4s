@@ -10,9 +10,7 @@ final case class AxisBounds[+MeasurementUnit : Numeric](min: Option[MeasurementU
   end this
   
   assert(min.zip(max).forall(_ <= _), "Maximum must be more them minimum")
-  
-  def fixed: Boolean = min == max
-  def finite : Boolean = max.isDefined
+
   def zero : Boolean = max.contains(Numeric[MeasurementUnit].zero)
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))

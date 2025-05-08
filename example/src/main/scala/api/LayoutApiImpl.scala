@@ -1,5 +1,5 @@
 package me.katze.gui4s.example
-package api.impl
+package api
 
 import api.*
 import draw.given

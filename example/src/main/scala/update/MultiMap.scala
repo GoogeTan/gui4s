@@ -7,13 +7,5 @@ trait MultiMap[K, V]:
   def remove(key: K, value : V) : MultiMap[K, V]
   def keys : Set[K]
   def values(key : K) : Set[V]
-
-
-  final def keyValues: Set[(K, V)] =
-    for 
-      key <- keys
-      value <- values(key)
-    yield (key, value)
-  end keyValues
 end MultiMap
 

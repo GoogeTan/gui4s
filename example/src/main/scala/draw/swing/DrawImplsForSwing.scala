@@ -1,13 +1,13 @@
 package me.katze.gui4s.example
 package draw.swing
 
-import api.impl.LayoutPlacementMeta
+import api.LayoutPlacementMeta
 import draw.{SimpleDrawApi, TextStyle}
 import impl.{*, given}
 
 import cats.Monoid
 import cats.effect.IO
-import me.katze.gui4s.widget.library.{TextDraw, LayoutDraw}
+import me.katze.gui4s.widget.library.{LayoutDraw, TextDraw}
 
 given swingLayoutDraw[Draw : Monoid, MeasurementUnit : Numeric]: LayoutDraw[SwingDraw[IO, MeasurementUnit, Unit], LayoutPlacementMeta[MeasurementUnit]] =
   layoutDrawImpl[SwingDraw[IO, MeasurementUnit, Unit], MeasurementUnit]

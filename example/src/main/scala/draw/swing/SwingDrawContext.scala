@@ -1,9 +1,8 @@
 package me.katze.gui4s.example
 package draw.swing
 
-import api.impl.DrawMonad
-
 import cats.data.ReaderT
+import me.katze.gui4s.example.api.DrawMonad
 
 import scala.math.Numeric.Implicits.*
 

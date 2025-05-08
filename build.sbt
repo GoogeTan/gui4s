@@ -11,7 +11,7 @@ sys.env.get("LD_LIBRARY_PATH") match {
 }
 
 
-addCompilerPlugin("org.wartremover" %% "wartremover" % "3.2.5" cross CrossVersion.full)
+addCompilerPlugin("org.wartremover" %% "wartremover" % "3.3.3" cross CrossVersion.full)
 
 scalacOptions += "-P:wartremover:traverser:org.wartremover.warts.Unsafe"
 
@@ -39,8 +39,8 @@ def scalaCOptions(scalaVersion : String) =
   )
 
 def catsLibs = List("org.typelevel" %% "cats-core" % "2.13.0")
-def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.5.7")
-def fs2Libs = List("co.fs2" %% "fs2-core" % "3.11.0")
+def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.1")
+def fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.0")
 def testLibs = List(
   "org.scalatest" %% "scalatest" % "3.2.19" % "test",
   "org.scalacheck" %% "scalacheck" % "1.18.1" % "test"
@@ -104,20 +104,6 @@ lazy val os = Option(System.getProperty("os.name", ""))
   case _           => "linux"
 }
 
-lazy val freetype = (project in file("freetype"))
-  .settings(
-    name := "freetype",
-    idePackagePrefix := Some(s"$packagePrefix.freetype"),
-    libraryDependencies ++= catsEffectLibs ++ testLibs ++ Seq(
-      "org.lwjgl" % "lwjgl-freetype" % lwjglVersion,
-      "org.lwjgl" % "lwjgl"        % lwjglVersion,
-      "org.lwjgl" % "lwjgl-freetype" % lwjglVersion classifier s"natives-$os",
-      "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-$os",
-    ),
-    coverageEnabled := true,
-    wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(impure)
 
 lazy val glfw = (project in file("glfw"))
   .settings(

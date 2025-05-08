@@ -1,9 +1,8 @@
 package me.katze.gui4s.example
 package draw.swing
 
-import api.impl.LayoutPlacementMeta
-
 import cats.Id
+import me.katze.gui4s.example.api.LayoutPlacementMeta
 import me.katze.gui4s.layout.{Measurable, Sized}
 import me.katze.gui4s.widget.library.TextPlacement
 

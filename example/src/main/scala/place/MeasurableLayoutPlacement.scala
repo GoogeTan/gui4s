@@ -1,8 +1,7 @@
 package me.katze.gui4s.example
 package place
 
-import api.impl.LayoutPlacementMeta
-import api.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
+import api.{AdditionalAxisPlacementStrategy, LayoutPlacementMeta, MainAxisPlacementStrategy}
 
 import cats.*
 import me.katze.gui4s.layout

@@ -1,12 +1,11 @@
 package me.katze.gui4s.example
 package impl
 
-import api.impl.{DrawMonad, LayoutPlacementMeta}
+import api.{DrawMonad, LayoutPlacementMeta}
 
-import cats.{Applicative, Monoid}
+import cats.Monoid
+import cats.syntax.all.*
 import me.katze.gui4s.widget.library.LayoutDraw
-import cats.syntax.all.*
-import cats.syntax.all.*
 
 given layoutDrawImpl[Draw : Monoid, MeasurementUnit](using drawMonad: DrawMonad[Draw, MeasurementUnit]): LayoutDraw[Draw, LayoutPlacementMeta[MeasurementUnit]] with
   override def drawChildren(children: List[(Draw, LayoutPlacementMeta[MeasurementUnit])]): Draw =

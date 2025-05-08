@@ -1,8 +1,6 @@
 package me.katze.gui4s.example
 package api
 
-import api.impl.LayoutPlacementMeta
-
 import cats.Functor
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.{Empty, TextDraw, TextPlacementT}

@@ -1,5 +1,5 @@
 package me.katze.gui4s.example
-package api.impl
+package api
 
 type DrawMonadT[MeasurementUnit] = [F] =>> DrawMonad[F, MeasurementUnit]
 

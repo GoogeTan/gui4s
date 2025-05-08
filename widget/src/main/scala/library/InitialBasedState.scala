@@ -36,7 +36,7 @@ final case class InitialBasedState[
   override def state: Any = (initialState, currentState)
 
   override def mergeWithOldState(maybeOldState: Any): State[[U] =>> Update[U, ParentEvent], Dealloc, ChildEvent, Place[Widget], WidgetTask[ChildEvent]] =
-    val (oldInitialState, oldState) = typeCheck.tryCast(maybeOldState).getOrElse(panic("State type mismatch"))
+    val (oldInitialState, _) = typeCheck.tryCast(maybeOldState).getOrElse(panic("State type mismatch"))
     if Equiv[StateType].equiv(oldInitialState, initialState) then
       copy(oldInitialState, currentState) // TODO Надо проверить, точно ли куррент. Кажется, будто надо брать старое, если оное есть.
     else

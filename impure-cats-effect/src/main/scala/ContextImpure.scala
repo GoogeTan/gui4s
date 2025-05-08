@@ -7,7 +7,6 @@ import me.katze.gui4s.impure.Impure
 
 import scala.concurrent.ExecutionContext
 
-
 final class ContextImpure[F[_] : Async](ec : ExecutionContext, initial : Impure[F]) extends Impure[F]:
   override def impure[A](trunk: => A): F[A] =
     initial.impure(trunk).evalOn(ec)

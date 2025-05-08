@@ -2,21 +2,22 @@ package me.katze.gui4s.example
 package draw.skija
 
 import api.*
-import api.impl.*
 import draw.skija.{*, given}
-import cats.syntax.all.*
+
+import impl.containerPlacementCurried2
 import place.MainAxisStrategyErrors
 
+import cats.syntax.all.*
 import cats.{Applicative, Monad, Monoid}
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Font, Paint}
-import me.katze.gui4s.example.given
+import me.*
 import me.katze.gui4s.example.impl.containerPlacementCurried2
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
-import me.katze.gui4s.layout.{Axis, Measurable, MeasurableT, given}
+import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.{Empty, given}
+import me.katze.gui4s.widget.library.given
 import me.katze.gui4s.widget.stateful.TaskFinished
 import me.katze.gui4s.widget.{EventResult, given}
 

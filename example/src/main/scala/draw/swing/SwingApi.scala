@@ -1,12 +1,12 @@
 package me.katze.gui4s.example
 package draw.swing
 
-import api.impl.DrawMonadT
 import draw.DrawApi
 
 import cats.effect.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
+import me.katze.gui4s.example.api.DrawMonadT
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
 
