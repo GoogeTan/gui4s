@@ -31,35 +31,8 @@ final class LayoutApi_[
 )(
   val placement : LayoutPlacementGeneralized2[Place, MeasurementUnit, PlacementMeta, [Event] =>> Widget[[A] =>> Update[A, Event], Draw, Place, Recomposition, SystemEvent]]
 ) extends LayoutApi[[Event] =>> Place[widget.Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]], MeasurementUnit]:
-
   private type Widget[+Event] = Place[widget.Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]]
-
-  override def column[Event](
-                              children          : List[Widget[Event]],
-                              verticalStrategy  : MainAxisPlacementStrategy[MeasurementUnit],
-                              horizontalStrategy: AdditionalAxisPlacementStrategy
-                            ): Widget[Event] =
-    linearLayout(
-      children = children,
-      axis = Axis.Vertical,
-      mainAxisStrategy = verticalStrategy,
-      additionalAxisStrategy = horizontalStrategy,
-    )
-  end column
-
-  override def row[Event](
-                            children          : List[Widget[Event]],
-                            horizontalStrategy: MainAxisPlacementStrategy[MeasurementUnit],
-                            verticalStrategy  : AdditionalAxisPlacementStrategy
-                          ): Widget[Event] =
-    linearLayout(
-      children = children,
-      axis = Axis.Horizontal,
-      mainAxisStrategy = horizontalStrategy,
-      additionalAxisStrategy = verticalStrategy,
-    )
-  end row
-
+  
   def linearLayout[Event](
                                     children              : List[Widget[Event]],
                                     axis                  : Axis,

@@ -1,14 +1,10 @@
 package me.katze.gui4s.example
 package draw.skija
 
-import me.katze.gui4s.layout.{Measurable, Sized}
-import draw.TextStyle
-
-import cats.data.ReaderT
-import io.github.humbleui.skija.{Font, Paint, TextBlob}
 import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.example.api.LayoutPlacementMeta
+import io.github.humbleui.skija.{Font, Paint, TextBlob}
 import me.katze.gui4s.impure.Impure
+import me.katze.gui4s.layout.{Measurable, Sized}
 import me.katze.gui4s.widget.library.TextPlacement
 
 final case class SkijaTextStyle(font: Font, paint: Paint)

@@ -1,13 +1,13 @@
 package me.katze.gui4s.example
 package impl
 
+import api.{LayoutPlacementGeneralized, LayoutPlacementGeneralized2, LayoutPlacementMeta}
 import place.*
 
 import cats.*
 import cats.syntax.all.*
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.{LayoutPlacementGeneralized, LayoutPlacementGeneralized2, LayoutPlacementMeta}
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
 
