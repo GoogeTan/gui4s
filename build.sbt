@@ -165,7 +165,7 @@ lazy val draw = (project in file("draw"))
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(widget).dependsOn(impure, impureCatsEffect)
+  ).dependsOn(widget).dependsOn(impure, impureCatsEffect, glfw)
 
 lazy val loops = (project in file("loops"))
   .settings(

@@ -4,7 +4,6 @@ import cats.effect.Resource
 
 trait Glfw[F[_], Window]:
   def createPrintErrorCallback : F[Unit]
-  def initGlfw : F[Unit]
   def createWindow(
                     title : String,
                     size : Size,

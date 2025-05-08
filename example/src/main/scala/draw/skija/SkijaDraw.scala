@@ -23,8 +23,9 @@ import io.github.humbleui.types.Rect
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.skija.{TestFuncs, *} 
+import me.katze.gui4s.skija.{TestFuncs, *}
 import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL.createCapabilities
 
 final case class SkijaDrawState[F[_], Window](context : DirectContext, glfw: Glfw[F, Window], window : Window, canvas : Canvas)
 
@@ -53,52 +54,64 @@ given skijaLayoutDraw[F[_] : {Impure, Monad}, Window]: LayoutDraw[SkijaDraw[F, W
 
 given skijaTextDraw[F[_] : Impure as I, Window]: TextDraw[SkijaDraw[F, Window], SkijaPlacedText] =
   (text, meta) =>
+    val paint = new Paint().setColor(0xFF000000)
     ReaderT[F, SkijaDrawState[F, Window], Unit](
       state =>
         I:
-          state.canvas.drawTextBlob(meta.textBlob, 0, 0, meta.paint)
+          state.canvas.drawTextBlob(meta.textBlob, 0, 0, paint)
     )
 end skijaTextDraw
 
 def flush[F[_] : {Monad, Impure as I}, Window]: ReaderT[F, SkijaDrawState[F, Window], Unit] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
-    I(state.context.flush()) *> state.glfw.swapBuffers(state.window)
+    I(state.context.flush())
+      *> state.glfw.swapBuffers(state.window)
+      *> state.glfw.pollEvents
+      *> I(state.canvas.clear(0xFFFFFFFF))
   )
 end flush
 
-final case class SkijaBackend[F[_]](
-                                      glfw : Glfw[F, OglWindow],
-                                      window: OglWindow,
-                                      renderTarget : SkiaRenderTarget,
-                                      globalDispatcher : Dispatcher[F],
-                                      globalShaper : Shaper,
-                                    ):
+final case class SkijaBackend[F[_], Window](
+                                              glfw : Glfw[F, Window],
+                                              window: Window,
+                                              renderTarget : SkiaRenderTarget,
+                                              globalDispatcher : Dispatcher[F],
+                                              globalShaper : Shaper,
+                                            ):
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
     glfw.windowSize(window).map(a => new Bounds(a.width, a.height))
   end windowBounds
 end SkijaBackend
 
 object SkijaSimpleDrawApi:
-  def createForTests[F[+_] : {Impure as I, Async}] : Resource[F, SkijaBackend[F]] =
+  def createForTests[F[+_] : {Impure as I, Async}] : Resource[F, SkijaBackend[F, OglWindow]] =
+    val windowSize = me.katze.gui4s.glfw.Size(640, 480)
+
     for
-      _ <- initGLFW
-      config = WindowConfig(640, 480, "Skija Text Example")
-      window <- createWindow(config)
-      _ <- Resource.eval(setupOpenGL(window))
-      resources <- createRenderResources(config.width, config.height)
       dispatcher <- Dispatcher.sequential[F]
-      rt <- Skia.initSkia(config.width, config.height, 1)
+      glfw <- GlfwImpl[F](dispatcher)
+      _ <- Resource.eval(glfw.createPrintErrorCallback)
+      window <- glfw.createWindow(
+        "Skija Text Example",
+        windowSize,
+        visible = true,
+        resizeable = false,
+        debugContext = false
+      )
+      _ <- Resource.eval(glfw.createOGLContext(window, I(createCapabilities())))
+      resources <- createRenderResources(windowSize)
+      rt <- Skia.initSkia(windowSize.width, windowSize.height, 1)
       shaper <- Resource.fromAutoCloseable(I(Shaper.make()))
     yield SkijaBackend(glfw, window, rt, dispatcher, shaper)
   end createForTests
 end SkijaSimpleDrawApi
 
 
-def skijaDrawLoop[F[+_] : {Console, Impure}, Window](using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
+def skijaDrawLoop[F[+_] : {Console, Impure}, Window](backend : SkijaBackend[F, Window])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
   currentWidget =>
     drawLoop(drawLoopExceptionHandler)(
-      currentWidget.map(widget =>
-        widget.draw |+| flush[F, Window]
+      currentWidget.flatMap(widget =>
+        (widget.draw |+| flush[F, Window]).apply(SkijaDrawState(backend.renderTarget.directContext, backend.glfw, backend.window, backend.renderTarget.canvas))
       )
     )
 end skijaDrawLoop

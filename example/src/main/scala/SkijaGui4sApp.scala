@@ -18,7 +18,7 @@ import me.katze.gui4s.widget.{Widget, given}
 import scala.concurrent.ExecutionContext
 
 def skijaApp[F[+_] : {Async, Console, Impure}](
-                                                widget : SkijaBackend[F] => Measurable[F, Float,
+                                                widget : SkijaBackend[F, OglWindow] => Measurable[F, Float,
                                                   Widget[
                                                     Update[ApplicationRequest],
                                                     SkijaDraw[F, OglWindow],
@@ -41,11 +41,11 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
       Recomposition[F],
       B,
     ],
-    SkijaBackend[F]
+    SkijaBackend[F, OglWindow]
   ](
-    downEventSink => SkijaSimpleDrawApi.createForTests[F],
+    downEventSink => SkijaSimpleDrawApi.createForTests[F].evalOn(drawLoopExecutionContext),
     backend => runDrawLoopOn(
-      skijaDrawLoop[F, OglWindow],
+      skijaDrawLoop[F, OglWindow](backend),
       drawLoopExecutionContext
     ),
     backend => runUpdateLoopOn[F, [B] =>> RootWidget[

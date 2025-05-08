@@ -21,17 +21,20 @@ object SkijaAppExample extends IOApp:
   override def run(args: List[String]): IO[ExitCode] =
     skijaApp[IO](
       backend =>
-        textWidget[
-          EventResult,
-          SkijaDraw[IO, OglWindow],
-          MeasurableT[IO, Float],
-          Recomposition[IO],
-          Float,
-          SkijaTextStyle,
-          SkijaPlacedText,
-          Shaper,
-          TaskFinished
-        ]("Hello, Zahar(a), from Skija!!!", backend.globalShaper, SkijaTextStyle(new Font(Typeface.makeDefault(), 18), new Paint().setColor(0x858585))),
+        def text(value : String) =
+          textWidget[
+            EventResult,
+            SkijaDraw[IO, OglWindow],
+            MeasurableT[IO, Float],
+            Recomposition[IO],
+            Float,
+            SkijaTextStyle,
+            SkijaPlacedText,
+            Shaper,
+            TaskFinished
+          ](value, backend.globalShaper, SkijaTextStyle(new Font(Typeface.makeDefault(), 18), new Paint().setColor(0xFF858585)))
+        text("")
+      ,
       this.runtime.compute,
       MainThread
     )

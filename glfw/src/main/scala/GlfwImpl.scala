@@ -1,7 +1,8 @@
 package me.katze.gui4s.glfw
 
-import cats.MonadError
-import cats.effect.{MonadCancel, Resource, Sync}
+import cats.effect.std.Dispatcher
+import cats.{Functor, MonadError}
+import cats.effect.{Async, IO, MonadCancel, Resource, Sync}
 import cats.syntax.all.*
 import me.katze.gui4s.impure.Impure
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
@@ -158,13 +159,17 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
   override def pollEvents: F[Unit] =
     impure.impure(glfwPollEvents())
 
-  override def initGlfw: F[Unit] =
+  def initGlfw: F[Unit] =
     impure.impure(glfwInit()).ifM(
       ().pure[F],
-      MonadError[F, Throwable].raiseError(RuntimeException("Failed to create the GLFW window"))
+      MonadError[F, Throwable].raiseError(RuntimeException("Failed to create the GLFW"))
     )
   end initGlfw
-
+  
+  def terminate : F[Unit] =
+    impure.impure(glfwTerminate())
+  end terminate
+  
   override def windowSize(window: OglWindow): F[Size] =
     stackPush.use:
       stack =>
@@ -217,5 +222,24 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
     impure.impure:
       glfwSwapBuffers(window.id)
   end swapBuffers
+end GlfwImpl
+
+object GlfwImpl:
+  def apply[F[_] : {Impure, Sync}](run : [A] => F[A] => A) : Resource[F, GlfwImpl[F]] =
+    Resource.make(
+      {
+        val res = new GlfwImpl[F](run)
+        res.initGlfw.map(_ => res)
+      }
+    )(_.terminate)
+  end apply
+  
+  def apply[F[_] : {Impure, Sync}](dispatcher : Dispatcher[F]) : Resource[F, GlfwImpl[F]] =
+    GlfwImpl[F]([A] => (effect : F[A]) => dispatcher.unsafeRunSync(effect))
+  end apply
+  
+  def apply[F[_] : {Impure, Async}]() : Resource[F, GlfwImpl[F]] =
+    Dispatcher.sequential[F].flatMap(GlfwImpl[F](_))
+  end apply
 end GlfwImpl
 
