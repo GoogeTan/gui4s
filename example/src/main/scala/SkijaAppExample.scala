@@ -17,7 +17,7 @@ object SkijaAppExample extends IOApp:
     skijaApp[IO](main, this.runtime.compute, MainThread)
   end run
 
-  def main(using SkijaBackend[IO, OglWindow]) =
+  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing] =
     skijaColumn(
       (0 until 10).toList.map(
         lineNumber =>
