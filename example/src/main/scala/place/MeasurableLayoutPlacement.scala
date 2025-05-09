@@ -10,14 +10,14 @@ import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Placed, Sized}
 import scala.math.Fractional.Implicits.*
 
-def mainAxisStrategyPlacement[MeasurementUnit : Fractional](strategy: SizedStrategy[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
+def mainAxisStrategyPlacement[MeasurementUnit : Fractional](strategy: MainAxisStrategyWithAvailableSpace[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
   (
     strategy match
-      case SizedStrategy.Begin(gap) => placeBeginMany(elements.map(_ + gap))
-      case SizedStrategy.Center(gap, space) => placeCenterMany(elements.map(_ + gap), space)
-      case SizedStrategy.End(gap, space) => placeEndMany(elements.map(_ + gap), space)
-      case SizedStrategy.SpaceBetween(space) => placeSpaceBetween(elements, space)
-      case SizedStrategy.SpaceAround(space) => placeSpaceAround(elements, space)
+      case MainAxisStrategyWithAvailableSpace.Begin(gap) => placeBeginMany(elements.map(_ + gap))
+      case MainAxisStrategyWithAvailableSpace.Center(gap, space) => placeCenterMany(elements.map(_ + gap), space)
+      case MainAxisStrategyWithAvailableSpace.End(gap, space) => placeEndMany(elements.map(_ + gap), space)
+      case MainAxisStrategyWithAvailableSpace.SpaceBetween(space) => placeSpaceBetween(elements, space)
+      case MainAxisStrategyWithAvailableSpace.SpaceAround(space) => placeSpaceAround(elements, space)
   ).map(_.coordinateOfStart)
 end mainAxisStrategyPlacement
 

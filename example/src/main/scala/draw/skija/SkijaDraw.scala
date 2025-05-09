@@ -47,10 +47,10 @@ given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Flo
     yield res
   end moveAndBack
 
-  override def move(dx: Float, dy: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
+  override def drawAt(x: Float, y: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
     ReaderT[F, SkijaDrawState[F, Window], Unit].apply(
       state =>
-        moveAndBack(state.canvas, dx, dy, effect.run(state))
+        moveAndBack(state.canvas, x, y, effect.run(state))
     )
 end given
 

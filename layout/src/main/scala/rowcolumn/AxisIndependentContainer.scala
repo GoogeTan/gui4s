@@ -10,10 +10,10 @@ import scala.math.Fractional.*
 import scala.math.Fractional.Implicits.*
 
 def weightedRowColumnPlace[F[+_] : Monad, MeasurementUnit : Fractional, T](
-                                                                                  mainAxis: Axis,
-                                                                                  elements : List[MaybeWeighted[Measurable[F, MeasurementUnit, T]]],
-                                                                                  rowColumnPlace : (List[Sized[MeasurementUnit, T]], AxisDependentBounds[MeasurementUnit]) => List[Placed[MeasurementUnit, T]]
-                                                                                ): Measurable[F, MeasurementUnit, List[Placed[MeasurementUnit, T]]] =
+                                                                            mainAxis: Axis,
+                                                                            elements : List[MaybeWeighted[Measurable[F, MeasurementUnit, T]]],
+                                                                            rowColumnPlace : (List[Sized[MeasurementUnit, T]], AxisDependentBounds[MeasurementUnit]) => List[Placed[MeasurementUnit, T]]
+                                                                          ): Measurable[F, MeasurementUnit, List[Placed[MeasurementUnit, T]]] =
   constraints =>
     val dependentAxes = AxisDependentBounds.fromConstraints(constraints, mainAxis)
     measure(elements, dependentAxes).map:

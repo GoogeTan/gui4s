@@ -12,7 +12,7 @@ import me.katze.gui4s.widget.Widget
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.{*, given}
 
-type LayoutPlacementGeneralized2[Place[_], MeasurementUnit, PlacementMeta, Widget[_]] =
+type LayoutPlacement[Place[_], MeasurementUnit, PlacementMeta, Widget[_]] =
   [Event] => (Axis, List[Place[Widget[Event]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy) => Place[List[(Widget[Event], PlacementMeta)]]
 
 type LayoutPlacementGeneralized[Place[_], MeasurementUnit, PlacementMeta, Widget] =
@@ -29,7 +29,7 @@ final class LayoutApi_[
 ](
     using LayoutDraw[Draw, PlacementMeta],
 )(
-  val placement : LayoutPlacementGeneralized2[Place, MeasurementUnit, PlacementMeta, [Event] =>> Widget[[A] =>> Update[A, Event], Draw, Place, Recomposition, SystemEvent]]
+  val placement : LayoutPlacement[Place, MeasurementUnit, PlacementMeta, [Event] =>> Widget[[A] =>> Update[A, Event], Draw, Place, Recomposition, SystemEvent]]
 ) extends LayoutApi[[Event] =>> Place[widget.Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]], MeasurementUnit]:
   private type Widget[+Event] = Place[widget.Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, SystemEvent]]
   

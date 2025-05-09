@@ -3,6 +3,7 @@ package api
 
 import me.katze.gui4s.layout.Axis
 
+// TODO заменить на тип функции линейного лейаута
 trait LayoutApi[Widget[_], -MeasurementUnit]:
   final def row[Event](
                   children : List[Widget[Event]],

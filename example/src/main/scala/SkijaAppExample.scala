@@ -14,7 +14,12 @@ object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors = ENErrors
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaApp[IO](main, this.runtime.compute, MainThread)
+    skijaApp[IO](
+      widget = main, 
+      backendCreationExecutionContext = MainThread,
+      updateLoopExecutionContext = this.runtime.compute, 
+      drawLoopExecutionContext = MainThread
+    )
   end run
 
   def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing] =

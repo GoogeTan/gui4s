@@ -2,5 +2,5 @@ package me.katze.gui4s.example
 package api
 
 trait DrawMonad[F, MeasurementUnit]:
-  def move(dx : MeasurementUnit, dy : MeasurementUnit, effect : F) : F
+  def drawAt(x : MeasurementUnit, y : MeasurementUnit, effect : F) : F
 end DrawMonad

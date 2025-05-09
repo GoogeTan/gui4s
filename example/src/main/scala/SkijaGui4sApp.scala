@@ -29,6 +29,7 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
                                                     TaskFinished
                                                   ]
                                                 ],
+                                                backendCreationExecutionContext : ExecutionContext,
                                                 updateLoopExecutionContext : ExecutionContext,
                                                 drawLoopExecutionContext: ExecutionContext,
                                               ) =
@@ -47,7 +48,7 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
     SkijaRootWidget,
     SkijaBackend[F, OglWindow]
   ](
-    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F].evalOn(drawLoopExecutionContext),
+    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F].evalOn(backendCreationExecutionContext),
     drawLoop = backend => runDrawLoopOnExecutionContext(
       skijaDrawLoop[F, OglWindow](backend),
       drawLoopExecutionContext
