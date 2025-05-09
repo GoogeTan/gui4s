@@ -93,7 +93,7 @@ final case class SkijaBackend[F[_], Window](
                                               globalShaper : Shaper,
                                             ):
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
-    glfw.windowSize(window).map(a => new Bounds(a.width, a.height))
+    glfw.frameBufferSize(window).map(a => new Bounds(a.width, a.height))
   end windowBounds
 end SkijaBackend
 
@@ -113,7 +113,9 @@ object SkijaSimpleDrawApi:
         debugContext = false
       )
       _ <- Resource.eval(glfw.createOGLContext(window, I(createCapabilities())))
-      rt <- initSkia(windowSize.width, windowSize.height, 1)
+      mainMonitor <-  Resource.eval(glfw.currentMonitor)
+      scale <- Resource.eval(glfw.monitorScale(mainMonitor))
+      rt <- initSkia(windowSize.width, windowSize.height, scale._1)
       shaper <- Resource.fromAutoCloseable(I(Shaper.make()))
     yield SkijaBackend(glfw, window, rt, dispatcher, shaper)
   end createForTests
