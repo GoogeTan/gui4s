@@ -68,20 +68,31 @@ type DrawLoopExceptionHandler[F[_], Error] = Error => F[Option[ExitCode]]
 def drawLoop[
   F[_] : MonadErrorT[Error],
   Error
-](renderExceptionHandler : DrawLoopExceptionHandler[F, Error])(drawCurrentWidget : F[Unit]) : F[ExitCode] =
+](renderExceptionHandler : DrawLoopExceptionHandler[F, Error], shouldContinue : F[Boolean])(drawCurrentWidget : F[Unit]) : F[Option[ExitCode]] =
   runWhileNoError(
     drawCurrentWidget,
-    renderExceptionHandler
+    renderExceptionHandler,
+    shouldContinue
   )
 end drawLoop
 
-def runWhileNoError[F[_] : MonadErrorT[InternalError], InternalError, ExternalError](effect: F[Unit], recover: InternalError => F[Option[ExternalError]]) : F[ExternalError] =
-  Monad[F].tailRecM[None.type, ExternalError](
+
+def runWhileNoError[F[_] : MonadErrorT[InternalError], InternalError, ExternalError](
+                                                                                      effect: F[Unit],
+                                                                                      recover: InternalError => F[Option[ExternalError]], 
+                                                                                      shouldContinue: F[Boolean]
+                                                                                    ): F[Option[ExternalError]] =
+  Monad[F].tailRecM[None.type, Option[ExternalError]](
     None
   )(_ =>
-    effect
-      .as(Left(None))
-      .handleErrorWith(error => recover(error).map(_.toRight(None)))
+    shouldContinue.flatMap(continue =>
+      if continue then
+        effect
+          .as(Left(None))
+          .handleErrorWith(error => recover(error).map(_.toRight(None).map(Some(_))))
+      else
+        Right(None).pure[F]
+    )
   )
 end runWhileNoError
 

@@ -112,11 +112,6 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
         impure.impure:
           glfwFreeCallbacks(a.id)
           glfwDestroyWindow(a.id)
-          glfwTerminate()
-          val oldCallback = glfwSetErrorCallback(null)
-          if oldCallback != null then 
-            oldCallback.free()
-          end if
     )
   end createWindow
 

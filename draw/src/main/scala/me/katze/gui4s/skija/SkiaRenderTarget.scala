@@ -54,13 +54,13 @@ def makeGl[F[_] : {Impure as I, Sync}](width: Int, height: Int, fbFormat: Int): 
 end makeGl
 
 def wrapTargetIntoSurface[F[_] : {Impure as I, Sync}](
-                                                       context: DirectContext,
-                                                       rt: BackendRenderTarget,
-                                                       origin: SurfaceOrigin,
-                                                       colorFormat: SurfaceColorFormat,
-                                                       colorSpace: Option[ColorSpace],
-                                                       surfaceProps: Option[SurfaceProps]
-                                                     ): Resource[F, Surface] =
+                                                        context: DirectContext,
+                                                        rt: BackendRenderTarget,
+                                                        origin: SurfaceOrigin,
+                                                        colorFormat: SurfaceColorFormat,
+                                                        colorSpace: Option[ColorSpace],
+                                                        surfaceProps: Option[SurfaceProps]
+                                                      ): Resource[F, Surface] =
   Resource.fromAutoCloseable(
     I.impure:
       Surface.wrapBackendRenderTarget(context,

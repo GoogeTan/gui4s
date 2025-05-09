@@ -19,12 +19,12 @@ object SkijaAppExample extends IOApp:
 
   def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing] =
     skijaColumn(
-      (0 until 10).toList.map(
+      (0 until 15).toList.map(
         lineNumber =>
           skijaText("# line" + lineNumber.toString, new Font(Typeface.makeDefault(), 18), new Paint().setColor(0xFF858585)),
       ),
       MainAxisPlacementStrategy.Begin(0f),
-      AdditionalAxisPlacementStrategy.Center
+      AdditionalAxisPlacementStrategy.Begin
     )
   end main
 end SkijaAppExample

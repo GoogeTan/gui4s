@@ -19,6 +19,7 @@ def weightedRowColumnPlace[F[+_] : Monad, MeasurementUnit : Fractional, T](
     measure(elements, dependentAxes).map:
       measured =>
         val placed = rowColumnPlace(measured, dependentAxes)
+        println(placed)
         val width = placed.map(a => a.x + a.width).maxOption.getOrElse(Numeric[MeasurementUnit].zero)
         val height = placed.map(a => a.x + a.width).maxOption.getOrElse(Numeric[MeasurementUnit].zero)
         Sized(placed, width, height)

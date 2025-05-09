@@ -7,7 +7,7 @@ import impl.{*, given}
 
 import cats.data.ReaderT
 import cats.effect.std.{Console, Dispatcher}
-import cats.effect.{Async, Resource}
+import cats.effect.{Async, ExitCode, Resource}
 import cats.syntax.all.*
 import cats.{Applicative, Functor, Monad, MonadError, Monoid, effect}
 import io.github.humbleui.skija.shaper.Shaper
@@ -30,8 +30,21 @@ given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Flo
       canvas.translate(x, y)
   end transition
 
+  def saveState(canvas: Canvas) : F[Int] =
+    I(canvas.save())
+  end saveState
+
+  def restoreState(canvas: Canvas, state : Int) : F[Unit] =
+    I(canvas.restoreToCount(state))
+  end restoreState
+
   def moveAndBack[T](canvas: Canvas, x : Float, y : Float, value : F[T]) : F[T] =
-    transition(canvas, x, y) *> value <* transition(canvas, -x, -y)
+    for
+      state <- saveState(canvas)
+      _ <- transition(canvas, x, y)
+      res <- value
+      _ <- restoreState(canvas, state)
+    yield res
   end moveAndBack
 
   override def move(dx: Float, dy: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
@@ -96,7 +109,7 @@ object SkijaSimpleDrawApi:
         "Skija Text Example",
         windowSize,
         visible = true,
-        resizeable = false,
+        resizeable = false, // TODO если разрешиь, то при изменении размеров окна, содержимое просто сжимается  всё
         debugContext = false
       )
       _ <- Resource.eval(glfw.createOGLContext(window, I(createCapabilities())))
@@ -109,9 +122,9 @@ end SkijaSimpleDrawApi
 
 def skijaDrawLoop[F[+_] : {Console, Impure}, Window](backend : SkijaBackend[F, Window])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
   currentWidget =>
-    drawLoop(drawLoopExceptionHandler)(
+    drawLoop(drawLoopExceptionHandler, backend.glfw.shouldNotClose(backend.window))(
       currentWidget.flatMap(widget =>
         (widget.draw |+| flush[F, Window]).apply(SkijaDrawState(backend.renderTarget.directContext, backend.glfw, backend.window, backend.renderTarget.canvas))
       )
-    )
+    ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop

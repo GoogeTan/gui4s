@@ -1,5 +1,6 @@
 package me.katze.gui4s.glfw
 
+import cats.Functor
 import cats.effect.Resource
 
 trait Glfw[F[_], Window]:
@@ -17,6 +18,11 @@ trait Glfw[F[_], Window]:
   def swapInterval(interval : Int) : F[Unit]
   def createOGLContext(window : Window, createCapabilities : F[Unit]) : F[Unit]
   def shouldClose(window : Window) : F[Boolean]
+  
+  def shouldNotClose(window: Window)(using F : Functor[F]) : F[Boolean] =
+    F.map(shouldClose(window))(a => !a)
+  end shouldNotClose
+  
   def markForBeingClosed(window: Window) : F[Unit]
 
   def pollEvents : F[Unit]
