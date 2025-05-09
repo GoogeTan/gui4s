@@ -17,7 +17,7 @@ trait LayoutApi[Widget[_], -MeasurementUnit]:
                       verticalStrategy : MainAxisPlacementStrategy[MeasurementUnit],
                       horizontalStrategy : AdditionalAxisPlacementStrategy
                     ) : Widget[Event] =
-    linearLayout(children, Axis.Horizontal, verticalStrategy, horizontalStrategy)
+    linearLayout(children, Axis.Vertical, verticalStrategy, horizontalStrategy)
   end column
 
   def linearLayout[Event](
