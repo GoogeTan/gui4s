@@ -16,7 +16,6 @@ object SkijaAppExample extends IOApp:
   override def run(args: List[String]): IO[ExitCode] =
     skijaApp[IO](
       widget = main, 
-      backendCreationExecutionContext = MainThread,
       updateLoopExecutionContext = this.runtime.compute, 
       drawLoopExecutionContext = MainThread
     )
@@ -26,7 +25,7 @@ object SkijaAppExample extends IOApp:
     skijaColumn(
       (0 until 15).toList.map(
         lineNumber =>
-          skijaText("# line" + lineNumber.toString, new Font(Typeface.makeDefault(), 18), new Paint().setColor(0xFF858585)),
+          skijaText("# line" + lineNumber.toString, new Font(Typeface.makeDefault(), 18), new Paint().setColor(0xFF8484A4)),
       ),
       MainAxisPlacementStrategy.Begin(0f),
       AdditionalAxisPlacementStrategy.Begin

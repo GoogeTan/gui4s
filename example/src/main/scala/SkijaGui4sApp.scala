@@ -13,6 +13,7 @@ import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
+import me.katze.gui4s.impure.cats.effect.ContextImpure
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.widget.stateful.{Path, TaskFinished, given}
 import me.katze.gui4s.widget.{Widget, given}
@@ -29,7 +30,6 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
                                                     TaskFinished
                                                   ]
                                                 ],
-                                                backendCreationExecutionContext : ExecutionContext,
                                                 updateLoopExecutionContext : ExecutionContext,
                                                 drawLoopExecutionContext: ExecutionContext,
                                               ) =
@@ -48,7 +48,7 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
     SkijaRootWidget,
     SkijaBackend[F, OglWindow]
   ](
-    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F].evalOn(backendCreationExecutionContext),
+    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F](ContextImpure(drawLoopExecutionContext, summon), summon),
     drawLoop = backend => runDrawLoopOnExecutionContext(
       skijaDrawLoop[F, OglWindow](backend),
       drawLoopExecutionContext

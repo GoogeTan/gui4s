@@ -1,19 +1,26 @@
 package me.katze.gui4s.skija
 
 import cats.effect.*
+import cats.effect.std.AtomicCell
+import cats.syntax.all.*
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 import me.katze.gui4s.impure.Impure
 
 final case class SkiaRenderTarget(
-                                   directContext: DirectContext,
-                                   target: BackendRenderTarget,
-                                   surface: Surface,
-                                   canvas: Canvas
-                                 )
+                                    directContext: DirectContext,
+                                    target: BackendRenderTarget,
+                                    surface: Surface,
+                                    canvas: Canvas
+                                  ):
+  def dealloc[F[_] : Impure as I] : F[Unit] = I:
+    directContext.close()
+    target.close()
+    surface.close()
+  end dealloc
+end SkiaRenderTarget
 
-
-def initSkia[F[_] : {Impure, Sync}](width: Float, height: Float, dpi: Float): Resource[F, SkiaRenderTarget] =
-  for
+def createSkiaRenderTarget[F[_] : {Impure, Async}](width : Float, height : Float, dpi : Float) : F[SkiaRenderTarget] =
+  val inner: Resource[F, SkiaRenderTarget] = for
     context <- makeContext
     renderTarget <- makeGl(
       (width * dpi).toInt, (height * dpi).toInt, FramebufferFormat.GR_GL_RGBA8
@@ -28,6 +35,15 @@ def initSkia[F[_] : {Impure, Sync}](width: Float, height: Float, dpi: Float): Re
     )
     canvas <- Resource.eval(getOrMakeCanvas(surface))
   yield SkiaRenderTarget(context, renderTarget, surface, canvas)
+  inner.allocated.map((a, _) => a)
+end createSkiaRenderTarget
+  
+// TODO Refactor this hell
+def initSkia[F[_] : {Impure, Async}](width: Float, height: Float, dpi: Float): Resource[F, AtomicCell[F, SkiaRenderTarget]] =
+  val effect = createSkiaRenderTarget(width, height, dpi)
+                .map(renderTarget => Resource.make(AtomicCell[F].of(renderTarget))(_.get.flatMap(_.dealloc)))
+    
+  Resource.eval(effect).flatten  
 end initSkia
 
 def makeContext[F[_] : {Impure as I, Sync}]: Resource[F, DirectContext] =

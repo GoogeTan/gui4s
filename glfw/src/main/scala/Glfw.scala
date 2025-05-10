@@ -24,7 +24,7 @@ trait Glfw[F[_], Window]:
   end shouldNotClose
   
   def markForBeingClosed(window: Window) : F[Unit]
-
+  def mainMonitorScale : F[Float]
   def pollEvents : F[Unit]
 
   def windowResizeCallback(window: Window, callback : Size => F[Unit]) : F[Unit]
@@ -35,7 +35,6 @@ trait Glfw[F[_], Window]:
   def mouseButtonCallback(window : Window, callback : (Int, KeyAction, KeyModes) => F[Unit]) : F[Unit]
   
   def windowSize(window : Window) : F[Size]
-  
   def frameBufferSize(window : Window) : F[Size]
   def swapBuffers(window : Window) : F[Unit]
 end Glfw

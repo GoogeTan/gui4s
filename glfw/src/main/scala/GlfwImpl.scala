@@ -45,7 +45,8 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
     impure.impure:
       glfwSetWindowSizeCallback(
         window.id,
-        (_, width, height) => unsafeRunF(callback(Size(width, height)))
+        (_, width, height) =>
+          unsafeRunF(callback(Size(width, height)))
       )
   end windowResizeCallback
 
@@ -89,6 +90,10 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
       glfwSwapInterval(interval)
   end swapInterval
 
+  override def mainMonitorScale: F[Float] =
+    currentMonitor.flatMap(monitorScale)
+  end mainMonitorScale
+  
   def currentMonitor : F[Long] =
     impure.impure(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
@@ -105,8 +110,8 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
       for
         _ <- windowHints(visible, resizeable, debugContext)
         monitor <- currentMonitor
-        (scaleX, scaleY) <- monitorScale(monitor)
-        id <- createWindowId(size.width * scaleX.round, size.height * scaleY.round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
+        scale <- monitorScale(monitor)
+        id <- createWindowId(size.width * scale.round, size.height * scale.round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
       yield OglWindow(id)
     )(a => 
         impure.impure:
@@ -123,14 +128,16 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
     )(_ != MemoryUtil.NULL)
   end createWindowId
 
-  def monitorScale(monitor : Long): F[(Float, Float)] =
+  def monitorScale(monitor : Long): F[Float] =
     stackPush.use:
       s =>
         impure.impure:
           val px = s.mallocFloat(1)
           val py = s.mallocFloat(1)
           glfwGetMonitorContentScale(monitor, px, py)
-          (px.get(0), py.get(0))
+          val (scaleX, scaleY) = (px.get(0), py.get(0))
+          assert(scaleX == scaleY)
+          scaleX
   end monitorScale
 
   def windowHints(visible : Boolean, resizable : Boolean, debugContext : Boolean) : F[Unit] =
