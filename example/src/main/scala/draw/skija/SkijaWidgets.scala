@@ -14,6 +14,7 @@ import me.katze.gui4s.example.impl.containerPlacementCurried2
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
+import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.given
 import me.katze.gui4s.widget.stateful.TaskFinished

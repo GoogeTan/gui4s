@@ -2,9 +2,13 @@ package me.katze.gui4s.glfw
 
 import cats.Functor
 import cats.effect.Resource
+import org.lwjgl.glfw.GLFWErrorCallback
 
 trait Glfw[F[_], Window]:
-  def createPrintErrorCallback : F[Unit]
+  type Monitor
+  
+  def createPrintErrorCallback : Resource[F, GLFWErrorCallback]
+  
   def createWindow(
                     title : String,
                     size : Size,
@@ -15,6 +19,8 @@ trait Glfw[F[_], Window]:
 
   def centerWindow(window : Window) : F[Unit]
   def makeVisible(window : Window) : F[Unit]
+  def currentMonitor : F[Monitor]
+  def monitorScale(monitor : Monitor) : F[Float]
   def swapInterval(interval : Int) : F[Unit]
   def createOGLContext(window : Window, createCapabilities : F[Unit]) : F[Unit]
   def shouldClose(window : Window) : F[Boolean]

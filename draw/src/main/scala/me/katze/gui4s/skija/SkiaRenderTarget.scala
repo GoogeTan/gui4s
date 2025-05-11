@@ -11,7 +11,6 @@ final case class SkiaRenderTarget(
                                    canvas: Canvas
                                  )
 
-
 def initSkia[F[_] : {Impure, Sync}](width: Float, height: Float, dpi: Float): Resource[F, SkiaRenderTarget] =
   for
     context <- makeContext
