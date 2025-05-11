@@ -4,6 +4,7 @@ import api.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import draw.skija.{*, given}
 import impl.ENErrors
 import place.MainAxisStrategyErrors
+import cats.syntax.all.*
 
 import cats.effect.{ExitCode, IO, IOApp}
 import io.github.humbleui.skija.{Font, Paint, Typeface}
@@ -16,7 +17,7 @@ object SkijaAppExample extends IOApp:
   override def run(args: List[String]): IO[ExitCode] =
     skijaApp[IO](
       widget = main, 
-      updateLoopExecutionContext = this.runtime.compute, 
+      updateLoopExecutionContext = this.runtime.compute,
       drawLoopExecutionContext = MainThread
     )
   end run
@@ -25,7 +26,7 @@ object SkijaAppExample extends IOApp:
     skijaColumn(
       (0 until 15).toList.map(
         lineNumber =>
-          skijaText("# line" + lineNumber.toString, new Font(Typeface.makeDefault(), 18), new Paint().setColor(0xFF8484A4)),
+          skijaText("# line" + lineNumber.toString, new Font(Typeface.makeDefault(), 100), new Paint().setColor(0xFF8484A4)),
       ),
       MainAxisPlacementStrategy.Begin(0f),
       AdditionalAxisPlacementStrategy.Begin

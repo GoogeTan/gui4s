@@ -20,6 +20,7 @@ trait Glfw[F[_], Window]:
   def centerWindow(window : Window) : F[Unit]
   def makeVisible(window : Window) : F[Unit]
   def currentMonitor : F[Monitor]
+  def windowMonitor(window : Window) : F[Monitor]
   def monitorScale(monitor : Monitor) : F[Float]
   def swapInterval(interval : Int) : F[Unit]
   def createOGLContext(window : Window, createCapabilities : F[Unit]) : F[Unit]
@@ -30,7 +31,6 @@ trait Glfw[F[_], Window]:
   end shouldNotClose
   
   def markForBeingClosed(window: Window) : F[Unit]
-  def mainMonitorScale : F[Float]
   def pollEvents : F[Unit]
 
   def windowResizeCallback(window: Window, callback : Size => F[Unit]) : F[Unit]

@@ -50,7 +50,7 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
     SkijaBackend[F, OglWindow]
   ](
     backend = downEventSink => SkijaSimpleDrawApi.createForTests[F](ContextImpure(drawLoopExecutionContext, summon), summon),
-    drawLoop = backend => runDrawLoopOnExecutionContext(
+    drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow]]](
       skijaDrawLoop[F, OglWindow](backend),
       drawLoopExecutionContext
     ),

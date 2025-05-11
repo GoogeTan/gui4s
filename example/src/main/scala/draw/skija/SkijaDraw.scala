@@ -15,14 +15,11 @@ import io.github.humbleui.skija.{Canvas, DirectContext}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.skija.{SkiaRenderTarget, createSkiaRenderTarget, initSkia}
+import me.katze.gui4s.skija.{SkiaRenderTarget, SkijaDraw, SkijaDrawState, createSkiaRenderTarget, initSkia, moveAndBack}
 import me.katze.gui4s.widget.library.{LayoutDraw, TextDraw}
+import org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL.createCapabilities
-
-final case class SkijaDrawState[F[_], Window](context : DirectContext, glfw: Glfw[F, Window], window : Window, canvas : Canvas)
-
-type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 
 given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] with
     override def drawAt(x: Float, y: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
@@ -43,7 +40,7 @@ given skijaTextDraw[F[_] : Impure as I, Window]: TextDraw[SkijaDraw[F, Window], 
     )
 end skijaTextDraw
 
-def flush[F[_] : {Monad, Impure as I}, Window]: ReaderT[F, SkijaDrawState[F, Window], Unit] =
+def flush[F[_] : {Monad, Impure as I}, Window]: SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
     I(state.context.flush())
       *> state.glfw.swapBuffers(state.window)
@@ -61,10 +58,6 @@ final case class SkijaBackend[F[_], Window](
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
     glfw.frameBufferSize(window).map(a => new Bounds(a.width, a.height))
   end windowBounds
-
-  def drawState : SkijaDrawState[F, Window] =
-    SkijaDrawState(renderTarget.directContext, glfw, window, renderTarget.canvas)
-  end drawState
 
   def windowShouldNotClose(using M : Monad[F]) : F[Boolean] =
     glfw.shouldNotClose(window)
@@ -93,24 +86,20 @@ object SkijaSimpleDrawApi:
         debugContext = false
       )
       _ <- Resource.eval(glfw.createOGLContext(window, GlfwImpure(createCapabilities())))
-      scale <- Resource.eval(glfw.mainMonitorScale)
+      scale <- Resource.eval(glfw.currentMonitor >>= glfw.monitorScale)
       rt : AtomicCell[F, SkiaRenderTarget] <- initSkia(windowSize.width, windowSize.height, scale)(using GlfwImpure)
       _ <- Resource.eval(windowResizedCallback(glfw, window, rt)(using CommonImpure))
       shaper <- Resource.fromAutoCloseable(CommonImpure(Shaper.make()))
     yield SkijaBackend(glfw, window, rt, dispatcher, shaper)
   end createForTests
 
-  def windowResizedCallback[F[_] : {Impure, Async, Console as c}, Window](glfw : Glfw[F, Window], window : Window, targetCell : AtomicCell[F, SkiaRenderTarget]): F[Unit] =
+  def windowResizedCallback[F[_] : {Impure as I, Async, Console as c}, Window](glfw : Glfw[F, Window], window : Window, targetCell : AtomicCell[F, SkiaRenderTarget]): F[Unit] =
     glfw.windowResizeCallback(window, newSize =>
       targetCell.evalUpdate(state =>
         for
-          _ <- c.println("Window resized to " + newSize.toString)
           //_ <- state.dealloc
-          _ <- c.println("check 3")
-          dpi <- glfw.mainMonitorScale
-          _ <- c.println("check 4")
-          newRenderTarget <- createSkiaRenderTarget(newSize.width, newSize.height, dpi)
-          _ <- c.println("Resize ended successfuly")
+          dpi <- glfw.windowMonitor(window) >>= glfw.monitorScale
+          newRenderTarget <- createSkiaRenderTarget(state.directContext, newSize.width, newSize.height, dpi)
         yield newRenderTarget
       )
     )

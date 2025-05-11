@@ -1,8 +1,8 @@
 package me.katze.gui4s.glfw
 
+import cats.MonadError
 import cats.effect.std.Dispatcher
-import cats.{Functor, MonadError}
-import cats.effect.{Async, IO, MonadCancel, Resource, Sync}
+import cats.effect.{Async, Resource, Sync}
 import cats.syntax.all.*
 import me.katze.gui4s.impure.Impure
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
@@ -96,6 +96,11 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
     impure.impure(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end currentMonitor
+
+  override def windowMonitor(window : OglWindow) : F[Monitor] =
+    impure.impure:
+      glfwGetWindowMonitor(window.id)
+  end windowMonitor
   
   override def createWindow(
                               title: String,
@@ -107,9 +112,7 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
     Resource.make(
       for
         _ <- windowHints(visible, resizeable, debugContext)
-        monitor <- currentMonitor
-        scale <- monitorScale(monitor)
-        id <- createWindowId((size.width * scale).round, (size.height * scale).round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
+        id <- createWindowId(size.width, size.height, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
       yield OglWindow(id)
     )(a => 
         impure.impure:
