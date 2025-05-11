@@ -25,47 +25,14 @@ final case class SkijaDrawState[F[_], Window](context : DirectContext, glfw: Glf
 type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 
 given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] with
-  def transition(canvas : Canvas, x : Float, y : Float) : F[Unit] =
-    I:
-      canvas.translate(x, y)
-  end transition
-
-  def saveState(canvas: Canvas) : F[Int] =
-    I(canvas.save())
-  end saveState
-
-  def restoreState(canvas: Canvas, state : Int) : F[Unit] =
-    I(canvas.restoreToCount(state))
-  end restoreState
-
-  def moveAndBack[T](canvas: Canvas, x : Float, y : Float, value : F[T]) : F[T] =
-    for
-      state <- saveState(canvas)
-      _ <- transition(canvas, x, y)
-      res <- value
-      _ <- restoreState(canvas, state)
-    yield res
-  end moveAndBack
-
-  override def drawAt(x: Float, y: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
-    ReaderT[F, SkijaDrawState[F, Window], Unit].apply(
-      state =>
-        moveAndBack(state.canvas, x, y, effect.run(state))
-    )
-end given
-
-given[F[_] : Applicative, Value]: Monoid[SkijaDraw[F, Value]] with
-  override def empty: SkijaDraw[F, Value] = ReaderT.pure[F, SkijaDrawState[F, Value], Unit](())
-
-  override def combine(x: SkijaDraw[F, Value], y: SkijaDraw[F, Value]): SkijaDraw[F, Value] =
-    ReaderT[F, SkijaDrawState[F, Value], Unit]:
-      state => 
-        x(state) *> y(state)
-  end combine
+    override def drawAt(x: Float, y: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
+      ReaderT[F, SkijaDrawState[F, Window], Unit](state => moveAndBack(state.canvas, x, y, effect.run(state)))
+    end drawAt
 end given
 
 given skijaLayoutDraw[F[_] : {Impure, Monad}, Window]: LayoutDraw[SkijaDraw[F, Window], LayoutPlacementMeta[Float]] =
   layoutDrawImpl[SkijaDraw[F, Window], Float]
+end skijaLayoutDraw
 
 given skijaTextDraw[F[_] : Impure as I, Window]: TextDraw[SkijaDraw[F, Window], SkijaPlacedText] =
   (_, meta) =>
@@ -95,6 +62,10 @@ final case class SkijaBackend[F[_], Window](
     glfw.frameBufferSize(window).map(a => new Bounds(a.width, a.height))
   end windowBounds
 
+  def drawState : SkijaDrawState[F, Window] =
+    SkijaDrawState(renderTarget.directContext, glfw, window, renderTarget.canvas)
+  end drawState
+
   def windowShouldNotClose(using M : Monad[F]) : F[Boolean] =
     glfw.shouldNotClose(window)
   end windowShouldNotClose
@@ -113,7 +84,7 @@ object SkijaSimpleDrawApi:
     for
       dispatcher <- Dispatcher.sequential[F]
       glfw : Glfw[F, OglWindow] <- GlfwImpl[F](dispatcher)(using GlfwImpure)
-      _ <- Resource.eval(glfw.createPrintErrorCallback)
+      _ <- glfw.createPrintErrorCallback
       window <- glfw.createWindow(
         "Skija Text Example",
         windowSize,

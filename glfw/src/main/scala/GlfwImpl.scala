@@ -90,11 +90,9 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
       glfwSwapInterval(interval)
   end swapInterval
 
-  override def mainMonitorScale: F[Float] =
-    currentMonitor.flatMap(monitorScale)
-  end mainMonitorScale
-  
-  def currentMonitor : F[Long] =
+  override type Monitor = Long
+
+  override def currentMonitor : F[Long] =
     impure.impure(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end currentMonitor
@@ -111,7 +109,7 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
         _ <- windowHints(visible, resizeable, debugContext)
         monitor <- currentMonitor
         scale <- monitorScale(monitor)
-        id <- createWindowId(size.width * scale.round, size.height * scale.round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
+        id <- createWindowId((size.width * scale).round, (size.height * scale).round, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
       yield OglWindow(id)
     )(a => 
         impure.impure:
@@ -154,8 +152,15 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
     end toGlfw
   end extension
 
-  override def createPrintErrorCallback: F[Unit] =
-    impure.impure(GLFWErrorCallback.createPrint.set())
+  override def createPrintErrorCallback: Resource[F, GLFWErrorCallback] =
+    Resource.make(
+      impure.impure(GLFWErrorCallback.createPrint.set())
+    )(
+      errorCallback =>
+        impure:
+          glfwSetErrorCallback(null)
+          errorCallback.free()
+    )
   end createPrintErrorCallback
 
   override def pollEvents: F[Unit] =

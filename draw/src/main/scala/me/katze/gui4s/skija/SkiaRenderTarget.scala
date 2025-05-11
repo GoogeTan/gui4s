@@ -37,13 +37,13 @@ def createSkiaRenderTarget[F[_] : {Impure, Async}](width : Float, height : Float
   yield SkiaRenderTarget(context, renderTarget, surface, canvas)
   inner.allocated.map((a, _) => a)
 end createSkiaRenderTarget
-  
+
 // TODO Refactor this hell
 def initSkia[F[_] : {Impure, Async}](width: Float, height: Float, dpi: Float): Resource[F, AtomicCell[F, SkiaRenderTarget]] =
   val effect = createSkiaRenderTarget(width, height, dpi)
                 .map(renderTarget => Resource.make(AtomicCell[F].of(renderTarget))(_.get.flatMap(_.dealloc)))
-    
-  Resource.eval(effect).flatten  
+
+  Resource.eval(effect).flatten
 end initSkia
 
 def makeContext[F[_] : {Impure as I, Sync}]: Resource[F, DirectContext] =

@@ -2,9 +2,8 @@ package me.katze.gui4s.example
 package draw
 
 import cats.Functor
-import cats.effect.{Async, ExitCode}
+import cats.effect.ExitCode
 import cats.effect.std.Console
-import cats.kernel.Semigroup
 import cats.syntax.all.*
 
 // TODO Почему-то ругается на эни в интерполяции строки...
