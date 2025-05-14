@@ -5,7 +5,7 @@ import stateful.BiMonad
 
 import cats.syntax.all.*
 import cats.{Functor, Monoid}
-import me.katze.gui4s.widget.{RawMapEventWidget, Widget}
+import me.katze.gui4s.widget.Widget
 
 final case class RawMapEventWidget[
   Update[+_, +_] : BiMonad,
