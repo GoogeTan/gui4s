@@ -1,5 +1,4 @@
 package me.katze.gui4s.widget
-package stateful
 
 final case class Path(value : List[String]):
   def this(strings : String*) = this(strings.toList)

@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package task
 
-import me.katze.gui4s.widget.stateful.Path
+import me.katze.gui4s.widget.Path
 
 trait Task[+F[+_], +Fiber]:
   def owner: Path

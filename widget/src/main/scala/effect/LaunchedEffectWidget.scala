@@ -1,6 +1,5 @@
 package me.katze.gui4s.widget
-
-import stateful.Path
+package effect
 
 import cats.syntax.all.*
 import cats.{FlatMap, Monad}

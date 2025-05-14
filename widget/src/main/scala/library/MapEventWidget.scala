@@ -1,9 +1,10 @@
-package me.katze.gui4s.example
-package api
+package me.katze.gui4s.widget
+package library
+
+import stateful.BiMonad
 
 import cats.{Functor, Monoid}
-import me.katze.gui4s.widget.{MapEventWidget as RawMapEventWidget, Widget}
-import me.katze.gui4s.widget.stateful.BiMonad
+import me.katze.gui4s.widget.mapevent.RawMapEventWidget
 
 type MapEventWidget[Widget[_]] = [A, B] => Widget[A] => (A => B) => Widget[B]
 
@@ -14,8 +15,7 @@ def mapWidget[
   Recomposition : Monoid,
   DownEvent,
 ] : MapEventWidget[[Event] =>> Widget[[Value] =>> Update[Value, Event], Draw, Place, Recomposition, DownEvent]] =
-  [A, B] => widget => f =>
-    RawMapEventWidget(widget, f)
+  [A, B] => widget => f => RawMapEventWidget(widget, f)
 end mapWidget
 
 extension[Widget[_], A](value : Widget[A])(using e : MapEventWidget[Widget])

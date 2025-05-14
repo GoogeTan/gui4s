@@ -8,7 +8,8 @@ import cats.effect.kernel.Concurrent
 import cats.effect.std.QueueSink
 import cats.syntax.all.*
 import me.katze.gui4s.impure.Impure
-import me.katze.gui4s.widget.stateful.{Path, TaskFinished}
+import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget.stateful.TaskFinished
 
 def runInQueueTaskSet[F[+_] : Concurrent, DownEvent >: TaskFinished](
                                                                       taskMap : Ref[F, MultiMap[Path, IOOnThread[Fiber[F]]]],

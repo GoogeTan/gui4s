@@ -6,7 +6,7 @@ import update.MultiMap
 import cats.*
 import cats.effect.Ref
 import cats.syntax.all.*
-import me.katze.gui4s.widget.stateful.Path
+import me.katze.gui4s.widget.Path
 
 final case class RefTaskSet[F[+_] : Monad, -T <: Task[F, FiberControl], FiberControl <: Fiber[F]](
                                                                                                     runningTaskSet: Ref[F, MultiMap[Path, IOOnThread[FiberControl]]]

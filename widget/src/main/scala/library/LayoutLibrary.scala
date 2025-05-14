@@ -4,6 +4,7 @@ package library
 import cats.*
 import cats.syntax.all.given
 import me.katze.gui4s.widget
+import me.katze.gui4s.widget.layout.{LayoutDraw, LayoutWidget}
 
 type LayoutPlacementStrategy[Widget, PlacedWidget, PlacementEffect[+_], ChildrenMeta] =  List[Widget] => PlacementEffect[List[(PlacedWidget, ChildrenMeta)]]
 

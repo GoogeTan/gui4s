@@ -7,17 +7,16 @@ import impl.{*, given}
 
 import cats.data.ReaderT
 import cats.effect.std.{AtomicCell, Console, Dispatcher}
-import cats.effect.{Async, ExitCode, Ref, Resource}
+import cats.effect.{Async, ExitCode, Resource}
 import cats.syntax.all.*
-import cats.{Applicative, Functor, Monad, MonadError, Monoid, effect}
+import cats.{Functor, Monad, MonadError, effect}
 import io.github.humbleui.skija.shaper.Shaper
-import io.github.humbleui.skija.{Canvas, DirectContext}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.skija.{SkiaRenderTarget, SkijaDraw, SkijaDrawState, createSkiaRenderTarget, initSkia, moveAndBack}
-import me.katze.gui4s.widget.library.{LayoutDraw, TextDraw}
-import org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor
+import me.katze.gui4s.skija.*
+import me.katze.gui4s.widget.layout.LayoutDraw
+import me.katze.gui4s.widget.library.TextDraw
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL.createCapabilities
 

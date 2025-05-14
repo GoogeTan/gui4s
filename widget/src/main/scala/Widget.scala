@@ -1,7 +1,5 @@
 package me.katze.gui4s.widget
 
-import stateful.Path
-
 
 trait Widget[+Update[+_], +Draw, +Place[+_], Recomposition, -HandleableEvent]:
   def handleDownEvent(pathToParent: Path, event: HandleableEvent) : Update[Place[Widget[Update, Draw, Place, Recomposition, HandleableEvent]]]

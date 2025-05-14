@@ -14,11 +14,11 @@ import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.given
+import me.katze.gui4s.widget.library.{textWidget, given}
 import me.katze.gui4s.widget.stateful.TaskFinished
 import me.katze.gui4s.widget.{EventResult, given}
 import me.katze.gui4s.example.impl.layoutDrawImpl
-import me.katze.gui4s.skija.{*, given }
+import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.example.draw.skija.{*, given}
 
 type Update[UpEvent] = [Value] =>> EventResult[Value, UpEvent]

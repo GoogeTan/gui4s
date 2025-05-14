@@ -1,11 +1,13 @@
 package me.katze.gui4s.widget
+package mapevent
 
-import stateful.{BiMonad, Path}
+import stateful.BiMonad
 
 import cats.syntax.all.*
 import cats.{Functor, Monoid}
+import me.katze.gui4s.widget.{RawMapEventWidget, Widget}
 
-final case class MapEventWidget[
+final case class RawMapEventWidget[
   Update[+_, +_] : BiMonad,
   Draw,
   Place[+_] : Functor,
@@ -36,9 +38,9 @@ final case class MapEventWidget[
   override def recomposed(currentPath: Path, states: Map[String, StateTree[Recomposition]]): Recomposition =
     body.recomposed(currentPath, states)
   end recomposed
-end MapEventWidget
+end RawMapEventWidget
 
-object MapEventWidget:
+object RawMapEventWidget:
   def apply[
     Update[+_, +_] : BiMonad,
     Draw,
@@ -46,7 +48,7 @@ object MapEventWidget:
     Recomposition : Monoid,
     DownEvent,
     A, B
-  ](body : Place[Widget[[W] =>> Update[W, A], Draw, Place, Recomposition, DownEvent]], f : A => B) : Place[MapEventWidget[Update, Draw, Place, Recomposition, DownEvent, A, B]] =
-    body.map(MapEventWidget(_, f))
+  ](body : Place[Widget[[W] =>> Update[W, A], Draw, Place, Recomposition, DownEvent]], f : A => B) : Place[RawMapEventWidget[Update, Draw, Place, Recomposition, DownEvent, A, B]] =
+    body.map(RawMapEventWidget(_, f))
   end apply
-end MapEventWidget
+end RawMapEventWidget

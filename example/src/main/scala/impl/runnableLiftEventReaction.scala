@@ -1,8 +1,7 @@
 package me.katze.gui4s.example
 package impl
 
-import me.katze.gui4s.widget.EventResult
-import me.katze.gui4s.widget.library.LiftEventReaction
+import me.katze.gui4s.widget.{EventResult, LiftEventReaction}
 import me.katze.gui4s.widget.stateful.EventReaction
 
 given runnableLiftEventReaction: LiftEventReaction[EventResult] with

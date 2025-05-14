@@ -1,5 +1,5 @@
 package me.katze.gui4s.widget
-package library
+package stateful
 
 import stateful.*
 

@@ -1,9 +1,10 @@
-package me.katze.gui4s.example
-package api
+package me.katze.gui4s.widget
+package library
+
+import library.*
+import stateful.{EventReaction, RichTypeChecker, given}
 
 import cats.effect.Resource
-import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.stateful.{EventReaction, RichTypeChecker, given}
 
 type ResourceWidget[F[_], Widget[_], Supervisor] = [State, Event] => (name : String, resource : Resource[F, State], body : Option[State] => Widget[Event], supervisor : Supervisor) => Widget[Event]
 

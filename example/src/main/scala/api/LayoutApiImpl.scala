@@ -2,15 +2,14 @@ package me.katze.gui4s.example
 package api
 
 import api.*
-import draw.given
 
 import cats.*
-import cats.syntax.all.*
 import me.katze.gui4s.layout.Axis
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.Widget
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.stateful.{*, given}
+import me.katze.gui4s.widget.Widget
+import me.katze.gui4s.widget.layout.LayoutDraw
 
 type LayoutPlacement[Place[_], MeasurementUnit, PlacementMeta, Widget[_]] =
   [Event] => (Axis, List[Place[Widget[Event]]], MainAxisPlacementStrategy[MeasurementUnit], AdditionalAxisPlacementStrategy) => Place[List[(Widget[Event], PlacementMeta)]]

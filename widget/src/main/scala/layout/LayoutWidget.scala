@@ -1,7 +1,5 @@
 package me.katze.gui4s.widget
-
-import library.LayoutDraw
-import stateful.Path
+package layout
 
 import cats.syntax.all.*
 import cats.{FlatMap, Monad, Monoid}

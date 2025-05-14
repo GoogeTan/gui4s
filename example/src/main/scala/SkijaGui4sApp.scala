@@ -16,8 +16,8 @@ import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.impure.cats.effect.ContextImpure
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.SkijaDraw
-import me.katze.gui4s.widget.stateful.{Path, TaskFinished, given}
-import me.katze.gui4s.widget.{Widget, given}
+import me.katze.gui4s.widget.stateful.{TaskFinished, given}
+import me.katze.gui4s.widget.{Path, Widget, given}
 
 import scala.concurrent.ExecutionContext
 
