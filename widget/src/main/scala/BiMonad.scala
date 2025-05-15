@@ -1,5 +1,4 @@
 package me.katze.gui4s.widget
-package stateful
 
 import cats.Monad
 

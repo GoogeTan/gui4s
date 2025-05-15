@@ -1,7 +1,7 @@
 package me.katze.gui4s.widget
 package stateful
 
-import cats.{FlatMap, Functor}
+import cats.FlatMap
 import cats.syntax.all.*
 import me.katze.gui4s.widget
 
@@ -15,10 +15,10 @@ final case class Stateful[
   HandleableEvent,
   ChildRaiseableEvent
 ](
-   name: String,
-   state: State[[Value] =>> Update[Value, RaiseableEvent], Recomposition, ChildRaiseableEvent, Place[Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent]], Task],
-   childTree: Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent],
-   runTasks : List[Task] => Update[Unit, Nothing]
+    name: String,
+    state: State[[Value] =>> Update[Value, RaiseableEvent], Recomposition, ChildRaiseableEvent, Place[Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent]], Task],
+    childTree: Widget[[E] =>> Update[E, ChildRaiseableEvent], Draw, Place, Recomposition, HandleableEvent],
+    runTasks : List[Task] => Update[Unit, Nothing]
 )  extends Widget[[Value] =>> Update[Value, RaiseableEvent], Draw, Place, Recomposition, HandleableEvent]:
   private type WidgetTree[+RaisableEvent] = Widget[[Value] =>> Update[Value, RaisableEvent], Draw, Place, Recomposition, HandleableEvent]
   private type FreeWidgetTree[+RaisableEvent] = Place[WidgetTree[RaisableEvent]]

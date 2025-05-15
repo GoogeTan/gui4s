@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package place
 
-import api.MainAxisPlacementStrategy
+import me.katze.gui4s.widget.library.MainAxisPlacementStrategy
 
 enum MainAxisStrategyWithAvailableSpace[+MeasurementUnit]:
   case Begin(gap : MeasurementUnit)

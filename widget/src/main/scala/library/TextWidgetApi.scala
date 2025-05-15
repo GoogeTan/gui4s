@@ -1,4 +1,5 @@
-package me.katze.gui4s.widget.library
+package me.katze.gui4s.widget
+package library
 
 import cats.{Applicative, Functor}
 import cats.syntax.all.*
@@ -6,8 +7,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.drawonly.drawOnlyWidget
 import me.katze.gui4s.widget.library.{TextDraw, TextPlacement, textWidget as rawTextWidget}
-import me.katze.gui4s.widget.stateful.{BiMonad, given}
-import me.katze.gui4s.widget.{Empty, Widget}
+import me.katze.gui4s.widget.{BiMonad, Empty, Widget, given }
 
 type TextWidget[Widget, Shaper, TextStyle] = (text : String, shaper : Shaper, textStyle : TextStyle) => Widget
 
@@ -48,8 +48,8 @@ def textWidget[
 ]
 (using
     textDraw : TextDraw[Draw, TextPlacementMeta],
-    textIsPlaceable : TextPlacement[Shaper, TextStyle, Place[TextPlacementMeta]])
-(
+    textIsPlaceable : TextPlacement[Shaper, TextStyle, Place[TextPlacementMeta]]
+)(
   drawOnlyWidget : (Place[Widget[Update, Draw, Place, LeftComposition, Any]], Draw) => Widget[Update, Draw, Place, LeftComposition, Any],
   text : String,
   shaper : Shaper,

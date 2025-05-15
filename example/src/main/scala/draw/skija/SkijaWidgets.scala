@@ -12,9 +12,9 @@ import me.*
 import me.katze.gui4s.example.impl.containerPlacementCurried2
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
-import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
+import me.katze.gui4s.layout.{Axis, Measurable, MeasurableT, given}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.{textWidget, given}
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, LinearLayout, MainAxisPlacementStrategy, linearLayout, textWidget, given}
 import me.katze.gui4s.widget.stateful.TaskFinished
 import me.katze.gui4s.widget.{EventResult, given}
 import me.katze.gui4s.example.impl.layoutDrawImpl
@@ -60,7 +60,7 @@ def skijaRow[F[+_] : {Monad, Impure}, Event](using errors: MainAxisStrategyError
   horizontalStrategy: MainAxisPlacementStrategy[Float],
   verticalStrategy  : AdditionalAxisPlacementStrategy
 ): Widget[F, Event] =
-  skijaLayoutApi.row(children, horizontalStrategy, verticalStrategy)
+  skijaLinearLayout(children, Axis.Vertical, horizontalStrategy, verticalStrategy)
 end skijaRow
 
 def skijaColumn[F[+_] : {Monad, Impure}, Event](using errors: MainAxisStrategyErrors)(
@@ -68,14 +68,21 @@ def skijaColumn[F[+_] : {Monad, Impure}, Event](using errors: MainAxisStrategyEr
   verticalStrategy: MainAxisPlacementStrategy[Float],
   horizontalStrategy: AdditionalAxisPlacementStrategy
 ): Widget[F, Event] =
-  skijaLayoutApi.column(children, verticalStrategy, horizontalStrategy)
+  skijaLinearLayout(children, Axis.Vertical, verticalStrategy, horizontalStrategy)
 end skijaColumn
 
-def skijaLayoutApi[F[+_] : {Monad, Impure}](using errors : MainAxisStrategyErrors) : LayoutApi[[Event] =>> Widget[F, Event], Float] =
-  LayoutApi_[
-    EventResult, SkijaDraw[F, OglWindow],  MeasurableT[F, Float], Recomposition[F], Float, LayoutPlacementMeta[Float], TaskFinished
+def skijaLinearLayout[F[+_] : {Monad, Impure}](using errors : MainAxisStrategyErrors) : LinearLayout[[Event] =>> Widget[F, Event], Float, Axis] =
+  linearLayout[
+    EventResult,
+    SkijaDraw[F, OglWindow],
+    MeasurableT[F, Float],
+    Recomposition[F],
+    Float,
+    LayoutPlacementMeta[Float],
+    TaskFinished,
+    Axis
   ](
     containerPlacementCurried2[F, [Event] =>> PlacedWidget[F, Event], Float](errors)
   )
-end skijaLayoutApi
+end skijaLinearLayout
 

@@ -1,6 +1,5 @@
 package me.katze.gui4s.example
 
-import api.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import draw.skija.{*, given}
 import impl.ENErrors
 import place.MainAxisStrategyErrors
@@ -10,6 +9,7 @@ import cats.effect.{ExitCode, IO, IOApp}
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.cats.effect.IOImpure
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
 object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors = ENErrors

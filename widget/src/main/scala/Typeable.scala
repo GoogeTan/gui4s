@@ -1,7 +1,5 @@
 package me.katze.gui4s.widget
 
-import stateful.RichTypeChecker
-
 import scala.reflect.Typeable
 
 @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
