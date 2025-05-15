@@ -1,13 +1,13 @@
 package me.katze.gui4s.widget
 package library
 
-import cats.{Applicative, Functor}
-import cats.syntax.all.*
+import drawonly.drawOnlyWidget
+import library.textWidget as rawTextWidget
 
+import cats.syntax.all.*
+import cats.{Applicative, Functor}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.drawonly.drawOnlyWidget
-import me.katze.gui4s.widget.library.{TextDraw, TextPlacement, textWidget as rawTextWidget}
-import me.katze.gui4s.widget.{BiMonad, Empty, Widget, given }
+import me.katze.gui4s.widget.{BiMonad, Empty, Widget, given}
 
 type TextWidget[Widget, Shaper, TextStyle] = (text : String, shaper : Shaper, textStyle : TextStyle) => Widget
 

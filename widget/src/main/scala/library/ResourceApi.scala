@@ -2,7 +2,7 @@ package me.katze.gui4s.widget
 package library
 
 import library.*
-import stateful.{EventReaction, given}
+import stateful.EventReaction
 
 import cats.effect.Resource
 import me.katze.gui4s.widget.RichTypeChecker

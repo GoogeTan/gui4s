@@ -1,9 +1,10 @@
 package me.katze.gui4s.widget
 package library
 
+import mapevent.MapEventWidget as RawMapEventWidget
+
 import cats.{Functor, Monoid}
 import me.katze.gui4s.widget.BiMonad
-import me.katze.gui4s.widget.mapevent.MapEventWidget as RawMapEventWidget
 
 type MapEventWidget[Widget[_]] = [A, B] => Widget[A] => (A => B) => Widget[B]
 
