@@ -1,9 +1,11 @@
 package me.katze.gui4s.widget
 package mapevent
 
+import catnip.BiMonad
+import catnip.syntax.bimonad.{*, given}
 import cats.syntax.all.*
 import cats.{Functor, Monoid}
-import me.katze.gui4s.widget.{BiMonad, Widget}
+import me.katze.gui4s.widget.Widget
 
 final case class MapEventWidget[
   Update[+_, +_] : BiMonad,
@@ -18,7 +20,8 @@ final case class MapEventWidget[
 ) extends Widget[[Value] =>> Update[Value, B], Draw, Place, Recomposition, DownEvent]:
 
   override def handleDownEvent(pathToParent: Path, event: DownEvent): Update[Place[Widget[[Value] =>> Update[Value, B], Draw, Place, Recomposition, DownEvent]], B] =
-    body.handleDownEvent(pathToParent, event).map(_.map(copy(_))).mapSecond(f)
+    body.handleDownEvent(pathToParent, event).map(_.map(copy(_))).
+      mapSecond(f)
   end handleDownEvent
 
   override def asUnplaced: Place[Widget[[Value] =>> Update[Value, B], Draw, Place, Recomposition, DownEvent]] =

@@ -1,6 +1,8 @@
 package me.katze.gui4s.widget
 package stateful
 
+import catnip.BiMonad
+
 import scala.annotation.tailrec
 
 final case class EventReaction[+State, +ParentUpEvent, +WidgetTask](
@@ -32,14 +34,13 @@ given[Task]: BiMonad[[A, B] =>> EventReaction[A, B, Task]] with
     )
   end flatMapFirst
 
-  extension[A, B](value : EventReaction[A, B, Task])
-    override def mapSecond[D](f : B => D) : EventReaction[A, D, Task] =
-      value.mapEvent(f)
-    end mapSecond
+  override def pure[A](value: A): EventReaction[A, Nothing, Task] =  
+    EventReaction(value, Nil, Nil)
   
-  extension [A](value: A)
-    override def asMonad: EventReaction[A, Nothing, Task] = EventReaction(value, Nil, Nil)
-    
+  override def mapSecond[A, B, D](value : EventReaction[A, B, Task])(f : B => D) : EventReaction[A, D, Task] =
+    value.mapEvent(f)
+  end mapSecond
+  
   override def tailRecM[A, B, E](a: A)
                                 (f: A => EventReaction[Either[A, B], E, Task]): EventReaction[B, E, Task] =
     @tailrec

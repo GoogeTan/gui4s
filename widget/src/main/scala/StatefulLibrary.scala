@@ -2,6 +2,7 @@ package me.katze.gui4s.widget
 
 import stateful.{*, given}
 
+import catnip.BiMonad
 import cats.*
 import cats.syntax.all.*
 

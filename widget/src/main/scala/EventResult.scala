@@ -2,6 +2,8 @@ package me.katze.gui4s.widget
 
 import stateful.*
 
+import catnip.BiMonad
+
 import scala.annotation.tailrec
 
 final case class EventResult[+FreeWidget, +UpEvent](
@@ -21,13 +23,13 @@ given BiMonad[EventResult] with
   end flatMapFirst
 
 
-  extension[A, B](value : EventResult[A, B])
-    override def mapSecond[D](f : B => D) : EventResult[A, D] =
-      EventResult(value.widget, value.events.map(f))
-    end mapSecond
+  override def mapSecond[A, B, D](value : EventResult[A, B])(f : B => D) : EventResult[A, D] =
+    EventResult(value.widget, value.events.map(f))
+  end mapSecond
 
-  extension [A](value: A)
-    override def asMonad: EventResult[A, Nothing] = EventResult(value, Nil)
+  override def pure[A](value: A): EventResult[A, Nothing] =
+    EventResult(value, Nil)
+  end pure
 
   override def tailRecM[A, B, E](a: A)
                                 (f: A => EventResult[Either[A, B], E]): EventResult[B, E] =

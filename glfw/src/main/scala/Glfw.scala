@@ -19,7 +19,7 @@ trait Glfw[F[_], Window]:
 
   def centerWindow(window : Window) : F[Unit]
   def makeVisible(window : Window) : F[Unit]
-  def currentMonitor : F[Monitor]
+  def primaryMonitor : F[Monitor]
   def windowMonitor(window : Window) : F[Monitor]
   def monitorScale(monitor : Monitor) : F[Float]
   def swapInterval(interval : Int) : F[Unit]

@@ -92,16 +92,16 @@ final class GlfwImpl[F[_] : {Impure as impure, Sync}](
 
   override type Monitor = Long
 
-  override def currentMonitor : F[Long] =
+  override def primaryMonitor : F[Long] =
     impure.impure(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
-  end currentMonitor
+  end primaryMonitor
 
   override def windowMonitor(window : OglWindow) : F[Monitor] =
-    impure.impure:
-      glfwGetWindowMonitor(window.id)
+    impure.impure(glfwGetWindowMonitor(window.id))
+      .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end windowMonitor
-  
+
   override def createWindow(
                               title: String,
                               size : Size,

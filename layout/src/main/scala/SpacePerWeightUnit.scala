@@ -2,8 +2,8 @@ package me.katze.gui4s.layout
 
 import bound.{AxisDependentBounds, Bounds}
 
-import cats.{Applicative, Monad, Monoid}
 import cats.syntax.all.*
+import cats.{Monad, Monoid}
 
 import scala.math.Fractional.Implicits.infixFractionalOps
 import scala.math.Ordered.orderingToOrdered

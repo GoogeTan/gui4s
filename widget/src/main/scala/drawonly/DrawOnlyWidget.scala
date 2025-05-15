@@ -1,6 +1,7 @@
 package me.katze.gui4s.widget
 package drawonly
 
+import catnip.Empty
 import cats.syntax.all.*
 import cats.{Applicative, FlatMap}
 

@@ -1,9 +1,10 @@
 package me.katze.gui4s.widget
 package stateful
 
+import catnip.BiMonad
+import catnip.syntax.all.{*, given}
 import cats.FlatMap
 import cats.syntax.all.*
-import me.katze.gui4s.widget
 
 final case class Stateful[
   Update[+_, +_] : {BiMonad, CatchEvents},

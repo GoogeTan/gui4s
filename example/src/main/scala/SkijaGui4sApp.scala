@@ -1,5 +1,6 @@
 package me.katze.gui4s.example
 
+import catnip.syntax.bimonad.{*, given}
 import draw.*
 import draw.skija.*
 import place.RunPlacement

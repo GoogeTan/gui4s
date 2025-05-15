@@ -3,11 +3,11 @@ package draw.skija
 
 import api.*
 import draw.skija.given
-import me.katze.gui4s.example.impl.containerPlacementCurried2
+import impl.containerPlacementCurried2
 import place.MainAxisStrategyErrors
 
-import cats.syntax.all.*
-import cats.{Applicative, Monad, Monoid}
+import catnip.syntax.all.given
+import cats.Monad
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Font, Paint}
 import me.*
@@ -23,12 +23,7 @@ import me.katze.gui4s.widget.{EventResult, given}
 type Update[UpEvent] = [Value] =>> EventResult[Value, UpEvent]
 type Recomposition[F[_]] = F[Unit]
 
-given monadUnitIsEmpty[F[_]: Applicative as M] : Monoid[Recomposition[F]] with
-  override def empty: Recomposition[F] = M.pure(())
 
-  override def combine(x: Recomposition[F], y: Recomposition[F]): Recomposition[F] =
-    x *> y
-end monadUnitIsEmpty
 
 type PlacedWidget[F[+_], Event] =  widget.Widget[[Value] =>> EventResult[Value, Event], SkijaDraw[F, OglWindow],  MeasurableT[F, Float], Recomposition[F], TaskFinished]
 type Widget[F[+_], Event] = Measurable[F, Float,PlacedWidget[F, Event]]

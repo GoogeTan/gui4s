@@ -3,6 +3,8 @@ package library
 
 import stateful.{*, given}
 
+import catnip.BiMonad
+import catnip.syntax.bimonad.given
 import cats.syntax.all.*
 import cats.{FlatMap, Functor, Monoid}
 import me.katze.gui4s.widget.Widget
