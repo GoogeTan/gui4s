@@ -10,16 +10,25 @@ import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Placed, Sized}
 import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import scala.math.Fractional.Implicits.*
+//import scala.math.Numeric.Implicits.*
 
-def mainAxisStrategyPlacement[MeasurementUnit : Fractional](strategy: MainAxisStrategyWithAvailableSpace[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
-  (
-    strategy match
-      case MainAxisStrategyWithAvailableSpace.Begin(gap) => placeBeginMany(elements.map(_ + gap))
-      case MainAxisStrategyWithAvailableSpace.Center(gap, space) => placeCenterMany(elements.map(_ + gap), space)
-      case MainAxisStrategyWithAvailableSpace.End(gap, space) => placeEndMany(elements.map(_ + gap), space)
-      case MainAxisStrategyWithAvailableSpace.SpaceBetween(space) => placeSpaceBetween(elements, space)
-      case MainAxisStrategyWithAvailableSpace.SpaceAround(space) => placeSpaceAround(elements, space)
-  ).map(_.coordinateOfStart)
+def mainAxisStrategyPlacement[MeasurementUnit : Fractional as F](strategy: MainAxisStrategyWithAvailableSpace[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
+  strategy match
+    case MainAxisStrategyWithAvailableSpace.Begin(gap) =>
+      placeBeginMany(elements.map(_ + gap))
+        .map(_.coordinateOfStart)
+    case MainAxisStrategyWithAvailableSpace.Center(gap, space) =>
+      placeCenterMany(elements.map(_ + gap), space)
+        .map(_.coordinateOfStart + (gap / F.fromInt(2)))
+    case MainAxisStrategyWithAvailableSpace.End(gap, space) =>
+      placeEndMany(elements.map(_ + gap), space)
+        .map(_.coordinateOfStart + gap)
+    case MainAxisStrategyWithAvailableSpace.SpaceBetween(space) =>
+      placeSpaceBetween(elements, space)
+        .map(_.coordinateOfStart)
+    case MainAxisStrategyWithAvailableSpace.SpaceAround(space) =>
+      placeSpaceAround(elements, space)
+        .map(_.coordinateOfStart)
 end mainAxisStrategyPlacement
 
 def additionalAxisStrategyPlacement[MeasurementUnit : Fractional](strategy: AdditionalAxisPlacementStrategy, element: MeasurementUnit, space : => MeasurementUnit): MeasurementUnit =
