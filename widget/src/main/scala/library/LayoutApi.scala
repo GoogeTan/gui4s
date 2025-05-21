@@ -1,11 +1,14 @@
-package me.katze.gui4s.widget.library
+package me.katze.gui4s.widget
+package library
 
+import catnip.BiMonad
+import catnip.syntax.bimonad.given 
 import cats.*
 import cats.syntax.all.*
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.layout.{LayoutDraw, LayoutWidget}
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.{BiMonad, Widget, given}
+import me.katze.gui4s.widget.{Widget, given}
 
 type LayoutPlacement[Place[_], MeasurementUnit, PlacementMeta, Widget[_], Axis] =
   [Event] => (

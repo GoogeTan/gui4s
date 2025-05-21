@@ -4,6 +4,8 @@ package library
 import library.*
 import stateful.EventReaction
 
+import catnip.Empty
+import catnip.syntax.empty.empty
 import cats.effect.Resource
 import me.katze.gui4s.widget.RichTypeChecker
 

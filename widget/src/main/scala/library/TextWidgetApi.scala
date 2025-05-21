@@ -3,11 +3,13 @@ package library
 
 import drawonly.drawOnlyWidget
 import library.textWidget as rawTextWidget
+import catnip.{BiMonad, Empty}
+import catnip.syntax.bimonad.given
 
 import cats.syntax.all.*
 import cats.{Applicative, Functor}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.{BiMonad, Empty, Widget, given}
+import me.katze.gui4s.widget.{Widget, given}
 
 type TextWidget[Widget, Shaper, TextStyle] = (text : String, shaper : Shaper, textStyle : TextStyle) => Widget
 

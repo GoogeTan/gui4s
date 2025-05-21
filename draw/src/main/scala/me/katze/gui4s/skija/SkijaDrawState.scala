@@ -1,7 +1,8 @@
 package me.katze.gui4s.skija
 
-import cats.data.ReaderT
+import catnip.syntax.all.{*, given}
 import cats.*
+import cats.data.ReaderT
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Canvas, DirectContext}
 import me.katze.gui4s.glfw.Glfw
@@ -52,19 +53,19 @@ end flush
 def drawFrame[F[_] : {Monad, Impure as I}, Window](draw : SkijaDraw[F, Window]) : ReaderT[F, SkijaDrawState[F, Window], Unit] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state => 
     clear(state.canvas, 0xFFFFFFFF)
-      *> draw(state)
-      *> flush(state.context)
-      *> state.glfw.swapBuffers(state.window)
-      *> state.glfw.pollEvents
+      |+| draw(state)
+      |+| flush(state.context)
+      |+| state.glfw.swapBuffers(state.window)
+      |+| state.glfw.pollEvents
   )
 end drawFrame
 
 def flush[F[_] : {Monad, Impure as I}, Window]: ReaderT[F, SkijaDrawState[F, Window], Unit] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
     flush(state.context)
-      *> state.glfw.swapBuffers(state.window)
-      *> state.glfw.pollEvents
-      *> clear(state.canvas, 0xFFFFFFFF) 
+      |+| state.glfw.swapBuffers(state.window)
+      |+| state.glfw.pollEvents
+      |+| clear(state.canvas, 0xFFFFFFFF)
   )
 end flush
 

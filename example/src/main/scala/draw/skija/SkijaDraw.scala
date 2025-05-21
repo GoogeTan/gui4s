@@ -5,11 +5,12 @@ import api.{DrawMonad, LayoutPlacementMeta}
 import draw.{Drawable, drawLoopExceptionHandler}
 import impl.{*, given}
 
+import catnip.syntax.all.given
 import cats.data.ReaderT
 import cats.effect.std.{AtomicCell, Console, Dispatcher}
 import cats.effect.{Async, ExitCode, Resource}
 import cats.syntax.all.*
-import cats.{Functor, Monad, MonadError, effect}
+import cats.{Functor, Monad, MonadError}
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
@@ -17,7 +18,6 @@ import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.layout.LayoutDraw
 import me.katze.gui4s.widget.library.TextDraw
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL.createCapabilities
 
 given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] with
@@ -82,10 +82,10 @@ object SkijaSimpleDrawApi:
         windowSize,
         visible = true,
         resizeable = true,
-        debugContext = false
+        debugContext = true
       )
       _ <- Resource.eval(glfw.createOGLContext(window, GlfwImpure(createCapabilities())))
-      scale <- Resource.eval(glfw.currentMonitor >>= glfw.monitorScale)
+      scale <- Resource.eval(glfw.primaryMonitor >>= glfw.monitorScale)
       rt : AtomicCell[F, SkiaRenderTarget] <- initSkia(windowSize.width, windowSize.height, scale)(using GlfwImpure)
       _ <- Resource.eval(windowResizedCallback(glfw, window, rt)(using CommonImpure))
       shaper <- Resource.fromAutoCloseable(CommonImpure(Shaper.make()))
@@ -97,7 +97,11 @@ object SkijaSimpleDrawApi:
       targetCell.evalUpdate(state =>
         for
           //_ <- state.dealloc
-          dpi <- glfw.windowMonitor(window) >>= glfw.monitorScale
+          _ <- c.println("It works 1")
+          monitor <- glfw.windowMonitor(window)
+          _ <- c.println("It works 2")
+          dpi <- glfw.monitorScale(monitor)
+          _ <- c.println("It works 3")
           newRenderTarget <- createSkiaRenderTarget(state.directContext, newSize.width, newSize.height, dpi)
         yield newRenderTarget
       )

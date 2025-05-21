@@ -1,8 +1,9 @@
 import sbt.Keys.libraryDependencies
+import sbtide.Keys.idePackagePrefix
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.6.2"
+ThisBuild / scalaVersion := "3.7.0"
 
 sys.env.get("LD_LIBRARY_PATH") match {
   case Some(libPath) =>
@@ -46,6 +47,15 @@ def testLibs = List(
   "org.scalacheck" %% "scalacheck" % "1.18.1" % "test"
 )
 
+val catnip = (project in file("catnip"))
+  .settings(
+    name := "catnip",
+    idePackagePrefix := Some("catnip"),
+    libraryDependencies ++= catsLibs ++ testLibs,
+    wartremoverErrors := Warts.all,
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
+  )
+
 lazy val layout = (project in file("layout"))
   .settings(
     name := "layout",
@@ -64,7 +74,7 @@ lazy val widget = (project in file("widget"))
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  )
+  ).dependsOn(catnip)
 
 lazy val lwjglVersion = "3.3.6"
 
