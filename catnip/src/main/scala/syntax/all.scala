@@ -6,3 +6,6 @@ object all:
   export bimonad.{*, given}
   export empty.{*, given}
   export list.{*, given}
+  export typeable.{*, given}
+end all
+

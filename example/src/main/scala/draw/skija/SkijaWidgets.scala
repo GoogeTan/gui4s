@@ -11,6 +11,7 @@ import cats.Monad
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Font, Paint}
 import me.*
+import me.katze.gui4s.example.EventResult
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.{Axis, Measurable, MeasurableT, given}
@@ -18,7 +19,7 @@ import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.stateful.TaskFinished
-import me.katze.gui4s.widget.{EventResult, given}
+import me.katze.gui4s.widget.given
 
 type Update[UpEvent] = [Value] =>> EventResult[Value, UpEvent]
 type Recomposition[F[_]] = F[Unit]
