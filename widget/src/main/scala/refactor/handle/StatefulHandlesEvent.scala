@@ -12,7 +12,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.widget.refactor.draw.Drawable
 import me.katze.gui4s.widget.refactor.merge.Mergable
 
-def StatefulHandlesEvent[
+def statefulHandlesEvent[
   Update[+_, +_] : {BiMonad, CatchEvents},
   Place[_] : Functor,
   Widget,
@@ -21,11 +21,11 @@ def StatefulHandlesEvent[
   ChildEvent,
   HandleableEvent
 ](
-  stateHandlesEvents  : HandlesEvent[State, List[ChildEvent], Update[State, Event]],
-  stateDrawsIntoWidget: Drawable[State, Place[Widget]],
-  childHandlesEvents  : HandlesEvent[Widget, HandleableEvent, Update[Place[Widget], ChildEvent]],
-  widgetsAreMergable  : Mergable[Place, Widget],
-  widgetAsFree        : AsFree[Widget, Place[Widget]],
+    stateHandlesEvents  : HandlesEvent[State, List[ChildEvent], Update[State, Event]],
+    drawStateIntoWidget: Drawable[State, Place[Widget]],
+    childHandlesEvents  : HandlesEvent[Widget, HandleableEvent, Update[Place[Widget], ChildEvent]],
+    widgetsAreMergable  : Mergable[Place, Widget],
+    widgetAsFree        : AsFree[Widget, Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
   HandleableEvent,
@@ -45,9 +45,9 @@ def StatefulHandlesEvent[
       newState <- stateHandlesEvents(self.state, pathToParent, events)
       newChildFreeWidget =
         widgetsAreMergable.merge(
-          widgetAsFree.asFree(self.child),
+          widgetAsFree(self.child),
           newChildWidget,
-          stateDrawsIntoWidget.draw(newState)
+          drawStateIntoWidget(newState)
         )
     yield newChildFreeWidget.map(newChild => self.copy(child = newChild))
-end StatefulHandlesEvent
+end statefulHandlesEvent

@@ -3,14 +3,12 @@ package refactor.draw
 
 import refactor.StatefulState
 
-final class StatefulStateDrawsIntoWidget[
+def StatefulStateDrawsIntoWidget[
   State,
   TaskSupervisor,
   Widget,
   EventHandler,
   Destructor
-] extends Drawable[StatefulState[State, TaskSupervisor, State => Widget, EventHandler, Destructor], Widget]:
-  override def draw(self: StatefulState[State, TaskSupervisor, State => Widget, EventHandler, Destructor]): Widget =
-    self.draw(self.currentState)
-  end draw
+] : Drawable[StatefulState[State, TaskSupervisor, State => Widget, EventHandler, Destructor], Widget] =
+  self => self.draw(self.currentState)
 end StatefulStateDrawsIntoWidget

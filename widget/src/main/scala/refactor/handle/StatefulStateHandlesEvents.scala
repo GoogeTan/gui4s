@@ -6,7 +6,7 @@ import refactor.StatefulState
 import cats.Functor
 import cats.syntax.functor.*
 
-def StatefulStateHandlesEvents[
+def statefulStateHandlesEvents[
   Update[_] : Functor,
   State,
   TaskSupervisor,
@@ -27,4 +27,4 @@ def StatefulStateHandlesEvents[
       pathToParent, 
       self.taskSupervisor
     ).map(newState => self.copy(currentState = newState))
-end StatefulStateHandlesEvents
+end statefulStateHandlesEvents

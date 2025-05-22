@@ -4,7 +4,7 @@ package refactor.handle
 import catnip.BiMonad
 import catnip.syntax.all.*
 
-def MapRaisedEventAtEventHandle[
+def mapRaisedEventAtEventHandle[
   Self, 
   Update[+_, +_] : BiMonad,
   HandlableEvent,
@@ -16,4 +16,4 @@ def MapRaisedEventAtEventHandle[
 ) : HandlesEvent[Self, HandlableEvent, Update[Self, B]] =
   (self: Self, pathToParent: Path, event: HandlableEvent) =>
     initial(self, pathToParent, event).mapSecond(f)
-end MapRaisedEventAtEventHandle
+end mapRaisedEventAtEventHandle

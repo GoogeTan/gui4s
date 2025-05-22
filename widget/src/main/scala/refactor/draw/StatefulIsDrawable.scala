@@ -3,12 +3,10 @@ package refactor.draw
 
 import refactor.Stateful
 
-final class StatefulIsDrawable[
+def StatefulIsDrawable[
   PlacedWidget,
   State,
   Draw
-](using childIsDrawable : Drawable[PlacedWidget, Draw]) extends Drawable[Stateful[PlacedWidget, State], Draw]:
-  override def draw(self: Stateful[PlacedWidget, State]): Draw =
-    childIsDrawable.draw(self.child)
-  end draw
+](childIsDrawable : Drawable[PlacedWidget, Draw]) : Drawable[Stateful[PlacedWidget, State], Draw] =
+  self => childIsDrawable(self.child)
 end StatefulIsDrawable

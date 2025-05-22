@@ -4,7 +4,7 @@ package refactor.handle
 import cats.Functor
 import cats.syntax.all.*
 
-def RaiseEventAsEventHandled[
+def raiseEventAsEventHandled[
   Update[+_] : Functor,
   Self,
   Event,
@@ -15,10 +15,10 @@ def RaiseEventAsEventHandled[
   distinct : Event => Either[TransitiveEvent, HandlableEvent],
   raiseEvent : HandlableEvent => Update[Unit]
 ) : HandlesEvent[Self, Event, Update[Self]] =
-  (self: Self, pathToParent: Path, event: Event) => 
+  (self: Self, pathToParent: Path, event: Event) =>
     distinct(event) match
       case Left(value) =>
         initial(self, pathToParent, value)
       case Right(value) =>
         raiseEvent(value).as(self)
-end RaiseEventAsEventHandled
+end raiseEventAsEventHandled

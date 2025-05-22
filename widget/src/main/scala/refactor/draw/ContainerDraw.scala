@@ -6,9 +6,6 @@ import refactor.Container
 import cats.Monoid
 import cats.syntax.all.*
 
-final class ContainerDraw[Widget, Layout, Draw : Monoid](drawWidget : Drawable[Widget, Draw]) extends Drawable[Container[Widget, Layout], Draw]:
-  override def draw(self: Container[Widget, Layout]): Draw =
-    self.children.foldMap(drawWidget.draw)
-  end draw
-end ContainerDraw
-  
+def drawContainer[Widget, Layout, Draw : Monoid](drawWidget : Drawable[Widget, Draw]) : Drawable[Container[Widget, Layout], Draw] =
+  _.children.foldMap(drawWidget)
+end drawContainer

@@ -28,6 +28,7 @@ def containerHandlesEvent[
         self.layout(childrenUnplaced)
           .map(childrenPlaced => Container(childrenPlaced, self.layout))
       )
+end containerHandlesEvent
 
 def childrenHandleEvent[
   Update[+_] : Monad,
@@ -54,10 +55,9 @@ def childrenHandleEvent[
             if shouldContinue then
               updateChildren(remainingChildren, pathToParent, event)
             else
-              remainingChildren.map(widgetAsFree.asFree).pure[Update]
+              remainingChildren.map(widgetAsFree).pure[Update]
         yield widget :: remaining
       case Nil => Nil.pure[Update]
       
   updateChildrenOrdered    
-
-
+end childrenHandleEvent
