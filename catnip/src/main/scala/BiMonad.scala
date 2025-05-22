@@ -1,7 +1,5 @@
 package catnip
 
-import scala.annotation.targetName
-
 trait BiMonad[F[_, +_]]:
   def flatMapFirst[A, B, C](value : F[A, B])(f: A => F[C, B]): F[C, B]
   def tailRecM[A, B, E](a: A)(f: A => F[Either[A, B], E]): F[B, E]
