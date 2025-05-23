@@ -10,7 +10,22 @@ import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.library.{LayoutPlacement, LayoutPlacementGeneralized}
+
+type LayoutPlacement[Place[_], MeasurementUnit, PlacementMeta, Widget[_], Axis] =
+  [Event] => (
+    mainAxis               : Axis,
+    children               : List[Place[Widget[Event]]],
+    mainAxisStrategy       : MainAxisPlacementStrategy[MeasurementUnit],
+    additionalAxisStrategy : AdditionalAxisPlacementStrategy
+  ) => Place[List[(Widget[Event], PlacementMeta)]]
+
+type LayoutPlacementGeneralized[Place[_], MeasurementUnit, PlacementMeta, Widget, Axis] =
+  (
+    mainAxis               : Axis,
+    children               :  List[Place[Widget]],
+    mainAxisStrategy       :  MainAxisPlacementStrategy[MeasurementUnit],
+    additionalAxisStrategy : AdditionalAxisPlacementStrategy
+  ) => Place[List[(Widget, PlacementMeta)]]
 
 def containerPlacementCurried2[F[+_] : Monad, Widget[_], MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors) :  LayoutPlacement[MeasurableT[F, MeasurementUnit], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
   [Event] => (axis, elements, main, additional) => containerPlacementCurried[F, Widget[Event], MeasurementUnit](strategyErrors)(axis, elements, main, additional)

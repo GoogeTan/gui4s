@@ -21,7 +21,7 @@ object SkijaAppExample extends IOApp:
     )
   end run
 
-  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing] =
+  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing, TaskFinished] =
     skijaColumn(
       (0 until 6).toList.map(
         lineNumber =>

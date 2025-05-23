@@ -17,26 +17,20 @@ import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.impure.cats.effect.ContextImpure
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.SkijaDraw
-import me.katze.gui4s.widget.stateful.{TaskFinished, given}
-import me.katze.gui4s.widget.{Path, Widget, given}
+import me.katze.gui4s.widget.{Path, given}
 
 import scala.concurrent.ExecutionContext
 
+final case class TaskFinished()
+
 def skijaApp[F[+_] : {Async, Console, Impure}](
-                                                widget : SkijaBackend[F, OglWindow] ?=> Measurable[F, Float,
-                                                  Widget[
-                                                    Update[ApplicationRequest],
-                                                    SkijaDraw[F, OglWindow],
-                                                    MeasurableT[F, Float],
-                                                    Recomposition[F],
-                                                    TaskFinished
-                                                  ]
-                                                ],
+                                                widget : SkijaBackend[F, OglWindow] ?=> Widget[F, ApplicationRequest, TaskFinished],
                                                 updateLoopExecutionContext : ExecutionContext,
                                                 drawLoopExecutionContext: ExecutionContext,
                                               ) =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,
+    PlacedWidget[F, ApplicationRequest, TaskFinished],
     SkijaDraw[F, OglWindow],
     MeasurableT[F, Float],
     Update[ApplicationRequest],
@@ -63,10 +57,22 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
       given RunPlacement[F, MeasurableT[F, Float]] = MeasurableRunPlacement[F, F, Float](backend.windowBounds)
 
       measurableIsFlatMap[F, Float].map(widget(using backend))(widget =>
-        RootWidget(
+        RootWidget[
+          F,
+          PlacedWidget[F, ApplicationRequest, TaskFinished],
+          SkijaDraw[F, OglWindow],
+          MeasurableT[F, Float],
+          Update[ApplicationRequest],
+          Recomposition[F],
+          TaskFinished,
+        ](
           Path(List("ROOT")),
           widget,
-          identity
+          identity[F[Unit]],
+          skijaWidgetHandlesDownEvent,
+          skijaWidgetReactAtRecomposition,
+          skijaWidgetHasInnerStates,
+          skijaWidgetIsDrawable
         )
       ).runPlacement
   )

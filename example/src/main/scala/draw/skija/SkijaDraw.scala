@@ -11,13 +11,12 @@ import cats.effect.std.{AtomicCell, Console, Dispatcher}
 import cats.effect.{Async, ExitCode, Resource}
 import cats.syntax.all.*
 import cats.{Functor, Monad, MonadError}
+import io.github.humbleui.skija.{Paint, TextBlob}
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.*
-import me.katze.gui4s.widget.layout.LayoutDraw
-import me.katze.gui4s.widget.library.TextDraw
 import org.lwjgl.opengl.GL.createCapabilities
 
 given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] with
@@ -26,18 +25,12 @@ given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Flo
     end drawAt
 end given
 
-given skijaLayoutDraw[F[_] : {Impure, Monad}, Window]: LayoutDraw[SkijaDraw[F, Window], LayoutPlacementMeta[Float]] =
-  layoutDrawImpl[SkijaDraw[F, Window], Float]
-end skijaLayoutDraw
-
-given skijaTextDraw[F[_] : Impure as I, Window]: TextDraw[SkijaDraw[F, Window], SkijaPlacedText] =
-  (_, meta) =>
-    ReaderT[F, SkijaDrawState[F, Window], Unit](
-      state =>
-        I:
-          state.canvas.drawTextBlob(meta.textBlob, 0, 0, meta.paint)
-    )
-end skijaTextDraw
+def drawText[F[_] : Impure as I, Window](text : TextBlob, paint : Paint) =
+  ReaderT[F, SkijaDrawState[F, Window], Unit](
+    state =>
+      I:
+        state.canvas.drawTextBlob(text, 0, 0, paint)
+  )
 
 def flush[F[_] : {Monad, Impure as I}, Window]: SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>

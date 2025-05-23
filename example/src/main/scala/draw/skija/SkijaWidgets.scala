@@ -17,8 +17,6 @@ import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.{Axis, Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.stateful.TaskFinished
 import me.katze.gui4s.widget.given
 
 type Update[UpEvent] = [Value] =>> EventResult[Value, UpEvent]
@@ -26,10 +24,10 @@ type Recomposition[F[_]] = F[Unit]
 
 
 
-type PlacedWidget[F[+_], Event] =  widget.Widget[[Value] =>> EventResult[Value, Event], SkijaDraw[F, OglWindow],  MeasurableT[F, Float], Recomposition[F], TaskFinished]
-type Widget[F[+_], Event] = Measurable[F, Float,PlacedWidget[F, Event]]
+type PlacedWidget[F[+_], Event, DownEvent] =  SkijaWidget_[[Value] =>> EventResult[Value, Event],  MeasurableT[F, Float], SkijaDraw[F, OglWindow], Recomposition[F], DownEvent]
+type Widget[F[+_], +Event, -DownEvent] = Measurable[F, Float,PlacedWidget[F, Event, DownEvent]]
 
-def skijaText[F[+_] : {Monad, Impure}, Window](using backend: SkijaBackend[F, Window])(text : String, font : Font, paint : Paint) : Widget[F, Nothing] =
+def skijaText[F[+_] : {Monad, Impure}, Window](using backend: SkijaBackend[F, Window])(text : String, font : Font, paint : Paint) : Widget[F, Nothing, Any] =
   textWidget[
     EventResult,
     SkijaDraw[F, OglWindow],
@@ -50,19 +48,19 @@ end skijaText
 
 // TODO Remove using errors
 
-def skijaRow[F[+_] : {Monad, Impure}, Event](using errors: MainAxisStrategyErrors)(
-  children : List[Widget[F, Event]],
+def skijaRow[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
+  children : List[Widget[F, Event, DownEvent]],
   horizontalStrategy: MainAxisPlacementStrategy[Float],
   verticalStrategy  : AdditionalAxisPlacementStrategy
-): Widget[F, Event] =
+): Widget[F, Event, DownEvent] =
   skijaLinearLayout(children, Axis.Vertical, horizontalStrategy, verticalStrategy)
 end skijaRow
 
-def skijaColumn[F[+_] : {Monad, Impure}, Event](using errors: MainAxisStrategyErrors)(
-  children: List[Widget[F, Event]],
+def skijaColumn[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
+  children: List[Widget[F, Event, DownEvent]],
   verticalStrategy: MainAxisPlacementStrategy[Float],
   horizontalStrategy: AdditionalAxisPlacementStrategy
-): Widget[F, Event] =
+): Widget[F, Event, DownEvent] =
   skijaLinearLayout(children, Axis.Vertical, verticalStrategy, horizontalStrategy)
 end skijaColumn
 

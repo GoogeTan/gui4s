@@ -3,7 +3,7 @@ package state
 
 def launchedEffectHasInnerState[Key, Recomposition](
   emptyRecomposition : Recomposition
-) : InnerStates[LaunchedEffect[Key, Recomposition], Recomposition] =
+) : HasInnerStates[LaunchedEffect[Key, Recomposition], Recomposition] =
   self => Map(
     self.name -> new StateTree(self.key, emptyRecomposition)
   )

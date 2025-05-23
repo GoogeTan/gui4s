@@ -8,6 +8,6 @@ def statefulInnerStates[
   State,
   Widget,
   Recomposition
-](stateHasInnerState : InnerStates[State, Recomposition]) : InnerStates[Stateful[Widget, State], Recomposition] =
+](stateHasInnerState : HasInnerStates[State, Recomposition]) : HasInnerStates[Stateful[Widget, State], Recomposition] =
   self => stateHasInnerState(self.state)
 
