@@ -15,7 +15,7 @@ def sizeText[F[+_] : Impure as I](text: String, shaper : Shaper, options: SkijaT
       val blob = bounds.horizontal.max match
         case Some(value) => shaper.shape(text, options.font, value)
         case None => shaper.shape(text, options.font)
-      val blobBounds = blob.getBounds  
+      val blobBounds = blob.getBounds
       Sized(SkijaPlacedText(blob, options.paint), blobBounds.getRight, blobBounds.getBottom)
 end sizeText
 

@@ -10,7 +10,6 @@ import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Placed, Sized}
 import scala.math.Fractional.Implicits.*
-//import scala.math.Numeric.Implicits.*
 
 def mainAxisStrategyPlacement[MeasurementUnit : Fractional as F](strategy: MainAxisStrategyWithAvailableSpace[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
   strategy match

@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package draw.skija
 
-import api.{DrawMonad, LayoutPlacementMeta}
+import api.LayoutPlacementMeta
 import draw.{Drawable, drawLoopExceptionHandler}
 import impl.{*, given}
 
@@ -18,12 +18,6 @@ import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.*
 import org.lwjgl.opengl.GL.createCapabilities
-
-given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Float] with
-    override def drawAt(x: Float, y: Float, effect: SkijaDraw[F, Window]): SkijaDraw[F, Window] =
-      ReaderT[F, SkijaDrawState[F, Window], Unit](state => moveAndBack(state.canvas, x, y, effect.run(state)))
-    end drawAt
-end given
 
 def drawAt[F[_] : {Impure, Monad}, Window](original : SkijaDraw[F, Window], meta : LayoutPlacementMeta[Float]) : SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state => moveAndBack(state.canvas, meta.x, meta.y, original.run(state)))

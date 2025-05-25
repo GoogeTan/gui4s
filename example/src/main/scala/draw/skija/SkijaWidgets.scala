@@ -167,7 +167,7 @@ def skijaRow[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisSt
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried2[F, [Event] =>> PlacedWidget[F, Event, DownEvent], Float](errors)(Axis.Vertical, _, horizontalStrategy, verticalStrategy),
+    containerPlacementCurried2[F, [Event] =>> PlacedWidget[F, Event, DownEvent], Float](errors)(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
     drawAt,
     false.pure[[Value] =>> EventResult[Value, Nothing]] // TODO
   )
@@ -187,7 +187,7 @@ def skijaColumn[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxi
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried2[F, [Event] =>> PlacedWidget[F, Event, DownEvent], Float](errors)(Axis.Horizontal, _, verticalStrategy, horizontalStrategy),
+    containerPlacementCurried2[F, [Event] =>> PlacedWidget[F, Event, DownEvent], Float](errors)(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
     drawAt,
     false.pure[[Value] =>> EventResult[Value, Nothing]] // TODO
   )
