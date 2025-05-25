@@ -1,11 +1,13 @@
 package me.katze.gui4s.example
 
+import api.Widget
+import api.widget.*
 import draw.skija.{*, given}
 import impl.ENErrors
 import place.MainAxisStrategyErrors
-import cats.syntax.all.*
 
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.cats.effect.IOImpure

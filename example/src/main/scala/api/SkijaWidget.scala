@@ -1,9 +1,10 @@
 package me.katze.gui4s.example
+package api
 
 import cats.Functor
 import cats.syntax.all.*
-import me.katze.gui4s.widget.free.AsFree
 import me.katze.gui4s.widget.draw.Drawable
+import me.katze.gui4s.widget.free.AsFree
 import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.merge.MergesWithOldStates
 import me.katze.gui4s.widget.recomposition.ReactsOnRecomposition

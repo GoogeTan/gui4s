@@ -1,38 +1,27 @@
 package me.katze.gui4s.example
-package draw.skija
+package api.widget
 
 import api.{*, given}
-import draw.skija.given
-import impl.{LayoutPlacement, containerPlacementCurried2}
+import draw.skija.drawAt
+import impl.containerPlacementCurried2
 import place.MainAxisStrategyErrors
 
 import catnip.syntax.all.given
-import cats.{Functor, Monad, Monoid}
 import cats.syntax.all.*
-import io.github.humbleui.skija.shaper.Shaper
-import io.github.humbleui.skija.{Font, Paint}
+import cats.{Functor, Monad, Monoid}
 import me.*
 import me.katze.gui4s.example.EventResult
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
-import me.katze.gui4s.layout.{Axis, Measurable, MeasurableT, given}
+import me.katze.gui4s.layout.{Axis, MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
-import me.katze.gui4s.widget
+import me.katze.gui4s.widget.Container
 import me.katze.gui4s.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
-import me.katze.gui4s.widget.free.{AsFree, containerAsFree, widgetWithMetaAsFree}
-import me.katze.gui4s.widget.handle.{Layout, childrenHandleEvent, containerHandlesEvent, handlesNothing}
-import me.katze.gui4s.widget.merge.{anyHasNothingToMerge, containerMergesWithOldStates}
-import me.katze.gui4s.widget.recomposition.{containerReactsOnRecomposition, hasNoReactionOnRecomposition, widgetWithMetaReactsOnRecomposition}
-import me.katze.gui4s.widget.state.{containerHasInnerStates, hasNoInnerState, widgetWithMetaHasInnerStates}
-import me.katze.gui4s.widget.{Container, given}
-
-type Update[UpEvent] = [Value] =>> EventResult[Value, UpEvent]
-type Recomposition[F[_]] = F[Unit]
-
-
-
-type PlacedWidget[F[+_], +Event, -DownEvent] =  SkijaWidget_[[Value] =>> EventResult[Value, Event],  MeasurableT[F, Float], SkijaDraw[F, OglWindow], Recomposition[F], DownEvent]
-type Widget[F[+_], +Event, -DownEvent] = Measurable[F, Float, PlacedWidget[F, Event, DownEvent]]
+import me.katze.gui4s.widget.free.containerAsFree
+import me.katze.gui4s.widget.handle.{Layout, childrenHandleEvent, containerHandlesEvent}
+import me.katze.gui4s.widget.merge.containerMergesWithOldStates
+import me.katze.gui4s.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
+import me.katze.gui4s.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}
 
 type LinearLayout[
   Widget[_],
@@ -45,55 +34,6 @@ type LinearLayout[
   additionalAxisStrategy : AdditionalAxisPlacementStrategy,
 ) => Widget[Event]
 
-def skijaText[F[+_] : {Monad, Impure}, Window](using backend: SkijaBackend[F, Window])(text : String, style : SkijaTextStyle) : Widget[F, Nothing, Any] =
-  skijaText[
-    [Value] =>> EventResult[Value, Nothing],  MeasurableT[F, Float], SkijaDraw[F, OglWindow], Recomposition[F], Any, SkijaPlacedText
-  ](
-    sizeText(text, backend.globalShaper, style),
-    drawText,
-    ().pure[F]
-  )
-end skijaText
-
-def skijaText[
-  Update[+_] : Monad,
-  Place[+_] : Functor,
-  Draw,
-  RecompositionReaction,
-  HandleableEvent,
-  PlacedText
-](
-  text : Place[PlacedText],
-  draw : PlacedText => Draw,
-  emptyRecomposition : RecompositionReaction
-) : Place[
-  SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
-] =
-  drawOnlyWidget[Update, Place, Draw, RecompositionReaction, HandleableEvent](text.map(draw), emptyRecomposition)
-end skijaText
-
-def drawOnlyWidget[
-  Update[+_] : Monad as M,
-  Place[+_] : Functor,
-  Draw,
-  RecompositionReaction,
-  HandleableEvent,
-](toDraw : Place[Draw], emptyRecomposition : RecompositionReaction) : Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
-  toDraw.map(
-    draw =>
-      val asFree : AsFree[Draw, Place[Draw]] = (_ : Draw) => toDraw
-      SkijaWidget[Draw, Update, Place, Draw, RecompositionReaction, HandleableEvent](
-        valueToDecorate = draw,
-        valueAsFree = asFree,
-        valueIsDrawable = _ => draw,
-        valueHandlesEvent = handlesNothing[Draw, HandleableEvent, Update[Place[Draw]]](asFree andThen M.pure),
-        valueMergesWithOldState = anyHasNothingToMerge(asFree),
-        valueReactsOnRecomposition = hasNoReactionOnRecomposition[Draw, RecompositionReaction](emptyRecomposition),
-        valueHasInnerState = hasNoInnerState[Draw]
-      )
-  )
-end drawOnlyWidget
-
 def skijaLinearLayout[
   Update[+_] : Monad,
   Place[+_] : Functor,
@@ -102,11 +42,11 @@ def skijaLinearLayout[
   HandleableEvent,
   Meta : Ordering,
 ](
- children : List[Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
- layout : Layout[Place, SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
- adjustDrawToMeta : (Draw, Meta) => Draw,
- eventConsumed : Update[Boolean],
-) : Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+   children : List[Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
+   layout : Layout[Place, SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
+   adjustDrawToMeta : (Draw, Meta) => Draw,
+   eventConsumed : Update[Boolean],
+ ) : Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
   type Widget = SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
   layout(children).map(
     placedChildren =>
@@ -152,6 +92,7 @@ def skijaLinearLayout[
   )
 end skijaLinearLayout
 
+// TODO может, можно сделать более общим без такихз уточнений
 // TODO Remove using errors
 def skijaRow[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
   children : List[Widget[F, Event, DownEvent]],
@@ -159,10 +100,10 @@ def skijaRow[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisSt
   verticalStrategy  : AdditionalAxisPlacementStrategy
 ): Widget[F, Event, DownEvent] =
   skijaLinearLayout[
-    [Value] =>> EventResult[Value, Event],  
+    [Value] =>> EventResult[Value, Event],
     MeasurableT[F, Float],
-    SkijaDraw[F, OglWindow], 
-    Recomposition[F], 
+    SkijaDraw[F, OglWindow],
+    Recomposition[F],
     DownEvent,
     LayoutPlacementMeta[Float]
   ](
