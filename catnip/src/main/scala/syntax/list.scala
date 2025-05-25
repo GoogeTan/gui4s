@@ -2,6 +2,7 @@ package catnip
 package syntax
 
 import cats.Functor
+import cats.data.NonEmptyList
 import cats.syntax.functor.*
 
 object list:
@@ -11,8 +12,8 @@ object list:
    * @param order Порядок обработки 
    * @param f Обработчик списка. Должен вернуть список той же длины, что и исходный
    */
-  def orderedListProcessing[F[_] : Functor, A, B, O: Ordering](list: List[A])(order: A => O)(f: List[A] => F[List[B]]): F[List[B]] =
-    val indexed = list.zipWithIndex.sortBy((value, index) => order(value))
+  def orderedListProcessing[F[_] : Functor, A : Ordering, B](list: List[A])(f: List[A] => F[List[B]]): F[List[B]] =
+    val indexed = list.zipWithIndex.sortBy((value, _) => value)
     val indexes = indexed.map(_._2)
     val values = indexed.map(_._1)
     f(values).map(res =>

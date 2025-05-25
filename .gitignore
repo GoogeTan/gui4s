@@ -49,3 +49,4 @@ build/
 
 ### Metals ###
 .metals
+/.bloop/

@@ -6,8 +6,10 @@ import handle.Layout
 import cats.Functor
 import cats.syntax.functor.*
 
-def containerAsFree[Place[_] : Functor, Widget](
+def containerAsFree[Place[_] : Functor, Widget, Meta](
   widgetAsFree : AsFree[Widget, Place[Widget]]
-) : AsFree[Container[Widget, Layout[Place, Widget]], Place[Container[Widget, Layout[Place, Widget]]]] =
-  self => self.layout(self.children.map(widgetAsFree)).map(children => self.copy(children = children))
+) : AsFree[Container[(Widget, Meta), Layout[Place, Widget, Meta]], Place[Container[(Widget, Meta), Layout[Place, Widget, Meta]]]] =
+  self =>
+    val freeChildren = self.children.map((widget, _) => widgetAsFree(widget))
+    self.layout(freeChildren).map(children => self.copy(children = children))
 end containerAsFree

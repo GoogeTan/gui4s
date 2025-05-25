@@ -25,12 +25,18 @@ given [F[_] : {Impure as I, Monad}, Window]: DrawMonad[SkijaDraw[F, Window], Flo
     end drawAt
 end given
 
-def drawText[F[_] : Impure as I, Window](text : TextBlob, paint : Paint) =
+def drawAt[F[_] : {Impure, Monad}, Window](original : SkijaDraw[F, Window], meta : LayoutPlacementMeta[Float]) : SkijaDraw[F, Window] =
+  ReaderT[F, SkijaDrawState[F, Window], Unit](state => moveAndBack(state.canvas, meta.x, meta.y, original.run(state)))
+end drawAt
+
+
+def drawText[F[_] : Impure as I, Window](text : SkijaPlacedText) =
   ReaderT[F, SkijaDrawState[F, Window], Unit](
     state =>
       I:
-        state.canvas.drawTextBlob(text, 0, 0, paint)
+        state.canvas.drawTextBlob(text.textBlob, 0, 0, text.paint)
   )
+end drawText
 
 def flush[F[_] : {Monad, Impure as I}, Window]: SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
@@ -74,7 +80,7 @@ object SkijaSimpleDrawApi:
         "Skija Text Example",
         windowSize,
         visible = true,
-        resizeable = true,
+        resizeable = false,
         debugContext = true
       )
       _ <- Resource.eval(glfw.createOGLContext(window, GlfwImpure(createCapabilities())))

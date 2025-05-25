@@ -69,8 +69,8 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
           Path(List("ROOT")),
           widget,
           identity[F[Unit]],
-          skijaWidgetHandlesDownEvent,
-          skijaWidgetReactAtRecomposition,
+          skijaWidgetHandlesEvent,
+          skijaWidgetReactOnRecomposition,
           skijaWidgetHasInnerStates,
           skijaWidgetIsDrawable
         )

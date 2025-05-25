@@ -1,24 +1,26 @@
 package me.katze.gui4s.widget
 package handle
 
+import free.AsFree
+
 import catnip.syntax.list.orderedListProcessing
 import cats.syntax.all.*
 import cats.{Functor, Monad}
-import me.katze.gui4s.widget.free.AsFree
 
-type Layout[Place[_], Widget] = List[Place[Widget]] => Place[List[Widget]]
+type Layout[Place[_], Widget, Meta] = List[Place[Widget]] => Place[List[(Widget, Meta)]]
 
 def containerHandlesEvent[
   Update[+_] : Monad,
   Place[_] : Functor,
   Widget,
-  HandlableEvent
-](
-  childrenHandleEvent : HandlesEvent[List[Widget], HandlableEvent, Update[List[Place[Widget]]]],
-) : HandlesEvent[
-  Container[Widget, Layout[Place, Widget]],
   HandlableEvent,
-  Update[Place[Container[Widget, Layout[Place, Widget]]]]
+  Meta
+](
+  childrenHandleEvent : HandlesEvent[List[(Widget, Meta)], HandlableEvent, Update[List[Place[Widget]]]],
+) : HandlesEvent[
+  Container[(Widget, Meta), Layout[Place, Widget, Meta]],
+  HandlableEvent,
+  Update[Place[Container[(Widget, Meta), Layout[Place, Widget, Meta]]]]
 ] =
   (self, pathToParent, event) =>
     childrenHandleEvent(self.children, pathToParent, event)
@@ -32,15 +34,18 @@ def childrenHandleEvent[
   Update[+_] : Monad,
   Place[_] : Functor,
   Widget,
-  HandlableEvent
+  HandlableEvent,
+  Meta : Ordering as MetaOrdering,
 ](
     widgetHandlesEvent : HandlesEvent[Widget, HandlableEvent, Update[Place[Widget]]],
     widgetAsFree : AsFree[Widget, Place[Widget]],
-    order : Widget => Int,
     eventConsumed : Update[Boolean]
-) : HandlesEvent[List[Widget], HandlableEvent, Update[List[Place[Widget]]]] =
-  def updateChildrenOrdered(children : List[Widget], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
-    orderedListProcessing(children)(order)(updateChildren(_, pathToParent, event))
+) : HandlesEvent[List[(Widget, Meta)], HandlableEvent, Update[List[Place[Widget]]]] =
+  def updateChildrenOrdered(children : List[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
+    given Ordering[(Widget, Meta)] = (a, b) => MetaOrdering.compare(a._2, b._2) // TODO extract comap ordering
+    orderedListProcessing(children)(
+      orderedChildren => updateChildren(orderedChildren.map(_._1), pathToParent, event)
+    )
   end updateChildrenOrdered
 
   def updateChildren(children : List[Widget], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
