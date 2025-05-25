@@ -1,7 +1,5 @@
 package me.katze.gui4s.widget
 
-import stateful.EventReaction
-
 trait LiftEventReaction[
   Update[+_, +_],
 ]:

@@ -5,3 +5,7 @@ object all:
   export additional.{*, given}
   export bimonad.{*, given}
   export empty.{*, given}
+  export list.{*, given}
+  export typeable.{*, given}
+end all
+

@@ -4,13 +4,12 @@ package place
 import api.LayoutPlacementMeta
 
 import cats.*
+import me.katze.gui4s.example.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import me.katze.gui4s.layout
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Placed, Sized}
-import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import scala.math.Fractional.Implicits.*
-//import scala.math.Numeric.Implicits.*
 
 def mainAxisStrategyPlacement[MeasurementUnit : Fractional as F](strategy: MainAxisStrategyWithAvailableSpace[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
   strategy match
@@ -45,7 +44,7 @@ def unpack[MeasurementUnit, T](lst: List[Placed[MeasurementUnit, T]]): List[(T, 
 end unpack
 
 def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[MeasurementUnit, T]) : (T, LayoutPlacementMeta[MeasurementUnit]) =
-  (placed.value, LayoutPlacementMeta(placed.x, placed.y))
+  (placed.value, new LayoutPlacementMeta(placed))
 end placedElementAsLayoutMetadata
 
 def rowColumnPlace[MeasurementUnit, T](
@@ -53,9 +52,10 @@ def rowColumnPlace[MeasurementUnit, T](
                                         bounds             : AxisDependentBounds[MeasurementUnit],
                                         mainAxisPlace      : (List[MeasurementUnit], AxisBounds[MeasurementUnit]) => List[MeasurementUnit],
                                         additionalAxisPlace: (MeasurementUnit, AxisBounds[MeasurementUnit]) => MeasurementUnit,
+                                        zLevel : MeasurementUnit,
                                       ): List[Placed[MeasurementUnit, T]] =
   val ys = mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis)
   val xs = elements.map(el => additionalAxisPlace(el.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
 
-  Monad[List].map(xs.zip(ys).zip(elements))((coords, value) => Placed(value.value, coords._1, coords._2, value.width, value.height))
+  Monad[List].map(xs.zip(ys).zip(elements))((coords, value) => Placed(value.value, coords._1, coords._2, zLevel, value.width, value.height))
 end rowColumnPlace

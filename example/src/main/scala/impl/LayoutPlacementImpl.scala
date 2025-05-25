@@ -10,21 +10,38 @@ import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.layout.rowcolumn.weightedRowColumnPlace
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.library.{LayoutPlacement, LayoutPlacementGeneralized}
+
+type LayoutPlacement[Place[_], MeasurementUnit, PlacementMeta, Widget[_], Axis] =
+  [Event] => (
+    mainAxis               : Axis,
+    children               : List[Place[Widget[Event]]],
+    mainAxisStrategy       : MainAxisPlacementStrategy[MeasurementUnit],
+    additionalAxisStrategy : AdditionalAxisPlacementStrategy
+  ) => Place[List[(Widget[Event], PlacementMeta)]]
+
+type LayoutPlacementGeneralized[Place[_], MeasurementUnit, PlacementMeta, Widget, Axis] =
+  (
+    mainAxis               : Axis,
+    children               :  List[Place[Widget]],
+    mainAxisStrategy       :  MainAxisPlacementStrategy[MeasurementUnit],
+    additionalAxisStrategy : AdditionalAxisPlacementStrategy
+  ) => Place[List[(Widget, PlacementMeta)]]
 
 def containerPlacementCurried2[F[+_] : Monad, Widget[_], MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors) :  LayoutPlacement[MeasurableT[F, MeasurementUnit], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
   [Event] => (axis, elements, main, additional) => containerPlacementCurried[F, Widget[Event], MeasurementUnit](strategyErrors)(axis, elements, main, additional)
 end containerPlacementCurried2
 
 // TODO Убрать не оправданное переиспользование кода с весами или обосновать его
-def containerPlacementCurried[F[+_] : Monad, Widget, MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors): LayoutPlacementGeneralized[MeasurableT[F, MeasurementUnit], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
+def containerPlacementCurried[F[+_] : Monad, Widget, MeasurementUnit: Fractional as F](strategyErrors : MainAxisStrategyErrors): LayoutPlacementGeneralized[MeasurableT[F, MeasurementUnit], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
   (axis, elements, main, additional) =>
     weightedRowColumnPlace[F, MeasurementUnit, Widget](
       axis,
       elements.map(widget => MaybeWeighted(None, widget)),
       rowColumnPlace(_, _,
         (elements, bounds) => mainAxisStrategyPlacement[MeasurementUnit](unsafeSizedStrategy(main, bounds.max, strategyErrors), elements),
-        (elements, bounds) => additionalAxisStrategyPlacement[MeasurementUnit](additional, elements, bounds.maxValueUnsafe))
+        (elements, bounds) => additionalAxisStrategyPlacement[MeasurementUnit](additional, elements, bounds.maxValueUnsafe),
+        F.zero
+      )
     ).map(unpack)
 end containerPlacementCurried
 
