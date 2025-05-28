@@ -43,7 +43,7 @@ def statefulHandlesEvent[
       newState <- stateHandlesEvents(self.state, pathToParent, events)
       newChildFreeWidget =
         widgetsAreMergable.merge(
-          widgetAsFree(self.child),
+          self.child,
           newChildWidget,
           drawStateIntoWidget(newState)
         )

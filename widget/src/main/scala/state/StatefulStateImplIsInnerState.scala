@@ -11,9 +11,7 @@ def statefulStateIsState[
   Draw,
   EventHandler,
   RecompositionReaction
-](
-  typeCheckState : Any => Merge[(State, State)]
-) : HasInnerStates[
+] : HasInnerStates[
   StatefulState[State, TaskSupervisor, Draw, EventHandler, State => RecompositionReaction],
   RecompositionReaction
 ] =

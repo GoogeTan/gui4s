@@ -98,7 +98,7 @@ def skijaWidgetMergesWithOldState[
     self.valueMergesWithOldState(self.valueToDecorate, path, oldState)
       .map(self.withValue)
 
-def skijaWidgetReactOnRecomposition[
+def skijaWidgetReactsOnRecomposition[
   Update[+_],
   Place[+_],
   Draw,
@@ -110,7 +110,7 @@ def skijaWidgetReactOnRecomposition[
 ] =
   (self, pathToParent, oldStates) =>
     self.valueReactsOnRecomposition(self.valueToDecorate, pathToParent, oldStates)
-end skijaWidgetReactOnRecomposition
+end skijaWidgetReactsOnRecomposition
 
 def skijaWidgetHasInnerStates[
 Update[+_],

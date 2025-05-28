@@ -3,7 +3,7 @@ package draw.skija
 
 import api.LayoutPlacementMeta
 import draw.{Drawable, drawLoopExceptionHandler}
-import impl.{*, given}
+import impl.given
 
 import catnip.syntax.all.given
 import cats.data.ReaderT
@@ -11,7 +11,6 @@ import cats.effect.std.{AtomicCell, Console, Dispatcher}
 import cats.effect.{Async, ExitCode, Resource}
 import cats.syntax.all.*
 import cats.{Functor, Monad, MonadError}
-import io.github.humbleui.skija.{Paint, TextBlob}
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.impure.Impure
@@ -22,7 +21,6 @@ import org.lwjgl.opengl.GL.createCapabilities
 def drawAt[F[_] : {Impure, Monad}, Window](original : SkijaDraw[F, Window], meta : LayoutPlacementMeta[Float]) : SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state => moveAndBack(state.canvas, meta.x, meta.y, original.run(state)))
 end drawAt
-
 
 def drawText[F[_] : Impure as I, Window](text : SkijaPlacedText) =
   ReaderT[F, SkijaDrawState[F, Window], Unit](
@@ -41,9 +39,9 @@ def flush[F[_] : {Monad, Impure as I}, Window]: SkijaDraw[F, Window] =
 end flush
 
 final case class SkijaBackend[F[_], Window](
-                                              glfw : Glfw[F, Window],
-                                              window: Window,
-                                              renderTarget : AtomicCell[F, SkiaRenderTarget],
+                                              private val glfw : Glfw[F, Window],
+                                              private val window: Window,
+                                              private val renderTarget : AtomicCell[F, SkiaRenderTarget],
                                               globalDispatcher : Dispatcher[F],
                                               globalShaper : Shaper,
                                             ):
@@ -61,6 +59,10 @@ final case class SkijaBackend[F[_], Window](
         f(SkijaDrawState(rt.directContext, glfw, window, rt.canvas)).map(a => (rt, a))
     )
   end drawState
+
+  def pollEvents: F[Unit] =
+    glfw.pollEvents
+  end pollEvents
 end SkijaBackend
 
 object SkijaSimpleDrawApi:
@@ -106,7 +108,7 @@ def skijaDrawLoop[F[+_] : {Console, Impure}, Window](backend : SkijaBackend[F, W
   currentWidget =>
     drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
       currentWidget.flatMap(widget =>
-        backend.drawState((widget.draw |+| flush[F, Window]).run) *> backend.glfw.pollEvents
+        backend.drawState((widget.draw |+| flush[F, Window]).run) *> backend.pollEvents
       )
     ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop

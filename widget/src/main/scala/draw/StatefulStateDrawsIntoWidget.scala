@@ -1,7 +1,7 @@
 package me.katze.gui4s.widget
 package draw
 
-def StatefulStateDrawsIntoWidget[
+def statefulStateDrawsIntoWidget[
   State,
   TaskSupervisor,
   Widget,
@@ -9,4 +9,4 @@ def StatefulStateDrawsIntoWidget[
   Destructor
 ] : Drawable[StatefulState[State, TaskSupervisor, State => Widget, EventHandler, Destructor], Widget] =
   self => self.draw(self.currentState)
-end StatefulStateDrawsIntoWidget
+end statefulStateDrawsIntoWidget

@@ -27,7 +27,7 @@ def drawOnlyWidget[
         valueIsDrawable = _ => draw,
         valueHandlesEvent = handlesNothing[Draw, HandleableEvent, Update[Place[Draw]]](asFree andThen M.pure),
         valueMergesWithOldState = anyHasNothingToMerge(asFree),
-        valueReactsOnRecomposition = hasNoReactionOnRecomposition[Draw, RecompositionReaction](emptyRecomposition),
+        valueReactsOnRecomposition = hasNoReactionOnRecomposition[RecompositionReaction](emptyRecomposition),
         valueHasInnerState = hasNoInnerState[Draw]
       )
   )

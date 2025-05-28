@@ -12,7 +12,7 @@ import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.{PlacedWidget, Recomposition, Update, Widget, skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactOnRecomposition}
+import me.katze.gui4s.example.api.{PlacedWidget, Recomposition, Update, Widget, skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.impure.cats.effect.ContextImpure
@@ -71,7 +71,7 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
           widget,
           identity[F[Unit]],
           skijaWidgetHandlesEvent,
-          skijaWidgetReactOnRecomposition,
+          skijaWidgetReactsOnRecomposition,
           skijaWidgetHasInnerStates,
           skijaWidgetIsDrawable
         )

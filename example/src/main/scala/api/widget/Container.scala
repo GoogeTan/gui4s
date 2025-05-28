@@ -42,11 +42,11 @@ def skijaLinearLayout[
   HandleableEvent,
   Meta : Ordering,
 ](
-   children : List[Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
-   layout : Layout[Place, SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
-   adjustDrawToMeta : (Draw, Meta) => Draw,
-   eventConsumed : Update[Boolean],
- ) : Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+  children : List[Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
+  layout : Layout[Place, SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
+  adjustDrawToMeta : (Draw, Meta) => Draw,
+  eventConsumed : Update[Boolean],
+) : Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
   type Widget = SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
   layout(children).map(
     placedChildren =>
@@ -80,7 +80,7 @@ def skijaLinearLayout[
           (Widget, Meta), Layout[Place, Widget, Meta], RecompositionReaction
         ](
           widgetWithMetaReactsOnRecomposition[Widget, Meta, RecompositionReaction](
-            skijaWidgetReactOnRecomposition[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+            skijaWidgetReactsOnRecomposition[Update, Place, Draw, RecompositionReaction, HandleableEvent]
           )
         ),
         valueHasInnerState = containerHasInnerStates[(Widget, Meta), Layout[Place, Widget, Meta], RecompositionReaction](
@@ -92,7 +92,7 @@ def skijaLinearLayout[
   )
 end skijaLinearLayout
 
-// TODO может, можно сделать более общим без такихз уточнений
+// TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
 def skijaRow[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
   children : List[Widget[F, Event, DownEvent]],

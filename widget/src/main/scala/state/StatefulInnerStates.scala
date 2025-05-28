@@ -1,10 +1,7 @@
 package me.katze.gui4s.widget
 package state
 
-import cats.Functor
-import cats.syntax.functor.*
-
-def statefulInnerStates[
+def statefulHasInnerStates[
   State,
   Widget,
   Recomposition

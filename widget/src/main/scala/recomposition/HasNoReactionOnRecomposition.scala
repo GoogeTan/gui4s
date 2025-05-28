@@ -1,6 +1,6 @@
 package me.katze.gui4s.widget
 package recomposition
 
-def hasNoReactionOnRecomposition[A, RecompositionReaction](empty : RecompositionReaction) : ReactsOnRecomposition[A, RecompositionReaction] =
-  (_, _, _) => empty
+def hasNoReactionOnRecomposition[RecompositionReaction](empty : RecompositionReaction) : ReactsOnRecomposition[Any, RecompositionReaction] =
+  (_ : Any, _, _) => empty
 end hasNoReactionOnRecomposition
