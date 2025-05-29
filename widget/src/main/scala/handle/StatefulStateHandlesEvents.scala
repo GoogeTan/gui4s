@@ -7,22 +7,16 @@ import cats.syntax.functor.*
 def statefulStateHandlesEvents[
   Update[_] : Functor,
   State,
-  TaskSupervisor,
   Draw,
   ChildEvent,
-  EventReaction,
   Destructor
-](
-  runReaction : (EventReaction, Path, TaskSupervisor) => Update[State]
-) : HandlesEvent[
-  StatefulState[State, TaskSupervisor, Draw, (State, List[ChildEvent]) => EventReaction, Destructor], 
+] : HandlesEvent[
+  StatefulState[State, Draw, (State, Path, List[ChildEvent]) => Update[State], Destructor], 
   List[ChildEvent], 
-  Update[StatefulState[State, TaskSupervisor, Draw, (State, List[ChildEvent]) => EventReaction, Destructor]]
+  Update[StatefulState[State, Draw, (State, Path, List[ChildEvent]) => Update[State], Destructor]]
 ] =
   (self, pathToParent, events) =>
-    runReaction(
-      self.handleEvents(self.currentState, events),
-      pathToParent,
-      self.taskSupervisor
-    ).map(newState => self.copy(currentState = newState))
+    self
+      .handleEvents(self.currentState, pathToParent, events)
+      .map(newState => self.copy(currentState = newState))
 end statefulStateHandlesEvents

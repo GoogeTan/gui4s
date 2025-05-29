@@ -7,12 +7,11 @@ import cats.syntax.all.*
 def statefulStateIsState[
   Merge[_] : Functor,
   State : Equiv as EQ,
-  TaskSupervisor,
   Draw,
   EventHandler,
   RecompositionReaction
 ] : HasInnerStates[
-  StatefulState[State, TaskSupervisor, Draw, EventHandler, State => RecompositionReaction],
+  StatefulState[State, Draw, EventHandler, State => RecompositionReaction],
   RecompositionReaction
 ] =
   self =>

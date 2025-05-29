@@ -2,7 +2,6 @@ package me.katze.gui4s.widget
 
 final case class StatefulState[
   State,
-  TaskSupervisor,
   Draw,
   EventHandler,
   Destructor
@@ -10,7 +9,6 @@ final case class StatefulState[
     name : String,
     initialState : State,
     currentState : State,
-    taskSupervisor: TaskSupervisor,
     draw : Draw,
     handleEvents : EventHandler,
     destructor : Destructor

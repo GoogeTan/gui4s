@@ -7,16 +7,15 @@ import cats.syntax.functor.*
 def mergeStatefulWithOldStates[
   Merge[_] : Functor,
   State: Equiv as EQ,
-  TaskSupervisor,
   Draw,
   EventHandler,
   RecompositionReaction
 ](
   typeCheckState: Any => Merge[(State, State)]
 ) : MergesWithOldStates[
-  StatefulState[State, TaskSupervisor, Draw, EventHandler, State => RecompositionReaction],
+  StatefulState[State, Draw, EventHandler, State => RecompositionReaction],
   RecompositionReaction,
-  Merge[StatefulState[State, TaskSupervisor, Draw, EventHandler, State => RecompositionReaction]],
+  Merge[StatefulState[State, Draw, EventHandler, State => RecompositionReaction]],
 ] =
   (self, _, innerStates) =>
     typeCheckState(
