@@ -58,11 +58,15 @@ def rowColumnPlace[MeasurementUnit, T](
   val mainAxisCoordinates = mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis)
   val crossAxisCoordinates = elements.map(el => additionalAxisPlace(el.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
 
-  val compoundCoordinates = if bounds.mainAxis == Axis.Vertical then
-    crossAxisCoordinates.zip(mainAxisCoordinates).map((x, y) => (x = x, y = y, z = zLevel))
-  else
-    mainAxisCoordinates.zip(crossAxisCoordinates).map((x, y) => (x = x, y = y, z = zLevel))
-
+  val compoundCoordinates =
+    mainAxisCoordinates.zip(crossAxisCoordinates).map(
+      (mainAxisCoordinate, additionalAxisCoordinate) =>
+        if bounds.axis == Axis.Vertical then
+          (x = additionalAxisCoordinate, y = mainAxisCoordinate, z = zLevel)
+        else
+          (x = mainAxisCoordinate, y = additionalAxisCoordinate, z = zLevel)
+    )
+    
   Monad[List].map(
     compoundCoordinates.zip(elements)
   )((coords, value) => Placed(value.value, coords.x, coords.y, coords.z, value.width, value.height))

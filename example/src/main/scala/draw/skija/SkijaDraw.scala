@@ -46,6 +46,7 @@ final case class SkijaBackend[F[_], Window](
                                               globalShaper : Shaper,
                                             ):
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
+    println("got size")
     glfw.frameBufferSize(window).map(a => new Bounds(a.width, a.height))
   end windowBounds
 
@@ -67,7 +68,7 @@ final case class SkijaBackend[F[_], Window](
 end SkijaBackend
 
 object SkijaSimpleDrawApi:
-  def createForTests[F[+_] : {Async, Console}](GlfwImpure : Impure[F], CommonImpure : Impure[F]) : Resource[F, SkijaBackend[F, OglWindow]] =
+  def createForTests[F[+_] : {Async, Console}](GlfwImpure : Impure[F], CommonImpure : Impure[F], notifyUpdateThreadWindowResized : F[Unit]) : Resource[F, SkijaBackend[F, OglWindow]] =
     val windowSize = me.katze.gui4s.glfw.Size(640, 480)
     for
       dispatcher <- Dispatcher.sequential[F]
@@ -77,30 +78,22 @@ object SkijaSimpleDrawApi:
         "Skija Text Example",
         windowSize,
         visible = true,
-        resizeable = false,
+        resizeable = true,
         debugContext = true
       )
       _ <- Resource.eval(glfw.createOGLContext(window, GlfwImpure(createCapabilities())))
       scale <- Resource.eval(glfw.primaryMonitor >>= glfw.monitorScale)
       rt : AtomicCell[F, SkiaRenderTarget] <- initSkia(windowSize.width, windowSize.height, scale)(using GlfwImpure)
-      _ <- Resource.eval(windowResizedCallback(glfw, window, rt)(using CommonImpure))
+      _ <- Resource.eval(windowResizedCallback(glfw, window, rt, notifyUpdateThreadWindowResized)(using CommonImpure))
       shaper <- Resource.fromAutoCloseable(CommonImpure(Shaper.make()))
     yield SkijaBackend(glfw, window, rt, dispatcher, shaper)
   end createForTests
 
-  def windowResizedCallback[F[_] : {Impure as I, Async, Console as c}, Window](glfw : Glfw[F, Window], window : Window, targetCell : AtomicCell[F, SkiaRenderTarget]): F[Unit] =
+  def windowResizedCallback[F[_] : {Impure as I, Async, Console as c}, Window](glfw : Glfw[F, Window], window : Window, targetCell : AtomicCell[F, SkiaRenderTarget], pingUpdateThread : F[Unit]): F[Unit] =
     glfw.windowResizeCallback(window, newSize =>
       targetCell.evalUpdate(state =>
-        for
-          //_ <- state.dealloc
-          _ <- c.println("It works 1")
-          monitor <- glfw.windowMonitor(window)
-          _ <- c.println("It works 2")
-          dpi <- glfw.monitorScale(monitor)
-          _ <- c.println("It works 3")
-          newRenderTarget <- createSkiaRenderTarget(state.directContext, newSize.width, newSize.height, dpi)
-        yield newRenderTarget
-      )
+        createSkiaRenderTarget(state.directContext, newSize.width, newSize.height, state.dpi)
+      ) *> pingUpdateThread
     )
   end windowResizedCallback
 end SkijaSimpleDrawApi

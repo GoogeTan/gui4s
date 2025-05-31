@@ -10,7 +10,8 @@ final case class SkiaRenderTarget(
                                     directContext: DirectContext,
                                     target: BackendRenderTarget,
                                     surface: Surface,
-                                    canvas: Canvas
+                                    canvas: Canvas,
+                                    dpi : Float
                                   ):
   def dealloc[F[_] : Impure as I] : F[Unit] = I:
     target.close()
@@ -32,7 +33,7 @@ def createSkiaRenderTarget[F[_] : {Impure, Async}](context: DirectContext, width
       Some(new SurfaceProps(PixelGeometry.RGB_H))
     )
     canvas <- Resource.eval(getOrMakeCanvas(surface))
-  yield SkiaRenderTarget(context, renderTarget, surface, canvas)
+  yield SkiaRenderTarget(context, renderTarget, surface, canvas, dpi)
   inner.allocated.map((a, _) => a)
 end createSkiaRenderTarget
 

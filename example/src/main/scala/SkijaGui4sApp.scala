@@ -22,16 +22,17 @@ import me.katze.gui4s.widget.{Path, given}
 
 import scala.concurrent.ExecutionContext
 
-final case class TaskFinished()
+enum SkijaDownEvent:
+  case WindowResized
 
 def skijaApp[F[+_] : {Async, Console, Impure}](
-                                                widget : SkijaBackend[F, OglWindow] ?=> Widget[F, ApplicationRequest, TaskFinished],
+                                                widget : SkijaBackend[F, OglWindow] ?=> Widget[F, ApplicationRequest, SkijaDownEvent],
                                                 updateLoopExecutionContext : ExecutionContext,
                                                 drawLoopExecutionContext: ExecutionContext,
                                               ) =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,
-    PlacedWidget[F, ApplicationRequest, TaskFinished],
+    PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
     SkijaDraw[F, OglWindow],
     MeasurableT[F, Float],
     Update[ApplicationRequest],
@@ -41,16 +42,20 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
 
   runApplicationLoopsWithBackend[
     F,
-    TaskFinished,
+    SkijaDownEvent,
     SkijaRootWidget,
     SkijaBackend[F, OglWindow]
   ](
-    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F](ContextImpure(drawLoopExecutionContext, summon), summon),
+    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F](
+      GlfwImpure = ContextImpure(drawLoopExecutionContext, summon), 
+      CommonImpure = summon,
+      notifyUpdateThreadWindowResized = downEventSink.offer(SkijaDownEvent.WindowResized)
+    ),
     drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow]]](
       skijaDrawLoop[F, OglWindow](backend),
       drawLoopExecutionContext
     ),
-    updateLoop = backend => runUpdateLoopOnExecutionContext[F, SkijaRootWidget, TaskFinished](
+    updateLoop = backend => runUpdateLoopOnExecutionContext[F, SkijaRootWidget, SkijaDownEvent](
       updateLoop(handleApplicationRequests),
       updateLoopExecutionContext
     ),
@@ -60,12 +65,12 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
       measurableIsFlatMap[F, Float].map(widget(using backend))(widget =>
         RootWidget[
           F,
-          PlacedWidget[F, ApplicationRequest, TaskFinished],
+          PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
           SkijaDraw[F, OglWindow],
           MeasurableT[F, Float],
           Update[ApplicationRequest],
           Recomposition[F],
-          TaskFinished,
+          SkijaDownEvent,
         ](
           Path(List("ROOT")),
           widget,

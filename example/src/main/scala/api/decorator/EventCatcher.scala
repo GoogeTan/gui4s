@@ -1,5 +1,5 @@
 package me.katze.gui4s.example
-package api.widget
+package api.decorator
 
 import api.SkijaWidget
 

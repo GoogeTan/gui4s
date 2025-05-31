@@ -23,13 +23,13 @@ object SkijaAppExample extends IOApp:
     )
   end run
 
-  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing, TaskFinished] =
-    skijaColumn[IO, Nothing, TaskFinished](
+  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing, SkijaDownEvent] =
+    skijaColumn[IO, Nothing, SkijaDownEvent](
       (0 until 6).toList.map(
         lineNumber =>
           skijaText("# line" + lineNumber.toString, SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))),
       ),
-      MainAxisPlacementStrategy.Begin(0), // TODO fix end gap
+      MainAxisPlacementStrategy.SpaceBetween, // TODO fix end gap
       AdditionalAxisPlacementStrategy.Center
     )
   end main
