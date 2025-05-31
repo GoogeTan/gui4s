@@ -1,13 +1,13 @@
 package me.katze.gui4s.skija
 
+import catnip.FFI
 import cats.effect.{Async, Resource, Sync}
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
-import me.katze.gui4s.impure.FFI
 import cats.syntax.all.*
 
 /** Реализация интерфейса для работы с Skija.
  * @tparam F Эффект, в котором выполняются операции
- * @param ffi Оборачивает грязные эффекты. Должен гарантировать исполнение кода на том же поткое, где и был создан контекст OGL(вероятно, первый(на mac os только первый)) 
+ * @param ffi Оборачивает грязные эффекты. Должен гарантировать исполнение кода на том же поткое, где и был создан контекст OGL(вероятно, первый(на mac os только первый))
  */
 final class SkijaImpl[F[_]: Async](ffi : FFI[F]) extends Skija[F]:
   override def createDirectContext: Resource[F, DirectContext] =

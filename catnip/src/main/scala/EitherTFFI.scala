@@ -1,16 +1,15 @@
-package me.katze.gui4s.impure.cats
+package catnip
 
 import cats.Functor
 import cats.data.EitherT
 import cats.syntax.functor.*
-import me.katze.gui4s.impure.FFI
 
 final class EitherTFFI[F[_] : Functor, Error](initial : FFI[F]) extends FFI[[T] =>> EitherT[F, Error, T]]:
   override def delay[A](trunk: => A): EitherT[F, Error, A] =
     EitherT(initial.delay(trunk).map(Right(_)))
   end delay
 
-  override def blocking[A](trunk: => A): EitherT[F, Error, A] = 
+  override def blocking[A](trunk: => A): EitherT[F, Error, A] =
     EitherT(initial.blocking(trunk).map(Right(_)))
   end blocking
 

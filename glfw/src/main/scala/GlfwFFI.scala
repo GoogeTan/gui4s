@@ -3,7 +3,6 @@ package me.katze.gui4s.glfw
 import cats.Monad
 import cats.data.EitherT
 import cats.syntax.all.*
-import me.katze.gui4s.impure.FFI
 import org.lwjgl.glfw.GLFW.{GLFW_NO_ERROR, glfwGetError}
 import org.lwjgl.system.MemoryUtil
 

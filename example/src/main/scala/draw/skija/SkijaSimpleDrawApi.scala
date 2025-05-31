@@ -2,6 +2,7 @@ package me.katze.gui4s.example
 package draw.skija
 
 import draw.{Drawable, drawLoopExceptionHandler}
+import catnip.FFI
 
 import catnip.syntax.all.given
 import cats.MonadError
@@ -10,7 +11,6 @@ import cats.effect.{Async, ExitCode, Resource}
 import cats.syntax.all.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.glfw.*
-import me.katze.gui4s.impure.FFI
 import me.katze.gui4s.skija.*
 import org.lwjgl.opengl.GL.createCapabilities
 

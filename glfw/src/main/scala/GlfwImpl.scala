@@ -4,7 +4,6 @@ import cats.MonadError
 import cats.effect.std.Dispatcher
 import cats.effect.{Async, Resource, Sync}
 import cats.syntax.all.*
-import me.katze.gui4s.impure.FFI
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback

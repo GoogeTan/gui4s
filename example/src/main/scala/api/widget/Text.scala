@@ -3,13 +3,13 @@ package api.widget
 
 import api.{*, given}
 import draw.skija.*
+import catnip.FFI
 
 import catnip.syntax.all.given
 import cats.syntax.all.*
 import cats.{Functor, Monad}
 import me.*
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.impure.FFI
 import me.katze.gui4s.layout.{MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
 

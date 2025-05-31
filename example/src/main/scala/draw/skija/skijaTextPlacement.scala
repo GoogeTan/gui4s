@@ -1,10 +1,10 @@
 package me.katze.gui4s.example
 package draw.skija
 
+import catnip.FFI
 import cats.Functor
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Font, Paint, TextBlob}
-import me.katze.gui4s.impure.FFI
 import me.katze.gui4s.layout.{Measurable, Sized}
 import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
 import cats.syntax.all.*

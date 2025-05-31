@@ -4,6 +4,7 @@ package api.widget
 import api.{*, given}
 import impl.containerPlacementCurried2
 import place.MainAxisStrategyErrors
+import catnip.FFI
 
 import catnip.syntax.all.given
 import cats.syntax.all.*
@@ -11,7 +12,6 @@ import cats.{Functor, Monad, Monoid}
 import me.*
 import me.katze.gui4s.example.EventResult
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.impure.FFI
 import me.katze.gui4s.layout.{Axis, MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.widget.Container

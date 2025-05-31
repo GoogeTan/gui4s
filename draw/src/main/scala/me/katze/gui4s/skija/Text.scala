@@ -1,8 +1,8 @@
 package me.katze.gui4s.skija
 
+import catnip.FFI
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Font, Paint, TextBlob}
-import me.katze.gui4s.impure.FFI
 
 final case class SkijaTextStyle(font: Font, paint: Paint)
 final case class SkijaPlacedText(textBlob: TextBlob, paint: Paint)
@@ -10,8 +10,8 @@ final case class SkijaPlacedText(textBlob: TextBlob, paint: Paint)
 def placeText[F[_]](
                       ffi : FFI[F],
                       shaper : Shaper,
-                      text : String, 
-                      style : SkijaTextStyle, 
+                      text : String,
+                      style : SkijaTextStyle,
                       maxWidth : Option[Float]
                     ) : F[(text : SkijaPlacedText, width : Float, height : Float)] =
   ffi.delay:

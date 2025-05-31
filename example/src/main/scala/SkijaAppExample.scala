@@ -10,7 +10,6 @@ import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.impure.cats.effect.IOFFI
 import me.katze.gui4s.skija.SkijaTextStyle
 
 object SkijaAppExample extends IOApp:
@@ -30,7 +29,7 @@ object SkijaAppExample extends IOApp:
         lineNumber =>
           skijaText(
             IOFFI,
-            "# line" + lineNumber.toString, 
+            "# line" + lineNumber.toString,
             SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
           ),
       ),

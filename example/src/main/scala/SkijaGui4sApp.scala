@@ -6,6 +6,7 @@ import draw.skija.*
 import place.RunPlacement
 import update.ApplicationRequest
 
+import catnip.FFI
 import cats.Monad
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
@@ -14,8 +15,6 @@ import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.example.api.{PlacedWidget, Recomposition, Update, Widget, skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size}
-import me.katze.gui4s.impure.FFI
-import me.katze.gui4s.impure.cats.effect.ContextFFI
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget.{Path, given}

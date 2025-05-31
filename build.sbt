@@ -57,6 +57,15 @@ val catnip = (project in file("catnip"))
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
 
+val catnipEffect = (project in file("catnip-cats-effect"))
+  .settings(
+    name := "catnip-cats-effect",
+    idePackagePrefix := Some("catnip.cats.effect"),
+    libraryDependencies ++= catsEffectLibs ++ testLibs,
+    wartremoverErrors := Warts.all,
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
+  ).dependsOn(catnip)
+
 lazy val layout = (project in file("layout"))
   .settings(
     name := "layout",
@@ -79,35 +88,6 @@ lazy val widget = (project in file("widget"))
 
 lazy val lwjglVersion = "3.3.6"
 
-lazy val impure = (project in file("impure"))
-  .settings(
-    name := "impure",
-    idePackagePrefix := Some(s"$packagePrefix.impure"),
-    coverageEnabled := true,
-    wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions ++= scalaCOptions(scalaVersion.value)
-  )
-
-lazy val impureCats = (project in file("impure-cats"))
-  .settings(
-    name := "impure",
-    idePackagePrefix := Some(s"$packagePrefix.impure.cats"),
-    libraryDependencies ++= catsLibs,
-    coverageEnabled := true,
-    wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(impure)
-
-lazy val impureCatsEffect = (project in file("impure-cats-effect"))
-  .settings(
-    name := "impure",
-    idePackagePrefix := Some(s"$packagePrefix.impure.cats.effect"),
-    libraryDependencies ++= catsEffectLibs,
-    coverageEnabled := true,
-    wartremoverErrors := Warts.allBut(Warts.all*),
-    scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(impure)
-
 lazy val os = Option(System.getProperty("os.name", ""))
   .map(_.substring(0, 3).toLowerCase) match {
   case Some("win") => "windows"
@@ -129,7 +109,7 @@ lazy val glfw = (project in file("glfw"))
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(impure)
+  ).dependsOn(catnip)
 
 lazy val skijaLibs = List(
   "io.github.humbleui" % "skija-shared" % "0.116.4",
@@ -162,7 +142,7 @@ lazy val draw = (project in file("draw"))
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(widget).dependsOn(impure, impureCatsEffect, glfw)
+  ).dependsOn(widget).dependsOn(catnip, glfw)
 
 lazy val loops = (project in file("loops"))
   .settings(
@@ -184,5 +164,5 @@ lazy val example = (project in file("example"))
     scalacOptions ++= scalaCOptions(scalaVersion.value),
     mainClass := Some("me.katze.gui4s.example.SkijaAppExample")
   )
-  .dependsOn(widget, draw, layout, loops, impure, impureCatsEffect, glfw)
+  .dependsOn(widget, draw, layout, loops, catnip, glfw)
 
