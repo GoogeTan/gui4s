@@ -13,7 +13,7 @@ import cats.syntax.all.*
 import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.example.api.{PlacedWidget, Recomposition, Update, Widget, skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
-import me.katze.gui4s.glfw.OglWindow
+import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow}
 import me.katze.gui4s.impure.Impure
 import me.katze.gui4s.impure.cats.effect.ContextImpure
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
@@ -24,12 +24,15 @@ import scala.concurrent.ExecutionContext
 
 enum SkijaDownEvent:
   case WindowResized
+  case MouseClick(button: Int, action: KeyAction, mods: KeyModes)
+  case MouseMove(x: Double, y: Double)
+  case KeyPress(key: Int, scancode: Int, action: KeyAction, mods: KeyModes)
 
 def skijaApp[F[+_] : {Async, Console, Impure}](
-                                                widget : SkijaBackend[F, OglWindow] ?=> Widget[F, ApplicationRequest, SkijaDownEvent],
-                                                updateLoopExecutionContext : ExecutionContext,
-                                                drawLoopExecutionContext: ExecutionContext,
-                                              ) =
+    widget: SkijaBackend[F, OglWindow] ?=> Widget[F, ApplicationRequest, SkijaDownEvent],
+    updateLoopExecutionContext: ExecutionContext,
+    drawLoopExecutionContext: ExecutionContext,
+) =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,
     PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
@@ -46,10 +49,13 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
     SkijaRootWidget,
     SkijaBackend[F, OglWindow]
   ](
-    backend = downEventSink => SkijaSimpleDrawApi.createForTests[F](
-      GlfwImpure = ContextImpure(drawLoopExecutionContext, summon), 
+    backend = downEventSink => SkijaSimpleDrawApi.createForTests(
+      GlfwImpure = ContextImpure(drawLoopExecutionContext, summon),
       CommonImpure = summon,
-      notifyUpdateThreadWindowResized = downEventSink.offer(SkijaDownEvent.WindowResized)
+      onWindowResized = downEventSink.offer(SkijaDownEvent.WindowResized),
+      onMouseClick = (button, action, mods) => downEventSink.offer(SkijaDownEvent.MouseClick(button, action, mods)),
+      onMouseMove = (x, y) => downEventSink.offer(SkijaDownEvent.MouseMove(x, y)),
+      onKeyPress = (key, scancode, action, mods) => downEventSink.offer(SkijaDownEvent.KeyPress(key, scancode, action, mods))
     ),
     drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow]]](
       skijaDrawLoop[F, OglWindow](backend),

@@ -68,11 +68,18 @@ final case class SkijaBackend[F[_], Window](
 end SkijaBackend
 
 object SkijaSimpleDrawApi:
-  def createForTests[F[+_] : {Async, Console}](GlfwImpure : Impure[F], CommonImpure : Impure[F], notifyUpdateThreadWindowResized : F[Unit]) : Resource[F, SkijaBackend[F, OglWindow]] =
+  def createForTests[F[+_] : {Async, Console}](
+                                                GlfwImpure: Impure[F],
+                                                CommonImpure: Impure[F],
+                                                onWindowResized: F[Unit],
+                                                onMouseClick: (Int, KeyAction, KeyModes) => F[Unit],
+                                                onMouseMove: (Double, Double) => F[Unit],
+                                                onKeyPress: (Int, Int, KeyAction, KeyModes) => F[Unit]
+                                              ): Resource[F, SkijaBackend[F, OglWindow]] =
     val windowSize = me.katze.gui4s.glfw.Size(640, 480)
     for
       dispatcher <- Dispatcher.sequential[F]
-      glfw : Glfw[F, OglWindow] <- GlfwImpl[F](dispatcher)(using GlfwImpure)
+      glfw: Glfw[F, OglWindow] <- GlfwImpl[F](dispatcher)(using GlfwImpure)
       _ <- glfw.createPrintErrorCallback
       window <- glfw.createWindow(
         "Skija Text Example",
@@ -83,11 +90,34 @@ object SkijaSimpleDrawApi:
       )
       _ <- Resource.eval(glfw.createOGLContext(window, GlfwImpure(createCapabilities())))
       scale <- Resource.eval(glfw.primaryMonitor >>= glfw.monitorScale)
-      rt : AtomicCell[F, SkiaRenderTarget] <- initSkia(windowSize.width, windowSize.height, scale)(using GlfwImpure)
-      _ <- Resource.eval(windowResizedCallback(glfw, window, rt, notifyUpdateThreadWindowResized)(using CommonImpure))
+      rt: AtomicCell[F, SkiaRenderTarget] <- initSkia(windowSize.width, windowSize.height, scale)(using GlfwImpure)
+      _ <- Resource.eval(registerCallbacks(
+        glfw,
+        window,
+        rt,
+        onWindowResized,
+        onMouseClick,
+        onMouseMove,
+        onKeyPress
+      )(using CommonImpure))
       shaper <- Resource.fromAutoCloseable(CommonImpure(Shaper.make()))
     yield SkijaBackend(glfw, window, rt, dispatcher, shaper)
   end createForTests
+
+  def registerCallbacks[F[_] : {Impure as I, Async, Console}](
+                                                                glfw: Glfw[F, OglWindow],
+                                                                window: OglWindow,
+                                                                rt: AtomicCell[F, SkiaRenderTarget],
+                                                                onWindowResized: F[Unit],
+                                                                onMouseClick: (Int, KeyAction, KeyModes) => F[Unit],
+                                                                onMouseMove: (Double, Double) => F[Unit],
+                                                                onKeyPress: (Int, Int, KeyAction, KeyModes) => F[Unit]
+                                                              ): F[Unit] =
+    windowResizedCallback(glfw, window, rt, onWindowResized)
+      *> glfw.mouseButtonCallback(window, onMouseClick)
+      *> glfw.cursorPosCallback(window, onMouseMove)
+      *> glfw.keyCallback(window, onKeyPress)
+  end registerCallbacks
 
   def windowResizedCallback[F[_] : {Impure as I, Async, Console as c}, Window](glfw : Glfw[F, Window], window : Window, targetCell : AtomicCell[F, SkiaRenderTarget], pingUpdateThread : F[Unit]): F[Unit] =
     glfw.windowResizeCallback(window, newSize =>
