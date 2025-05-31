@@ -17,34 +17,21 @@ import org.lwjgl.opengl.GL.createCapabilities
 
 object SkijaSimpleDrawApi:
   def createForTests[
-    F[+_, +_] : {BiMonad, BiAsync, BiConcurrent, FailsWith, Bi[Console]},
-    Error,
-    GlfwError,
+    F[+_] : {Async, Console},
   ](
       windowSize : Size,
       windowTitle : String,
-      GlfwImpure: FFI[F[GlfwError, *]],
-      onWindowResized: (newSize : Size) => F[GlfwError, Unit],
-      onMouseClick: (Int, KeyAction, KeyModes) => F[GlfwError, Unit],
-      onMouseMove: (Double, Double) => F[GlfwError, Unit],
-      onKeyPress: (Int, Int, KeyAction, KeyModes) => F[GlfwError, Unit],
-      glfwAsError : (GlfwError, String) => Error
-    ): Resource[F[Error, *], SkijaBackend[F[GlfwError, *], OglWindow]] =
-    extension[T](value : Resource[F[GlfwError, *], T])
-      def addaptGlfwError(text : String) : Resource[F[Error, *], T] =
-        value.allocated
-          .mapError(glfwAsError(_, "Error while allocating error"))
-          
-
+      GlfwImpure: FFI[F],
+      onWindowResized: (newSize : Size) => F[Unit],
+      onMouseClick: (Int, KeyAction, KeyModes) => F[Unit],
+      onMouseMove: (Double, Double) => F[Unit],
+      onKeyPress: (Int, Int, KeyAction, KeyModes) => F[Unit],
+    ): Resource[F, SkijaBackend[F, OglWindow]] =
     for
       skija <- Resource.eval(SkijaImpl(GlfwImpure))
-        .addaptGlfwError("Error while creating skija implementation")
-      dispatcher <- Dispatcher.sequential[F[GlfwError, *]]
-        .addaptGlfwError("Error while creating dispatcher")
-      glfw: Glfw[F[GlfwError, *], OglWindow] <- GlfwImpl[F[GlfwError, *]](dispatcher)(using GlfwImpure)
-        .addaptGlfwError("Error while creating skija implementation")
+      dispatcher <- Dispatcher.sequential[F]
+      glfw: Glfw[F, OglWindow] <- GlfwImpl[F](dispatcher)(using GlfwImpure)
       _ <- glfw.createPrintErrorCallback
-        .addaptGlfwError("Error while creating error callback")
       window <- glfw.createWindow(
         title = windowTitle,
         size = windowSize,
@@ -52,17 +39,11 @@ object SkijaSimpleDrawApi:
         resizeable = true,
         debugContext = true
       )
-        .addaptGlfwError("Error while creating window")
       _ <- Resource.eval(glfw.createOGLContext(window, GlfwImpure(createCapabilities())))
-        .addaptGlfwError("Error while creating ogl context for window " + window.toString)
       scale <- Resource.eval(glfw.primaryMonitorScale)
-        .addaptGlfwError("Error while getting primary monitor scale")
       context <- skija.createDirectContext
-        .addaptGlfwError("Error while creating direct context")
       rt <- Resource.eval(skija.createRenderTarget(context, windowSize.width, windowSize.height, scale))
-        .addaptGlfwError("Error while creating render target")
-      rtCell <- Resource.eval(AtomicCell[F[GlfwError, *]].of(rt))
-        .addaptGlfwError("Error while creating AtomicCell for render target")
+      rtCell <- Resource.eval(AtomicCell[F].of(rt))
       _ <- Resource.eval(registerCallbacks(
         glfw,
         window,
@@ -72,9 +53,7 @@ object SkijaSimpleDrawApi:
         onMouseMove,
         onKeyPress
       )(using GlfwImpure))
-        .addaptGlfwError("Error while registering callbacks")
       shaper <- Resource.fromAutoCloseable(GlfwImpure(Shaper.make()))
-        .addaptGlfwError("Error while creating shaper")
     yield SkijaBackend(glfw, window, rtCell, dispatcher, shaper)
   end createForTests
 

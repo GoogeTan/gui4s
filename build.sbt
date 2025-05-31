@@ -109,7 +109,7 @@ lazy val glfw = (project in file("glfw"))
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(catnip)
+  ).dependsOn(catnip, catnipEffect)
 
 lazy val skijaLibs = List(
   "io.github.humbleui" % "skija-shared" % "0.116.4",

@@ -53,7 +53,6 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
       windowSize = Size(620, 480),
       windowTitle = "Gui4s window",
       GlfwImpure = ContextFFI(drawLoopExecutionContext, summon),
-      CommonImpure = summon,
       onWindowResized = _ => downEventSink.offer(SkijaDownEvent.WindowResized),
       onMouseClick = (button, action, mods) => downEventSink.offer(SkijaDownEvent.MouseClick(button, action, mods)),
       onMouseMove = (x, y) => downEventSink.offer(SkijaDownEvent.MouseMove(x, y)),
