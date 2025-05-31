@@ -41,7 +41,7 @@ end flush
 final case class SkijaBackend[F[_], Window](
                                               private val glfw : Glfw[F, Window],
                                               private val window: Window,
-                                              private val renderTarget : AtomicCell[F, SkiaRenderTarget],
+                                              private val renderTargetCell : AtomicCell[F, SkiaRenderTarget],
                                               globalDispatcher : Dispatcher[F],
                                               globalShaper : Shaper,
                                             ):
@@ -54,9 +54,10 @@ final case class SkijaBackend[F[_], Window](
   end windowShouldNotClose
 
   def drawState[T](using M : Monad[F])(f : SkijaDrawState[F, Window] => F[T]) : F[T] =
-    renderTarget.evalModify(
-      rt =>
-        f(SkijaDrawState(rt.directContext, glfw, window, rt.canvas)).map(a => (rt, a))
+    renderTargetCell.evalModify(
+      renderTarget =>
+        f(SkijaDrawState(renderTarget.directContext, glfw, window, renderTarget.canvas))
+          .map(result => (renderTarget, result))
     )
   end drawState
 

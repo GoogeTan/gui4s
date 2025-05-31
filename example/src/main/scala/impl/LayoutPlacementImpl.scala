@@ -32,15 +32,19 @@ def containerPlacementCurried2[F[+_] : Monad, Widget[_], MeasurementUnit: Fracti
 end containerPlacementCurried2
 
 // TODO Убрать не оправданное переиспользование кода с весами или обосновать его
-def containerPlacementCurried[F[+_] : Monad, Widget, MeasurementUnit: Fractional as F](strategyErrors : MainAxisStrategyErrors): LayoutPlacementGeneralized[MeasurableT[F, MeasurementUnit], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
-  (axis, elements, main, additional) =>
+def containerPlacementCurried[F[+_] : Monad, Widget, MeasurementUnit: Fractional](strategyErrors : MainAxisStrategyErrors): LayoutPlacementGeneralized[MeasurableT[F, MeasurementUnit], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
+  (axis, elements, mainAxisStrategy, additionalAxisStrategy) =>
     weightedRowColumnPlace[F, MeasurementUnit, Widget](
       axis,
       elements.map(widget => MaybeWeighted(None, widget)),
-      rowColumnPlace(_, _,
-        (elements, bounds) => mainAxisStrategyPlacement[MeasurementUnit](unsafeSizedStrategy(main, bounds.max, strategyErrors), elements),
-        (elements, bounds) => additionalAxisStrategyPlacement[MeasurementUnit](additional, elements, bounds.maxValueUnsafe),
-        F.zero
+      (elements, axisDependentBounds) => rowColumnPlace(
+        elements = elements,
+        bounds = axisDependentBounds,
+        mainAxisPlace = (elements, bounds) =>
+          mainAxisStrategyPlacement[MeasurementUnit](unsafeSizedStrategy(mainAxisStrategy, bounds.max, strategyErrors), elements),
+        additionalAxisPlace = (elements, bounds) =>
+          additionalAxisStrategyPlacement[MeasurementUnit](additionalAxisStrategy, elements, bounds.maxValueUnsafe),
+        zLevel = Fractional[MeasurementUnit].zero
       )
     ).map(unpack)
 end containerPlacementCurried

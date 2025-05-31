@@ -8,7 +8,8 @@ import me.katze.gui4s.example.{AdditionalAxisPlacementStrategy, MainAxisPlacemen
 import me.katze.gui4s.layout
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
-import me.katze.gui4s.layout.{Placed, Sized}
+import me.katze.gui4s.layout.{Axis, Placed, Sized}
+
 import scala.math.Fractional.Implicits.*
 
 def mainAxisStrategyPlacement[MeasurementUnit : Fractional as F](strategy: MainAxisStrategyWithAvailableSpace[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
@@ -54,8 +55,15 @@ def rowColumnPlace[MeasurementUnit, T](
                                         additionalAxisPlace: (MeasurementUnit, AxisBounds[MeasurementUnit]) => MeasurementUnit,
                                         zLevel : MeasurementUnit,
                                       ): List[Placed[MeasurementUnit, T]] =
-  val ys = mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis)
-  val xs = elements.map(el => additionalAxisPlace(el.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
+  val mainAxisCoordinates = mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis)
+  val crossAxisCoordinates = elements.map(el => additionalAxisPlace(el.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
 
-  Monad[List].map(xs.zip(ys).zip(elements))((coords, value) => Placed(value.value, coords._1, coords._2, zLevel, value.width, value.height))
+  val compoundCoordinates = if bounds.mainAxis == Axis.Vertical then
+    crossAxisCoordinates.zip(mainAxisCoordinates).map((x, y) => (x = x, y = y, z = zLevel))
+  else
+    mainAxisCoordinates.zip(crossAxisCoordinates).map((x, y) => (x = x, y = y, z = zLevel))
+
+  Monad[List].map(
+    compoundCoordinates.zip(elements)
+  )((coords, value) => Placed(value.value, coords.x, coords.y, coords.z, value.width, value.height))
 end rowColumnPlace

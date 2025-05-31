@@ -1,0 +1,61 @@
+package me.katze.gui4s.example
+package api.widget
+
+import api.SkijaWidget
+
+import cats.syntax.all.*
+import cats.{Functor, Monad, Monoid}
+import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget.handle.HandlesEvent
+
+/**
+ * Декорирует обновление виджета.
+ * @param original Декорируемый виджет
+ * @param decorator Декоратор
+ */
+def eventHandleDecorator[
+  T,
+  Update[+_] : Monad,
+  Place[+_] : Functor,
+  Draw : Monoid,
+  RecompositionReaction,
+  HandleableEvent,
+](
+  original : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  decorator : HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
+) : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
+  original.copy(
+    valueHandlesEvent = decorator(original.valueHandlesEvent)
+  )
+end eventHandleDecorator
+
+/**
+ * Ловит события, возможно, поглощая их. Если декоратор вернул true, то событие считается поглощенным.
+ * @param markEventHandled Помечает событие как поглощенное
+ * @param original Виджет для декорирования
+ * @param decorator Декоратор. Возвращает true, если событие поглощено
+ */
+def eventCatcher[
+  T,
+  Update[+_] : Monad,
+  Place[+_] : Functor,
+  Draw : Monoid,
+  RecompositionReaction,
+  HandleableEvent,
+](
+  markEventHandled : Update[Unit]
+)(
+    original : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+    decorator : (Path, HandleableEvent) => Update[Boolean]
+) : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
+  eventHandleDecorator(
+    original,
+    (handler) =>
+      (state, path, event) =>
+        decorator(path, event).ifM(
+          markEventHandled
+            *> original.valueAsFree(state).pure[Update],
+          handler(state, path, event)
+        )
+  )
+end eventCatcher

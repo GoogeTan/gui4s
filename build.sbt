@@ -12,8 +12,9 @@ sys.env.get("LD_LIBRARY_PATH") match {
 }
 
 
-addCompilerPlugin("org.wartremover" %% "wartremover" % "3.3.3" cross CrossVersion.full)
+addCompilerPlugin("org.wartremover" %% "wartremover" % "3.3.4" cross CrossVersion.full)
 
+scalacOptions += "-Xkind-projector"
 scalacOptions += "-P:wartremover:traverser:org.wartremover.warts.Unsafe"
 
 inThisBuild(
