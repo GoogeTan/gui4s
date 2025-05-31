@@ -22,6 +22,7 @@ trait Glfw[F[_], Window]:
   def primaryMonitor : F[Monitor]
   def windowMonitor(window : Window) : F[Monitor]
   def monitorScale(monitor : Monitor) : F[Float]
+  def primaryMonitorScale : F[Float]
   def swapInterval(interval : Int) : F[Unit]
   def createOGLContext(window : Window, createCapabilities : F[Unit]) : F[Unit]
   def shouldClose(window : Window) : F[Boolean]

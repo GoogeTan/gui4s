@@ -13,9 +13,9 @@ import cats.syntax.all.*
 import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.example.api.{PlacedWidget, Recomposition, Update, Widget, skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
-import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow}
-import me.katze.gui4s.impure.Impure
-import me.katze.gui4s.impure.cats.effect.ContextImpure
+import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size}
+import me.katze.gui4s.impure.FFI
+import me.katze.gui4s.impure.cats.effect.ContextFFI
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget.{Path, given}
@@ -28,7 +28,7 @@ enum SkijaDownEvent:
   case MouseMove(x: Double, y: Double)
   case KeyPress(key: Int, scancode: Int, action: KeyAction, mods: KeyModes)
 
-def skijaApp[F[+_] : {Async, Console, Impure}](
+def skijaApp[F[+_] : {Async, Console, FFI}](
     widget: SkijaBackend[F, OglWindow] ?=> Widget[F, ApplicationRequest, SkijaDownEvent],
     updateLoopExecutionContext: ExecutionContext,
     drawLoopExecutionContext: ExecutionContext,
@@ -50,9 +50,11 @@ def skijaApp[F[+_] : {Async, Console, Impure}](
     SkijaBackend[F, OglWindow]
   ](
     backend = downEventSink => SkijaSimpleDrawApi.createForTests(
-      GlfwImpure = ContextImpure(drawLoopExecutionContext, summon),
+      windowSize = Size(620, 480),
+      windowTitle = "Gui4s window",
+      GlfwImpure = ContextFFI(drawLoopExecutionContext, summon),
       CommonImpure = summon,
-      onWindowResized = downEventSink.offer(SkijaDownEvent.WindowResized),
+      onWindowResized = _ => downEventSink.offer(SkijaDownEvent.WindowResized),
       onMouseClick = (button, action, mods) => downEventSink.offer(SkijaDownEvent.MouseClick(button, action, mods)),
       onMouseMove = (x, y) => downEventSink.offer(SkijaDownEvent.MouseMove(x, y)),
       onKeyPress = (key, scancode, action, mods) => downEventSink.offer(SkijaDownEvent.KeyPress(key, scancode, action, mods))

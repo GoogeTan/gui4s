@@ -7,5 +7,6 @@ object all:
   export empty.{*, given}
   export list.{*, given}
   export typeable.{*, given}
+  export fail.{*, given}
 end all
 

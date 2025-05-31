@@ -9,16 +9,16 @@ import cats.syntax.all.*
 import cats.{Functor, Monad}
 import me.*
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.impure.Impure
+import me.katze.gui4s.impure.FFI
 import me.katze.gui4s.layout.{MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
 
-def skijaText[F[+_] : {Monad, Impure}, Window](using backend: SkijaBackend[F, Window])(text : String, style : SkijaTextStyle) : Widget[F, Nothing, Any] =
+def skijaText[F[+_] : {Monad}, Window](using backend: SkijaBackend[F, Window])(ffi : FFI[F], text : String, style : SkijaTextStyle) : Widget[F, Nothing, Any] =
   skijaText[
     Update[Nothing],  MeasurableT[F, Float], SkijaDraw[F, OglWindow], Recomposition[F], Any, SkijaPlacedText
   ](
-    sizeText(text, backend.globalShaper, style),
-    drawText,
+    sizeText(ffi, text, backend.globalShaper, style),
+    drawText(ffi, _),
     ().pure[F]
   )
 end skijaText

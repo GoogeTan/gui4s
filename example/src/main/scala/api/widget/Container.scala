@@ -2,7 +2,6 @@ package me.katze.gui4s.example
 package api.widget
 
 import api.{*, given}
-import draw.skija.drawAt
 import impl.containerPlacementCurried2
 import place.MainAxisStrategyErrors
 
@@ -12,7 +11,7 @@ import cats.{Functor, Monad, Monoid}
 import me.*
 import me.katze.gui4s.example.EventResult
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.impure.Impure
+import me.katze.gui4s.impure.FFI
 import me.katze.gui4s.layout.{Axis, MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.widget.Container
@@ -94,7 +93,7 @@ end skijaLinearLayout
 
 // TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
-def skijaRow[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
+def skijaRow[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
   children : List[Widget[F, Event, DownEvent]],
   horizontalStrategy: MainAxisPlacementStrategy[Float],
   verticalStrategy  : AdditionalAxisPlacementStrategy
@@ -109,12 +108,12 @@ def skijaRow[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisSt
   ](
     children,
     containerPlacementCurried2[F, [Event] =>> PlacedWidget[F, Event, DownEvent], Float](errors)(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
-    drawAt,
+    (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     false.pure[[Value] =>> EventResult[Value, Nothing]] // TODO
   )
 end skijaRow
 
-def skijaColumn[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
+def skijaColumn[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisStrategyErrors)(
   children: List[Widget[F, Event, DownEvent]],
   verticalStrategy: MainAxisPlacementStrategy[Float],
   horizontalStrategy: AdditionalAxisPlacementStrategy
@@ -129,7 +128,7 @@ def skijaColumn[F[+_] : {Monad, Impure}, Event, DownEvent](using errors: MainAxi
   ](
     children,
     containerPlacementCurried2[F, [Event] =>> PlacedWidget[F, Event, DownEvent], Float](errors)(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
-    drawAt,
+    (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     false.pure[[Value] =>> EventResult[Value, Nothing]] // TODO
   )
 end skijaColumn
