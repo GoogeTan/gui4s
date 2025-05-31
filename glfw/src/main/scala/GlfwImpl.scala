@@ -1,5 +1,6 @@
 package me.katze.gui4s.glfw
 
+import catnip.FFI
 import cats.MonadError
 import cats.effect.std.Dispatcher
 import cats.effect.{Async, Resource, Sync}

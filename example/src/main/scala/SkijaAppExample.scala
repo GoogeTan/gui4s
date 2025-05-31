@@ -6,6 +6,8 @@ import draw.skija.{*, given}
 import impl.ENErrors
 import place.MainAxisStrategyErrors
 
+import catnip.FFI
+import catnip.cats.effect.SyncFFI
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
@@ -14,6 +16,7 @@ import me.katze.gui4s.skija.SkijaTextStyle
 
 object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors = ENErrors
+  given ffi : FFI[IO] = SyncFFI[IO]
 
   override def run(args: List[String]): IO[ExitCode] =
     skijaApp[IO](
@@ -28,7 +31,7 @@ object SkijaAppExample extends IOApp:
       (0 until 6).toList.map(
         lineNumber =>
           skijaText(
-            IOFFI,
+            ffi,
             "# line" + lineNumber.toString,
             SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
           ),

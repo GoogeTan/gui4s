@@ -7,6 +7,7 @@ import place.RunPlacement
 import update.ApplicationRequest
 
 import catnip.FFI
+import catnip.cats.effect.ContextFFI
 import cats.Monad
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}

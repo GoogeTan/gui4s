@@ -164,5 +164,5 @@ lazy val example = (project in file("example"))
     scalacOptions ++= scalaCOptions(scalaVersion.value),
     mainClass := Some("me.katze.gui4s.example.SkijaAppExample")
   )
-  .dependsOn(widget, draw, layout, loops, catnip, glfw)
+  .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw)
 

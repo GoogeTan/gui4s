@@ -1,5 +1,6 @@
 package me.katze.gui4s.glfw
 
+import catnip.FFI
 import cats.Monad
 import cats.data.EitherT
 import cats.syntax.all.*

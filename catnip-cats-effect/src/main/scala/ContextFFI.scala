@@ -1,5 +1,6 @@
 package catnip.cats.effect
 
+import catnip.FFI
 import cats.effect.Async
 import cats.effect.syntax.async.*
 
