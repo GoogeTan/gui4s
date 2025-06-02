@@ -12,10 +12,11 @@ import cats.Monad
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
-import me.katze.gui4s
+import me.katze.*
 import me.katze.gui4s.example
 import me.katze.gui4s.example.api.{PlacedWidget, Recomposition, Update, Widget, skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
-import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size}
+import me.katze.gui4s.example.draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
+import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size, WindowCreationSettings}
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget.{Path, given}
@@ -50,13 +51,15 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
     SkijaBackend[F, OglWindow]
   ](
     backend = downEventSink => SkijaSimpleDrawApi.createForTests(
-      windowSize = Size(620, 480),
-      windowTitle = "Gui4s window",
-      GlfwImpure = ContextFFI(drawLoopExecutionContext, summon),
-      onWindowResized = _ => downEventSink.offer(SkijaDownEvent.WindowResized),
-      onMouseClick = (button, action, mods) => downEventSink.offer(SkijaDownEvent.MouseClick(button, action, mods)),
-      onMouseMove = (x, y) => downEventSink.offer(SkijaDownEvent.MouseMove(x, y)),
-      onKeyPress = (key, scancode, action, mods) => downEventSink.offer(SkijaDownEvent.KeyPress(key, scancode, action, mods))
+      settings = WindowCreationSettings(
+        title = "Gui4s window",
+        size = Size(620, 480),
+        visible = true,
+        resizeable = true,
+        debugContext = true
+      ),
+      ffi = ContextFFI(drawLoopExecutionContext, summon),
+      callbacks = eventOfferingCallbacks(downEventSink.offer)
     ),
     drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow]]](
       skijaDrawLoop[F, OglWindow](backend),
@@ -90,6 +93,15 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
       ).runPlacement
   )
 end skijaApp
+
+def eventOfferingCallbacks[F](offerEvent : SkijaDownEvent => F) : GlfwCallbacks[F] =
+  GlfwCallbacks(
+    onWindowResized = _ => offerEvent(SkijaDownEvent.WindowResized),
+    onMouseClick = (button, action, mods) => offerEvent(SkijaDownEvent.MouseClick(button, action, mods)),
+    onMouseMove = (x, y) => offerEvent(SkijaDownEvent.MouseMove(x, y)),
+    onKeyPress = (key, scancode, action, mods) => offerEvent(SkijaDownEvent.KeyPress(key, scancode, action, mods))
+  )
+end eventOfferingCallbacks
 
 def handleApplicationRequests[F[_] : Monad] : [T] => Update[ApplicationRequest][T] => F[Either[ExitCode, T]] =
   [T] => update => update.events.foldM(Right(update.widget))((_, request) =>

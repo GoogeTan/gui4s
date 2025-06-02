@@ -2,6 +2,7 @@ package me.katze.gui4s.skija
 
 import cats.effect.Resource
 import io.github.humbleui.skija.*
+import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.skija.SkiaRenderTarget
 
 trait Skija[F[_]]:
@@ -33,4 +34,6 @@ trait Skija[F[_]]:
     fbId: Int = 0,
     fbFormat: Int
   ): Resource[F, BackendRenderTarget]
+  
+  def createShaper : Resource[F, Shaper]
 end Skija

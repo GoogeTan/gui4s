@@ -35,14 +35,8 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
 ) extends Glfw[[T] =>> F[AdaptedError, T], Window]:
   override type Monitor = original.Monitor
 
-  override def createWindow(
-      title: String, 
-      size: Size, 
-      visible: Boolean,
-      resizeable: Boolean, 
-      debugContext: Boolean
-  ): Resource[F[AdaptedError, *], Window] =
-    original.createWindow(title, size, visible, resizeable, debugContext)
+  override def createWindow(settings: WindowCreationSettings): Resource[F[AdaptedError, *], Window] =
+    original.createWindow(settings)
       .mapErrorR(error.windowCreationError)
   end createWindow
 

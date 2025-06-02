@@ -9,14 +9,7 @@ trait Glfw[F[_], Window]:
   
   def createPrintErrorCallback : Resource[F, GLFWErrorCallback]
   
-  def createWindow(
-                    title : String,
-                    size : Size,
-                    visible : Boolean,
-                    resizeable : Boolean,
-                    debugContext : Boolean,
-                  ) : Resource[F, Window]
-
+  def createWindow(windowCreationSettings: WindowCreationSettings) : Resource[F, Window]
   def centerWindow(window : Window) : F[Unit]
   def makeVisible(window : Window) : F[Unit]
   def primaryMonitor : F[Monitor]

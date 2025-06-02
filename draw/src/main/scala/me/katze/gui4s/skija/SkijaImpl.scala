@@ -4,6 +4,7 @@ import catnip.FFI
 import cats.effect.{Async, Resource, Sync}
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 import cats.syntax.all.*
+import io.github.humbleui.skija.shaper.Shaper
 
 /** Реализация интерфейса для работы с Skija.
  * @tparam F Эффект, в котором выполняются операции
@@ -93,6 +94,10 @@ final class SkijaImpl[F[_]: Async](ffi : FFI[F]) extends Skija[F]:
       target.target.close()
       target.surface.close()
   end closeRenderTarget
+
+  override def createShaper: Resource[F, Shaper] =
+    Resource.fromAutoCloseable(ffi.blocking(Shaper.make()))
+  end createShaper
 end SkijaImpl
 
 object SkijaImpl:

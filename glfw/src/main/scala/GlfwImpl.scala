@@ -21,7 +21,6 @@ final case class OglWindow(id : Long) // TODO move into a class
 final class GlfwImpl[F[_] : {FFI as impure, Sync}](
                                                         unsafeRunF : [A] => F[A] => A,
                                                       ) extends Glfw[F, OglWindow]:
-
   override def centerWindow(window: OglWindow): F[Unit] =
     windowSize(window).flatMap:
       case Size(width, height) =>
@@ -92,7 +91,7 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
 
   override type Monitor = Long
 
-  override def primaryMonitor : F[Long] =
+  override def primaryMonitor : F[Monitor] =
     impure.delay(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end primaryMonitor
@@ -101,18 +100,12 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
     impure.delay(glfwGetWindowMonitor(window.id))
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end windowMonitor
-
-  override def createWindow(
-                              title: String,
-                              size : Size,
-                              visible: Boolean,
-                              resizeable: Boolean,
-                              debugContext: Boolean
-                            ): Resource[F, OglWindow] =
+  
+  override def createWindow(settings: WindowCreationSettings): Resource[F, OglWindow] =
     Resource.make(
       for
-        _ <- windowHints(visible, resizeable, debugContext)
-        id <- createWindowId(size.width, size.height, title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
+        _ <- windowHints(settings.visible, settings.resizeable, settings.debugContext)
+        id <- createWindowId(settings.size.width, settings.size.height, settings.title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
       yield OglWindow(id)
     )(a => 
         impure.delay:
@@ -243,9 +236,11 @@ object GlfwImpl:
     Resource.make(
       {
         val res = new GlfwImpl[F](run)
-        res.initGlfw.map(_ => res)
+        res.initGlfw.as(res)
       }
-    )(_.terminate)
+    )(_.terminate).flatMap(impl =>
+      impl.createPrintErrorCallback.as(impl)
+    )
   end apply
   
   def apply[F[_] : {FFI, Sync}](dispatcher : Dispatcher[F]) : Resource[F, GlfwImpl[F]] =

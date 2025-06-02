@@ -3,59 +3,88 @@ package draw.skija
 
 import draw.{Drawable, drawLoopExceptionHandler}
 
-import catnip.{Bi, BiMonad, FFI, FailsWith}
-import catnip.cats.effect.*
+import catnip.FFI
 import catnip.syntax.all.{*, given}
-import cats.MonadError
 import cats.effect.std.{AtomicCell, Console, Dispatcher}
-import cats.effect.{Async, ExitCode, Resource}
+import cats.effect.{Async, Concurrent, ExitCode, Resource}
 import cats.syntax.all.*
-import io.github.humbleui.skija.shaper.Shaper
+import cats.{Apply, MonadError, Monoid}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.skija.*
 import org.lwjgl.opengl.GL.createCapabilities
 
 object SkijaSimpleDrawApi:
+  final case class GlfwCallbacks[F](
+                                      onWindowResized: (newSize : Size) => F,
+                                      onMouseClick: (Int, KeyAction, KeyModes) => F,
+                                      onMouseMove: (Double, Double) => F,
+                                      onKeyPress: (Int, Int, KeyAction, KeyModes) => F,
+                                    )
+
+
   def createForTests[
     F[+_] : {Async, Console},
   ](
-      windowSize : Size,
-      windowTitle : String,
-      GlfwImpure: FFI[F],
-      onWindowResized: (newSize : Size) => F[Unit],
-      onMouseClick: (Int, KeyAction, KeyModes) => F[Unit],
-      onMouseMove: (Double, Double) => F[Unit],
-      onKeyPress: (Int, Int, KeyAction, KeyModes) => F[Unit],
+      settings : WindowCreationSettings,
+      ffi: FFI[F],
+      callbacks : GlfwCallbacks[F[Unit]],
     ): Resource[F, SkijaBackend[F, OglWindow]] =
     for
-      skija <- Resource.eval(SkijaImpl(GlfwImpure))
+      skija <- Resource.eval(SkijaImpl(ffi))
       dispatcher <- Dispatcher.sequential[F]
-      glfw: Glfw[F, OglWindow] <- GlfwImpl[F](dispatcher)(using GlfwImpure)
-      _ <- glfw.createPrintErrorCallback
-      window <- glfw.createWindow(
-        title = windowTitle,
-        size = windowSize,
-        visible = true,
-        resizeable = true,
-        debugContext = true
+      glfw: Glfw[F, OglWindow] <- GlfwImpl[F](dispatcher)(using ffi)
+      res <- createForTests(glfw, ffi(createCapabilities()), skija, dispatcher, settings, callbacks)
+    yield res
+  end createForTests
+
+  def createForTests[
+    F[+_] : {Async, Console}, Window
+  ](
+      glfw : Glfw[F, Window],
+      createGlCapabilities : F[Unit],
+      skija : Skija[F],
+      dispatcher : Dispatcher[F],
+      windowSettings : WindowCreationSettings,
+      callbacks : GlfwCallbacks[F[Unit]],
+    ): Resource[F, SkijaBackend[F, Window]] =
+    for
+      window <- glfw.createWindow(windowSettings)
+      _ <- Resource.eval(glfw.createOGLContext(window, createGlCapabilities))
+      renderTargetCell <- createRenderTarget(glfw, skija, windowSettings.size)
+      _ <- Resource.eval(
+        registerCallbacks(
+          glfw,
+          window,
+          addRenderTargetRecreation(
+            callbacks,
+            recreateRenderTarget(skija, renderTargetCell, _)
+          )
+        )
       )
-      _ <- Resource.eval(glfw.createOGLContext(window, GlfwImpure(createCapabilities())))
+      shaper <- skija.createShaper
+    yield SkijaBackend(glfw, window, renderTargetCell, dispatcher, shaper)
+  end createForTests
+
+  def addRenderTargetRecreation[F : Monoid](callbacks: GlfwCallbacks[F], recreation : Size => F) : GlfwCallbacks[F] =
+    callbacks.copy(
+      onWindowResized = newSize =>
+        recreation(newSize) |+| callbacks.onWindowResized(newSize)
+    )
+  end addRenderTargetRecreation
+
+
+  def createRenderTarget[F[_] : Concurrent, Window](
+                                                      glfw : Glfw[F, Window],
+                                                      skija : Skija[F],
+                                                      windowSize : Size
+                                                    ) : Resource[F, AtomicCell[F, SkiaRenderTarget]] =
+    for
       scale <- Resource.eval(glfw.primaryMonitorScale)
       context <- skija.createDirectContext
-      rt <- Resource.eval(skija.createRenderTarget(context, windowSize.width, windowSize.height, scale))
-      rtCell <- Resource.eval(AtomicCell[F].of(rt))
-      _ <- Resource.eval(registerCallbacks(
-        glfw,
-        window,
-        rtCell,
-        newSize => recreateRenderTarget(skija, rtCell, newSize) *> onWindowResized(newSize),
-        onMouseClick,
-        onMouseMove,
-        onKeyPress
-      )(using GlfwImpure))
-      shaper <- Resource.fromAutoCloseable(GlfwImpure(Shaper.make()))
-    yield SkijaBackend(glfw, window, rtCell, dispatcher, shaper)
-  end createForTests
+      renderTarget <- Resource.eval(skija.createRenderTarget(context, windowSize.width, windowSize.height, scale))
+      renderTargetCell <- Resource.eval(AtomicCell[F].of(renderTarget))
+    yield renderTargetCell
+  end createRenderTarget
 
   def recreateRenderTarget[F[_] : Async](
                                           skija: Skija[F],
@@ -67,19 +96,15 @@ object SkijaSimpleDrawApi:
     )
   end recreateRenderTarget
 
-  def registerCallbacks[F[_] : {FFI as I, Async, Console}](
-                                                            glfw: Glfw[F, OglWindow],
-                                                            window: OglWindow,
-                                                            rt: AtomicCell[F, SkiaRenderTarget],
-                                                            onWindowResized: (newSize : Size) => F[Unit],
-                                                            onMouseClick: (Int, KeyAction, KeyModes) => F[Unit],
-                                                            onMouseMove: (Double, Double) => F[Unit],
-                                                            onKeyPress: (Int, Int, KeyAction, KeyModes) => F[Unit]
-                                                          ): F[Unit] =
-    glfw.windowResizeCallback(window, onWindowResized)
-      *> glfw.mouseButtonCallback(window, onMouseClick)
-      *> glfw.cursorPosCallback(window, onMouseMove)
-      *> glfw.keyCallback(window, onKeyPress)
+  def registerCallbacks[F[_] : Apply, Window](
+                                                glfw: Glfw[F, Window],
+                                                window: Window,
+                                                glfwCallbacks: GlfwCallbacks[F[Unit]]
+                                              ): F[Unit] =
+    glfw.windowResizeCallback(window, glfwCallbacks.onWindowResized)
+      *> glfw.mouseButtonCallback(window, glfwCallbacks.onMouseClick)
+      *> glfw.cursorPosCallback(window, glfwCallbacks.onMouseMove)
+      *> glfw.keyCallback(window, glfwCallbacks.onKeyPress)
   end registerCallbacks
 end SkijaSimpleDrawApi
 
