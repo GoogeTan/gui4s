@@ -28,6 +28,8 @@ enum SkijaDownEvent:
   case MouseClick(button: Int, action: KeyAction, mods: KeyModes)
   case MouseMove(x: Double, y: Double)
   case KeyPress(key: Int, scancode: Int, action: KeyAction, mods: KeyModes)
+  case Scrolled(xoffset : Double, yoffset : Double)
+end SkijaDownEvent
 
 def skijaApp[F[+_] : {Async, Console, FFI}](
     widget: SkijaBackend[F, OglWindow] ?=> Widget[F, ApplicationRequest, SkijaDownEvent],
@@ -99,7 +101,8 @@ def eventOfferingCallbacks[F](offerEvent : SkijaDownEvent => F) : GlfwCallbacks[
     onWindowResized = _ => offerEvent(SkijaDownEvent.WindowResized),
     onMouseClick = (button, action, mods) => offerEvent(SkijaDownEvent.MouseClick(button, action, mods)),
     onMouseMove = (x, y) => offerEvent(SkijaDownEvent.MouseMove(x, y)),
-    onKeyPress = (key, scancode, action, mods) => offerEvent(SkijaDownEvent.KeyPress(key, scancode, action, mods))
+    onKeyPress = (key, scancode, action, mods) => offerEvent(SkijaDownEvent.KeyPress(key, scancode, action, mods)),
+    onScroll = (xoffset, yoffset) => offerEvent(SkijaDownEvent.Scrolled(xoffset, yoffset))
   )
 end eventOfferingCallbacks
 

@@ -1,8 +1,6 @@
 package me.katze.gui4s.example
 package api
 
-import api.given
-
 import me.*
 import me.katze.gui4s.example.EventResult
 import me.katze.gui4s.glfw.OglWindow

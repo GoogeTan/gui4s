@@ -4,8 +4,8 @@ package api.widget
 import api.{*, given}
 import impl.containerPlacementCurried2
 import place.MainAxisStrategyErrors
-import catnip.FFI
 
+import catnip.FFI
 import catnip.syntax.all.given
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}

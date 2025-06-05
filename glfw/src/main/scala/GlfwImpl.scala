@@ -74,7 +74,7 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
       end if
   end frameBufferResizeCallback
 
-  override def keyCallback(window: OglWindow, callback: (Int, Int, KeyAction, KeyModes) => F[Unit]): F[Unit] =
+  override def keyCallback(window: OglWindow, callback: (key : Int, scanCode : Int, keyAction : KeyAction, keyModes : KeyModes) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetKeyCallback(window.id, (_, key, scancode, action, modes) =>
         unsafeRunF(callback(key, scancode, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
@@ -199,7 +199,7 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
         })
   end frameBufferSize
 
-  override def scrollCallback(window: OglWindow, callback: (Double, Double) => F[Unit]): F[Unit] =
+  override def scrollCallback(window: OglWindow, callback: (xoffset : Double, yoffset : Double) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetScrollCallback(window.id, (_, xoffset, yoffset) => unsafeRunF[Unit](callback(xoffset, yoffset)))
       if old != null then
@@ -207,7 +207,7 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
       end if
   end scrollCallback
 
-  override def cursorPosCallback(window: OglWindow, callback: (Double, Double) => F[Unit]): F[Unit] =
+  override def cursorPosCallback(window: OglWindow, callback: (newXPos : Double, newYPos : Double) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetCursorPosCallback(window.id, (_, xpos, ypos) => unsafeRunF[Unit](callback(xpos, ypos)))
       if old != null then
@@ -215,7 +215,7 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
       end if
   end cursorPosCallback
 
-  override def mouseButtonCallback(window: OglWindow, callback: (Int, KeyAction, KeyModes) => F[Unit]): F[Unit] =
+  override def mouseButtonCallback(window: OglWindow, callback: (key : Int, action : KeyAction, mode : KeyModes) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetMouseButtonCallback(window.id, (_, key, action, modes) =>
         unsafeRunF(callback(key, KeyAction.fromCode(action), KeyModes.fromMask(modes)))

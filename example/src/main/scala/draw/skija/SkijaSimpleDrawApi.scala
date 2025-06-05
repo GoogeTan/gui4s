@@ -19,6 +19,7 @@ object SkijaSimpleDrawApi:
                                       onMouseClick: (Int, KeyAction, KeyModes) => F,
                                       onMouseMove: (Double, Double) => F,
                                       onKeyPress: (Int, Int, KeyAction, KeyModes) => F,
+                                      onScroll : (xoffset : Double, yoffset : Double) => F
                                     )
 
 
@@ -105,6 +106,7 @@ object SkijaSimpleDrawApi:
       *> glfw.mouseButtonCallback(window, glfwCallbacks.onMouseClick)
       *> glfw.cursorPosCallback(window, glfwCallbacks.onMouseMove)
       *> glfw.keyCallback(window, glfwCallbacks.onKeyPress)
+      *> glfw.scrollCallback(window, glfwCallbacks.onScroll)
   end registerCallbacks
 end SkijaSimpleDrawApi
 

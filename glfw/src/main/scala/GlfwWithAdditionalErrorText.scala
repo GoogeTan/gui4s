@@ -51,7 +51,7 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
     ).mapError(error.oglContextCreationError(window))
   end createOGLContext
 
-  override def cursorPosCallback(window: Window, callback: (Double, Double) => F[AdaptedError, Unit]): F[AdaptedError, Unit] =
+  override def cursorPosCallback(window: Window, callback: (newXPos : Double, newYPos : Double) => F[AdaptedError, Unit]): F[AdaptedError, Unit] =
     original.cursorPosCallback(
       window, 
       (x, y) => callback(x, y).mapError(error.callbackError)
@@ -71,11 +71,11 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
 
   override def keyCallback(
       window: Window, 
-      callback: (Int, Int, KeyAction, KeyModes) => F[AdaptedError, Unit]
+      callback: (key : Int, scanCode : Int, keyAction : KeyAction, keyModes : KeyModes) => F[AdaptedError, Unit]
   ): F[AdaptedError, Unit] =
     original.keyCallback(
       window, 
-      (a, b, c, d) => callback(a, b, c, d).mapError(error.callbackError)
+      (key, scanCode, keyAction, keyModes) => callback(key, scanCode, keyAction, keyModes).mapError(error.callbackError)
     ).mapError(error.callbackRegistrationError(window))
   end keyCallback
 
@@ -122,7 +122,7 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
   override def createPrintErrorCallback: Resource[F[AdaptedError, *], org.lwjgl.glfw.GLFWErrorCallback] =
     original.createPrintErrorCallback.mapErrorR(error.printErrorCallbackError)
 
-  override def mouseButtonCallback(window: Window, callback: (Int, KeyAction, KeyModes) => F[AdaptedError, Unit]): F[AdaptedError, Unit] =
+  override def mouseButtonCallback(window: Window, callback: (key : Int, action : KeyAction, mode : KeyModes) => F[AdaptedError, Unit]): F[AdaptedError, Unit] =
     original.mouseButtonCallback(
       window,
       (button, action, mods) => callback(button, action, mods).mapError(error.callbackError)
@@ -131,7 +131,7 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
 
   override def scrollCallback(
       window: Window,
-      callback: (Double, Double) => F[AdaptedError, Unit]
+      callback: (xoffset : Double, yoffset : Double) => F[AdaptedError, Unit]
   ): F[AdaptedError, Unit] =
     original.scrollCallback(
       window,
