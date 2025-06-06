@@ -9,5 +9,7 @@ object all:
   export typeable.{*, given}
   export fail.{*, given}
   export bi.{*, given }
+  export applicative.{*, given}
+  export monad.{*, given}
 end all
 

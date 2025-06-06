@@ -1,7 +1,5 @@
 package me.katze.gui4s.example
 
-import api.Widget
-import api.widget.*
 import draw.skija.{*, given}
 import impl.ENErrors
 import place.MainAxisStrategyErrors
@@ -11,8 +9,11 @@ import catnip.cats.effect.SyncFFI
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
+import me.katze.gui4s.example.api.exported.{Widget, *}
+import me.katze.gui4s.example.api.widget.skijaText
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.skija.SkijaTextStyle
+import me.katze.gui4s.widget.EventReaction
 
 object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors = ENErrors
@@ -30,11 +31,17 @@ object SkijaAppExample extends IOApp:
     skijaColumn[IO, Nothing, SkijaDownEvent](
       (0 until 6).toList.map(
         lineNumber =>
-          skijaText(
-            ffi,
-            "# line" + lineNumber.toString,
-            SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
-          ),
+          skijaStateful[IO, SkijaDownEvent, Int, Nothing, Unit](
+            "line-" + lineNumber.toString,
+            1,
+            (state, _) => EventReaction(state + 1, Nil, Nil),
+            state => skijaText(
+                ffi,
+                "# line value " + state.toString,
+                SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
+              ),
+            _ => IO.unit
+          )
       ),
       MainAxisPlacementStrategy.SpaceBetween, // TODO fix end gap
       AdditionalAxisPlacementStrategy.Center

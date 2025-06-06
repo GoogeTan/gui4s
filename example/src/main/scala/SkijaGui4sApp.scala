@@ -14,7 +14,8 @@ import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
 import me.katze.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.{PlacedWidget, Recomposition, Update, Widget, skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
+import me.katze.gui4s.example.api.exported.{PlacedWidget, Recomposition, Update, Widget}
+import me.katze.gui4s.example.api.{skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
 import me.katze.gui4s.example.draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size, WindowCreationSettings}
 import me.katze.gui4s.layout.{Measurable, MeasurableT, given}

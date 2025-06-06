@@ -4,6 +4,6 @@ package merge
 import cats.data.NonEmptyList
 
 trait Mergable[Place[_], Widget]:
-  def merge(head: Widget, tail: Place[Widget]*): Place[Widget]
+  def merge(pathToWidget : Path, head: Widget, tail: Place[Widget]*): Place[Widget]
 end Mergable
 

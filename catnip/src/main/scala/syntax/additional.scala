@@ -6,17 +6,6 @@ import cats.arrow.FunctionK
 import cats.syntax.all.*
 
 object additional:
-  given applicativeUnitIsMonoid[F[_] : Applicative as M]: Monoid[F[Unit]] with
-    override def empty: F[Unit] =
-      M.pure(())
-    end empty
-
-    override def combine(x: F[Unit], y: F[Unit]): F[Unit] =
-      x *> y
-    end combine
-  end applicativeUnitIsMonoid
-
-
   given InjectMonad[G[_] : Applicative] : InjectK[Id, G] with
     override def inj: FunctionK[Id, G] =
       new FunctionK[Id, G]:

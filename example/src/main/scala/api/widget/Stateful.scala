@@ -7,6 +7,7 @@ import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
 import cats.{Functor, Monoid}
+import me.katze.gui4s.example.api.exported.Update
 import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import me.katze.gui4s.widget.free.statefulAsFree
 import me.katze.gui4s.widget.handle.{HandlesEvent, statefulHandlesEvent, statefulStateHandlesEvents}
@@ -14,6 +15,7 @@ import me.katze.gui4s.widget.merge.{Mergable, mergeStatefulWithOldStates, mergeW
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
 import me.katze.gui4s.widget.state.{statefulHasInnerStates, statefulStateIsState}
 import me.katze.gui4s.widget.{CatchEvents, Path, Stateful, StatefulState}
+
 import scala.language.experimental.namedTypeArguments
 
 def skijaStateful[

@@ -5,6 +5,7 @@ import api.SkijaWidget
 
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
+import me.katze.gui4s.layout.{Placed, Rect}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEvent
 
@@ -46,6 +47,7 @@ def eventCatcher[
   markEventHandled : Update[Unit]
 )(
     original : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+)(
     decorator : (Path, HandleableEvent) => Update[Boolean]
 ) : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
   eventHandleDecorator(
@@ -59,3 +61,33 @@ def eventCatcher[
         )
   )
 end eventCatcher
+
+def eventCatcherWithWidgetsRect[
+  T,
+  Update[+_] : Monad,
+  SimplePlace[+_] : Functor,
+  Draw : Monoid,
+  RecompositionReaction,
+  HandleableEvent,
+  MeasurableUnit : Numeric,
+](
+   markEventHandled : Update[Unit]
+ )(
+   original : SimplePlace[Placed[MeasurableUnit, SkijaWidget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
+ )(
+   decorator : (Path, Rect[MeasurableUnit], MeasurableUnit, HandleableEvent) => Update[Boolean]
+ ) : SimplePlace[Placed[MeasurableUnit, SkijaWidget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
+  given Functor[[Value] =>> SimplePlace[Placed[MeasurableUnit, Value]]] with
+    override def map[A, B](value : SimplePlace[Placed[MeasurableUnit, A]])(f : A => B) : SimplePlace[Placed[MeasurableUnit, B]] =
+      value.map(_.mapValue(f))
+    end map
+  end given
+  
+  original.map(
+    placedWidget =>
+      placedWidget.mapValue(
+        widget =>
+          eventCatcher(markEventHandled)(original = widget)(decorator(_, placedWidget.rect, placedWidget.z, _))
+      )
+  )
+end eventCatcherWithWidgetsRect

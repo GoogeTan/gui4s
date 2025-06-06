@@ -7,7 +7,8 @@ import cats.syntax.all.*
 
 type MeasurableT[F[+_], MeasurementUnit] = [Value] =>> Measurable[F, MeasurementUnit, Value]
 
-type Measurable[+F[+_], MeasurementUnit, +Value] = Bounds[MeasurementUnit] =>  F[Sized[MeasurementUnit, Value]]
+type PlacePartial[+F[+_], -MeasurementUnit, +Value] = Bounds[MeasurementUnit] => F[Value]
+type Measurable[+F[+_], MeasurementUnit, +Value] = PlacePartial[F, MeasurementUnit, Sized[MeasurementUnit, Value]]
   
 given measurableIsFlatMap[F[+_] : Monad, MeasurementUnit]: FlatMap[MeasurableT[F, MeasurementUnit]] with
   override def flatMap[A, B](fa: Measurable[F, MeasurementUnit, A])
