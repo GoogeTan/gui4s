@@ -1,8 +1,17 @@
 package me.katze.gui4s.layout
 
-final case class Sized[+MeasurementUnit, +T](value : T, width : MeasurementUnit, height : MeasurementUnit):
+import cats.Comonad
+
+final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementUnit]):
+  def this(value : T, x : MeasurementUnit, y : MeasurementUnit) =
+    this(value, Rect(x, y))
+  end this
+  
+  def width : MeasurementUnit = size.width
+  def height : MeasurementUnit = size.height
+  
   def mapValue[B](f : T => B) : Sized[MeasurementUnit, B] =
-    Sized(f(value), width, height)
+    copy(value = f(value))
   end mapValue
 
   /**
@@ -24,3 +33,17 @@ final case class Sized[+MeasurementUnit, +T](value : T, width : MeasurementUnit,
     end match
   end lengthAlongAnother
 end Sized
+
+given[MeasurementUnit]: Comonad[Sized[MeasurementUnit, *]] with
+  override def coflatMap[A, B](fa: Sized[MeasurementUnit, A])(f: Sized[MeasurementUnit, A] => B): Sized[MeasurementUnit, B] =
+    fa.mapValue(_ => f(fa))
+  end coflatMap
+
+  override def extract[A](x: Sized[MeasurementUnit, A]): A =
+    x.value
+  end extract
+
+  override def map[A, B](fa: Sized[MeasurementUnit, A])(f: A => B): Sized[MeasurementUnit, B] =
+    fa.mapValue(f)
+  end map
+end given

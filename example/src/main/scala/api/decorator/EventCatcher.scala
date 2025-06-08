@@ -87,7 +87,7 @@ def eventCatcherWithWidgetsRect[
     placedWidget =>
       placedWidget.mapValue(
         widget =>
-          eventCatcher(markEventHandled)(original = widget)(decorator(_, placedWidget.rect, placedWidget.z, _))
+          eventCatcher(markEventHandled)(original = widget)(decorator(_, placedWidget.size, placedWidget.z, _))
       )
   )
 end eventCatcherWithWidgetsRect

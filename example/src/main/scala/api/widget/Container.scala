@@ -10,7 +10,6 @@ import catnip.syntax.all.given
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
 import me.*
-import me.katze.gui4s.example.EventResult
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{Axis, MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}

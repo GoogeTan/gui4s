@@ -9,14 +9,14 @@ import catnip.syntax.all.given
 import cats.syntax.all.*
 import cats.{Functor, Monad}
 import me.*
-import me.katze.gui4s.example.api.exported.{Recomposition, Update, Widget}
+import me.katze.gui4s.example.api.exported.{Recomposition, UpdateT, Widget, given}
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
 
 def skijaText[F[+_] : {Monad}, Window](using backend: SkijaBackend[F, Window])(ffi : FFI[F], text : String, style : SkijaTextStyle) : Widget[F, Nothing, Any] =
   skijaText[
-    Update[Nothing],  MeasurableT[F, Float], SkijaDraw[F, OglWindow], Recomposition[F], Any, SkijaPlacedText
+    UpdateT[Nothing],  MeasurableT[F, Float], SkijaDraw[F, OglWindow], Recomposition[F], Any, SkijaPlacedText
   ](
     sizeText(ffi, text, backend.globalShaper, style),
     drawText(ffi, _),

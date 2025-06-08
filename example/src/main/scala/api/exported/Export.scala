@@ -6,16 +6,19 @@ import place.MainAxisStrategyErrors
 
 import catnip.FFI
 import catnip.syntax.all.{*, given}
+import cats.data.StateT
 import cats.{Functor, Monad}
 import me.katze.gui4s.example.api.widget.skijaLinearLayout
 import me.katze.gui4s.example.impl.containerPlacementCurried2
-import me.katze.gui4s.example.given
+import me.katze.gui4s.example.{*, given}
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.skija.{SkijaDraw, drawAt}
 import cats.syntax.all.*
-import me.katze.gui4s.widget.EventReaction
+import me.katze.gui4s.widget.{EventReaction, Path, given}
+
 import scala.language.experimental.namedTypeArguments
+import scala.reflect.Typeable
 
 // TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
@@ -25,7 +28,7 @@ def skijaRow[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisStrat
   verticalStrategy  : AdditionalAxisPlacementStrategy
 ): Widget[F, Event, DownEvent] =
   skijaLinearLayout[
-    EventResult[*, Event],
+    UpdateT[Event],
     MeasurableT[F, Float],
     SkijaDraw[F, OglWindow],
     Recomposition[F],
@@ -35,7 +38,7 @@ def skijaRow[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisStrat
     children,
     containerPlacementCurried2[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
-    EventResult(false, Nil) // TODO
+    false.pure // TODO
   )
 end skijaRow
 
@@ -45,7 +48,7 @@ def skijaColumn[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisSt
   horizontalStrategy: AdditionalAxisPlacementStrategy
 ): Widget[F, Event, DownEvent] =
   skijaLinearLayout[
-    EventResult[*, Event],
+    UpdateT[Event],
     MeasurableT[F, Float],
     SkijaDraw[F, OglWindow],
     Recomposition[F],
@@ -55,7 +58,7 @@ def skijaColumn[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisSt
     children,
     containerPlacementCurried2[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
-    EventResult(false, Nil) // TODO
+    false.pure // TODO
   )
 end skijaColumn
 
@@ -74,7 +77,7 @@ def skijaStateful[
 ) : Widget[F, Event, DownEvent] =
   given Functor[MeasurableT[F, Float]] = measurableIsFlatMap[F, Float]
   me.katze.gui4s.example.api.widget.skijaStateful[
-    EventResult,
+    Update,
     MeasurableT[F, Float],
     SkijaDraw[F, OglWindow],
     Recomposition[F],
@@ -84,8 +87,12 @@ def skijaStateful[
     Event,
     ChildEvent
   ](
-    widgetsAreMergeable = skijaWidgetsAreMergable[SimplePlace = PlacePartial[F, Float, *]], 
-    runEventReaction = (reaction, _) => EventResult(reaction.newState, reaction.parentEvent), 
+    widgetsAreMergeable = skijaWidgetsAreMergable[
+      Update = UpdateT[ChildEvent],
+      SimplePlace = PlacePartial[F, Float, *],
+      InnerPlace = Sized[Float, *]
+    ],
+    runEventReaction = runEventReaction,
     typeCheckState = ???
   )(
     name = name,

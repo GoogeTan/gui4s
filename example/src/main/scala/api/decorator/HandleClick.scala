@@ -4,7 +4,7 @@ package api.decorator
 import cats.*
 import cats.syntax.all.*
 import me.katze.gui4s.example.api.*
-import me.katze.gui4s.layout.{Placed, Rect}
+import me.katze.gui4s.layout.{Sized, Placed, Rect}
 import me.katze.gui4s.widget.Path
 
 import scala.math.Numeric.Implicits.*
@@ -12,7 +12,8 @@ import scala.math.Ordered.orderingToOrdered
 
 final case class ClickedAt[MeasurementUnit](x : MeasurementUnit, y : MeasurementUnit):
   def isIn(rect : Rect[MeasurementUnit])(using n : Numeric[MeasurementUnit]) : Boolean =
-    rect.x <= x && x <= rect.x + rect.width && rect.y <= y && y <= rect.y + rect.height
+    n.zero <= x && x <= rect.width 
+      && n.zero <= y && y <= rect.height
 end ClickedAt
 
 def handleClick[

@@ -19,4 +19,7 @@ object additional:
       end new
     end prj
   end InjectMonad
+
+  @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
+  given [A, B[_]](using f: [C] => () => B[C]) : B[A] = f[A]()
 end additional

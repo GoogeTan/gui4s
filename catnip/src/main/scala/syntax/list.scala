@@ -2,7 +2,6 @@ package catnip
 package syntax
 
 import cats.Functor
-import cats.data.NonEmptyList
 import cats.syntax.functor.*
 
 object list:

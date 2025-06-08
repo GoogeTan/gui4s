@@ -1,7 +1,7 @@
 package catnip.cats.effect
 
 import catnip.FFI
-import cats.effect.{IO, Sync}
+import cats.effect.{Sync}
 
 final class SyncFFI[F[_] : Sync as S] extends FFI[F]:
   override def delay[A](trunk: => A): F[A] =

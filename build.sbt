@@ -3,7 +3,7 @@ import sbtide.Keys.idePackagePrefix
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.7.0"
+ThisBuild / scalaVersion := "3.7.1"
 
 sys.env.get("LD_LIBRARY_PATH") match {
   case Some(libPath) =>

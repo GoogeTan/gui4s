@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package api
 
-import cats.{Functor, Monad}
+import cats.{Comonad, Functor, Monad}
 import cats.syntax.all.*
 import catnip.syntax.all.{*, given}
 import me.katze.gui4s.layout.{Placed, given}
@@ -13,23 +13,25 @@ import scala.language.experimental.namedTypeArguments
 def skijaWidgetsAreMergable[
   Update[+ _],
   SimplePlace[+ _]: Monad,
+  InnerPlace[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
-  MeasurementUnit
-] : Mergable[[Value] =>> SimplePlace[Placed[MeasurementUnit, Value]], SkijaWidget_[Update, [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]] =
-  type Widget = SkijaWidget_[Update, [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]
+] : Mergable[[Value] =>> SimplePlace[InnerPlace[Value]], SkijaWidget_[Update, [Value] =>> SimplePlace[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]] =
+  type Widget = SkijaWidget_[Update, [Value] =>> SimplePlace[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]
 
-  def helper(path : Path, current : Widget, tail : List[SimplePlace[Placed[MeasurementUnit, Widget]]]) : SimplePlace[Placed[MeasurementUnit, Widget]] =
+  def helper(path : Path, current : Widget, tail : List[SimplePlace[InnerPlace[Widget]]]) : SimplePlace[InnerPlace[Widget]] =
     tail match
       case head :: next =>
           head.flatMap(headValue =>
             skijaWidgetMergesWithOldState[
-              Place = [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]]
-            ](headValue.value, path, skijaWidgetHasInnerStates(current))
-          ).flatMap((placedWidget : Placed[MeasurementUnit, Widget]) => helper(path, placedWidget.value, next))
+              Place = [Value] =>> SimplePlace[InnerPlace[Value]]
+            ](headValue.extract, path, skijaWidgetHasInnerStates[
+            Place = [Value] =>> SimplePlace[InnerPlace[Value]]
+          ](current))
+          ).flatMap((placedWidget : InnerPlace[Widget]) => helper(path, placedWidget.extract, next))
       case Nil =>
-        skijaWidgetAsFree[Place = [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]]](current)
+        skijaWidgetAsFree[Place = [Value] =>> SimplePlace[InnerPlace[Value]]](current)
     end match
   end helper
 

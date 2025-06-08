@@ -1,58 +1,70 @@
 package me.katze.gui4s.example
 
 import catnip.BiMonad
-import me.katze.gui4s.widget.CatchEvents
-
+import cats.{Bimonad, Monad}
+import cats.data.StateT
+import me.katze.gui4s.widget.{CatchEvents, given}
+import cats.syntax.all.*
 import scala.annotation.tailrec
+import cats.data.IndexedStateT.catsDataMonadForIndexedStateT
 
-final case class EventResult[+FreeWidget, +UpEvent](
-                                                      widget: FreeWidget,
-                                                      events: List[UpEvent],
-                                                    )
+final case class EventResult_[+Event, +Widget](
+                                                widget: Widget,
+                                                events: List[Event],
+                                              ):
+  def this(widget : Widget) =
+    this(widget, Nil)
+  end this
+end EventResult_
 
+type EventResult[Event, Widget] = StateT[EventResult_[Event, *], Boolean, Widget]
 
-given BiMonad[EventResult] with
-  override def flatMapFirst[A, B, C](value: EventResult[A, B])
-                                    (f: A => EventResult[C, B]): EventResult[C, B] =
-    val newValue = f(value.widget)
-    EventResult(
-      newValue.widget,
-      value.events ++ newValue.events,
-    )
-  end flatMapFirst
+given BiMonad[EventResult] = [Event] => () => catsDataMonadForIndexedStateT(using eventResultIsBimonad)
+given eventResultIsBiMonad : BiMonad[EventResult_] = [Event] => () => eventResultIsBimonad
+given CatchEvents[EventResult] = liftStateTCatchEvents(using eventResultIsBiMonad, eventResult_CatchEvents)
 
-
-  override def mapSecond[A, B, D](value : EventResult[A, B])(f : B => D) : EventResult[A, D] =
-    EventResult(value.widget, value.events.map(f))
-  end mapSecond
-
-  override def pure[A](value: A): EventResult[A, Nothing] =
-    EventResult(value, Nil)
+given eventResultIsBimonad[Event] : Bimonad[[Value] =>> EventResult_[Event, Value]] with
+  def pure[A](a: A): EventResult_[Event, A] = 
+    EventResult_(a, Nil)
   end pure
 
-  override def tailRecM[A, B, E](a: A)
-                                (f: A => EventResult[Either[A, B], E]): EventResult[B, E] =
+  def flatMap[A, B](fa: EventResult_[Event, A])(f: A => EventResult_[Event, B]): EventResult_[Event, B] = 
+    val result = f(fa.widget)
+    EventResult_(result.widget, fa.events ++ result.events)
+  end flatMap
+    
+  def map[A, B](fa: EventResult_[Event, A])(f: A => B): EventResult_[Event, B] = 
+    EventResult_(f(fa.widget), fa.events)
+  end map
+    
+  def coflatMap[A, B](fa: EventResult_[Event, A])(f: EventResult_[Event, A] => B): EventResult_[Event, B] = 
+    EventResult_(f(fa), fa.events)
+  end coflatMap
+    
+  def extract[A](fa: EventResult_[Event, A]): A = 
+    fa.widget
+  end extract
+    
+  def tailRecM[A, B](a: A)(f: A => EventResult_[Event, Either[A, B]]): EventResult_[Event, B] = 
     @tailrec
-    def helper(
-                a: A,
-                parentEvent: List[E],
-              )(
-                f: A => EventResult[Either[A, B], E]
-              ) : EventResult[B, E] =
-      val EventResult(aa, ape) = f(a)
-      aa match
-        case Left(value) => helper(value, ape ++ parentEvent)(f)
-        case Right(value) => EventResult(value, ape ++ parentEvent)
+    def helper(current: EventResult_[Event, Either[A, B]], accEvents: List[Event]): EventResult_[Event, B] =
+      current.widget match
+        case Left(nextA) =>
+          val next = f(nextA)
+          helper(next, accEvents ++ current.events)
+        case Right(b) =>
+          EventResult_(b, accEvents ++ current.events)
       end match
     end helper
-    helper(a, Nil)(f)
+          
+    helper(f(a), Nil)
   end tailRecM
-end given
+end eventResultIsBimonad
 
-given[Task] : CatchEvents[EventResult] with
-  extension [Widget, Event](old: EventResult[Widget, Event])
-    override def catchEvents: EventResult[(Widget, List[Event]), Nothing] =
-      EventResult[(Widget, List[Event]), Nothing]((old.widget, old.events), Nil)
+given eventResult_CatchEvents: CatchEvents[EventResult_] with
+  extension [Event, Widget](old: EventResult_[Event, Widget])
+    override def catchEvents[NewEventType]: EventResult_[Nothing, (Widget, List[Event])] =
+      EventResult_((old.widget, old.events), Nil)
     end catchEvents
   end extension
-end given  
+end eventResult_CatchEvents

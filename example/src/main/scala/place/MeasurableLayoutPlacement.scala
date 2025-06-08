@@ -8,7 +8,7 @@ import me.katze.gui4s.example.{AdditionalAxisPlacementStrategy, MainAxisPlacemen
 import me.katze.gui4s.layout
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
-import me.katze.gui4s.layout.{Axis, Placed, Sized}
+import me.katze.gui4s.layout.{Axis, Placed, Point3d, Sized}
 
 import scala.math.Fractional.Implicits.*
 
@@ -62,12 +62,10 @@ def rowColumnPlace[MeasurementUnit, T](
     mainAxisCoordinates.zip(crossAxisCoordinates).map(
       (mainAxisCoordinate, additionalAxisCoordinate) =>
         if bounds.axis == Axis.Vertical then
-          (x = additionalAxisCoordinate, y = mainAxisCoordinate, z = zLevel)
+          Point3d(x = additionalAxisCoordinate, y = mainAxisCoordinate, z = zLevel)
         else
-          (x = mainAxisCoordinate, y = additionalAxisCoordinate, z = zLevel)
+          Point3d(x = mainAxisCoordinate, y = additionalAxisCoordinate, z = zLevel)
     )
     
-  Monad[List].map(
-    compoundCoordinates.zip(elements)
-  )((coords, value) => Placed(value.value, coords.x, coords.y, coords.z, value.width, value.height))
+  Monad[List].map(elements.zip(compoundCoordinates))(new Placed(_, _))
 end rowColumnPlace

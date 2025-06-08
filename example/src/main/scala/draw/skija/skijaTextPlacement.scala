@@ -16,6 +16,6 @@ def sizeText[F[+_] : Functor](ffi : FFI[F], text: String, shaper : Shaper, optio
       text = text,
       style = options,
       maxWidth = bounds.horizontal.max
-    ).map((placedText) => Sized(placedText.text, placedText.width, placedText.height))
+    ).map((placedText) => new Sized(placedText.text, placedText.width, placedText.height))
 end sizeText
 

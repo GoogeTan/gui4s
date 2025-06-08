@@ -24,8 +24,8 @@ given measurableIsFlatMap[F[+_] : Monad, MeasurementUnit]: FlatMap[MeasurableT[F
     c =>
       def helper(a : A)(f: A => Measurable[F, MeasurementUnit, Either[A, B]]): F[Sized[MeasurementUnit, B]] =
         f(a)(c).flatMap:
-          case Sized(Left(a), _, _) => helper(a)(f)
-          case Sized(Right(value), width, height) => Sized(value, width, height).pure[F]
+          case Sized(Left(a), _) => helper(a)(f)
+          case Sized(Right(value), size) => Sized(value, size).pure[F]
       end helper
 
       helper(a)(f)

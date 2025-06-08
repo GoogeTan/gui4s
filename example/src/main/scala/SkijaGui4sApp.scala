@@ -1,6 +1,6 @@
 package me.katze.gui4s.example
 
-import catnip.syntax.bimonad.{*, given}
+import catnip.syntax.all.{*, given}
 import draw.*
 import draw.skija.*
 import place.RunPlacement
@@ -14,7 +14,7 @@ import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
 import me.katze.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.exported.{PlacedWidget, Recomposition, Update, Widget}
+import me.katze.gui4s.example.api.exported.{PlacedWidget, Recomposition, UpdateT, Widget, handleApplicationRequests, given}
 import me.katze.gui4s.example.api.{skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
 import me.katze.gui4s.example.draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size, WindowCreationSettings}
@@ -22,6 +22,7 @@ import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget.{Path, given}
 
+import scala.language.experimental.namedTypeArguments
 import scala.concurrent.ExecutionContext
 
 enum SkijaDownEvent:
@@ -42,7 +43,7 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
     PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
     SkijaDraw[F, OglWindow],
     MeasurableT[F, Float],
-    Update[ApplicationRequest],
+    UpdateT[ApplicationRequest],
     Recomposition[F],
     DownEvent,
   ]
@@ -81,17 +82,17 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
           PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
           SkijaDraw[F, OglWindow],
           MeasurableT[F, Float],
-          Update[ApplicationRequest],
+          UpdateT[ApplicationRequest],
           Recomposition[F],
           SkijaDownEvent,
         ](
           Path(List("ROOT")),
           widget,
           identity[F[Unit]],
-          skijaWidgetHandlesEvent,
-          skijaWidgetReactsOnRecomposition,
-          skijaWidgetHasInnerStates,
-          skijaWidgetIsDrawable
+          skijaWidgetHandlesEvent[Update = UpdateT[ApplicationRequest]],
+          skijaWidgetReactsOnRecomposition[Update = UpdateT[ApplicationRequest]],
+          skijaWidgetHasInnerStates[Update = UpdateT[ApplicationRequest]],
+          skijaWidgetIsDrawable[Update = UpdateT[ApplicationRequest]]
         )
       ).runPlacement
   )
@@ -106,10 +107,3 @@ def eventOfferingCallbacks[F](offerEvent : SkijaDownEvent => F) : GlfwCallbacks[
     onScroll = (xoffset, yoffset) => offerEvent(SkijaDownEvent.Scrolled(xoffset, yoffset))
   )
 end eventOfferingCallbacks
-
-def handleApplicationRequests[F[_] : Monad] : [T] => Update[ApplicationRequest][T] => F[Either[ExitCode, T]] =
-  [T] => update => update.events.foldM(Right(update.widget))((_, request) =>
-    request match
-      case ApplicationRequest.CloseApp(code) => Left(code).pure[F]
-  )
-end handleApplicationRequests

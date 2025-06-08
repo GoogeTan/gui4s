@@ -1,14 +1,15 @@
 package me.katze.gui4s.widget
 package handle
 
+import draw.Drawable
+import free.AsFree
+import merge.Mergable
+
 import catnip.BiMonad
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.given
 import cats.Functor
 import cats.syntax.all.*
-import me.katze.gui4s.widget.draw.Drawable
-import me.katze.gui4s.widget.free.AsFree
-import me.katze.gui4s.widget.merge.Mergable
-import me.katze.gui4s.widget.{CatchEvents, EventReaction}
+import me.katze.gui4s.widget.CatchEvents
 
 def statefulHandlesEvent[
   Update[+_, +_] : {BiMonad, CatchEvents},
@@ -19,15 +20,15 @@ def statefulHandlesEvent[
   ChildEvent,
   HandleableEvent
 ](
-    stateHandlesEvents  : HandlesEvent[State, List[ChildEvent], Update[State, Event]],
+    stateHandlesEvents  : HandlesEvent[State, List[ChildEvent], Update[Event, State]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childHandlesEvents  : HandlesEvent[Widget, HandleableEvent, Update[Place[Widget], ChildEvent]],
+    childHandlesEvents  : HandlesEvent[Widget, HandleableEvent, Update[ChildEvent, Place[Widget]]],
     widgetsAreMergable  : Mergable[Place, Widget],
     widgetAsFree        : AsFree[Widget, Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
   HandleableEvent,
-  Update[Place[Stateful[Widget, State]], Event]
+  Update[Event, Place[Stateful[Widget, State]]]
 ] =
   (
     self: Stateful[Widget, State],
@@ -35,11 +36,11 @@ def statefulHandlesEvent[
     event: HandleableEvent
   ) =>
     for
-      (newChildWidget, events) <- childHandlesEvents(
+      (events, newChildWidget) <- childHandlesEvents(
         self.child,
         pathToParent.appendLast(self.name),
         event
-      ).catchEvents
+      ).catchEvents[Event]
       newState <- stateHandlesEvents(self.state, pathToParent, events)
       newChildFreeWidget =
         widgetsAreMergable.merge(
