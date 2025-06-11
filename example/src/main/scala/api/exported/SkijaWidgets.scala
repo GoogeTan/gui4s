@@ -6,9 +6,6 @@ import cats.{Applicative, FlatMap, Functor, InjectK, Monad}
 import cats.data.{ReaderT, StateT}
 import cats.effect.ExitCode
 import me.*
-import me.katze.gui4s.example.EventResult
-import me.katze.gui4s.example.api.SkijaWidget_
-import me.katze.gui4s.example.update.ApplicationRequest
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.{*, given}
@@ -17,6 +14,7 @@ import cats.syntax.all.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.example.place.RunPlacement
 import me.katze.gui4s.layout.Sized
+import me.katze.gui4s.widget.library.SkijaWidget_
 
 opaque type SkijaUpdate[Event, Value] = EventResult[Event, Value]
 type SkijaUpdateT[Event] = SkijaUpdate[Event, *]
@@ -77,5 +75,5 @@ def handleApplicationRequests[F[_] : Monad] : [T] => SkijaUpdateT[ApplicationReq
 end handleApplicationRequests
 
 type Recomposition[F[_]] = F[Unit]
-type PlacedWidget[F[+_], +Event, -DownEvent] =  SkijaWidget_[SkijaUpdateT[Event], SkijaPlace[F, *], SkijaDraw[F, OglWindow], Recomposition[F], DownEvent]
+type PlacedWidget[F[+_], +Event, -DownEvent] = SkijaWidget_[SkijaUpdateT[Event], SkijaPlace[F, *], SkijaDraw[F, OglWindow], Recomposition[F], DownEvent]
 type Widget[F[+_], +Event, -DownEvent] = SkijaPlace[F, PlacedWidget[F, Event, DownEvent]]

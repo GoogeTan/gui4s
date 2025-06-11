@@ -1,10 +1,7 @@
-package me.katze.gui4s.example
-package api.widget
 
-import api.{SkijaWidget, SkijaWidget_}
-
-import cats.{Functor, Monad}
+package me.katze.gui4s.widget.library
 import cats.syntax.all.*
+import cats.{Functor, Monad}
 import me.katze.gui4s.widget.free.AsFree
 import me.katze.gui4s.widget.handle.handlesNothing
 import me.katze.gui4s.widget.merge.anyHasNothingToMerge

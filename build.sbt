@@ -80,11 +80,21 @@ lazy val widget = (project in file("widget"))
   .settings(
     name := "layout",
     idePackagePrefix := Some(s"$packagePrefix.widget"),
-    libraryDependencies ++= catsLibs ++ testLibs ++ fs2Libs,
+    libraryDependencies ++= catsLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(catnip)
+
+lazy val widgetLibrary = (project in file("widget-library"))
+  .settings(
+    name := "layout",
+    idePackagePrefix := Some(s"$packagePrefix.widget.library"),
+    libraryDependencies ++= catsLibs,
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe,
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
+  ).dependsOn(catnip, widget, layout)
 
 lazy val lwjglVersion = "3.3.6"
 
@@ -164,5 +174,5 @@ lazy val example = (project in file("example"))
     scalacOptions ++= scalaCOptions(scalaVersion.value),
     mainClass := Some("me.katze.gui4s.example.SkijaAppExample")
   )
-  .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw)
+  .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary)
 

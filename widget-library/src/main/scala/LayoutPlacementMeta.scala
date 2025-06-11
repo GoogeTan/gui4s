@@ -1,6 +1,5 @@
-package me.katze.gui4s.example
-package api
 
+package me.katze.gui4s.widget.library
 import me.katze.gui4s.layout.Placed
 
 final case class LayoutPlacementMeta[+MeasurementUnit](x: MeasurementUnit, y: MeasurementUnit, z : MeasurementUnit):

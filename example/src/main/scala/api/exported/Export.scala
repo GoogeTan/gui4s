@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package api.exported
 
-import api.{LayoutPlacementMeta, skijaWidgetsAreMergable, given}
+import api.{skijaWidgetsAreMergable, given}
 import place.MainAxisStrategyErrors
 
 import catnip.FFI
@@ -15,6 +15,7 @@ import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.skija.{SkijaDraw, drawAt}
 import cats.syntax.all.*
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import me.katze.gui4s.widget.{EventReaction, Path, given}
 
 import scala.language.experimental.namedTypeArguments

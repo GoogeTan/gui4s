@@ -1,4 +1,4 @@
-package me.katze.gui4s.example
+package me.katze.gui4s.widget.library
 
 enum MainAxisPlacementStrategy[+MeasurementUnit]:
   case Begin(gap : MeasurementUnit)

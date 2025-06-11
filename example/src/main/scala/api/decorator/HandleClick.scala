@@ -4,7 +4,7 @@ package api.decorator
 import cats.*
 import cats.syntax.all.*
 import me.katze.gui4s.example.api.*
-import me.katze.gui4s.layout.{Sized, Placed, Rect}
+import me.katze.gui4s.layout.{Placed, Rect, Sized}
 import me.katze.gui4s.widget.Path
 
 import scala.math.Numeric.Implicits.*

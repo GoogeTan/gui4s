@@ -1,7 +1,6 @@
 package me.katze.gui4s.example
 package impl
 
-import api.LayoutPlacementMeta
 import place.*
 
 import cats.*
@@ -11,6 +10,7 @@ import me.katze.gui4s.example
 import me.katze.gui4s.layout.bound.{AxisDependentBounds, Bounds}
 import me.katze.gui4s.layout.rowcolumn.{placeItems, sizeItems}
 import me.katze.gui4s.layout.{*, given}
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
 type LayoutPlacement[Place[_], MeasurementUnit, PlacementMeta, Widget[_], Axis] =
   [Event] => (

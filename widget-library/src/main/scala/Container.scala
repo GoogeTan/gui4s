@@ -1,22 +1,17 @@
-package me.katze.gui4s.example
-package api.widget
 
-import api.{*, given}
-import impl.containerPlacementCurried
-import place.MainAxisStrategyErrors
+package me.katze.gui4s.widget.library
 
 import catnip.FFI
 import catnip.syntax.all.given
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
 import me.*
-import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{Axis, given}
-import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.widget.Container
 import me.katze.gui4s.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
 import me.katze.gui4s.widget.free.containerAsFree
 import me.katze.gui4s.widget.handle.{Layout, childrenHandleEvent, containerHandlesEvent}
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import me.katze.gui4s.widget.merge.containerMergesWithOldStates
 import me.katze.gui4s.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
 import me.katze.gui4s.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}

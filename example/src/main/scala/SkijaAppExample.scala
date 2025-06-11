@@ -9,11 +9,11 @@ import catnip.cats.effect.SyncFFI
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
-import me.katze.gui4s.example.api.exported.{Widget, *}
-import me.katze.gui4s.example.api.widget.skijaText
+import me.katze.gui4s.example.api.exported.*
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.skija.SkijaTextStyle
 import me.katze.gui4s.widget.EventReaction
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
 object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors = ENErrors

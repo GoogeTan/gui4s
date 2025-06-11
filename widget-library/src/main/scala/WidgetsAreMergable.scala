@@ -1,9 +1,8 @@
-package me.katze.gui4s.example
-package api
+package me.katze.gui4s.widget.library
 
-import cats.{Comonad, Functor, Monad}
-import cats.syntax.all.*
 import catnip.syntax.all.{*, given}
+import cats.syntax.all.*
+import cats.{Comonad, Functor, Monad}
 import me.katze.gui4s.layout.{Placed, given}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.merge.Mergable
@@ -13,7 +12,7 @@ import scala.language.experimental.namedTypeArguments
 def skijaWidgetsAreMergable[
   Update[+ _],
   SimplePlace[+ _]: Monad,
-  InnerPlace[_] : Comonad,
+  InnerPlace[+_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,

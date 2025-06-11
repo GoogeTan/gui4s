@@ -1,8 +1,6 @@
 package me.katze.gui4s.example
 package api.decorator
 
-import api.SkijaWidget
-
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
 import me.katze.gui4s.layout.{Placed, Rect}
