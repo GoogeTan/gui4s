@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package api.widget
 
 import api.{*, given}
-import impl.containerPlacementCurried2
+import impl.containerPlacementCurried
 import place.MainAxisStrategyErrors
 
 import catnip.FFI

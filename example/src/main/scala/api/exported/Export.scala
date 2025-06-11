@@ -9,7 +9,7 @@ import catnip.syntax.all.{*, given}
 import cats.data.StateT
 import cats.{Functor, Monad}
 import me.katze.gui4s.example.api.widget.skijaLinearLayout
-import me.katze.gui4s.example.impl.containerPlacementCurried2
+import me.katze.gui4s.example.impl.containerPlacementCurried
 import me.katze.gui4s.example.{*, given}
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
@@ -36,7 +36,7 @@ def skijaRow[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisStrat
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried2[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
+    containerPlacementCurried[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     false.pure // TODO
   )
@@ -56,7 +56,7 @@ def skijaColumn[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisSt
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried2[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
+    containerPlacementCurried[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     false.pure // TODO
   )
@@ -75,7 +75,7 @@ def skijaStateful[
   render : State => Widget[F, ChildEvent, DownEvent],
   destructor : State => Recomposition[F],
 ) : Widget[F, Event, DownEvent] =
-  given Functor[MeasurableT[F, Float]] = measurableIsFlatMap[F, Float]
+  given Functor[MeasurableT[F, Float]] = measurableIsFunctor[F, Float]
   me.katze.gui4s.example.api.widget.skijaStateful[
     Update,
     MeasurableT[F, Float],

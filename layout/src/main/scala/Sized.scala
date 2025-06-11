@@ -27,10 +27,7 @@ final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementU
   end lengthAlong
   
   def lengthAlongAnother(axis: Axis): MeasurementUnit =
-    axis match
-      case Axis.Vertical => width
-      case Axis.Horizontal => height
-    end match
+    lengthAlong(axis.another)
   end lengthAlongAnother
 end Sized
 

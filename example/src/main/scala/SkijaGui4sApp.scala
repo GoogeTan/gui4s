@@ -76,7 +76,7 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
     rootWidget = backend =>
       given RunPlacement[F, MeasurableT[F, Float]] = MeasurableRunPlacement[F, F, Float](backend.windowBounds)
 
-      measurableIsFlatMap[F, Float].map(widget(using backend))(widget =>
+      measurableIsFunctor[F, Float].map(widget(using backend))(widget =>
         RootWidget[
           F,
           PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
