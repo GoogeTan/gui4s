@@ -8,19 +8,19 @@ import update.ApplicationRequest
 
 import catnip.FFI
 import catnip.cats.effect.ContextFFI
-import cats.Monad
+import cats.{Functor, Monad}
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
 import me.katze.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.exported.{PlacedWidget, Recomposition, UpdateT, Widget, handleApplicationRequests, given}
+import me.katze.gui4s.example.api.exported.{MeasurableRunPlacement, PlacedWidget, Recomposition, SkijaPlaceT, SkijaUpdateT, Widget, handleApplicationRequests, given}
 import me.katze.gui4s.example.api.{skijaWidgetHandlesEvent, skijaWidgetHasInnerStates, skijaWidgetIsDrawable, skijaWidgetReactsOnRecomposition}
 import me.katze.gui4s.example.draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size, WindowCreationSettings}
-import me.katze.gui4s.layout.{Measurable, MeasurableT, given}
 import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget.{Path, given}
+import me.katze.gui4s.layout.{*, given}
 
 import scala.language.experimental.namedTypeArguments
 import scala.concurrent.ExecutionContext
@@ -42,8 +42,8 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
     F,
     PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
     SkijaDraw[F, OglWindow],
-    MeasurableT[F, Float],
-    UpdateT[ApplicationRequest],
+    SkijaPlaceT[F],
+    SkijaUpdateT[ApplicationRequest],
     Recomposition[F],
     DownEvent,
   ]
@@ -74,25 +74,24 @@ def skijaApp[F[+_] : {Async, Console, FFI}](
       updateLoopExecutionContext
     ),
     rootWidget = backend =>
-      given RunPlacement[F, MeasurableT[F, Float]] = MeasurableRunPlacement[F, F, Float](backend.windowBounds)
-
-      measurableIsFunctor[F, Float].map(widget(using backend))(widget =>
+      given RunPlacement[F, SkijaPlaceT[F]] = MeasurableRunPlacement[F, F](backend.windowBounds)
+      Functor[SkijaPlaceT[F]].map(widget(using backend))(widget =>
         RootWidget[
           F,
           PlacedWidget[F, ApplicationRequest, SkijaDownEvent],
           SkijaDraw[F, OglWindow],
-          MeasurableT[F, Float],
-          UpdateT[ApplicationRequest],
+          SkijaPlaceT[F],
+          SkijaUpdateT[ApplicationRequest],
           Recomposition[F],
           SkijaDownEvent,
         ](
           Path(List("ROOT")),
           widget,
           identity[F[Unit]],
-          skijaWidgetHandlesEvent[Update = UpdateT[ApplicationRequest]],
-          skijaWidgetReactsOnRecomposition[Update = UpdateT[ApplicationRequest]],
-          skijaWidgetHasInnerStates[Update = UpdateT[ApplicationRequest]],
-          skijaWidgetIsDrawable[Update = UpdateT[ApplicationRequest]]
+          skijaWidgetHandlesEvent[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F]],
+          skijaWidgetReactsOnRecomposition[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F]],
+          skijaWidgetHasInnerStates[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F]],
+          skijaWidgetIsDrawable[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F]]
         )
       ).runPlacement
   )

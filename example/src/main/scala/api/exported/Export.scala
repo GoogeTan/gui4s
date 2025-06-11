@@ -28,15 +28,19 @@ def skijaRow[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisStrat
   verticalStrategy  : AdditionalAxisPlacementStrategy
 ): Widget[F, Event, DownEvent] =
   skijaLinearLayout[
-    UpdateT[Event],
-    MeasurableT[F, Float],
+    SkijaUpdateT[Event],
+    SkijaPlaceT[F],
     SkijaDraw[F, OglWindow],
     Recomposition[F],
     DownEvent,
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
+    containerPlacementCurried[SkijaPlaceInnerT[F], PlacedWidget[F, *, DownEvent], Float](
+      errors,
+      getBounds,
+      setBounds
+    )(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     false.pure // TODO
   )
@@ -48,15 +52,19 @@ def skijaColumn[F[+_] : {Monad, FFI}, Event, DownEvent](using errors: MainAxisSt
   horizontalStrategy: AdditionalAxisPlacementStrategy
 ): Widget[F, Event, DownEvent] =
   skijaLinearLayout[
-    UpdateT[Event],
-    MeasurableT[F, Float],
+    SkijaUpdateT[Event],
+    SkijaPlaceT[F],
     SkijaDraw[F, OglWindow],
     Recomposition[F],
     DownEvent,
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[F, PlacedWidget[F, *, DownEvent], Float](errors)(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
+    containerPlacementCurried[SkijaPlaceInnerT[F], PlacedWidget[F, *, DownEvent], Float](
+      errors,
+      getBounds,
+      setBounds
+    )(Axis.Horizontal, _, verticalStrategy, horizontalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     false.pure // TODO
   )
@@ -75,10 +83,9 @@ def skijaStateful[
   render : State => Widget[F, ChildEvent, DownEvent],
   destructor : State => Recomposition[F],
 ) : Widget[F, Event, DownEvent] =
-  given Functor[MeasurableT[F, Float]] = measurableIsFunctor[F, Float]
   me.katze.gui4s.example.api.widget.skijaStateful[
-    Update,
-    MeasurableT[F, Float],
+    SkijaUpdate,
+    SkijaPlaceT[F],
     SkijaDraw[F, OglWindow],
     Recomposition[F],
     DownEvent,
@@ -88,8 +95,8 @@ def skijaStateful[
     ChildEvent
   ](
     widgetsAreMergeable = skijaWidgetsAreMergable[
-      Update = UpdateT[ChildEvent],
-      SimplePlace = PlacePartial[F, Float, *],
+      Update = SkijaUpdateT[ChildEvent],
+      SimplePlace = SkijaPlaceInner[F, *],
       InnerPlace = Sized[Float, *]
     ],
     runEventReaction = runEventReaction,

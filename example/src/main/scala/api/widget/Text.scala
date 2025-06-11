@@ -5,18 +5,18 @@ import api.{*, given}
 import draw.skija.*
 
 import catnip.FFI
-import catnip.syntax.all.given
+import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
 import cats.{Functor, Monad}
 import me.*
-import me.katze.gui4s.example.api.exported.{Recomposition, UpdateT, Widget, given}
+import me.katze.gui4s.example.api.exported.{Recomposition, SkijaPlaceT, SkijaUpdateT, Widget, sizeText, given}
+import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.layout.{MeasurableT, given}
 import me.katze.gui4s.skija.{*, given}
 
 def skijaText[F[+_] : {Monad}, Window](using backend: SkijaBackend[F, Window])(ffi : FFI[F], text : String, style : SkijaTextStyle) : Widget[F, Nothing, Any] =
   skijaText[
-    UpdateT[Nothing],  MeasurableT[F, Float], SkijaDraw[F, OglWindow], Recomposition[F], Any, SkijaPlacedText
+    SkijaUpdateT[Nothing],  SkijaPlaceT[F], SkijaDraw[F, OglWindow], Recomposition[F], Any, SkijaPlacedText
   ](
     sizeText(ffi, text, backend.globalShaper, style),
     drawText(ffi, _),

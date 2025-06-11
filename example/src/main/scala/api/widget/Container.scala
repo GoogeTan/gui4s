@@ -11,7 +11,7 @@ import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
 import me.*
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.layout.{Axis, MeasurableT, given}
+import me.katze.gui4s.layout.{Axis, given}
 import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.widget.Container
 import me.katze.gui4s.widget.draw.{drawContainer, widgetWithMetaIsDrawable}

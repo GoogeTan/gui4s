@@ -13,7 +13,15 @@ final case class Placed[+MeasurementUnit, +T](value : T, coordinate : Point3d[Me
 
   def width : MeasurementUnit = size.width
   def height : MeasurementUnit = size.height
-  
+
+  def endX[MU >: MeasurementUnit](using n: Numeric[MU]) : MU =
+    n.plus(x, width)
+  end endX
+
+  def endY[MU >: MeasurementUnit](using n : Numeric[MU]) : MU =
+    n.plus(y, height)
+  end endY
+
   def mapValue[A](f : T => A) : Placed[MeasurementUnit, A] =
     copy(value = f(value))
 end Placed
