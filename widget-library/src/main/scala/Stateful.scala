@@ -1,5 +1,5 @@
-
 package me.katze.gui4s.widget.library
+
 import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import cats.syntax.all.*

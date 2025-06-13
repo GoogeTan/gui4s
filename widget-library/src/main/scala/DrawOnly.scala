@@ -1,5 +1,5 @@
-
 package me.katze.gui4s.widget.library
+
 import cats.syntax.all.*
 import cats.{Functor, Monad}
 import me.katze.gui4s.widget.free.AsFree
