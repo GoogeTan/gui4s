@@ -1,5 +1,5 @@
-
 package me.katze.gui4s.widget.library
+
 import catnip.syntax.additional.*
 import cats.syntax.all.*
 import cats.{Applicative, Functor, Monad}
