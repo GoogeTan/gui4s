@@ -7,6 +7,7 @@ import cats.*
 import cats.syntax.all.*
 import me.katze.gui4s
 import me.katze.gui4s.example
+import me.katze.gui4s.example.api.LayoutPlacementMeta
 import me.katze.gui4s.layout.bound.{AxisDependentBounds, Bounds}
 import me.katze.gui4s.layout.rowcolumn.{placeItems, sizeItems}
 import me.katze.gui4s.layout.{*, given}

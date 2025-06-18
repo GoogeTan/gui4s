@@ -2,35 +2,44 @@ package me.katze.gui4s.widget.library
 
 import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
-import cats.{Comonad, Functor, Monad}
+import cats.{Applicative, Comonad, Functor, Monad}
 import me.katze.gui4s.layout.{Placed, given}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.merge.Mergable
 
 import scala.language.experimental.namedTypeArguments
 
+// TODO refactor me
 def skijaWidgetsAreMergable[
   Update[+ _],
-  SimplePlace[+ _]: Monad,
+  OuterPlace[+ _] : Functor,
   InnerPlace[+_] : Comonad,
+  Merge[+_] : Applicative,
   Draw,
   RecompositionReaction,
   HandleableEvent,
-] : Mergable[[Value] =>> SimplePlace[InnerPlace[Value]], SkijaWidget_[Update, [Value] =>> SimplePlace[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]] =
-  type Widget = SkijaWidget_[Update, [Value] =>> SimplePlace[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]
+](using M : Monad[Merge * OuterPlace]) : Mergable[Merge * OuterPlace * InnerPlace, Widget_[Update, OuterPlace * InnerPlace, Merge * OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]] =
+  type Place[Value] = OuterPlace[InnerPlace[Value]]
+  type Widget = Widget_[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent]
+  given Functor[Merge * OuterPlace] = M
 
-  def helper(path : Path, current : Widget, tail : List[SimplePlace[InnerPlace[Widget]]]) : SimplePlace[InnerPlace[Widget]] =
+  def helper(path : Path, current : Widget, tail : List[Merge[OuterPlace[InnerPlace[Widget]]]]) : Merge[OuterPlace[InnerPlace[Widget]]] =
     tail match
-      case head :: next =>
-          head.flatMap(headValue =>
-            skijaWidgetMergesWithOldState[
-              Place = [Value] =>> SimplePlace[InnerPlace[Value]]
-            ](headValue.extract, path, skijaWidgetHasInnerStates[
-            Place = [Value] =>> SimplePlace[InnerPlace[Value]]
-          ](current))
-          ).flatMap((placedWidget : InnerPlace[Widget]) => helper(path, placedWidget.extract, next))
+      case headM :: nextM =>
+        M.flatMap(
+          M.flatMap(headM)(
+            headValue =>
+              widgetMergesWithOldState[Place = Place, Merge = Merge * Place](
+                headValue.extract,
+                path,
+                widgetHasInnerStates[Place = Place](current)
+              )
+          )
+        )(headMerged =>
+          helper(path, headMerged.extract, nextM)
+        )
       case Nil =>
-        skijaWidgetAsFree[Place = [Value] =>> SimplePlace[InnerPlace[Value]]](current)
+        widgetAsFree[Place = Place](current).pure[Merge]
     end match
   end helper
 

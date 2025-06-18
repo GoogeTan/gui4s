@@ -6,6 +6,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.example.api.*
 import me.katze.gui4s.layout.{Placed, Rect, Sized}
 import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget.library.Widget
 
 import scala.math.Numeric.Implicits.*
 import scala.math.Ordered.orderingToOrdered
@@ -25,11 +26,11 @@ def handleClick[
   HandleableEvent,
   MeasurementUnit : Numeric
 ](
-   original : SimplePlace[Placed[MeasurementUnit, SkijaWidget[T, Update, [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
+   original : SimplePlace[Placed[MeasurementUnit, Widget[T, Update, [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
    markEventHandled : Update[Unit],
    differentiateEvent : HandleableEvent => Option[ClickedAt[MeasurementUnit]],
    onClick : (Path, ClickedAt[MeasurementUnit]) => Update[Unit]
-) : SimplePlace[Placed[MeasurementUnit, SkijaWidget[T, Update,  [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
+) : SimplePlace[Placed[MeasurementUnit, Widget[T, Update,  [Value] =>> SimplePlace[Placed[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
   eventCatcherWithWidgetsRect[T, Update, SimplePlace, Draw, RecompositionReaction, HandleableEvent, MeasurementUnit](markEventHandled)(original):
     (path, rect, _, event) =>
       differentiateEvent(event) match

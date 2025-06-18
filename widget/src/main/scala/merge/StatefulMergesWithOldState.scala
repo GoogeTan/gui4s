@@ -6,12 +6,12 @@ import cats.syntax.functor.*
 
 def mergeWithOldStatesStateful[
   State,
-  Place[_] : Functor,
+  Merge[_] : Functor,
   Widget,
   Recomposition
 ](
-  mergeWithOldInnerStates: MergesWithOldStates[State, Recomposition, Place[State]]
-) : MergesWithOldStates[Stateful[Widget, State], Recomposition, Place[Stateful[Widget, State]]] =
+  mergeWithOldInnerStates: MergesWithOldStates[State, Recomposition, Merge[State]]
+) : MergesWithOldStates[Stateful[Widget, State], Recomposition, Merge[Stateful[Widget, State]]] =
   (self, pathToParent, innerStates) =>
     mergeWithOldInnerStates(self.state, pathToParent, innerStates)
       .map(newState => self.copy(state = newState))

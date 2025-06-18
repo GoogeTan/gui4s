@@ -6,7 +6,8 @@ import cats.effect.std.Queue
 import cats.effect.syntax.all.*
 import cats.effect.{Async, Concurrent, ExitCode, Ref}
 import cats.syntax.all.given
-import cats.{Monad, MonadError}
+import cats.{Monad, MonadError, ~>}
+import sun.jvm.hotspot.runtime.PerfMemory.end
 
 import scala.concurrent.ExecutionContext
 

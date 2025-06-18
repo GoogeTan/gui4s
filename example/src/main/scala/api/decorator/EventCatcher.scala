@@ -6,6 +6,7 @@ import cats.{Functor, Monad, Monoid}
 import me.katze.gui4s.layout.{Placed, Rect}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEvent
+import me.katze.gui4s.widget.library.Widget
 
 /**
  * Декорирует обновление виджета.
@@ -20,9 +21,9 @@ def eventHandleDecorator[
   RecompositionReaction,
   HandleableEvent,
 ](
-  original : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
-  decorator : HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
-) : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
+   original : Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+   decorator : HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
+) : Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
   original.copy(
     valueHandlesEvent = decorator(original.valueHandlesEvent)
   )
@@ -44,10 +45,10 @@ def eventCatcher[
 ](
   markEventHandled : Update[Unit]
 )(
-    original : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+   original : Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
 )(
     decorator : (Path, HandleableEvent) => Update[Boolean]
-) : SkijaWidget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
+) : Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
   eventHandleDecorator(
     original,
     (handler) =>
@@ -71,10 +72,10 @@ def eventCatcherWithWidgetsRect[
 ](
    markEventHandled : Update[Unit]
  )(
-   original : SimplePlace[Placed[MeasurableUnit, SkijaWidget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
+   original : SimplePlace[Placed[MeasurableUnit, Widget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
  )(
    decorator : (Path, Rect[MeasurableUnit], MeasurableUnit, HandleableEvent) => Update[Boolean]
- ) : SimplePlace[Placed[MeasurableUnit, SkijaWidget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
+ ) : SimplePlace[Placed[MeasurableUnit, Widget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
   given Functor[[Value] =>> SimplePlace[Placed[MeasurableUnit, Value]]] with
     override def map[A, B](value : SimplePlace[Placed[MeasurableUnit, A]])(f : A => B) : SimplePlace[Placed[MeasurableUnit, B]] =
       value.map(_.mapValue(f))

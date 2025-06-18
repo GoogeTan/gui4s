@@ -1,12 +1,9 @@
-
 package me.katze.gui4s.widget.library
 
-import catnip.FFI
-import catnip.syntax.all.given
+import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
-import cats.{Functor, Monad, Monoid}
+import cats.{Applicative, Functor, Monad, Monoid}
 import me.*
-import me.katze.gui4s.layout.{Axis, given}
 import me.katze.gui4s.widget.Container
 import me.katze.gui4s.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
 import me.katze.gui4s.widget.free.containerAsFree
@@ -27,60 +24,61 @@ type LinearLayout[
   additionalAxisStrategy : AdditionalAxisPlacementStrategy,
 ) => Widget[Event]
 
-def skijaLinearLayout[
+def linearLayout[
   Update[+_] : Monad,
   Place[+_] : Functor,
+  Merge[+_] : Applicative,
   Draw : Monoid,
   RecompositionReaction : Monoid,
   HandleableEvent,
   Meta : Ordering,
 ](
-  children : List[Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
-  layout : Layout[Place, SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
-  adjustDrawToMeta : (Draw, Meta) => Draw,
-  eventConsumed : Update[Boolean],
-) : Place[SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
-  type Widget = SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+    children : List[Place[Widget_[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent]]],
+    layout : Layout[Place, Widget_[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent], Meta],
+    adjustDrawToMeta : (Draw, Meta) => Draw,
+    eventConsumed : Update[Boolean],
+) : Place[Widget_[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent]] =
+  type Widget = Widget_[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent]
   layout(children).map(
     placedChildren =>
-      SkijaWidget[
+      Widget[
         Container[(Widget, Meta), Layout[Place, Widget, Meta]],
-        Update, Place, Draw, RecompositionReaction, HandleableEvent
+        Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent
       ](
         valueToDecorate = Container(placedChildren, layout),
         valueAsFree = containerAsFree(
-          skijaWidgetAsFree
+          widgetAsFree
         ),
         valueIsDrawable = drawContainer(
           widgetWithMetaIsDrawable(
-            skijaWidgetIsDrawable,
+            widgetIsDrawable,
             adjustDrawToMeta
           )
         ),
         valueHandlesEvent = containerHandlesEvent[Update, Place, Widget, HandleableEvent, Meta](
           childrenHandleEvent[Update, Place, Widget, HandleableEvent, Meta](
-            widgetHandlesEvent = skijaWidgetHandlesEvent[Update, Place, Draw, RecompositionReaction, HandleableEvent],
-            widgetAsFree = skijaWidgetAsFree[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+            widgetHandlesEvent = widgetHandlesEvent[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent],
+            widgetAsFree = widgetAsFree[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent],
             eventConsumed = eventConsumed
           )
         ),
         valueMergesWithOldState = containerMergesWithOldStates[
-          Place, Widget, RecompositionReaction, Meta
+          Place, Merge, Widget, RecompositionReaction, Meta
         ](
-          skijaWidgetMergesWithOldState[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+          widgetMergesWithOldState[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent]
         ),
         valueReactsOnRecomposition = containerReactsOnRecomposition[
           (Widget, Meta), Layout[Place, Widget, Meta], RecompositionReaction
         ](
           widgetWithMetaReactsOnRecomposition[Widget, Meta, RecompositionReaction](
-            skijaWidgetReactsOnRecomposition[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+            widgetReactsOnRecomposition[Update, Place, Merge * Place, Draw, RecompositionReaction, HandleableEvent]
           )
         ),
         valueHasInnerState = containerHasInnerStates[(Widget, Meta), Layout[Place, Widget, Meta], RecompositionReaction](
           widgetWithMetaHasInnerStates[Widget, Meta, RecompositionReaction](
-            skijaWidgetHasInnerStates
+            widgetHasInnerStates
           )
         ),
       )
   )
-end skijaLinearLayout
+end linearLayout

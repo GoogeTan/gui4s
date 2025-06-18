@@ -2,6 +2,7 @@ package me.katze.gui4s.example
 package place
 
 import cats.*
+import me.katze.gui4s.example.api.LayoutPlacementMeta
 import me.katze.gui4s.layout
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*

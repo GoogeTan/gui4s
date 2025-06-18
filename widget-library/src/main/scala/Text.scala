@@ -1,11 +1,12 @@
 
 package me.katze.gui4s.widget.library
-import cats.{Functor, Monad}
+import cats.{Applicative, Functor, Monad}
 import cats.syntax.all.*
 
 def skijaText[
   Update[+_] : Monad,
   Place[+_] : Functor,
+  Merge[+_] : Applicative,
   Draw,
   RecompositionReaction,
   HandleableEvent,
@@ -15,8 +16,8 @@ def skijaText[
    draw : PlacedText => Draw,
    emptyRecomposition : RecompositionReaction
  ) : Place[
-  SkijaWidget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+  Widget_[Update, Place, Merge, Draw, RecompositionReaction, HandleableEvent]
 ] =
-  drawOnlyWidget[Update, Place, Draw, RecompositionReaction, HandleableEvent](text.map(draw), emptyRecomposition)
+  drawOnlyWidget[Update, Place, Merge, Draw, RecompositionReaction, HandleableEvent](text.map(draw), emptyRecomposition)
 end skijaText
 

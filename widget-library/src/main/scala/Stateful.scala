@@ -7,7 +7,7 @@ import cats.{Functor, Monoid}
 import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import me.katze.gui4s.widget.free.statefulAsFree
 import me.katze.gui4s.widget.handle.{HandlesEvent, statefulHandlesEvent, statefulStateHandlesEvents}
-import me.katze.gui4s.widget.merge.{Mergable, mergeStatefulWithOldStates, mergeWithOldStatesStateful}
+import me.katze.gui4s.widget.merge.{Mergable, mapMerge, mergeStatefulWithOldStates, mergeWithOldStatesStateful}
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
 import me.katze.gui4s.widget.state.{statefulHasInnerStates, statefulStateIsState}
 import me.katze.gui4s.widget.{CatchEvents, Path, Stateful, StatefulState}
@@ -17,6 +17,7 @@ import scala.language.experimental.namedTypeArguments
 def skijaStateful[
   Update[+_, +_] : {BiMonad, CatchEvents},
   Place[+_] : Functor,
+  Merge[+_] : Functor,
   Draw,
   RecompositionReaction : Monoid as M,
   HandlableEvent,
@@ -25,28 +26,30 @@ def skijaStateful[
   Event,
   ChildEvent
 ](
-  widgetsAreMergeable : Mergable[Place, SkijaWidget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
-  runEventReaction : (EventReaction, Path) => Update[Event, State],
-  typeCheckState : Any => Place[(State, State)],
+   widgetsAreMergeable : Mergable[Place, Widget_[Update[ChildEvent, *], Place, Merge * Place, Draw, RecompositionReaction, HandlableEvent]],
+   runEventReaction : (EventReaction, Path) => Update[Event, State],
+   typeCheckState : Any => Merge[(State, State)],
 )(
-  name : String,
-  initialState : State,
-  handleEvent : (State, List[ChildEvent]) => EventReaction,
-  render : State => Place[SkijaWidget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
-  destructor : State => RecompositionReaction,
+   name : String,
+   initialState : State,
+   handleEvent : (State, List[ChildEvent]) => EventReaction,
+   render : State => Place[Widget_[Update[ChildEvent, *], Place, Merge * Place, Draw, RecompositionReaction, HandlableEvent]],
+   destructor : State => RecompositionReaction,
 ) : Place[
-  SkijaWidget_[
+  Widget_[
     Update[Event, *],
     Place,
+    Merge * Place,
     Draw,
     RecompositionReaction,
     HandlableEvent
   ]
 ] =
   render(initialState).map(initialChild =>
-    type Widget[E] = SkijaWidget_[
+    type Widget[E] = Widget_[
       Update[E, *],
       Place,
+      Merge * Place,
       Draw,
       RecompositionReaction,
       HandlableEvent
@@ -71,21 +74,21 @@ def skijaStateful[
       ),
       child = initialChild
     )
-
-    SkijaWidget[
+    val statefulAsFree_ = statefulAsFree[Place, Widget[ChildEvent], StState](widgetAsFree)
+    Widget[
       T = Stateful[Widget[ChildEvent], StState],
       Update = Update[Event, *],
       Place = Place
     ](
       valueToDecorate = stateful,
-      valueAsFree = statefulAsFree(skijaWidgetAsFree),
-      valueIsDrawable = statefulIsDrawable(skijaWidgetIsDrawable),
+      valueAsFree = statefulAsFree_, // TODO Rename me
+      valueIsDrawable = statefulIsDrawable(widgetIsDrawable),
       valueHandlesEvent = skijaStatefulHandlesEvent(widgetsAreMergeable),
-      valueMergesWithOldState = mergeWithOldStatesStateful(mergeStatefulWithOldStates(typeCheckState)),
+      valueMergesWithOldState = mapMerge(mergeWithOldStatesStateful(mergeStatefulWithOldStates(typeCheckState)))(_.map(statefulAsFree_)),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
-        skijaWidgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
+        widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Merge * Place, Draw, RecompositionReaction, HandlableEvent],
       ),
-      valueHasInnerState = statefulHasInnerStates(statefulStateIsState)
+      valueHasInnerState = statefulHasInnerStates(statefulStateIsState[Merge = Merge * Place])
     )
   )
 end skijaStateful
@@ -95,6 +98,7 @@ type HandlesEventPlace[Place[_], T, HandlableEvent] = HandlesEvent[T, HandlableE
 def skijaStatefulHandlesEvent[
   Update[+_, +_] : {BiMonad, CatchEvents},
   Place[+_] : Functor,
+  Merge[+_],
   Draw,
   RecompositionReaction : Monoid as M,
   HandlableEvent,
@@ -102,13 +106,14 @@ def skijaStatefulHandlesEvent[
   Event,
   ChildEvent
 ](
-  widgetsAreMergeable : Mergable[Place, SkijaWidget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
+   widgetsAreMergeable : Mergable[Place, Widget_[Update[ChildEvent, *], Place, Merge * Place, Draw, RecompositionReaction, HandlableEvent]],
 ): HandlesEventPlace[
   [T] =>> Update[Event, Place[T]],
   Stateful[
-    SkijaWidget_[
+    Widget_[
       Update[ChildEvent, *],
       Place,
+      Merge * Place,
       Draw,
       RecompositionReaction,
       HandlableEvent
@@ -116,9 +121,9 @@ def skijaStatefulHandlesEvent[
     StatefulState[
       State,
       State => Place[
-        SkijaWidget_[
+        Widget_[
           Update[ChildEvent, *],
-          Place, Draw, RecompositionReaction, HandlableEvent
+          Place, Merge * Place, Draw, RecompositionReaction, HandlableEvent
         ]
       ],
       HandlesEvent[State, List[ChildEvent], Update[Event, State]],
@@ -128,8 +133,8 @@ def skijaStatefulHandlesEvent[
 ] = statefulHandlesEvent(
   stateHandlesEvents = statefulStateHandlesEvents[Update = Update[Event, *]],
   drawStateIntoWidget = statefulStateDrawsIntoWidget,
-  childHandlesEvents = skijaWidgetHandlesEvent[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
+  childHandlesEvents = widgetHandlesEvent[Update[ChildEvent, *], Place, Merge * Place, Draw, RecompositionReaction, HandlableEvent],
   widgetsAreMergable = widgetsAreMergeable,
-  widgetAsFree = skijaWidgetAsFree
+  widgetAsFree = widgetAsFree
 )
 

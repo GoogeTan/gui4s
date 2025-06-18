@@ -7,6 +7,7 @@ import place.MainAxisStrategyErrors
 import catnip.FFI
 import catnip.cats.effect.SyncFFI
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.data.EitherT
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s.example.api.exported.*
@@ -20,27 +21,35 @@ object SkijaAppExample extends IOApp:
   given ffi : FFI[IO] = SyncFFI[IO]
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaApp[IO](
+    skijaApp[IO, String](
       widget = main, 
       updateLoopExecutionContext = this.runtime.compute,
-      drawLoopExecutionContext = MainThread
+      drawLoopExecutionContext = MainThread,
+      runEitherTError = [V] => (value : EitherT[IO, String, V]) =>
+        value.value.flatMap:
+          case Left(error) =>
+            IO.raiseError(new Exception(error))
+          case Right(value) =>
+            IO.pure(value)
     )
   end run
 
-  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Nothing, SkijaDownEvent] =
-    skijaColumn[IO, Nothing, SkijaDownEvent](
+  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Float, String, Nothing, SkijaDownEvent] =
+    skijaColumn[IO, String, Nothing, SkijaDownEvent](
       (0 until 6).toList.map(
         lineNumber =>
-          skijaStateful[IO, SkijaDownEvent, Int, Nothing, Unit](
+          skijaStateful[IO, String, Float, SkijaDownEvent, Int, Nothing, Unit](
             "line-" + lineNumber.toString,
             1,
             (state, _) => EventReaction(state + 1, Nil, Nil),
-            state => skijaText(
+            state =>
+              skijaText(
                 ffi,
                 "# line value " + state.toString,
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
               ),
-            _ => IO.unit
+            _ => IO.unit,
+            (value : Any) => "Error in stateful typeckecking"
           )
       ),
       MainAxisPlacementStrategy.SpaceBetween, // TODO fix end gap

@@ -31,12 +31,12 @@ final case class RootWidget[
   widgetHasInnerState : HasInnerStates[Widget, Recomposition],
   widgetIsDrawable : RawDrawable[Widget, Draw]
 )(
-  using RunPlacement[F, Place]
+  using runPlacement: RunPlacement[Place, F]
 ) extends EventConsumer[Update, F[RootWidget[F, Widget, Draw, Place, Update, Recomposition, DownEvent]], DownEvent] with Drawable[Draw]:
   override def processEvent(event: DownEvent): Update[F[RootWidget[F, Widget, Draw, Place, Update, Recomposition, DownEvent]]] =
     widgetHandlesEvent(placedWidget, pathToRoot, event).map(newWidget =>
       for
-        newPlacedWidget <- newWidget.runPlacement
+        newPlacedWidget <- runPlacement(newWidget)
         _ <- runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, widgetHasInnerState(placedWidget)))
         _ <- collectQuitCompositionReactions[Recomposition](
           widgetHasInnerState(placedWidget),

@@ -3,20 +3,28 @@ package merge
 
 import handle.Layout
 
-import cats.Functor
+import cats.{Applicative, Functor}
 import cats.syntax.all.*
 
 def containerMergesWithOldStates[
   Place[_] : Functor,
+  Merge[_] : Applicative,
   Widget,
   RecompositionAction,
   Meta
 ](
- initial : MergesWithOldStates[Widget, RecompositionAction, Place[Widget]],
-) : MergesWithOldStates[Container[(Widget, Meta), Layout[Place, Widget, Meta]], RecompositionAction, Place[Container[(Widget, Meta), Layout[Place, Widget, Meta]]]] =
+  initial : MergesWithOldStates[Widget, RecompositionAction, Merge[Place[Widget]]],
+) : MergesWithOldStates[
+  Container[(Widget, Meta), Layout[Place, Widget, Meta]],
+  RecompositionAction,
+  Merge[Place[Container[(Widget, Meta), Layout[Place, Widget, Meta]]]]
+] =
   (self, path, oldStates) =>
-    self.layout(
-        self.children
-          .map((widget, _) => initial(widget, path, oldStates))
-    ).map(updatedChildren => self.copy(children = updatedChildren))
+    self.children
+      .traverse((widget, _) => initial(widget, path, oldStates))
+      .map(mergedChildrenFree =>
+        self.layout(
+          mergedChildrenFree
+        ).map(mergedChildrenPlaced => self.copy(children = mergedChildrenPlaced))
+      )
 end containerMergesWithOldStates

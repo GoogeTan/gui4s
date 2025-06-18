@@ -21,5 +21,7 @@ object additional:
   end InjectMonad
 
   @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-  given [A, B[_]](using f: [C] => () => B[C]) : B[A] = f[A]()
+  given applyGeneral[A, B[_]](using f: [C] => () => B[C]) : B[A] = f[A]()
+
+  type *[F[_], G[_]] = [Value] =>> F[G[Value]]
 end additional
