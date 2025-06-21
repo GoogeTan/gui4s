@@ -52,7 +52,7 @@ object SkijaAppExample extends IOApp:
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
               ),
             _ => IO.unit,
-            (value : Any, path : Path) => "Error in stateful typeckecking at " + path.toString
+            (value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "] while expected Int"
           )
       ),
       MainAxisPlacementStrategy.SpaceBetween, // TODO fix end gap

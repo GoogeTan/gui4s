@@ -17,16 +17,25 @@ import io.github.humbleui.skija.PathMeasure
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.example.place.RunPlacement
 import me.katze.gui4s.example.update.ApplicationRequest
-import me.katze.gui4s.layout.Sized
+import me.katze.gui4s.layout.{Point3d, Sized, given}
 import me.katze.gui4s.widget.library.Widget_
-import me.katze.gui4s.layout.given
 
-opaque type SkijaUpdate[Event, Value] = EventResult[Event, Value]
-type SkijaUpdateT[Event] = SkijaUpdate[Event, *]
+opaque type SkijaUpdate[MeasurementUnit, Event, Value] = EventResult[MeasurementUnit, Event, Value]
+type SkijaUpdateT[MeasurementUnit, Event] = SkijaUpdate[MeasurementUnit, Event, *]
+
 opaque type SkijaPlaceInner[IO[_], MeasurementUnit, Error, Value] = StateT[EitherT[IO, Error, *], Bounds[MeasurementUnit], Value]
 type SkijaPlaceInnerT[IO[_], MeasurementUnit, Error] = SkijaPlaceInner[IO, MeasurementUnit, Error, *]
 type SkijaPlace[IO[_], MeasurementUnit, Error, Value] = SkijaPlaceInner[IO, MeasurementUnit, Error, Sized[MeasurementUnit, Value]]
 type SkijaPlaceT[IO[_], MeasurementUnit, Error] = SkijaPlace[IO, MeasurementUnit, Error, *]
+
+type SkijaRecomposition[F[_]] = F[Unit]
+
+type SkijaPlacedWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] = Widget_[SkijaUpdateT[MeasurementUnit, Event], SkijaPlaceT[F, MeasurementUnit, PlaceError], SkijaDraw[F, OglWindow], SkijaRecomposition[F], DownEvent]
+type SkijaWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] = SkijaPlace[F, MeasurementUnit, PlaceError, SkijaPlacedWidget[F, MeasurementUnit, PlaceError, Event, DownEvent]]
+
+type GetBounds[F[_], MeasurementUnit] = F[Bounds[MeasurementUnit]]
+type SetBounds[F[_], MeasurementUnit] = Bounds[MeasurementUnit] => F[Unit]
+type SizeText[F[_], G[_]] = (ffi: FFI[F], text: String, shaper: Shaper, options: SkijaTextStyle) => G[SkijaPlacedText]
 
 def raiseError[IO[_] : Monad, MeasurementUnit, PlaceError](error : => PlaceError) : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Nothing] =
   StateT.liftF(EitherT.left(error.pure))
@@ -54,8 +63,6 @@ def runPlaceLift[U[_], F[_], G[_]](original : RunPlacement[F, U], inj : G ~> F) 
   [Value] => (value : G[Value]) => original(inj(value))
 end runPlaceLift
 
-type GetBounds[F[_], MeasurementUnit] = F[Bounds[MeasurementUnit]]
-type SetBounds[F[_], MeasurementUnit] = Bounds[MeasurementUnit] => F[Unit]
 
 def getBoundsStateT[F[_] : Applicative, MeasurementUnit] : GetBounds[StateT[F, Bounds[MeasurementUnit], *], MeasurementUnit] =
   StateT.get
@@ -83,7 +90,6 @@ end setBounds
 
 given[F[_] : Monad, MeasurementUnit, Error] : Monad[SkijaPlaceInner[F, MeasurementUnit, Error, *]] = summon
 
-type SizeText[F[_], G[_]] = (ffi : FFI[F], text : String, shaper : Shaper, options : SkijaTextStyle) => G[SkijaPlacedText]
 
 def sizeTextStateT[F[_] : Applicative] : SizeText[F, [Value] =>> StateT[F, Bounds[Float], Sized[Float, Value]]] =
   (ffi : FFI[F], text: String, shaper : Shaper, options: SkijaTextStyle) =>
@@ -117,24 +123,19 @@ def mapF[F[_] : FlatMap, G[_] : Applicative, U[_], S](f : F ~> G) : (StateT[F, S
   end new
 end mapF
 
-given BiMonad[SkijaUpdate] = summon
-given CatchEvents[SkijaUpdate] = summon
+given[MeasurementUnit] : BiMonad[SkijaUpdate[MeasurementUnit, *, *]] = summon
+given[MeasurementUnit] : CatchEvents[SkijaUpdate[MeasurementUnit, *, *]] = summon
 
 
-def runEventReaction[T, Event](reaction : EventReaction[T, Event, ?], path : Path) : SkijaUpdate[Event, T] =
+def runEventReaction[MeasurementUnit, T, Event](reaction : EventReaction[T, Event, ?], path : Path) : SkijaUpdate[MeasurementUnit, Event, T] =
   StateT(isEventHandled => EventResult_((isEventHandled, reaction.newState), reaction.parentEvent))
 end runEventReaction
 
-def handleApplicationRequests[F[_] : Monad] : [T] => SkijaUpdateT[ApplicationRequest][T] => F[Either[ExitCode, T]] =
+def handleApplicationRequests[F[_] : Monad, MeasurementUnit : Numeric as N] : [T] => SkijaUpdate[MeasurementUnit, ApplicationRequest, T] => F[Either[ExitCode, T]] =
   [T] => update =>
-    val reaction : EventResult_[ApplicationRequest, (Boolean, T)] = update.run(false)
+    val reaction : EventResult_[ApplicationRequest, (EventResultState[MeasurementUnit], T)] = update.run(emptyEventResultState)
     reaction.events.foldM(Right(reaction.widget._2))((_, request) =>
       request match
         case ApplicationRequest.CloseApp(code) => Left(code).pure[F]
     )
 end handleApplicationRequests
-
-type SkijaRecomposition[F[_]] = F[Unit]
-
-type SkijaPlacedWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] = Widget_[SkijaUpdateT[Event], SkijaPlaceT[F, MeasurementUnit, PlaceError], SkijaDraw[F, OglWindow], SkijaRecomposition[F], DownEvent]
-type SkijaWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] = SkijaPlace[F, MeasurementUnit, PlaceError, SkijaPlacedWidget[F, MeasurementUnit, PlaceError, Event, DownEvent]]

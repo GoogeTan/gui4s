@@ -30,7 +30,7 @@ def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: M
   verticalStrategy  : AdditionalAxisPlacementStrategy
 ): SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
   linearLayout[
-    SkijaUpdateT[Event],
+    SkijaUpdateT[Float, Event],
     SkijaPlaceT[F, Float, PlaceError],
     SkijaDraw[F, OglWindow],
     SkijaRecomposition[F],
@@ -54,7 +54,7 @@ def skijaColumn[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors
   horizontalStrategy: AdditionalAxisPlacementStrategy
 ): SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
   linearLayout[
-    SkijaUpdateT[Event],
+    SkijaUpdateT[Float, Event],
     SkijaPlaceT[F, Float, PlaceError],
     SkijaDraw[F, OglWindow],
     SkijaRecomposition[F],
@@ -89,7 +89,7 @@ def skijaStateful[
    typecheckError : (Any, Path) => PlaceError
 ) : SkijaWidget[F, MeasurementUnit, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.skijaStateful[
-    SkijaUpdate,
+    SkijaUpdate[MeasurementUnit, *, *],
     SkijaPlaceT[F, MeasurementUnit, PlaceError],
     SkijaDraw[F, OglWindow],
     SkijaRecomposition[F],
@@ -100,11 +100,11 @@ def skijaStateful[
     ChildEvent
   ](
     widgetsAreMergeable = skijaWidgetsAreMergable[
-      Update = SkijaUpdateT[ChildEvent],
+      Update = SkijaUpdateT[MeasurementUnit, ChildEvent],
       OuterPlace = SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
     ],
     runEventReaction = runEventReaction,
-    typeCheckState = [T] => (value : Any, path : Path, callback : (State, State) => SkijaPlace[F, MeasurementUnit, PlaceError, T]) => 
+    typeCheckState = [T] => (value : Any, path : Path, callback : (State, State) => SkijaPlace[F, MeasurementUnit, PlaceError, T]) =>
       typecheckState[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], State](value, raiseError(typecheckError(value, path)))
         .flatMap((a, b) => callback(a, b)) // Почему-то он сам не может распаковать тьюпл. Приходится так
   )(

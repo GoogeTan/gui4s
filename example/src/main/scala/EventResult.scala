@@ -4,6 +4,7 @@ import catnip.BiMonad
 import cats.Bimonad
 import cats.data.IndexedStateT.catsDataMonadForIndexedStateT
 import cats.data.StateT
+import me.katze.gui4s.layout.Point3d
 import me.katze.gui4s.widget.{CatchEvents, given}
 
 import scala.annotation.tailrec
@@ -17,11 +18,17 @@ final case class EventResult_[+Event, +Widget](
   end this
 end EventResult_
 
-type EventResult[Event, Widget] = StateT[EventResult_[Event, *], Boolean, Widget]
+type EventResultState[MeasurementUnit] = (consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit])
 
-given BiMonad[EventResult] = [Event] => () => catsDataMonadForIndexedStateT(using eventResultIsBimonad)
+def emptyEventResultState[MeasurementUnit : Numeric as N] : EventResultState[MeasurementUnit] =
+  (false, Point3d(N.zero, N.zero, N.zero))
+end emptyEventResultState
+
+type EventResult[MeasurementUnit, Event, Widget] = StateT[EventResult_[Event, *], EventResultState[MeasurementUnit], Widget]
+
+given[MeasurementUnit]: BiMonad[EventResult[MeasurementUnit, *, *]] = [Event] => () => catsDataMonadForIndexedStateT(using eventResultIsBimonad)
 given eventResultIsBiMonad : BiMonad[EventResult_] = [Event] => () => eventResultIsBimonad
-given CatchEvents[[Event, Widget] =>> StateT[EventResult_[Event, *], Boolean, Widget]] = liftStateTCatchEvents[EventResult_, Boolean](using eventResultIsBiMonad, eventResult_CatchEvents)
+given[MeasurementUnit]: CatchEvents[EventResult[MeasurementUnit, *, *]] = liftStateTCatchEvents[EventResult_, EventResultState[MeasurementUnit]](using eventResultIsBiMonad, eventResult_CatchEvents)
 
 given eventResultIsBimonad[Event] : Bimonad[[Value] =>> EventResult_[Event, Value]] with
   override def pure[A](a: A): EventResult_[Event, A] = 
