@@ -37,6 +37,22 @@ type GetBounds[F[_], MeasurementUnit] = F[Bounds[MeasurementUnit]]
 type SetBounds[F[_], MeasurementUnit] = Bounds[MeasurementUnit] => F[Unit]
 type SizeText[F[_], G[_]] = (ffi: FFI[F], text: String, shaper: Shaper, options: SkijaTextStyle) => G[SkijaPlacedText]
 
+given[MeasurementUnit] : BiMonad[SkijaUpdate[MeasurementUnit, *, *]] = summon
+
+def markEventHandled[MeasurementUnit, Event] : SkijaUpdate[MeasurementUnit, Event, Unit] =
+  StateT.modify(me.katze.gui4s.example.markEventHandled)
+end markEventHandled
+
+def getCoordinates[MeasurementUnit, Event] : SkijaUpdate[MeasurementUnit, Event, Point3d[MeasurementUnit]] =
+  StateT.get[EventResult_[Event, *], EventResultState[MeasurementUnit]].map(_.widgetCoordinates)
+end getCoordinates
+
+def raiseEvents[MeasurementUnit, Event](events : List[Event]) : SkijaUpdate[MeasurementUnit, Event, Unit] =
+  StateT.modify(
+    state => (state.consumed, state.widgetCoordinates)
+  )
+end raiseEvents
+
 def raiseError[IO[_] : Monad, MeasurementUnit, PlaceError](error : => PlaceError) : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Nothing] =
   StateT.liftF(EitherT.left(error.pure))
 end raiseError
@@ -123,7 +139,6 @@ def mapF[F[_] : FlatMap, G[_] : Applicative, U[_], S](f : F ~> G) : (StateT[F, S
   end new
 end mapF
 
-given[MeasurementUnit] : BiMonad[SkijaUpdate[MeasurementUnit, *, *]] = summon
 given[MeasurementUnit] : CatchEvents[SkijaUpdate[MeasurementUnit, *, *]] = summon
 
 

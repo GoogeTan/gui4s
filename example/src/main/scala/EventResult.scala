@@ -26,6 +26,10 @@ end emptyEventResultState
 
 type EventResult[MeasurementUnit, Event, Widget] = StateT[EventResult_[Event, *], EventResultState[MeasurementUnit], Widget]
 
+def markEventHandled[MeasuremementUnit](state : EventResultState[MeasuremementUnit]) : EventResultState[MeasuremementUnit] =
+  (true, state.widgetCoordinates)
+end markEventHandled
+
 given[MeasurementUnit]: BiMonad[EventResult[MeasurementUnit, *, *]] = [Event] => () => catsDataMonadForIndexedStateT(using eventResultIsBimonad)
 given eventResultIsBiMonad : BiMonad[EventResult_] = [Event] => () => eventResultIsBimonad
 given[MeasurementUnit]: CatchEvents[EventResult[MeasurementUnit, *, *]] = liftStateTCatchEvents[EventResult_, EventResultState[MeasurementUnit]](using eventResultIsBiMonad, eventResult_CatchEvents)

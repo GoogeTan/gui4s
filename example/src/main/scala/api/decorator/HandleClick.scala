@@ -6,7 +6,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.example.api.*
 import me.katze.gui4s.layout.{Point3d, Rect, Sized}
 import me.katze.gui4s.widget.Path
-import me.katze.gui4s.widget.library.Widget
+import me.katze.gui4s.widget.library.{Widget, Widget_}
 
 import scala.math.Numeric.Implicits.*
 import scala.math.Ordered.orderingToOrdered
@@ -18,7 +18,6 @@ final case class ClickedAt[MeasurementUnit](x : MeasurementUnit, y : Measurement
 end ClickedAt
 
 def handleClick[
-  T,
   Update[_] : Monad,
   OuterPlace[_] : Functor,
   Draw : Monoid,
@@ -26,13 +25,15 @@ def handleClick[
   HandleableEvent,
   MeasurementUnit : Numeric
 ](
-   original : OuterPlace[Sized[MeasurementUnit, Widget[T, Update, [Value] =>> OuterPlace[Sized[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
    markEventHandled : Update[Unit],
    coordinatesOfTheWidget : Update[Point3d[MeasurementUnit]],
    differentiateEvent : HandleableEvent => Option[ClickedAt[MeasurementUnit]],
-   onClick : (Path, ClickedAt[MeasurementUnit]) => Update[Unit]
-) : OuterPlace[Sized[MeasurementUnit, Widget[T, Update,  [Value] =>> OuterPlace[Sized[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
-  eventCatcherWithWidgetsRect[T, Update, OuterPlace, Draw, RecompositionReaction, HandleableEvent, MeasurementUnit](markEventHandled, coordinatesOfTheWidget)(original):
+)(
+  original : OuterPlace[Sized[MeasurementUnit, Widget_[Update, [Value] =>> OuterPlace[Sized[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
+)(
+  onClick : (Path, ClickedAt[MeasurementUnit]) => Update[Unit]
+) : OuterPlace[Sized[MeasurementUnit, Widget_[Update,  [Value] =>> OuterPlace[Sized[MeasurementUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
+  eventCatcherWithWidgetsRect[Update, OuterPlace, Draw, RecompositionReaction, HandleableEvent, MeasurementUnit](markEventHandled, coordinatesOfTheWidget)(original):
     (path, rect, _, event) =>
       differentiateEvent(event) match
         case Some(value) if value.isIn(rect) =>

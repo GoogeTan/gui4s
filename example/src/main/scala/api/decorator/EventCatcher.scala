@@ -7,7 +7,7 @@ import catnip.syntax.applicative.nestedFunctorsAreFunctors
 import me.katze.gui4s.layout.{Placed, Point3d, Rect, Sized, given}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEvent
-import me.katze.gui4s.widget.library.Widget
+import me.katze.gui4s.widget.library.{Widget, Widget_}
 
 /**
  * Декорирует обновление виджета.
@@ -63,7 +63,6 @@ def eventCatcher[
 end eventCatcher
 
 def eventCatcherWithWidgetsRect[
-  T,
   Update[_] : Monad,
   OuterPlace[_] : Functor,
   Draw : Monoid,
@@ -74,10 +73,10 @@ def eventCatcherWithWidgetsRect[
    markEventHandled : Update[Unit],
    coordinatesOfTheWidget : Update[Point3d[MeasurableUnit]]
  )(
-   original : OuterPlace[Sized[MeasurableUnit, Widget[T, Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
+   original : OuterPlace[Sized[MeasurableUnit, Widget_[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
  )(
    decorator : (Path, Rect[MeasurableUnit], Point3d[MeasurableUnit], HandleableEvent) => Update[Boolean]
- ) : OuterPlace[Sized[MeasurableUnit, Widget[T, Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
+ ) : OuterPlace[Sized[MeasurableUnit, Widget_[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
   original.map(
     placedWidget =>
       placedWidget.mapValue(
