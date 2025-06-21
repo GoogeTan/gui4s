@@ -1,6 +1,5 @@
 package me.katze.gui4s.example
 
-import draw.skija.{*, given}
 import impl.ENErrors
 import place.MainAxisStrategyErrors
 
@@ -8,14 +7,18 @@ import catnip.FFI
 import catnip.cats.effect.SyncFFI
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.data.EitherT
-import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s.example.api.exported.*
+import me.katze.gui4s.example.draw.skija.SkijaBackend
+import me.katze.gui4s.example.update.ApplicationRequest
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.skija.SkijaTextStyle
 import me.katze.gui4s.widget.EventReaction
 import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
+import scala.annotation.experimental
+
+@experimental
 object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors = ENErrors
   given ffi : FFI[IO] = SyncFFI[IO]
@@ -34,11 +37,11 @@ object SkijaAppExample extends IOApp:
     )
   end run
 
-  def main(using SkijaBackend[IO, OglWindow]) : Widget[IO, Float, String, Nothing, SkijaDownEvent] =
-    skijaColumn[IO, String, Nothing, SkijaDownEvent](
+  def main(using SkijaBackend[IO, OglWindow]) : SkijaWidget[IO, Float, String, ApplicationRequest, SkijaDownEvent] =
+    skijaColumn[IO, String, ApplicationRequest, SkijaDownEvent](
       (0 until 6).toList.map(
         lineNumber =>
-          skijaStateful[IO, String, Float, SkijaDownEvent, Int, Nothing, Unit](
+          skijaStateful[IO, String, Float, SkijaDownEvent, Int, ApplicationRequest, Unit](
             "line-" + lineNumber.toString,
             1,
             (state, _) => EventReaction(state + 1, Nil, Nil),

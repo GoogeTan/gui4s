@@ -1,17 +1,18 @@
 package me.katze.gui4s.example
 package impl
 
+import api.LayoutPlacementMeta
 import place.*
 
 import cats.*
-import cats.syntax.all.*
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.LayoutPlacementMeta
 import me.katze.gui4s.layout.bound.{AxisDependentBounds, Bounds}
 import me.katze.gui4s.layout.rowcolumn.{placeItems, sizeItems}
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
+
+import scala.annotation.experimental
 
 type LayoutPlacement[Place[_], MeasurementUnit, PlacementMeta, Widget[_], Axis] =
   [Event] => (
@@ -29,6 +30,7 @@ type LayoutPlacementGeneralized[Place[_], MeasurementUnit, PlacementMeta, Widget
     additionalAxisStrategy : AdditionalAxisPlacementStrategy
   ) => Place[List[(Widget, PlacementMeta)]]
 
+@experimental
 def containerPlacementCurried[Place[_] : Monad, Widget[_], MeasurementUnit: Fractional](
                                                                                           strategyErrors : MainAxisStrategyErrors,
                                                                                           getBounds : Place[Bounds[MeasurementUnit]],
@@ -38,6 +40,7 @@ def containerPlacementCurried[Place[_] : Monad, Widget[_], MeasurementUnit: Frac
     containerPlacementCurriedGeneralized[Place, Widget[Event], MeasurementUnit](strategyErrors, getBounds, setBounds)(axis, elements, main, additional)
 end containerPlacementCurried
 
+@experimental
 def containerPlacementCurriedGeneralized[Place[_] : Monad, Widget, MeasurementUnit: Fractional](
                                                                                                   strategyErrors: MainAxisStrategyErrors,
                                                                                                   getBounds : Place[Bounds[MeasurementUnit]],

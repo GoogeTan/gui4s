@@ -1,13 +1,13 @@
 package me.katze.gui4s.example
 package place
 
+import api.LayoutPlacementMeta
+
 import cats.*
-import me.katze.gui4s.example.api.LayoutPlacementMeta
-import me.katze.gui4s.layout
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Axis, Placed, Point3d, Sized}
-import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
+import me.katze.gui4s.widget.library.AdditionalAxisPlacementStrategy
 
 import scala.math.Fractional.Implicits.*
 

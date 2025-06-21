@@ -24,7 +24,7 @@ def sizeItems[MeasurementUnit : Numeric, T](items : List[Placed[MeasurementUnit,
 end sizeItems
 
 
-def placeItems[Place[+_] : Monad, MeasurementUnit : Numeric, Item, PlacedItems](
+def placeItems[Place[_] : Monad, MeasurementUnit : Numeric, Item, PlacedItems](
                                                                                   items : List[Place[Sized[MeasurementUnit, Item]]],
                                                                                   mainAxis : Axis,
                                                                                   getBounds : Place[Bounds[MeasurementUnit]],
@@ -42,11 +42,11 @@ def placeItems[Place[+_] : Monad, MeasurementUnit : Numeric, Item, PlacedItems](
   yield res
 end placeItems
 
-def placeItems[Place[+_] : Monad, SizedItem, PlacedItems](
-                                                            items : List[Place[SizedItem]],
-                                                            updateBounds : SizedItem => Place[Unit],
-                                                            placeItems : List[SizedItem] => PlacedItems
-                                                          ) : Place[PlacedItems] =
+def placeItems[Place[_] : Monad, SizedItem, PlacedItems](
+                                                          items : List[Place[SizedItem]],
+                                                          updateBounds : SizedItem => Place[Unit],
+                                                          placeItems : List[SizedItem] => PlacedItems
+                                                        ) : Place[PlacedItems] =
   measureItems[Place, SizedItem](updateBounds, items).map(placeItems)
 end placeItems
 

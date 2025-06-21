@@ -16,7 +16,7 @@ import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
 import me.katze.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.exported.{PlacedWidget, Recomposition, SkijaPlaceT, SkijaUpdateT, Widget, handleApplicationRequests, runPlaceLift, runPlaceStateT, skijaInnerRunPlace, skijaRunPlace, given}
+import me.katze.gui4s.example.api.exported.{SkijaPlacedWidget, SkijaRecomposition, SkijaPlaceT, SkijaUpdateT, SkijaWidget, handleApplicationRequests, runPlaceLift, runPlaceStateT, skijaInnerRunPlace, skijaRunPlace, given}
 import me.katze.gui4s.widget.library.{widgetHandlesEvent, widgetHasInnerStates, widgetIsDrawable, widgetReactsOnRecomposition}
 import me.katze.gui4s.example.draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size, WindowCreationSettings}
@@ -36,18 +36,18 @@ enum SkijaDownEvent:
 end SkijaDownEvent
 
 def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
-    widget: SkijaBackend[F, OglWindow] ?=> Widget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
-    updateLoopExecutionContext: ExecutionContext,
-    drawLoopExecutionContext: ExecutionContext,
-    runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
+                                                         widget: SkijaBackend[F, OglWindow] ?=> SkijaWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
+                                                         updateLoopExecutionContext: ExecutionContext,
+                                                         drawLoopExecutionContext: ExecutionContext,
+                                                         runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
 ) =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,
-    PlacedWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
+    SkijaPlacedWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
     SkijaDraw[F, OglWindow],
-    SkijaPlaceT[F, PlaceError, Float],
+    SkijaPlaceT[F, Float, PlaceError],
     SkijaUpdateT[ApplicationRequest],
-    Recomposition[F],
+    SkijaRecomposition[F],
     DownEvent,
   ]
 
@@ -62,7 +62,7 @@ def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
         title = "Gui4s window",
         size = Size(620, 480),
         visible = true,
-        resizeable = true,
+        resizeable = false,
         debugContext = true
       ),
       ffi = ContextFFI(drawLoopExecutionContext, summon),
@@ -77,28 +77,28 @@ def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
       updateLoopExecutionContext
     ),
     rootWidget = backend =>
-      given runPlacement : RunPlacement[SkijaPlaceT[F, PlaceError, Float], F] =
-        [T] => (place : SkijaPlaceT[F, PlaceError, Float][T]) =>
-          runEitherTError(skijaRunPlace[F, PlaceError, Float](backend.windowBounds)(place))
+      given runPlacement : RunPlacement[SkijaPlaceT[F, Float, PlaceError], F] =
+        [T] => (place : SkijaPlaceT[F, Float, PlaceError][T]) =>
+          runEitherTError(skijaRunPlace[F, Float, PlaceError](backend.windowBounds)(place))
 
       runPlacement(
-        Functor[SkijaPlaceT[F, PlaceError, Float]].map(widget(using backend))(widget =>
+        Functor[SkijaPlaceT[F, Float, PlaceError]].map(widget(using backend))(widget =>
           RootWidget[
             F,
-            PlacedWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
+            SkijaPlacedWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
             SkijaDraw[F, OglWindow],
-            SkijaPlaceT[F, PlaceError, Float],
+            SkijaPlaceT[F, Float, PlaceError],
             SkijaUpdateT[ApplicationRequest],
-            Recomposition[F],
+            SkijaRecomposition[F],
             SkijaDownEvent,
           ](
             Path(List("ROOT")),
             widget,
             identity[F[Unit]],
-            widgetHandlesEvent[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, PlaceError, Float]],
-            widgetReactsOnRecomposition[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, PlaceError, Float]],
-            widgetHasInnerStates[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, PlaceError, Float]],
-            widgetIsDrawable[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, PlaceError, Float]]
+            widgetHandlesEvent[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, Float, PlaceError]],
+            widgetReactsOnRecomposition[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, Float, PlaceError]],
+            widgetHasInnerStates[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, Float, PlaceError]],
+            widgetIsDrawable[Update = SkijaUpdateT[ApplicationRequest], Place = SkijaPlaceT[F, Float, PlaceError]]
           )
         )
       )

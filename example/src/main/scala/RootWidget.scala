@@ -7,10 +7,8 @@ import update.EventConsumer
 import cats.*
 import cats.syntax.all.given
 import me.katze.gui4s.widget.{Path, collectQuitCompositionReactions}
-import me.katze.gui4s.widget.free.AsFree
 import me.katze.gui4s.widget.draw.Drawable as RawDrawable
 import me.katze.gui4s.widget.handle.HandlesEvent
-import me.katze.gui4s.widget.merge.MergesWithOldStates
 import me.katze.gui4s.widget.recomposition.ReactsOnRecomposition
 import me.katze.gui4s.widget.state.HasInnerStates
 
@@ -18,8 +16,8 @@ final case class RootWidget[
   F[+_] : Monad,
   Widget,
   Draw,
-  Place[+_],
-  Update[+_] : Monad,
+  Place[_],
+  Update[_] : Monad,
   Recomposition,
   DownEvent,
 ](

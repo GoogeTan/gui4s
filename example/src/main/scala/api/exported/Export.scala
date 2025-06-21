@@ -1,22 +1,23 @@
 package me.katze.gui4s.example
 package api.exported
 
-import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, linearLayout, skijaWidgetsAreMergable, given}
+import impl.containerPlacementCurried
 import place.MainAxisStrategyErrors
 
 import catnip.FFI
 import catnip.syntax.all.{*, given}
 import cats.data.StateT
+import cats.syntax.all.*
 import cats.{Applicative, Functor, Monad}
-import me.katze.gui4s.example.impl.containerPlacementCurried
 import me.katze.gui4s.example.{*, given}
+import api.exported.given
+import api.{LayoutPlacementMeta, given}
+
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.skija.{SkijaDraw, drawAt}
-import cats.syntax.all.*
-import me.katze.gui4s.example.api.{LayoutPlacementMeta, given}
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, linearLayout, skijaWidgetsAreMergable, given}
 import me.katze.gui4s.widget.{EventReaction, Path, given}
-import me.katze.gui4s.example.api.exported.given 
 
 import scala.language.experimental.namedTypeArguments
 import scala.reflect.Typeable
@@ -24,20 +25,20 @@ import scala.reflect.Typeable
 // TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
 def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors)(
-  children : List[Widget[F, Float, PlaceError, Event, DownEvent]],
+  children : List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
   horizontalStrategy: MainAxisPlacementStrategy[Float],
   verticalStrategy  : AdditionalAxisPlacementStrategy
-): Widget[F, Float, PlaceError, Event, DownEvent] =
+): SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
   linearLayout[
     SkijaUpdateT[Event],
-    SkijaPlaceT[F, PlaceError, Float],
+    SkijaPlaceT[F, Float, PlaceError],
     SkijaDraw[F, OglWindow],
-    Recomposition[F],
+    SkijaRecomposition[F],
     DownEvent,
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, PlaceError, Float], PlacedWidget[F, Float, PlaceError, *, DownEvent], Float](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float](
       errors,
       skijaGetBounds,
       skijaSetBounds,
@@ -48,24 +49,24 @@ def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: M
 end skijaRow
 
 def skijaColumn[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors)(
-  children: List[Widget[F, Float, PlaceError, Event, DownEvent]],
+  children: List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
   verticalStrategy: MainAxisPlacementStrategy[Float],
   horizontalStrategy: AdditionalAxisPlacementStrategy
-): Widget[F, Float, PlaceError, Event, DownEvent] =
+): SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
   linearLayout[
     SkijaUpdateT[Event],
-    SkijaPlaceT[F, PlaceError, Float],
+    SkijaPlaceT[F, Float, PlaceError],
     SkijaDraw[F, OglWindow],
-    Recomposition[F],
+    SkijaRecomposition[F],
     DownEvent,
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, PlaceError, Float], PlacedWidget[F, Float, PlaceError, *, DownEvent], Float](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float](
       errors,
       skijaGetBounds,
       skijaSetBounds,
-    )(Axis.Horizontal, _, verticalStrategy, horizontalStrategy),
+    )(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     false.pure // TODO
   )
@@ -80,18 +81,18 @@ def skijaStateful[
   Event,
   ChildEvent
 ](
-    name : String,
-    initialState : State,
-    handleEvent : (State, List[ChildEvent]) => EventReaction[State, Event, Nothing], // TODO Allow tasks
-    render : State => Widget[F, MeasurementUnit, PlaceError, ChildEvent, DownEvent],
-    destructor : State => Recomposition[F],
-    typecheckError : Any => PlaceError
-) : Widget[F, MeasurementUnit, PlaceError, Event, DownEvent] =
+   name : String,
+   initialState : State,
+   handleEvent : (State, List[ChildEvent]) => EventReaction[State, Event, Nothing], // TODO Allow tasks
+   render : State => SkijaWidget[F, MeasurementUnit, PlaceError, ChildEvent, DownEvent],
+   destructor : State => SkijaRecomposition[F],
+   typecheckError : Any => PlaceError
+) : SkijaWidget[F, MeasurementUnit, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.skijaStateful[
     SkijaUpdate,
-    SkijaPlaceT[F, PlaceError, MeasurementUnit],
+    SkijaPlaceT[F, MeasurementUnit, PlaceError],
     SkijaDraw[F, OglWindow],
-    Recomposition[F],
+    SkijaRecomposition[F],
     DownEvent,
     EventReaction[State, Event, Nothing],
     State,
@@ -100,13 +101,12 @@ def skijaStateful[
   ](
     widgetsAreMergeable = skijaWidgetsAreMergable[
       Update = SkijaUpdateT[ChildEvent],
-      SimplePlace = SkijaPlaceInner[F, PlaceError, MeasurementUnit, *],
-      InnerPlace = Sized[MeasurementUnit, *]
+      OuterPlace = SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
     ],
     runEventReaction = runEventReaction,
-    typeCheckState = value => 
-      typecheckState[SkijaPlaceT[F, PlaceError, MeasurementUnit], PlaceError](value, raiseError[F, PlaceError, MeasurementUnit](typecheckError(value)))
-
+    typeCheckState = [T] => (value : Any, callback : (State, State) => SkijaPlace[F, MeasurementUnit, PlaceError, T]) => 
+      typecheckState[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], State](value, raiseError(typecheckError(value)))
+        .flatMap((a, b) => callback(a, b)) // Почему-то он сам не может распаковать тьюпл. Приходится так
   )(
     name = name,
     initialState = initialState, 
@@ -116,9 +116,11 @@ def skijaStateful[
   )
 end skijaStateful
 
-def typecheckState[F[+_] : Applicative, S: Typeable](any: Any, raiseError : F[Nothing]): F[(S, S)] =
+@SuppressWarnings(Array("org.wartremover.warts.Any"))
+def typecheckState[F[_] : Applicative, S: Typeable as ST](any: Any, raiseError : F[Nothing]): F[(S, S)] =
   any match
-    case (a : S, b : S) => (a, b).pure[F]
-    case None => raiseError
+    case (a : S, b : S) =>
+      (a, b).pure[F]
+    case None => raiseError.map(a => a)
   end match
 end typecheckState

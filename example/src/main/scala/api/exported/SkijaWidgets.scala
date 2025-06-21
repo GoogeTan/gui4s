@@ -2,6 +2,8 @@ package me.katze.gui4s.example
 package api.exported
 
 import catnip.{BiMonad, FFI}
+import catnip.syntax.all.{*, given}
+import cats.arrow.FunctionK
 import cats.{Applicative, Apply, FlatMap, Functor, InjectK, Monad, ~>}
 import cats.data.{EitherT, ReaderT, StateT}
 import cats.effect.ExitCode
@@ -17,14 +19,18 @@ import me.katze.gui4s.example.place.RunPlacement
 import me.katze.gui4s.example.update.ApplicationRequest
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.widget.library.Widget_
-import sun.jvm.hotspot.runtime.PerfMemory.end
+import me.katze.gui4s.layout.given
 
 opaque type SkijaUpdate[Event, Value] = EventResult[Event, Value]
 type SkijaUpdateT[Event] = SkijaUpdate[Event, *]
-opaque type SkijaPlaceInner[IO[+_], +Error, MeasurementUnit, +  Value] = StateT[EitherT[IO, Error, *], Bounds[MeasurementUnit], Value]
-type SkijaPlaceInnerT[IO[_], Error, MeasurementUnit] = SkijaPlaceInner[IO, Error, MeasurementUnit, *]
-type SkijaPlace[IO[_], Error, MeasurementUnit, +Value] = SkijaPlaceInner[IO, Error, MeasurementUnit, Sized[MeasurementUnit, Value]]
-type SkijaPlaceT[IO[_], Error, MeasurementUnit] = SkijaPlace[IO, Error, MeasurementUnit, *]
+opaque type SkijaPlaceInner[IO[_], MeasurementUnit, Error, Value] = StateT[EitherT[IO, Error, *], Bounds[MeasurementUnit], Value]
+type SkijaPlaceInnerT[IO[_], MeasurementUnit, Error] = SkijaPlaceInner[IO, MeasurementUnit, Error, *]
+type SkijaPlace[IO[_], MeasurementUnit, Error, Value] = SkijaPlaceInner[IO, MeasurementUnit, Error, Sized[MeasurementUnit, Value]]
+type SkijaPlaceT[IO[_], MeasurementUnit, Error] = SkijaPlace[IO, MeasurementUnit, Error, *]
+
+def raiseError[IO[_] : Monad, MeasurementUnit, PlaceError](error : => PlaceError) : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Nothing] =
+  StateT.liftF(EitherT.left(error.pure))
+end raiseError
 
 def runPlaceStateT[IO[_] : FlatMap, MeasurementUnit](
                                                       bounds : IO[Bounds[MeasurementUnit]]
@@ -35,22 +41,18 @@ def runPlaceStateT[IO[_] : FlatMap, MeasurementUnit](
       .map(_._2)
 end runPlaceStateT
 
-def skijaInnerRunPlace[IO[_] : Monad, PlaceError, MeasurementUnit](bounds : IO[Bounds[MeasurementUnit]]) : RunPlacement[SkijaPlaceInnerT[IO, PlaceError, MeasurementUnit], EitherT[IO, PlaceError, *]] =
+def skijaInnerRunPlace[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds[MeasurementUnit]]) : RunPlacement[SkijaPlaceInnerT[IO, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]] =
   runPlaceStateT[EitherT[IO, PlaceError, *], MeasurementUnit](EitherT.liftF(bounds))
 end skijaInnerRunPlace
 
-def skijaRunPlace[IO[_] : Monad, PlaceError, MeasurementUnit](bounds : IO[Bounds[MeasurementUnit]]) : RunPlacement[SkijaPlaceT[IO, PlaceError, MeasurementUnit], EitherT[IO, PlaceError, *]] =
-  [Value] => (value : SkijaPlaceInner[IO, PlaceError, MeasurementUnit, Sized[MeasurementUnit, Value]]) =>
+def skijaRunPlace[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds[MeasurementUnit]]) : RunPlacement[SkijaPlaceT[IO, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]] =
+  [Value] => (value : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Sized[MeasurementUnit, Value]]) =>
     skijaInnerRunPlace(bounds)(value.map(_.value))
 end skijaRunPlace
 
 def runPlaceLift[U[_], F[_], G[_]](original : RunPlacement[F, U], inj : G ~> F) : RunPlacement[G, U] =
   [Value] => (value : G[Value]) => original(inj(value))
 end runPlaceLift
-
-def raiseError[IO[_] : Monad, Error, MeasurementUnit](error : Error) : SkijaPlaceInner[IO, Error, MeasurementUnit, Nothing] =
-  StateT.liftF(EitherT.left(error.pure[IO]))
-end raiseError
 
 type GetBounds[F[_], MeasurementUnit] = F[Bounds[MeasurementUnit]]
 type SetBounds[F[_], MeasurementUnit] = Bounds[MeasurementUnit] => F[Unit]
@@ -63,12 +65,12 @@ def setBoundsStateT[F[_] : Applicative, MeasurementUnit] : SetBounds[StateT[F, B
   StateT.set
 end setBoundsStateT
 
-def skijaGetBounds[IO[_] : Monad, MeasurementUnit] : GetBounds[SkijaPlaceInner[IO, Nothing, MeasurementUnit, *], MeasurementUnit] =
-  getBoundsStateT[EitherT[IO, Nothing, *], MeasurementUnit]
+def skijaGetBounds[IO[_] : Monad, MeasurementUnit, PlaceError] : GetBounds[SkijaPlaceInner[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
+  getBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
 end skijaGetBounds
 
-def skijaSetBounds[IO[_] : Monad, MeasurementUnit] : SetBounds[SkijaPlaceInner[IO, Nothing, MeasurementUnit, *], MeasurementUnit] =
-  setBoundsStateT[EitherT[IO, Nothing, *], MeasurementUnit]
+def skijaSetBounds[IO[_] : Monad, MeasurementUnit, PlaceError] : SetBounds[SkijaPlaceInner[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
+  setBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
 end skijaSetBounds
 
 def getBounds[F[_], G[_], MeasurementUnit](original : GetBounds[F, MeasurementUnit], inj : F ~> G) : GetBounds[G, MeasurementUnit] =
@@ -79,11 +81,11 @@ def setBounds[F[_], G[_], MeasurementUnit](original : SetBounds[F, MeasurementUn
   bounds => inj(original(bounds))
 end setBounds
 
-given[F[_] : Monad, Error, MeasurementUnit] : Monad[SkijaPlaceInner[F, Error, MeasurementUnit, *]] = summon
+given[F[_] : Monad, MeasurementUnit, Error] : Monad[SkijaPlaceInner[F, MeasurementUnit, Error, *]] = summon
 
 type SizeText[F[_], G[_]] = (ffi : FFI[F], text : String, shaper : Shaper, options : SkijaTextStyle) => G[SkijaPlacedText]
 
-def sizeTextStateT[F[+_] : Applicative] : SizeText[F, [Value] =>> StateT[F, Bounds[Float], Sized[Float, Value]]] =
+def sizeTextStateT[F[_] : Applicative] : SizeText[F, [Value] =>> StateT[F, Bounds[Float], Sized[Float, Value]]] =
   (ffi : FFI[F], text: String, shaper : Shaper, options: SkijaTextStyle) =>
     StateT(
       bounds =>
@@ -100,6 +102,20 @@ def sizeTextLift[U[_], F[_], G[_]](original : SizeText[U, F], inj : F ~> G) : Si
   (ffi, text, shaper, options) =>
     inj(original(ffi, text, shaper, options))
 end sizeTextLift
+
+def skijaSizeText[IO[_] : Monad, PlaceError] : SizeText[IO, SkijaPlace[IO, Float, PlaceError, *]] =
+  sizeTextLift(sizeTextStateT[IO], mapF(EitherT.liftK[IO, PlaceError]))
+end skijaSizeText
+
+def mapF[F[_] : FlatMap, G[_] : Applicative, U[_], S](f : F ~> G) : (StateT[F, S, *] * U) ~> (StateT[G, S, *] * U) =
+  new ~>[StateT[F, S, *] * U,  StateT[G, S, *] * U]:
+    override def apply[A](fa: StateT[F, S, U[A]]): StateT[G, S, U[A]] =
+      StateT(state =>
+        f(fa.run(state))
+      )
+    end apply
+  end new
+end mapF
 
 given BiMonad[SkijaUpdate] = summon
 given CatchEvents[SkijaUpdate] = summon
@@ -118,6 +134,7 @@ def handleApplicationRequests[F[_] : Monad] : [T] => SkijaUpdateT[ApplicationReq
     )
 end handleApplicationRequests
 
-type Recomposition[F[_]] = F[Unit]
-type PlacedWidget[F[+_], MeasurementUnit, +PlaceError, +Event, -DownEvent] = Widget_[SkijaUpdateT[Event], SkijaPlace[F, PlaceError, MeasurementUnit, *], SkijaDraw[F, OglWindow], Recomposition[F], DownEvent]
-type Widget[F[+_], MeasurementUnit, +PlaceError, +Event, -DownEvent] = SkijaPlace[F, PlaceError, MeasurementUnit, PlacedWidget[F, MeasurementUnit, PlaceError, Event, DownEvent]]
+type SkijaRecomposition[F[_]] = F[Unit]
+
+type SkijaPlacedWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] = Widget_[SkijaUpdateT[Event], SkijaPlaceT[F, MeasurementUnit, PlaceError], SkijaDraw[F, OglWindow], SkijaRecomposition[F], DownEvent]
+type SkijaWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] = SkijaPlace[F, MeasurementUnit, PlaceError, SkijaPlacedWidget[F, MeasurementUnit, PlaceError, Event, DownEvent]]

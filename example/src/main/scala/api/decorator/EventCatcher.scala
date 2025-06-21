@@ -3,7 +3,8 @@ package api.decorator
 
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
-import me.katze.gui4s.layout.{Placed, Rect}
+import catnip.syntax.applicative.nestedFunctorsAreFunctors
+import me.katze.gui4s.layout.{Placed, Point3d, Rect, Sized, given}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.Widget
@@ -15,8 +16,8 @@ import me.katze.gui4s.widget.library.Widget
  */
 def eventHandleDecorator[
   T,
-  Update[+_] : Monad,
-  Place[+_] : Functor,
+  Update[_] : Monad,
+  Place[_] : Functor,
   Draw : Monoid,
   RecompositionReaction,
   HandleableEvent,
@@ -37,8 +38,8 @@ end eventHandleDecorator
  */
 def eventCatcher[
   T,
-  Update[+_] : Monad,
-  Place[+_] : Functor,
+  Update[_] : Monad,
+  Place[_] : Functor,
   Draw : Monoid,
   RecompositionReaction,
   HandleableEvent,
@@ -63,30 +64,28 @@ end eventCatcher
 
 def eventCatcherWithWidgetsRect[
   T,
-  Update[+_] : Monad,
-  SimplePlace[+_] : Functor,
+  Update[_] : Monad,
+  OuterPlace[_] : Functor,
   Draw : Monoid,
   RecompositionReaction,
   HandleableEvent,
   MeasurableUnit : Numeric,
 ](
-   markEventHandled : Update[Unit]
+   markEventHandled : Update[Unit],
+   coordinatesOfTheWidget : Update[Point3d[MeasurableUnit]]
  )(
-   original : SimplePlace[Placed[MeasurableUnit, Widget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
+   original : OuterPlace[Sized[MeasurableUnit, Widget[T, Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
  )(
-   decorator : (Path, Rect[MeasurableUnit], MeasurableUnit, HandleableEvent) => Update[Boolean]
- ) : SimplePlace[Placed[MeasurableUnit, Widget[T, Update, [Value] =>> SimplePlace[Placed[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
-  given Functor[[Value] =>> SimplePlace[Placed[MeasurableUnit, Value]]] with
-    override def map[A, B](value : SimplePlace[Placed[MeasurableUnit, A]])(f : A => B) : SimplePlace[Placed[MeasurableUnit, B]] =
-      value.map(_.mapValue(f))
-    end map
-  end given
-  
+   decorator : (Path, Rect[MeasurableUnit], Point3d[MeasurableUnit], HandleableEvent) => Update[Boolean]
+ ) : OuterPlace[Sized[MeasurableUnit, Widget[T, Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
   original.map(
     placedWidget =>
       placedWidget.mapValue(
         widget =>
-          eventCatcher(markEventHandled)(original = widget)(decorator(_, placedWidget.size, placedWidget.z, _))
+          eventCatcher(markEventHandled)(original = widget)(
+            (path, event) =>
+              coordinatesOfTheWidget.flatMap(decorator(path, placedWidget.size, _ : Point3d[MeasurableUnit], event))
+          )
       )
   )
 end eventCatcherWithWidgetsRect

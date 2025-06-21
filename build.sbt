@@ -16,6 +16,7 @@ addCompilerPlugin("org.wartremover" %% "wartremover" % "3.3.4" cross CrossVersio
 
 scalacOptions += "-Xkind-projector"
 scalacOptions += "-P:wartremover:traverser:org.wartremover.warts.Unsafe"
+scalacOptions += "-experimental"
 
 inThisBuild(
   List(

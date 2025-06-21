@@ -11,13 +11,13 @@ import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
 
-def skijaText[F[+_] : {Monad}, Window](using backend: SkijaBackend[F, Window])(ffi : FFI[F], text : String, style : SkijaTextStyle) : Widget[F, Float, Nothing, Nothing, Any] =
+def skijaText[F[+_] : {Monad}, Window, PlaceError, DownEvent, Event](using backend: SkijaBackend[F, Window])(ffi : FFI[F], text : String, style : SkijaTextStyle) : SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.skijaText[
-    SkijaUpdateT[Nothing],  SkijaPlaceT[F, Nothing, Float], SkijaDraw[F, OglWindow], Recomposition[F], Any, SkijaPlacedText
+    SkijaUpdateT[Event],  SkijaPlaceT[F, Float, PlaceError], SkijaDraw[F, OglWindow], SkijaRecomposition[F], DownEvent, SkijaPlacedText
   ](
-    ???,//sizeText(ffi, text, backend.globalShaper, style),
+    skijaSizeText(ffi, text, backend.globalShaper, style),
     drawText(ffi, _),
-    ().pure[F]
+    ().pure[F],
   )
 end skijaText
 

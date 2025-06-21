@@ -6,8 +6,7 @@ import cats.effect.std.Queue
 import cats.effect.syntax.all.*
 import cats.effect.{Async, Concurrent, ExitCode, Ref}
 import cats.syntax.all.given
-import cats.{Monad, MonadError, ~>}
-import sun.jvm.hotspot.runtime.PerfMemory.end
+import cats.{Monad, MonadError}
 
 import scala.concurrent.ExecutionContext
 
@@ -23,9 +22,9 @@ end runDrawLoopOnExecutionContext
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).
  */
-type UpdateLoop[F[+_], Widget[_], DownEvent] = (Widget[DownEvent], Widget[DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
+type UpdateLoop[F[_], Widget[_], DownEvent] = (Widget[DownEvent], Widget[DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
 
-def runUpdateLoopOnExecutionContext[F[+_]: Async, Widget[_], HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
+def runUpdateLoopOnExecutionContext[F[_]: Async, Widget[_], HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
   (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
 end runUpdateLoopOnExecutionContext
 
@@ -98,8 +97,8 @@ def runWhileNoError[F[_] : MonadErrorT[InternalError], InternalError, ExternalEr
 end runWhileNoError
 
 def updateLoop[
-                F[+_] : Monad,
-                Update[+_],
+                F[_] : Monad,
+                Update[_],
                 PlacedWidget <: EventConsumer[Update, F[PlacedWidget], DownEvent],
                 DownEvent
               ](
@@ -130,8 +129,8 @@ end doIfLeft
  * @return Left(widget), если обновление должно продолжиться, Right(ExitCode) иначе
  */
 def updateStep[
-              F[+_] : Monad,
-              Update[+_],
+              F[_] : Monad,
+              Update[_],
               PlacedWidget <: EventConsumer[Update, F[PlacedWidget], DownEvent],
               DownEvent
             ](

@@ -10,7 +10,7 @@ import cats.{Functor, Monad}
 type Layout[Place[_], Widget, Meta] = List[Place[Widget]] => Place[List[(Widget, Meta)]]
 
 def containerHandlesEvent[
-  Update[+_] : Monad,
+  Update[_] : Monad,
   Place[_] : Functor,
   Widget,
   HandlableEvent,
@@ -31,7 +31,7 @@ def containerHandlesEvent[
 end containerHandlesEvent
 
 def childrenHandleEvent[
-  Update[+_] : Monad,
+  Update[_] : Monad,
   Place[_] : Functor,
   Widget,
   HandlableEvent,

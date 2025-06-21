@@ -1,9 +1,9 @@
 package me.katze.gui4s.widget
 
 import catnip.BiMonad
+import catnip.syntax.all.{*, given}
 import cats.data.StateT
 import cats.syntax.all.*
-import catnip.syntax.all.{*, given}
 
 trait CatchEvents[Update[_, _]]:
   extension[Event, Value](old : Update[Event, Value])

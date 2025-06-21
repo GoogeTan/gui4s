@@ -12,7 +12,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.widget.CatchEvents
 
 def statefulHandlesEvent[
-  Update[+_, +_] : {BiMonad, CatchEvents},
+  Update[_, _] : {BiMonad, CatchEvents},
   Place[_] : Functor,
   Widget,
   State,
