@@ -13,7 +13,7 @@ import me.katze.gui4s.example.draw.skija.SkijaBackend
 import me.katze.gui4s.example.update.ApplicationRequest
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.skija.SkijaTextStyle
-import me.katze.gui4s.widget.EventReaction
+import me.katze.gui4s.widget.{EventReaction, Path}
 import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
 import scala.annotation.experimental
@@ -52,7 +52,7 @@ object SkijaAppExample extends IOApp:
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
               ),
             _ => IO.unit,
-            (value : Any) => "Error in stateful typeckecking"
+            (value : Any, path : Path) => "Error in stateful typeckecking at " + path.toString
           )
       ),
       MainAxisPlacementStrategy.SpaceBetween, // TODO fix end gap

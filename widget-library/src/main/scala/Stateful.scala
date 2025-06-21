@@ -27,7 +27,7 @@ def skijaStateful[
 ](
    widgetsAreMergeable : Mergable[Place, Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
    runEventReaction : (EventReaction, Path) => Update[Event, State],
-   typeCheckState : [T] => (Any, (State, State) => Place[T]) => Place[T],
+   typeCheckState : [T] => (Any, Path, (State, State) => Place[T]) => Place[T],
 )(
    name : String,
    initialState : State,

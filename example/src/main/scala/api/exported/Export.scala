@@ -86,7 +86,7 @@ def skijaStateful[
    handleEvent : (State, List[ChildEvent]) => EventReaction[State, Event, Nothing], // TODO Allow tasks
    render : State => SkijaWidget[F, MeasurementUnit, PlaceError, ChildEvent, DownEvent],
    destructor : State => SkijaRecomposition[F],
-   typecheckError : Any => PlaceError
+   typecheckError : (Any, Path) => PlaceError
 ) : SkijaWidget[F, MeasurementUnit, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.skijaStateful[
     SkijaUpdate,
@@ -104,8 +104,8 @@ def skijaStateful[
       OuterPlace = SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
     ],
     runEventReaction = runEventReaction,
-    typeCheckState = [T] => (value : Any, callback : (State, State) => SkijaPlace[F, MeasurementUnit, PlaceError, T]) => 
-      typecheckState[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], State](value, raiseError(typecheckError(value)))
+    typeCheckState = [T] => (value : Any, path : Path, callback : (State, State) => SkijaPlace[F, MeasurementUnit, PlaceError, T]) => 
+      typecheckState[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], State](value, raiseError(typecheckError(value, path)))
         .flatMap((a, b) => callback(a, b)) // Почему-то он сам не может распаковать тьюпл. Приходится так
   )(
     name = name,

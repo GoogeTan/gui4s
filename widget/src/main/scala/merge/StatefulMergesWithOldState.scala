@@ -13,7 +13,7 @@ def statefulMergesWithOldStates[
   EventHandler,
   RecompositionReaction
 ](
-   typeCheckState: [T] => (Any, (State, State) => Place[T]) => Place[T],
+   typeCheckState: [T] => (Any, Path, (State, State) => Place[T]) => Place[T],
    stateAsFree : AsFreeF[
       Stateful[
         Widget,
@@ -34,9 +34,10 @@ def statefulMergesWithOldStates[
     ]
   ],
 ] =
-  (self, _, innerStates) =>
+  (self, path, innerStates) =>
     typeCheckState(
       innerStates(self.name),
+      path,
       (oldInitialState, oldState) =>
         stateAsFree(
           if EQ.equiv(oldInitialState, self.state.initialState) then
