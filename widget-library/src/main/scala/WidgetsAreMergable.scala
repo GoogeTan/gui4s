@@ -8,7 +8,7 @@ import me.katze.gui4s.widget.merge.Mergable
 
 import scala.language.experimental.namedTypeArguments
 
-def skijaWidgetsAreMergable[
+def widgetsAreMergable[
   Update[_],
   OuterPlace[_] : Monad,
   InnerPlace[_] : Comonad,
@@ -31,4 +31,4 @@ def skijaWidgetsAreMergable[
                   path,
                   widgetHasInnerStates[Place = Place](nextWidgetToMerge.extract)
                 )
-end skijaWidgetsAreMergable
+end widgetsAreMergable

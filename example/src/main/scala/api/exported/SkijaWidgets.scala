@@ -53,6 +53,10 @@ def raiseEvents[MeasurementUnit, Event](events : List[Event]) : SkijaUpdate[Meas
   )
 end raiseEvents
 
+def mapEvents[MeasurementUnit, Event1, Event2, T](f : Event1 => Event2)(skijaUpdate : SkijaUpdate[MeasurementUnit, Event1, T]) : SkijaUpdate[MeasurementUnit, Event2, T] =
+  skijaUpdate.catchEvents.flatMap((newEvents, value) => raiseEvents[MeasurementUnit, Event2](newEvents.map(f)).as(value))
+end mapEvents
+
 def raiseError[IO[_] : Monad, MeasurementUnit, PlaceError](error : => PlaceError) : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Nothing] =
   StateT.liftF(EitherT.left(error.pure))
 end raiseError

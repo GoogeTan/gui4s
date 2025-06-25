@@ -1,16 +1,18 @@
 package me.katze.gui4s.widget
 package recomposition
 
-import cats.Semigroup
-import cats.syntax.all.*
-
 def statefulReactsOnRecomposition[
   Widget,
   State,
-  RecompositionReaction : Semigroup,
+  RecompositionReaction,
 ](
   widgetReactsOnRecomposition : ReactsOnRecomposition[Widget, RecompositionReaction],
+  noRecomposition : RecompositionReaction,
 ) : ReactsOnRecomposition[Stateful[Widget, State], RecompositionReaction] =
   (self, pathToParent, states) =>
-      widgetReactsOnRecomposition(self.child, pathToParent.appendLast(self.name), states(self.name).childrenStates)
+    states.get(self.name).map(_.childrenStates) match
+      case Some(oldState) =>
+        widgetReactsOnRecomposition(self.child, pathToParent.appendLast(self.name), oldState)
+      case None => 
+        noRecomposition
 end statefulReactsOnRecomposition

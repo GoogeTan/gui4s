@@ -2,6 +2,7 @@ package me.katze.gui4s.widget
 package handle
 
 import cats.Functor
+import cats.data.NonEmptyList
 import cats.syntax.functor.*
 
 def statefulStateHandlesEvents[
@@ -11,9 +12,9 @@ def statefulStateHandlesEvents[
   ChildEvent,
   Destructor
 ] : HandlesEvent[
-  StatefulState[State, Draw, (State, Path, List[ChildEvent]) => Update[State], Destructor], 
-  List[ChildEvent], 
-  Update[StatefulState[State, Draw, (State, Path, List[ChildEvent]) => Update[State], Destructor]]
+  StatefulState[State, Draw, (State, Path, NonEmptyList[ChildEvent]) => Update[State], Destructor], 
+  NonEmptyList[ChildEvent], 
+  Update[StatefulState[State, Draw, (State, Path, NonEmptyList[ChildEvent]) => Update[State], Destructor]]
 ] =
   (self, pathToParent, events) =>
     self

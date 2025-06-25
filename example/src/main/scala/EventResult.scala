@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 
 import catnip.BiMonad
-import cats.Bimonad
+import cats.{Bifunctor, Bimonad}
 import cats.data.IndexedStateT.catsDataMonadForIndexedStateT
 import cats.data.StateT
 import me.katze.gui4s.layout.Point3d

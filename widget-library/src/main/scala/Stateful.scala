@@ -2,6 +2,7 @@ package me.katze.gui4s.widget.library
 
 import catnip.BiMonad
 import catnip.syntax.all.{*, given}
+import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.{Functor, Monoid}
 import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
@@ -9,7 +10,7 @@ import me.katze.gui4s.widget.free.statefulAsFree
 import me.katze.gui4s.widget.handle.{HandlesEvent, statefulHandlesEvent, statefulStateHandlesEvents}
 import me.katze.gui4s.widget.merge.{Mergable, statefulMergesWithOldStates}
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
-import me.katze.gui4s.widget.state.{statefulHasInnerStates, statefulStateIsState}
+import me.katze.gui4s.widget.state.{statefulHasInnerStates}
 import me.katze.gui4s.widget.{CatchEvents, Path, Stateful, StatefulState}
 
 import scala.language.experimental.namedTypeArguments
@@ -31,7 +32,7 @@ def skijaStateful[
 )(
    name : String,
    initialState : State,
-   handleEvent : (State, List[ChildEvent]) => EventReaction,
+   handleEvent : (State, NonEmptyList[ChildEvent]) => EventReaction,
    render : State => Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
    destructor : State => RecompositionReaction,
 ) : Place[
@@ -54,7 +55,7 @@ def skijaStateful[
     type StState = StatefulState[
       State,
       State => Place[Widget[ChildEvent]],
-      (State, Path, List[ChildEvent]) => Update[Event, State],
+      (State, Path, NonEmptyList[ChildEvent]) => Update[Event, State],
       State => RecompositionReaction
     ]
     val stateful = Stateful(
@@ -65,7 +66,7 @@ def skijaStateful[
         currentState = initialState,
         draw = render,
         handleEvents =
-          (state : State, path : Path, events : List[ChildEvent]) =>
+          (state : State, path : Path, events : NonEmptyList[ChildEvent]) =>
             runEventReaction(handleEvent(state, events), path),
         destructor = destructor
       ),
@@ -84,8 +85,9 @@ def skijaStateful[
       valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree_),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
         widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
+        M.empty
       ),
-      valueHasInnerState = statefulHasInnerStates(statefulStateIsState)
+      valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
     )
   )
 end skijaStateful
@@ -121,7 +123,7 @@ def skijaStatefulHandlesEvent[
           Place, Draw, RecompositionReaction, HandlableEvent
         ]
       ],
-      HandlesEvent[State, List[ChildEvent], Update[Event, State]],
+      HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
       State => RecompositionReaction]
   ],
   HandlableEvent,

@@ -6,7 +6,7 @@ import place.MainAxisStrategyErrors
 
 import catnip.FFI
 import catnip.syntax.all.{*, given}
-import cats.data.StateT
+import cats.data.{NonEmptyList, StateT}
 import cats.syntax.all.*
 import cats.{Applicative, Functor, Monad}
 import me.katze.gui4s.example.{*, given}
@@ -16,7 +16,7 @@ import api.{LayoutPlacementMeta, given}
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.skija.{SkijaDraw, drawAt}
-import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, linearLayout, skijaWidgetsAreMergable, given}
+import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, linearLayout, widgetsAreMergable, given}
 import me.katze.gui4s.widget.{EventReaction, Path, given}
 
 import scala.language.experimental.namedTypeArguments
@@ -83,7 +83,7 @@ def skijaStateful[
 ](
    name : String,
    initialState : State,
-   handleEvent : (State, List[ChildEvent]) => EventReaction[State, Event, Nothing], // TODO Allow tasks
+   handleEvent : (State, NonEmptyList[ChildEvent]) => EventReaction[State, Event, Nothing], // TODO Allow tasks
    render : State => SkijaWidget[F, MeasurementUnit, PlaceError, ChildEvent, DownEvent],
    destructor : State => SkijaRecomposition[F],
    typecheckError : (Any, Path) => PlaceError
@@ -99,7 +99,7 @@ def skijaStateful[
     Event,
     ChildEvent
   ](
-    widgetsAreMergeable = skijaWidgetsAreMergable[
+    widgetsAreMergeable = widgetsAreMergable[
       Update = SkijaUpdateT[MeasurementUnit, ChildEvent],
       OuterPlace = SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
     ],
@@ -121,6 +121,8 @@ def typecheckState[F[_] : Applicative, S: Typeable as ST](any: Any, raiseError :
   any match
     case (a : S, b : S) =>
       (a, b).pure[F]
-    case None => raiseError.map(a => a)
+    case _ =>
+      println(ST.toString)
+      raiseError.map(a => a)
   end match
 end typecheckState

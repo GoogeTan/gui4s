@@ -36,7 +36,7 @@ def statefulMergesWithOldStates[
 ] =
   (self, path, innerStates) =>
     typeCheckState(
-      innerStates(self.name),
+      innerStates(self.name).state,
       path,
       (oldInitialState, oldState) =>
         stateAsFree(

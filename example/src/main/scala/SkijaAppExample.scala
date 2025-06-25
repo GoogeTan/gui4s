@@ -1,29 +1,36 @@
 package me.katze.gui4s.example
 
+import api.exported.{*, given}
+import api.{TextWidget, makeSkijaStatefulWidget, makeSkijaTextWidget}
+import draw.skija.SkijaBackend
 import impl.ENErrors
 import place.MainAxisStrategyErrors
+import update.ApplicationRequest
 
 import catnip.FFI
 import catnip.cats.effect.SyncFFI
-import catnip.syntax.all.{*, given}
-import cats.effect.{ExitCode, IO, IOApp}
+import catnip.syntax.all.given
 import cats.data.EitherT
+import cats.effect.{ExitCode, IO, IOApp}
+import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
-import me.katze.gui4s.example.api.decorator.handleClick
-import me.katze.gui4s.example.api.exported.{*, given}
-import me.katze.gui4s.example.draw.skija.SkijaBackend
-import me.katze.gui4s.example.update.ApplicationRequest
+import me.katze.gui4s
+import me.katze.gui4s.example
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.skija.{SkijaDraw, SkijaTextStyle}
+import me.katze.gui4s.layout.{Point2d, given}
+import me.katze.gui4s.skija.SkijaTextStyle
+import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.{EventReaction, Path}
-import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 
 import scala.annotation.experimental
+import scala.language.experimental.namedTypeArguments
 
 @experimental
 object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors = ENErrors
   given ffi : FFI[IO] = SyncFFI[IO]
+
+  private type Widget[Event] =  SkijaWidget[IO, Float, String, Event, SkijaDownEvent]
 
   override def run(args: List[String]): IO[ExitCode] =
     skijaApp[IO, String](
@@ -39,42 +46,83 @@ object SkijaAppExample extends IOApp:
     )
   end run
 
-  def main(using SkijaBackend[IO, OglWindow]) : SkijaWidget[IO, Float, String, ApplicationRequest, SkijaDownEvent] =
-    skijaColumn[IO, String, ApplicationRequest, SkijaDownEvent](
-      (0 until 6).toList.map(
-        lineNumber =>
+  def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[Float, Event, Boolean], Float, SkijaDownEvent] = eventCatcherWithWidgetsRect(
+    markEventHandled,
+    getCoordinates,
+  )
 
-            skijaStateful[IO, String, Float, SkijaDownEvent, Int, ApplicationRequest, Unit](
-              "line-" + lineNumber.toString,
-              1,
-              (state, _) => EventReaction(state + 1, Nil, Nil),
-              state =>
-                handleClick[
-                  SkijaUpdate[Float, Unit, *],
-                  SkijaPlaceInnerT[IO, Float, String],
-                  SkijaDraw[IO, OglWindow],
-                  SkijaRecomposition[IO],
-                  SkijaDownEvent,
-                  Float
-                ](
-                  markEventHandled,
-                  getCoordinates,
-                  ???,
-                )(
-                  skijaText(
-                    ffi,
-                    "# line value " + state.toString,
-                    SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
-                  )
-                )(
-                  (_, _) => raiseEvents[Float, Unit](List(()))
-                ),
-              _ => IO.unit,
-              (value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "] while expected Int"
-            )
-      ),
-      MainAxisPlacementStrategy.SpaceBetween, // TODO fix end gap
-      AdditionalAxisPlacementStrategy.Center
+  def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
+    rememberLastEventOfTheType[Widget = Widget, Event = Event, MemorableEvent = Point2d[Float], Update = SkijaUpdate[Float, *, Boolean]](
+      eventCatcherWithRect = eventCatcher,
+      statefulWidget = transitiveStatefulWidget,
+      mapUpdate = [A, B] => f => mapEvents(f),
+      mapEvent = mapEvent[Update = SkijaUpdate[Float, *, *]]([T, A, B] => f => mapEvents(f)),
+      name = name,
+      catchEvent =
+        (path, rect, event) =>
+          event match
+            case SkijaDownEvent.MouseMove(x, y) =>
+              raiseEvents[Float, Point2d[Float]](List(Point2d(x.toFloat, y.toFloat))).as(false)
+            case _ => false.pure
     )
+  end mouseTracker
+
+  def clickHandler[Event](name : String): ClickHandler[Widget[Event], SkijaUpdate[Float, Event, Boolean], Unit] =
+    makeClickHandler(
+      eventCatcherWithRect = eventCatcher,
+      mouseTracker = mouseTracker(name).map(_.getOrElse(Point2d(0, 0)))
+    )(
+      extractClickHandlerEvent
+    )
+
+  def statefulWidget: StatefulWidget[Widget, Nothing] = makeSkijaStatefulWidget(
+    (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"
+  )
+
+  def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Nothing] = TransitiveStatefulWidgetFromStatefulWidget(statefulWidget)
+  
+  def text(using backend : SkijaBackend[IO, OglWindow]) : TextWidget[Widget] =
+    makeSkijaTextWidget(backend.globalShaper, ffi)
+  end text
+
+  def main(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
+    app((0 until 6).toList)
   end main
+
+  def app(numbers : List[Int])(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
+    skijaColumn(
+      children = numbers.map:
+        lineNumber =>
+          statefulWidget[Int, ApplicationRequest, Unit](
+            name = "line-" + lineNumber.toString,
+            initialState = 1,
+            eventHandler = (state, _) =>
+              println("event line " + lineNumber.toString + " " + state.toString)
+              EventReaction(state + 1, Nil, Nil),
+            body = state =>
+              println("line redrawn " + lineNumber.toString + " " + state.toString)
+              clickHandler("click_handler_" + lineNumber.toString)(
+                text(
+                  "# line value " + state.toString,
+                  SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
+                )
+              )(
+                (_, _) =>
+                  println("clicked at" + lineNumber.toString)
+                  raiseEvents[Float, Unit](List(())).as(true)
+              ),
+          ),
+      verticalStrategy = MainAxisPlacementStrategy.SpaceBetween,
+      horizontalStrategy = AdditionalAxisPlacementStrategy.Center
+    )
+  end app
 end SkijaAppExample
+
+@experimental
+def extractClickHandlerEvent(downEvent : SkijaDownEvent) : Option[Unit] =
+  downEvent match
+    case SkijaDownEvent.MouseClick(button, action, mods) =>
+      println("clicked event extractred")
+      Some(()) // TODO ClickHandlerDownEvent(button, action, mods))
+    case _ => None
+end extractClickHandlerEvent

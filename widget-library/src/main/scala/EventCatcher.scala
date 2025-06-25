@@ -1,10 +1,9 @@
-package me.katze.gui4s.example
-package api.decorator
+package me.katze.gui4s.widget.library
 
+import catnip.syntax.applicative.nestedFunctorsAreFunctors
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
-import catnip.syntax.applicative.nestedFunctorsAreFunctors
-import me.katze.gui4s.layout.{Placed, Point3d, Rect, Sized, given}
+import me.katze.gui4s.layout.{Point3d, RectAtPoint2d, Sized, given}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.{Widget, Widget_}
@@ -16,9 +15,9 @@ import me.katze.gui4s.widget.library.{Widget, Widget_}
  */
 def eventHandleDecorator[
   T,
-  Update[_] : Monad,
-  Place[_] : Functor,
-  Draw : Monoid,
+  Update[_],
+  Place[_],
+  Draw,
   RecompositionReaction,
   HandleableEvent,
 ](
@@ -40,7 +39,7 @@ def eventCatcher[
   T,
   Update[_] : Monad,
   Place[_] : Functor,
-  Draw : Monoid,
+  Draw,
   RecompositionReaction,
   HandleableEvent,
 ](
@@ -62,29 +61,36 @@ def eventCatcher[
   )
 end eventCatcher
 
+type EventCatcherWithRect[Widget, Update, MeasurableUnit, HandlableEvent] =
+  Widget => ((Path, RectAtPoint2d[MeasurableUnit], HandlableEvent) => Update) => Widget
+
 def eventCatcherWithWidgetsRect[
   Update[_] : Monad,
   OuterPlace[_] : Functor,
   Draw : Monoid,
   RecompositionReaction,
   HandleableEvent,
-  MeasurableUnit : Numeric,
+  MeasurableUnit,
 ](
    markEventHandled : Update[Unit],
    coordinatesOfTheWidget : Update[Point3d[MeasurableUnit]]
- )(
-   original : OuterPlace[Sized[MeasurableUnit, Widget_[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
- )(
-   decorator : (Path, Rect[MeasurableUnit], Point3d[MeasurableUnit], HandleableEvent) => Update[Boolean]
- ) : OuterPlace[Sized[MeasurableUnit, Widget_[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]] =
-  original.map(
-    placedWidget =>
-      placedWidget.mapValue(
-        widget =>
-          eventCatcher(markEventHandled)(original = widget)(
-            (path, event) =>
-              coordinatesOfTheWidget.flatMap(decorator(path, placedWidget.size, _ : Point3d[MeasurableUnit], event))
-          )
-      )
-  )
+ ) : EventCatcherWithRect[
+  OuterPlace[Sized[MeasurableUnit, Widget_[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
+  Update[Boolean],
+  MeasurableUnit,
+  HandleableEvent
+] =
+  original => decorator =>
+    original.map(
+      placedWidget =>
+        placedWidget.mapValue(
+          widget =>
+            eventCatcher(markEventHandled)(original = widget)(
+              (path, event) =>
+                coordinatesOfTheWidget.flatMap(point3d =>
+                  decorator(path, RectAtPoint2d(placedWidget.size, point3d.projectToXY), event)
+                )
+            )
+        )
+    )
 end eventCatcherWithWidgetsRect

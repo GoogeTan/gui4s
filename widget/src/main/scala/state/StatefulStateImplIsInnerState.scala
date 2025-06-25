@@ -1,22 +1,22 @@
 package me.katze.gui4s.widget
 package state
 
-import cats.Functor
-import cats.syntax.all.*
-
-def statefulStateIsState[
-  Merge[_] : Functor,
+def statefulHasInnerStates[
+  PlacedWidget,
   State : Equiv as EQ,
   Draw,
   EventHandler,
   RecompositionReaction
-] : HasInnerStates[
-  StatefulState[State, Draw, EventHandler, State => RecompositionReaction],
+](
+  widgetHasInnerStates : HasInnerStates[PlacedWidget, RecompositionReaction]
+): HasInnerStates[
+  Stateful[PlacedWidget, StatefulState[State, Draw, EventHandler, State => RecompositionReaction]],
   RecompositionReaction
 ] =
   self =>
+    val state = self.state
     Map(
-      self.name -> StateTree((self.initialState, self.currentState), self.destructor(self.currentState), Map())
+      self.name -> StateTree((state.initialState, state.currentState), state.destructor(state.currentState), widgetHasInnerStates(self.child))
     )
-end statefulStateIsState
+end statefulHasInnerStates
 

@@ -140,6 +140,7 @@ def updateStep[
             ): F[Either[PlacedWidget, ExitCode]] =
   for
     event         <- eventSource
+    _ = println("got an event " + event.toString)
     exitCodeOrWidget   <- runUpdate[F[PlacedWidget]](widget.processEvent(event))
     res <- exitCodeOrWidget match
       case Left(value) => Right(value).pure[F]
