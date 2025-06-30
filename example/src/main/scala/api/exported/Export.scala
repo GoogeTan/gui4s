@@ -88,7 +88,7 @@ def skijaStateful[
    destructor : State => SkijaRecomposition[F],
    typecheckError : (Any, Path) => PlaceError
 ) : SkijaWidget[F, MeasurementUnit, PlaceError, Event, DownEvent] =
-  me.katze.gui4s.widget.library.skijaStateful[
+  me.katze.gui4s.widget.library.stateful[
     SkijaUpdate[MeasurementUnit, *, *],
     SkijaPlaceT[F, MeasurementUnit, PlaceError],
     SkijaDraw[F, OglWindow],

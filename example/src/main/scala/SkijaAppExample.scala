@@ -19,8 +19,9 @@ import me.katze.gui4s.example
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{Point2d, given}
 import me.katze.gui4s.skija.SkijaTextStyle
-import me.katze.gui4s.widget.library.*
+import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{EventReaction, Path}
+
 
 import scala.annotation.experimental
 import scala.language.experimental.namedTypeArguments

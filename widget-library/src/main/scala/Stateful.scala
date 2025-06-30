@@ -10,12 +10,12 @@ import me.katze.gui4s.widget.free.statefulAsFree
 import me.katze.gui4s.widget.handle.{HandlesEvent, statefulHandlesEvent, statefulStateHandlesEvents}
 import me.katze.gui4s.widget.merge.{Mergable, statefulMergesWithOldStates}
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
-import me.katze.gui4s.widget.state.{statefulHasInnerStates}
+import me.katze.gui4s.widget.state.statefulHasInnerStates
 import me.katze.gui4s.widget.{CatchEvents, Path, Stateful, StatefulState}
 
 import scala.language.experimental.namedTypeArguments
 
-def skijaStateful[
+def stateful[
   Update[_, _] : {BiMonad, CatchEvents},
   Place[_] : Functor,
   Draw,
@@ -81,7 +81,7 @@ def skijaStateful[
       valueToDecorate = stateful,
       valueAsFree = statefulAsFree_, // TODO Rename me
       valueIsDrawable = statefulIsDrawable(widgetIsDrawable),
-      valueHandlesEvent = skijaStatefulHandlesEvent(widgetsAreMergeable),
+      valueHandlesEvent = statefulHandlesEvent_(widgetsAreMergeable),
       valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree_),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
         widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
@@ -90,11 +90,11 @@ def skijaStateful[
       valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
     )
   )
-end skijaStateful
+end stateful
 
 type HandlesEventPlace[Place[_], T, HandlableEvent] = HandlesEvent[T, HandlableEvent, Place[T]]
 
-def skijaStatefulHandlesEvent[
+def statefulHandlesEvent_[
   Update[_, _] : {BiMonad, CatchEvents},
   Place[_] : Functor,
   Draw,
