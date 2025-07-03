@@ -10,18 +10,17 @@ import update.ApplicationRequest
 import catnip.FFI
 import catnip.cats.effect.SyncFFI
 import catnip.syntax.all.given
-import cats.data.EitherT
+import cats.data.*
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.glfw.OglWindow
-import me.katze.gui4s.layout.{Point2d, given}
-import me.katze.gui4s.skija.SkijaTextStyle
+import me.katze.gui4s.layout.{Point2d, Sized, given}
+import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle}
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{EventReaction, Path}
-
 
 import scala.annotation.experimental
 import scala.language.experimental.namedTypeArguments
@@ -86,6 +85,21 @@ object SkijaAppExample extends IOApp:
     makeSkijaTextWidget(backend.globalShaper, ffi)
   end text
 
+  def leaf[Marker, Event](marker : Marker) : Widget[Event] =
+    leafWidget[
+      Update = SkijaUpdateT[Float, Event],
+      Place = SkijaPlaceT[IO, Float, String]
+    ](
+      new Sized(
+        marker,
+        0f,
+        0f
+      ).pure[SkijaPlaceInnerT[IO, Float, String]],
+      ReaderT.pure[IO, SkijaDrawState[IO, OglWindow], Unit](()),
+      ().pure
+    )
+  end leaf
+
   def main(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
     app((0 until 6).toList)
   end main
@@ -98,22 +112,22 @@ object SkijaAppExample extends IOApp:
             name = "line-" + lineNumber.toString,
             initialState = 1,
             eventHandler = (state, _) =>
-              println("event line " + lineNumber.toString + " " + state.toString)
               EventReaction(state + 1, Nil, Nil),
             body = state =>
-              println("line redrawn " + lineNumber.toString + " " + state.toString)
               clickHandler("click_handler_" + lineNumber.toString)(
-                text(
-                  "# line value " + state.toString,
-                  SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
+                leaf(
+                  "# " + lineNumber.toString + " : " + state.toString,
                 )
+                //text(
+                //  "# " + lineNumber.toString + " : " + state.toString,
+                //  SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
+                //)
               )(
                 (_, _) =>
-                  println("clicked at" + lineNumber.toString)
                   raiseEvents[Float, Unit](List(())).as(true)
-              ),
+              )
           ),
-      verticalStrategy = MainAxisPlacementStrategy.SpaceBetween,
+      verticalStrategy = MainAxisPlacementStrategy.Begin(0),
       horizontalStrategy = AdditionalAxisPlacementStrategy.Center
     )
   end app
@@ -123,7 +137,6 @@ end SkijaAppExample
 def extractClickHandlerEvent(downEvent : SkijaDownEvent) : Option[Unit] =
   downEvent match
     case SkijaDownEvent.MouseClick(button, action, mods) =>
-      println("clicked event extractred")
       Some(()) // TODO ClickHandlerDownEvent(button, action, mods))
     case _ => None
 end extractClickHandlerEvent

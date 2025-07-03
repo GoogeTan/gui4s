@@ -27,8 +27,8 @@ def makeClickHandler[
   MouseClick
 ] =
   original => onClick =>
-    mouseTracker:
-      mousePosition =>
+    //mouseTracker:
+    //  mousePosition =>
         eventCatcherWithRect(original):
           (path, widgetBoundingBox, event) =>
             approprieteEvent(event) match

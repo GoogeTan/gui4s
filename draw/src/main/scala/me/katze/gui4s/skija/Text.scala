@@ -5,7 +5,7 @@ import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Font, Paint, TextBlob}
 
 final case class SkijaTextStyle(font: Font, paint: Paint)
-final case class SkijaPlacedText(textBlob: TextBlob, paint: Paint)
+final case class SkijaPlacedText(original : String, textBlob: TextBlob, paint: Paint)
 
 def placeText[F[_]](
                       ffi : FFI[F],
@@ -19,6 +19,6 @@ def placeText[F[_]](
       case Some(value) => shaper.shape(text, style.font, value)
       case None => shaper.shape(text, style.font)
     val blobBounds = blob.getBounds
-    (SkijaPlacedText(blob, style.paint), blobBounds.getRight, blobBounds.getBottom)
+    (SkijaPlacedText(text, blob, style.paint), blobBounds.getRight, blobBounds.getBottom)
 end placeText
 

@@ -12,4 +12,7 @@ final case class StatefulState[
     draw : Draw,
     handleEvents : EventHandler,
     destructor : Destructor
-)
+):
+  override def toString: String =
+    "StatefulState(name = \"" + name + "\", initialState={" + initialState.toString + "}, currentState={" + currentState.toString + "})"
+

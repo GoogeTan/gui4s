@@ -48,9 +48,7 @@ def getCoordinates[MeasurementUnit, Event] : SkijaUpdate[MeasurementUnit, Event,
 end getCoordinates
 
 def raiseEvents[MeasurementUnit, Event](events : List[Event]) : SkijaUpdate[MeasurementUnit, Event, Unit] =
-  StateT.modify(
-    state => (state.consumed, state.widgetCoordinates)
-  )
+  StateT.liftF(EventResult_((), events))
 end raiseEvents
 
 def mapEvents[MeasurementUnit, Event1, Event2, T](f : Event1 => Event2)(skijaUpdate : SkijaUpdate[MeasurementUnit, Event1, T]) : SkijaUpdate[MeasurementUnit, Event2, T] =
@@ -120,7 +118,7 @@ def sizeTextStateT[F[_] : Applicative] : SizeText[F, [Value] =>> StateT[F, Bound
           text = text,
           style = options,
           maxWidth = bounds.horizontal.max
-        ).map((placedText) => (bounds, new Sized(placedText.text, placedText.width, placedText.height)))
+        ).map(placedText => (bounds, new Sized(placedText.text, placedText.width, placedText.height)))
     )
 end sizeTextStateT
 

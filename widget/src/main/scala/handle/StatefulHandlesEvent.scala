@@ -44,13 +44,14 @@ def statefulHandlesEvent[
       ).catchEvents[Event]
       newState <- NonEmptyList.fromList(events).map(stateHandlesEvents(self.state, pathToParent, _)).getOrElse(self.state.pure[Update[Event, *]])
       newChildFreeWidget =
-        if StateEQ.equiv(self.state, newState) then
+        /*if StateEQ.equiv(self.state, newState) then
+          println("fignya\n\n\n\n\n\\n\n\n")
           widgetsAreMergable.merge(
             pathToParent.appendLast(self.name),
             self.child,
             newChildWidget,
           )
-        else
+        else*/
           widgetsAreMergable.merge(
             pathToParent.appendLast(self.name),
             self.child,

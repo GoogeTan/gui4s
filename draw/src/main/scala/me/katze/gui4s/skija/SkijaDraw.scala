@@ -52,7 +52,7 @@ def drawAt[F[_] : {Monad}, Window](ffi : FFI[F], original: SkijaDraw[F, Window],
   )
 end drawAt
 
-def drawText[F[_], Window](ffi : FFI[F], text: SkijaPlacedText):SkijaDraw[F, Window] =
+def drawText[F[_], Window](ffi : FFI[F], text: SkijaPlacedText) : SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](
     state =>
       ffi:

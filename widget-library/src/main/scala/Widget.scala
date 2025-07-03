@@ -36,6 +36,10 @@ final case class Widget[
   def withValue(newValue : T): Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
     copy(valueToDecorate = newValue)
   end withValue
+
+  override def toString: String = 
+    "W[" + valueToDecorate.toString + "]"
+  end toString
 end Widget
 
 def widgetAsFree[
