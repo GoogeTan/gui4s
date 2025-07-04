@@ -27,8 +27,8 @@ def widgetsAreMergable[
             freeNextWidgetToMerge.flatMap:
               nextWidgetToMerge =>
                 widgetMergesWithOldState[Place = Place](
-                  res.extract,
+                  nextWidgetToMerge.extract,
                   path,
-                  widgetHasInnerStates[Place = Place](nextWidgetToMerge.extract)
+                  widgetHasInnerStates[Place = Place](res.extract)
                 )
 end widgetsAreMergable
