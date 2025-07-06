@@ -6,7 +6,7 @@ import catnip.syntax.all.{*, given}
 import cats.arrow.FunctionK
 import cats.{Applicative, Apply, FlatMap, Functor, InjectK, Monad, ~>}
 import cats.data.{EitherT, ReaderT, StateT}
-import cats.effect.ExitCode
+import cats.effect.{ExitCode, Sync}
 import me.*
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.bound.Bounds
@@ -19,6 +19,8 @@ import me.katze.gui4s.example.place.RunPlacement
 import me.katze.gui4s.example.update.ApplicationRequest
 import me.katze.gui4s.layout.{Point3d, Sized, given}
 import me.katze.gui4s.widget.library.Widget_
+import scalacache.Cache
+import scalacache.caffeine.CaffeineCache
 
 opaque type SkijaUpdate[MeasurementUnit, Event, Value] = EventResult[MeasurementUnit, Event, Value]
 type SkijaUpdateT[MeasurementUnit, Event] = SkijaUpdate[MeasurementUnit, Event, *]
@@ -109,16 +111,22 @@ end setBounds
 given[F[_] : Monad, MeasurementUnit, Error] : Monad[SkijaPlaceInner[F, MeasurementUnit, Error, *]] = summon
 
 
-def sizeTextStateT[F[_] : Applicative] : SizeText[F, [Value] =>> StateT[F, Bounds[Float], Sized[Float, Value]]] =
-  (ffi : FFI[F], text: String, shaper : Shaper, options: SkijaTextStyle) =>
+def sizeTextStateT[IO[_] : Monad](
+                                  cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                ) : SizeText[IO, [Value] =>> StateT[IO, Bounds[Float], Sized[Float, Value]]] =
+  (ffi : FFI[IO], text: String, shaper : Shaper, options: SkijaTextStyle) =>
     StateT(
       bounds =>
-        placeText(ffi = ffi,
-          shaper = shaper,
-          text = text,
-          style = options,
-          maxWidth = bounds.horizontal.max
-        ).map(placedText => (bounds, new Sized(placedText.text, placedText.width, placedText.height)))
+        cache.cachingF(
+          (text, options, bounds.horizontal.max)
+        )(None)(
+          placeText(ffi = ffi,
+            shaper = shaper,
+            text = text,
+            style = options,
+            maxWidth = bounds.horizontal.max
+          ).map(placedText => new Sized(placedText.text, placedText.width, placedText.height))
+        ).map(placedText => (bounds, placedText))
     )
 end sizeTextStateT
 
@@ -127,8 +135,10 @@ def sizeTextLift[U[_], F[_], G[_]](original : SizeText[U, F], inj : F ~> G) : Si
     inj(original(ffi, text, shaper, options))
 end sizeTextLift
 
-def skijaSizeText[IO[_] : Monad, PlaceError] : SizeText[IO, SkijaPlace[IO, Float, PlaceError, *]] =
-  sizeTextLift(sizeTextStateT[IO], mapF(EitherT.liftK[IO, PlaceError]))
+def skijaSizeText[IO[_] : Monad, PlaceError](
+                                              cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                            ) : SizeText[IO, SkijaPlace[IO, Float, PlaceError, *]] =
+  sizeTextLift(sizeTextStateT(cache), mapF(EitherT.liftK[IO, PlaceError]))
 end skijaSizeText
 
 def mapF[F[_] : FlatMap, G[_] : Applicative, U[_], S](f : F ~> G) : (StateT[F, S, *] * U) ~> (StateT[G, S, *] * U) =

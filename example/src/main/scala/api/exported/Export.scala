@@ -122,7 +122,6 @@ def typecheckState[F[_] : Applicative, S: Typeable as ST](any: Any, raiseError :
     case (a : S, b : S) =>
       (a, b).pure[F]
     case _ =>
-      println(ST.toString)
       raiseError.map(a => a)
   end match
 end typecheckState

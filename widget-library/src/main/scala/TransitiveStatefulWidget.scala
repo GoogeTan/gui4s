@@ -27,8 +27,6 @@ final class TransitiveStatefulWidgetFromStatefulWidget[Widget[_], Task](stateful
         val (ownEvents, transitiveEvents) = events.toList.partitionMap(identity)
         val ownEventResult =
           NonEmptyList.fromList(ownEvents).map(eventHandler(state, _)).getOrElse(EventReaction(state, Nil, Nil))
-        println(transitiveEvents.mkString(", "))
-        println(ownEvents.mkString(", "))
         ownEventResult.copy(parentEvent = transitiveEvents ++ ownEventResult.parentEvent)
       },
       body

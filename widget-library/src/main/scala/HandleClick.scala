@@ -14,7 +14,7 @@ def makeClickHandler[
   Widget,
   Update[_] : Applicative,
   HandleableEvent,
-  MeasurementUnit,
+  MeasurementUnit : Numeric,
   MouseClick
 ](
   eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], MeasurementUnit, HandleableEvent],
@@ -27,16 +27,14 @@ def makeClickHandler[
   MouseClick
 ] =
   original => onClick =>
-    //mouseTracker:
-    //  mousePosition =>
+    mouseTracker:
+      mousePosition =>
         eventCatcherWithRect(original):
           (path, widgetBoundingBox, event) =>
             approprieteEvent(event) match
-              case Some(click) =>
-                // TODO check bounds
-                println("check bounds TODO")
+              case Some(click) if widgetBoundingBox.containsPoint(mousePosition) =>
                 onClick(path, click).as(true)
-              case None =>
+              case _ =>
                 false.pure[Update]
             end match
 end makeClickHandler

@@ -75,6 +75,16 @@ object SkijaAppExample extends IOApp:
       extractClickHandlerEvent
     )
 
+  extension[Event](widget : Widget[Event])
+    def onClick(name : String)(event : Event) : Widget[Event] =
+      clickHandler(name)(widget)(
+        (_, _) =>
+          raiseEvents[Float, Event](List(event)).as(true)
+      )
+    end onClick
+  end extension
+  
+  
   def statefulWidget: StatefulWidget[Widget, Nothing] = makeSkijaStatefulWidget(
     (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"
   )
@@ -82,7 +92,7 @@ object SkijaAppExample extends IOApp:
   def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Nothing] = TransitiveStatefulWidgetFromStatefulWidget(statefulWidget)
   
   def text(using backend : SkijaBackend[IO, OglWindow]) : TextWidget[Widget] =
-    makeSkijaTextWidget(backend.globalShaper, ffi)
+    makeSkijaTextWidget(backend.globalShaper, ffi, backend.globalTextCache)
   end text
 
   def leaf[Marker, Event](marker : Marker) : Widget[Event] =
@@ -106,29 +116,29 @@ object SkijaAppExample extends IOApp:
 
   def app(numbers : List[Int])(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
     skijaColumn(
-      children = numbers.map:
+      verticalStrategy = MainAxisPlacementStrategy.Begin(0),
+      horizontalStrategy = AdditionalAxisPlacementStrategy.Center,
+      children = List(
+        mouseTracker("mouseTracker")(
+          maybeMousePoint =>
+            text(
+              maybeMousePoint.map(point => "x: " + point.x.toString + " y: " + point.y.toString).getOrElse("No movement"),
+              SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
+            )
+        )
+      ) ++ numbers.map:
         lineNumber =>
           statefulWidget[Int, ApplicationRequest, Unit](
             name = "line-" + lineNumber.toString,
-            initialState = 1,
+            initialState = 0,
             eventHandler = (state, _) =>
               EventReaction(state + 1, Nil, Nil),
             body = state =>
-              clickHandler("click_handler_" + lineNumber.toString)(
-                leaf(
-                  "# " + lineNumber.toString + " : " + state.toString,
-                )
-                //text(
-                //  "# " + lineNumber.toString + " : " + state.toString,
-                //  SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
-                //)
-              )(
-                (_, _) =>
-                  raiseEvents[Float, Unit](List(())).as(true)
-              )
+              text(
+                "# " + lineNumber.toString + " : " + state.toString,
+                SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
+              ).onClick("click_handler_" + lineNumber.toString)(())
           ),
-      verticalStrategy = MainAxisPlacementStrategy.Begin(0),
-      horizontalStrategy = AdditionalAxisPlacementStrategy.Center
     )
   end app
 end SkijaAppExample

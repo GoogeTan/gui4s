@@ -13,14 +13,14 @@ def statefulMergesWithOldStates[
   EventHandler,
   RecompositionReaction
 ](
-   typeCheckState: [T] => (Any, Path, (State, State) => Place[T]) => Place[T],
-   stateAsFree : AsFreeF[
+    typeCheckState: [T] => (Any, Path, (State, State) => Place[T]) => Place[T],
+    stateAsFree : AsFreeF[
       Stateful[
         Widget,
         StatefulState[State, Draw, EventHandler, State => RecompositionReaction],
       ],
       Place
-   ]
+    ]
 ) : MergesWithOldStates[
   Stateful[
     Widget,

@@ -75,12 +75,15 @@ def rememberLastEventOfTheType[
     name,
     None,
     (_, events) =>
-      println("events came: " + events.toList.mkString(", "))
       EventReaction(Some(events.last), Nil, Nil),
     catchEvent
   )
 
 @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
-given[T : Typeable as TT] : Typeable[Option[T]] = (value : Any) => value match
-  case a : Option[?] => Some(a).map(_.asInstanceOf[value.type & Option[T]])
+given[T : Typeable] : Typeable[Option[T]] = (value : Any) => value match
+  case a : Option[?] =>
+    a match
+      case Some(b : T) => Some(Some(b).asInstanceOf[value.type & Option[T]])
+      case Some(_) => None
+      case None => Some(None.asInstanceOf[value.type & Option[T]])
   case _ => None

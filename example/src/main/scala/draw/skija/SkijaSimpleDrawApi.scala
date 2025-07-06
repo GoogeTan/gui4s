@@ -10,8 +10,10 @@ import cats.effect.{Async, Concurrent, ExitCode, Resource}
 import cats.syntax.all.*
 import cats.{Apply, MonadError, Monoid}
 import me.katze.gui4s.glfw.*
+import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.skija.*
 import org.lwjgl.opengl.GL.createCapabilities
+import scalacache.caffeine.CaffeineCache
 
 object SkijaSimpleDrawApi:
   final case class GlfwCallbacks[F](
@@ -63,7 +65,8 @@ object SkijaSimpleDrawApi:
         )
       )
       shaper <- skija.createShaper
-    yield SkijaBackend(glfw, window, renderTargetCell, dispatcher, shaper)
+      cache <- Resource.eval(CaffeineCache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]])
+    yield SkijaBackend(glfw, window, renderTargetCell, dispatcher, shaper, cache)
   end createForTests
 
   def addRenderTargetRecreation[F : Monoid](callbacks: GlfwCallbacks[F], recreation : Size => F) : GlfwCallbacks[F] =

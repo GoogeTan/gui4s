@@ -67,7 +67,7 @@ def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
         debugContext = true
       ),
       ffi = ContextFFI(drawLoopExecutionContext, summon),
-      callbacks = eventOfferingCallbacks(downEventSink.offer).copy(onMouseMove = (_, _) => ().pure[F])
+      callbacks = eventOfferingCallbacks(downEventSink.offer)
     ),
     drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow]]](
       skijaDrawLoop[F, OglWindow](backend),

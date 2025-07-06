@@ -10,9 +10,9 @@ final case class RectAtPoint2d[MeasurementUnit](rect: Rect[MeasurementUnit], poi
   def endY(using N : Numeric[MeasurementUnit]) : MeasurementUnit = rect.height + point.y
 
 
-  def isIn(point2d: Point2d[MeasurementUnit])(using N : Numeric[MeasurementUnit]) =
+  def containsPoint(point2d: Point2d[MeasurementUnit])(using N : Numeric[MeasurementUnit]): Boolean =
     startX <= point2d.x && point2d.x <= endX
       && startY <= point2d.y && point2d.y <= endY
-  end isIn
+  end containsPoint
 end RectAtPoint2d
 

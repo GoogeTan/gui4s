@@ -169,7 +169,10 @@ lazy val example = (project in file("example"))
   .settings(
     name := "example",
     idePackagePrefix := Some(s"$packagePrefix.example"),
-    libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List("org.scala-lang.modules" %% "scala-swing" % "3.0.0"),
+    libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
+      "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
+      "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
+    ),
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value),

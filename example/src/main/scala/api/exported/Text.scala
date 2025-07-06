@@ -3,6 +3,7 @@ package api.exported
 
 import catnip.FFI
 import catnip.syntax.all.{*, given}
+import cats.effect.Sync
 import cats.syntax.all.*
 import cats.{Functor, Monad}
 import io.github.humbleui.skija.shaper.Shaper
@@ -12,13 +13,19 @@ import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
 
-def skijaText[F[_] : Monad, PlaceError, DownEvent, Event](shaper : Shaper, ffi : FFI[F], text : String, style : SkijaTextStyle) : SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
+def skijaText[IO[_] : Monad, PlaceError, DownEvent, Event](
+                                                            shaper : Shaper,
+                                                            ffi : FFI[IO],
+                                                            textSizer : (String, SkijaTextStyle) => SkijaPlace[IO, Float, PlaceError, SkijaPlacedText],
+                                                            text : String, 
+                                                            style : SkijaTextStyle,
+                                                          ) : SkijaWidget[IO, Float, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.text[
-    SkijaUpdateT[Float, Event],  SkijaPlaceT[F, Float, PlaceError], SkijaDraw[F, OglWindow], SkijaRecomposition[F], DownEvent, SkijaPlacedText
+    SkijaUpdateT[Float, Event],  SkijaPlaceT[IO, Float, PlaceError], SkijaDraw[IO, OglWindow], SkijaRecomposition[IO], DownEvent, SkijaPlacedText
   ](
-    skijaSizeText(ffi, text, shaper, style),
+    textSizer(text, style),
     drawText(ffi, _),
-    ().pure[F],
+    ().pure[IO],
   )
 end skijaText
 
