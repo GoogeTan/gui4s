@@ -59,7 +59,7 @@ def linearLayout[
           childrenHandleEvent[Update, Place, Widget, HandleableEvent, Meta](
             widgetHandlesEvent = widgetHandlesEvent[Update, Place, Draw, RecompositionReaction, HandleableEvent],
             widgetAsFree = widgetAsFree[Update, Place, Draw, RecompositionReaction, HandleableEvent],
-            eventConsumed = eventConsumed,
+            isEventConsumed = eventConsumed,
             adjustUpdateToMeta = adjustUpdateToMeta
           )
         ),

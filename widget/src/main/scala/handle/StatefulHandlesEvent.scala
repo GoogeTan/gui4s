@@ -16,7 +16,7 @@ def statefulHandlesEvent[
   Update[_, _] : {BiMonad, CatchEvents},
   Place[_] : Functor,
   Widget,
-  State : Equiv as StateEQ,
+  State,
   Event,
   ChildEvent,
   HandleableEvent

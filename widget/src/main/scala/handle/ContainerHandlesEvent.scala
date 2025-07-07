@@ -39,11 +39,11 @@ def childrenHandleEvent[
 ](
     widgetHandlesEvent : HandlesEvent[Widget, HandlableEvent, Update[Place[Widget]]],
     widgetAsFree : AsFree[Widget, Place[Widget]],
-    eventConsumed : Update[Boolean],
+    isEventConsumed : Update[Boolean],
     adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
 ) : HandlesEvent[List[(Widget, Meta)], HandlableEvent, Update[List[Place[Widget]]]] =
   def updateChildrenOrdered(children : List[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
-    given Ordering[(Widget, Meta)] = (a, b) => MetaOrdering.compare(a._2, b._2) // TODO extract comap ordering
+    given Ordering[(Widget, Meta)] = MetaOrdering.contramap(_._2)
     orderedListProcessing(children)(
       orderedChildren => updateChildren(orderedChildren, pathToParent, event)
     )
@@ -54,14 +54,14 @@ def childrenHandleEvent[
       case (currentChild, currentMeta) :: remainingChildren =>
         for
           widget <- adjustUpdateToMeta(widgetHandlesEvent(currentChild, pathToParent, event), currentMeta)
-          shouldNotContinue <- eventConsumed
+          shouldNotContinue <- isEventConsumed
           remaining <-
-            if !shouldNotContinue then
-              updateChildren(remainingChildren, pathToParent, event)
-            else
+            if shouldNotContinue then
               remainingChildren.map(_._1).map(widgetAsFree).pure[Update]
+            else
+              updateChildren(remainingChildren, pathToParent, event)
         yield widget :: remaining
-      case Nil => Nil.pure[Update]
-
+      case Nil => 
+        Nil.pure[Update]
   updateChildrenOrdered
 end childrenHandleEvent
