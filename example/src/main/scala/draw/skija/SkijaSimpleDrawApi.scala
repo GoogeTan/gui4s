@@ -6,7 +6,8 @@ import draw.{Drawable, drawLoopExceptionHandler}
 import catnip.FFI
 import catnip.syntax.all.{*, given}
 import cats.effect.std.{AtomicCell, Console, Dispatcher}
-import cats.effect.{Async, Concurrent, ExitCode, Resource}
+import cats.effect.{Async, Clock, Concurrent, ExitCode, Resource}
+import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import cats.{Apply, MonadError, Monoid}
 import me.katze.gui4s.glfw.*
@@ -113,11 +114,11 @@ object SkijaSimpleDrawApi:
   end registerCallbacks
 end SkijaSimpleDrawApi
 
-def skijaDrawLoop[F[+_] : {Console, FFI}, Window](backend : SkijaBackend[F, Window])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
+def skijaDrawLoop[F[+_] : {Console as C, FFI, Clock}, Window](backend : SkijaBackend[F, Window])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
   currentWidget =>
     drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
       currentWidget.flatMap(widget =>
         backend.drawState((widget.draw |+| flush[F, Window]).run) *> backend.pollEvents
-      )
+      ).timed.flatMap((duration, _) => C.println(duration))
     ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop

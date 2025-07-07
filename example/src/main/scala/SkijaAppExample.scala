@@ -84,7 +84,6 @@ object SkijaAppExample extends IOApp:
     end onClick
   end extension
   
-  
   def statefulWidget: StatefulWidget[Widget, Nothing] = makeSkijaStatefulWidget(
     (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"
   )
@@ -115,31 +114,22 @@ object SkijaAppExample extends IOApp:
   end main
 
   def app(numbers : List[Int])(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
-    skijaColumn(
+    /*skijaColumn(
       verticalStrategy = MainAxisPlacementStrategy.Begin(0),
       horizontalStrategy = AdditionalAxisPlacementStrategy.Center,
-      children = List(
-        mouseTracker("mouseTracker")(
-          maybeMousePoint =>
-            text(
-              maybeMousePoint.map(point => "x: " + point.x.toString + " y: " + point.y.toString).getOrElse("No movement"),
-              SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
-            )
-        )
-      ) ++ numbers.map:
-        lineNumber =>
+      children = numbers.map:
+        lineNumber =>*/
+          val lineNumber = 1
           statefulWidget[Int, ApplicationRequest, Unit](
             name = "line-" + lineNumber.toString,
             initialState = 0,
-            eventHandler = (state, _) =>
-              EventReaction(state + 1, Nil, Nil),
+            eventHandler = (state, _) => EventReaction(state + 1, Nil, Nil),
             body = state =>
               text(
                 "# " + lineNumber.toString + " : " + state.toString,
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
               ).onClick("click_handler_" + lineNumber.toString)(())
-          ),
-    )
+          )//, )
   end app
 end SkijaAppExample
 

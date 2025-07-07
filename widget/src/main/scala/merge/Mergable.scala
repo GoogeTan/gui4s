@@ -1,7 +1,7 @@
 package me.katze.gui4s.widget
 package merge
 
-trait Mergable[Place[_], Widget]:
-  def merge(pathToWidget : Path, head: Widget, tail: Place[Widget]*): Place[Widget]
+trait Mergable[Widget]:
+  def merge(pathToWidget : Path, oldWidget: Widget, newWidget: Widget): Widget
 end Mergable
 

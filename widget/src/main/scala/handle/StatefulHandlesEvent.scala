@@ -21,11 +21,10 @@ def statefulHandlesEvent[
   ChildEvent,
   HandleableEvent
 ](
-   stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
-   drawStateIntoWidget: Drawable[State, Place[Widget]],
-   childHandlesEvents  : HandlesEvent[Widget, HandleableEvent, Update[ChildEvent, Place[Widget]]],
-   widgetsAreMergable  : Mergable[Place, Widget],
-   widgetAsFree        : AsFree[Widget, Place[Widget]],
+    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
+    drawStateIntoWidget: Drawable[State, Place[Widget]],
+    childHandlesEvents  : HandlesEvent[Widget, HandleableEvent, Update[ChildEvent, Place[Widget]]],
+    widgetsAreMergable  : Mergable[Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
   HandleableEvent,
@@ -44,19 +43,12 @@ def statefulHandlesEvent[
       ).catchEvents[Event]
       newState <- NonEmptyList.fromList(events).map(stateHandlesEvents(self.state, pathToParent, _)).getOrElse(self.state.pure[Update[Event, *]])
       newChildFreeWidget =
-        /*if StateEQ.equiv(self.state, newState) then
-          println("fignya\n\n\n\n\n\\n\n\n")
           widgetsAreMergable.merge(
             pathToParent.appendLast(self.name),
-            self.child,
-            newChildWidget,
-          )
-        else*/
-          widgetsAreMergable.merge(
-            pathToParent.appendLast(self.name),
-            self.child,
             newChildWidget,
             drawStateIntoWidget(newState)
           )
-    yield newChildFreeWidget.map(newChild => self.copy(state = newState, child = newChild))
+    yield newChildFreeWidget.map(newChild =>
+      self.copy(state = newState, child = newChild)
+    )
 end statefulHandlesEvent

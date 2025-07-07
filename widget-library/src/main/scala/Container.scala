@@ -35,6 +35,7 @@ def linearLayout[
     children : List[Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
     layout : Layout[Place, Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
     adjustDrawToMeta : (Draw, Meta) => Draw,
+    adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
     eventConsumed : Update[Boolean],
 ) : Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
   type Widget = Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
@@ -58,7 +59,8 @@ def linearLayout[
           childrenHandleEvent[Update, Place, Widget, HandleableEvent, Meta](
             widgetHandlesEvent = widgetHandlesEvent[Update, Place, Draw, RecompositionReaction, HandleableEvent],
             widgetAsFree = widgetAsFree[Update, Place, Draw, RecompositionReaction, HandleableEvent],
-            eventConsumed = eventConsumed
+            eventConsumed = eventConsumed,
+            adjustUpdateToMeta = adjustUpdateToMeta
           )
         ),
         valueMergesWithOldState = containerMergesWithOldStates[

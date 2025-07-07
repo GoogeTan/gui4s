@@ -51,7 +51,7 @@ def eventCatcher[
 ) : Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
   eventHandleDecorator(
     original,
-    (handler) =>
+    handler =>
       (state, path, event) =>
         decorator(path, event).ifM(
           markEventHandled
@@ -72,9 +72,9 @@ def eventCatcherWithWidgetsRect[
   HandleableEvent,
   MeasurableUnit,
 ](
-   markEventHandled : Update[Unit],
-   coordinatesOfTheWidget : Update[Point3d[MeasurableUnit]]
- ) : EventCatcherWithRect[
+    markEventHandled : Update[Unit],
+    coordinatesOfTheWidget : Update[Point3d[MeasurableUnit]]
+) : EventCatcherWithRect[
   OuterPlace[Sized[MeasurableUnit, Widget_[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]],
   Update[Boolean],
   MeasurableUnit,

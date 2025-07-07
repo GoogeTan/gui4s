@@ -26,7 +26,7 @@ def stateful[
   Event,
   ChildEvent
 ](
-   widgetsAreMergeable : Mergable[Place, Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
+   widgetsAreMergeable : Mergable[Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
    runEventReaction : (EventReaction, Path) => Update[Event, State],
    typeCheckState : [T] => (Any, Path, (State, State) => Place[T]) => Place[T],
 )(
@@ -104,7 +104,7 @@ def statefulHandlesEvent_[
   Event,
   ChildEvent
 ](
-   widgetsAreMergeable : Mergable[Place, Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
+   widgetsAreMergeable : Mergable[Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
 ): HandlesEventPlace[
   [T] =>> Update[Event, Place[T]],
   Stateful[
@@ -132,6 +132,5 @@ def statefulHandlesEvent_[
   drawStateIntoWidget = statefulStateDrawsIntoWidget,
   childHandlesEvents = widgetHandlesEvent[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
   widgetsAreMergable = widgetsAreMergeable,
-  widgetAsFree = widgetAsFree
 )
 

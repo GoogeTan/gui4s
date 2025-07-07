@@ -4,7 +4,7 @@ import update.*
 
 import cats.effect.std.Queue
 import cats.effect.syntax.all.*
-import cats.effect.{Async, Concurrent, ExitCode, Ref}
+import cats.effect.{Async, Clock, Concurrent, ExitCode, Ref}
 import cats.syntax.all.given
 import cats.{Monad, MonadError}
 

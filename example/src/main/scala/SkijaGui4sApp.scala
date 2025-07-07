@@ -37,10 +37,10 @@ enum SkijaDownEvent:
 end SkijaDownEvent
 
 def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
-                                                         widget: SkijaBackend[F, OglWindow] ?=> SkijaWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
-                                                         updateLoopExecutionContext: ExecutionContext,
-                                                         drawLoopExecutionContext: ExecutionContext,
-                                                         runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
+                                                          widget: SkijaBackend[F, OglWindow] ?=> SkijaWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
+                                                          updateLoopExecutionContext: ExecutionContext,
+                                                          drawLoopExecutionContext: ExecutionContext,
+                                                          runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
 ) =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,

@@ -81,7 +81,7 @@ lazy val widget = (project in file("widget"))
   .settings(
     name := "layout",
     idePackagePrefix := Some(s"$packagePrefix.widget"),
-    libraryDependencies ++= catsLibs,
+    libraryDependencies ++= catsLibs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
@@ -91,7 +91,7 @@ lazy val widgetLibrary = (project in file("widget-library"))
   .settings(
     name := "layout",
     idePackagePrefix := Some(s"$packagePrefix.widget.library"),
-    libraryDependencies ++= catsLibs,
+    libraryDependencies ++= catsLibs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)

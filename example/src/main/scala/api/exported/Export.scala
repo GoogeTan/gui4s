@@ -44,6 +44,7 @@ def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: M
       skijaSetBounds,
     )(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
+    [T] => (update, meta) => addCoordinates(meta.point) *> update <* addCoordinates(-meta.point),
     false.pure // TODO
   )
 end skijaRow
@@ -68,6 +69,7 @@ def skijaColumn[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors
       skijaSetBounds,
     )(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
+    [T] => (update, meta) => addCoordinates(meta.point) *> update <* addCoordinates(-meta.point),
     false.pure // TODO
   )
 end skijaColumn

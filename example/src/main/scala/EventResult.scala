@@ -1,9 +1,10 @@
 package me.katze.gui4s.example
 
 import catnip.BiMonad
-import cats.{Bifunctor, Bimonad}
+import cats.{Bifunctor, Bimonad, Semigroup}
 import cats.data.IndexedStateT.catsDataMonadForIndexedStateT
 import cats.data.StateT
+import cats.syntax.all.*
 import me.katze.gui4s.layout.Point3d
 import me.katze.gui4s.widget.{CatchEvents, given}
 
@@ -18,16 +19,20 @@ final case class EventResult_[+Event, +Widget](
   end this
 end EventResult_
 
-type EventResultState[MeasurementUnit] = (consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit])
+final case class EventResultState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
+  def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : EventResultState[MeasurementUnit] =
+    copy(widgetCoordinates = widgetCoordinates + point)
+  end addCoordinates
+end EventResultState
 
 def emptyEventResultState[MeasurementUnit : Numeric as N] : EventResultState[MeasurementUnit] =
-  (false, Point3d(N.zero, N.zero, N.zero))
+  EventResultState(false, Point3d(N.zero, N.zero, N.zero))
 end emptyEventResultState
 
 type EventResult[MeasurementUnit, Event, Widget] = StateT[EventResult_[Event, *], EventResultState[MeasurementUnit], Widget]
 
 def markEventHandled[MeasuremementUnit](state : EventResultState[MeasuremementUnit]) : EventResultState[MeasuremementUnit] =
-  (true, state.widgetCoordinates)
+  EventResultState(true, state.widgetCoordinates)
 end markEventHandled
 
 given[MeasurementUnit]: BiMonad[EventResult[MeasurementUnit, *, *]] = [Event] => () => catsDataMonadForIndexedStateT(using eventResultIsBimonad)

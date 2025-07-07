@@ -24,7 +24,7 @@ def resource[
   HandlableEvent,
 ](
   fAsAction : F[Unit] => RecompositionReaction,
-  widgetsAreMergable : Mergable[Place, Widget_[Update, Place, Draw, RecompositionReaction, HandlableEvent]]
+  widgetsAreMergable : Mergable[Place[Widget_[Update, Place, Draw, RecompositionReaction, HandlableEvent]]]
 ) : ResourceWidget[
   Place[Widget_[Update, Place, Draw, RecompositionReaction, HandlableEvent]],
   F

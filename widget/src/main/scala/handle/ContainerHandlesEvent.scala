@@ -39,26 +39,27 @@ def childrenHandleEvent[
 ](
     widgetHandlesEvent : HandlesEvent[Widget, HandlableEvent, Update[Place[Widget]]],
     widgetAsFree : AsFree[Widget, Place[Widget]],
-    eventConsumed : Update[Boolean]
+    eventConsumed : Update[Boolean],
+    adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
 ) : HandlesEvent[List[(Widget, Meta)], HandlableEvent, Update[List[Place[Widget]]]] =
   def updateChildrenOrdered(children : List[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
     given Ordering[(Widget, Meta)] = (a, b) => MetaOrdering.compare(a._2, b._2) // TODO extract comap ordering
     orderedListProcessing(children)(
-      orderedChildren => updateChildren(orderedChildren.map(_._1), pathToParent, event)
+      orderedChildren => updateChildren(orderedChildren, pathToParent, event)
     )
   end updateChildrenOrdered
 
-  def updateChildren(children : List[Widget], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
+  def updateChildren(children : List[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
     children match
-      case currentChild :: remainingChildren =>
+      case (currentChild, currentMeta) :: remainingChildren =>
         for
-          widget <- widgetHandlesEvent(currentChild, pathToParent, event)
-          shouldContinue <- eventConsumed
+          widget <- adjustUpdateToMeta(widgetHandlesEvent(currentChild, pathToParent, event), currentMeta)
+          shouldNotContinue <- eventConsumed
           remaining <-
-            if shouldContinue then
+            if !shouldNotContinue then
               updateChildren(remainingChildren, pathToParent, event)
             else
-              remainingChildren.map(widgetAsFree).pure[Update]
+              remainingChildren.map(_._1).map(widgetAsFree).pure[Update]
         yield widget :: remaining
       case Nil => Nil.pure[Update]
 

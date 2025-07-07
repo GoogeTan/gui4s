@@ -4,7 +4,7 @@ package api.exported
 import catnip.{BiMonad, FFI}
 import catnip.syntax.all.{*, given}
 import cats.arrow.FunctionK
-import cats.{Applicative, Apply, FlatMap, Functor, InjectK, Monad, ~>}
+import cats.{Applicative, Apply, FlatMap, Functor, InjectK, Monad, Semigroup, ~>}
 import cats.data.{EitherT, ReaderT, StateT}
 import cats.effect.{ExitCode, Sync}
 import me.*
@@ -48,6 +48,10 @@ end markEventHandled
 def getCoordinates[MeasurementUnit, Event] : SkijaUpdate[MeasurementUnit, Event, Point3d[MeasurementUnit]] =
   StateT.get[EventResult_[Event, *], EventResultState[MeasurementUnit]].map(_.widgetCoordinates)
 end getCoordinates
+
+def addCoordinates[MeasurementUnit : Numeric, Event](coordinates : Point3d[MeasurementUnit]) : SkijaUpdate[MeasurementUnit, Event, Unit] =
+  StateT.modify(_.addCoordinates(coordinates))
+end addCoordinates
 
 def raiseEvents[MeasurementUnit, Event](events : List[Event]) : SkijaUpdate[MeasurementUnit, Event, Unit] =
   StateT.liftF(EventResult_((), events))

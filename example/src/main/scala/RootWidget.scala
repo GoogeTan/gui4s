@@ -35,6 +35,7 @@ final case class RootWidget[
     widgetHandlesEvent(placedWidget, pathToRoot, event).map(newWidget =>
       for
         newPlacedWidget <- runPlacement(newWidget)
+        _ = println(newPlacedWidget)
         _ <- runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, widgetHasInnerState(placedWidget)))
         _ <- collectQuitCompositionReactions[Recomposition](
           widgetHasInnerState(placedWidget),
