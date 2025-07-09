@@ -32,7 +32,7 @@ end GlfwError
 final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Window, OriginalError, AdaptedError](
     val original: Glfw[F[OriginalError, *], Window],
     error: GlfwError[Window, original.Monitor, OriginalError, AdaptedError]
-) extends Glfw[[T] =>> F[AdaptedError, T], Window]:
+) extends Glfw[F[AdaptedError, *], Window]:
   override type Monitor = original.Monitor
 
   override def createWindow(settings: WindowCreationSettings): Resource[F[AdaptedError, *], Window] =

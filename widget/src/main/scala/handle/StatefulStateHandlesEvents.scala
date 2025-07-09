@@ -9,15 +9,15 @@ def statefulStateHandlesEvents[
   Update[_] : Functor,
   State,
   Draw,
-  ChildEvent,
+  Event,
   Destructor
-] : HandlesEvent[
-  StatefulState[State, Draw, (State, Path, NonEmptyList[ChildEvent]) => Update[State], Destructor], 
-  NonEmptyList[ChildEvent], 
-  Update[StatefulState[State, Draw, (State, Path, NonEmptyList[ChildEvent]) => Update[State], Destructor]]
+] : HandlesEventF[
+  StatefulState[State, Draw, HandlesEventF[State, Event, Update], Destructor],
+  Event,
+  Update,
 ] =
-  (self, pathToParent, events) =>
+  (self, pathToParent, event) =>
     self
-      .handleEvents(self.currentState, pathToParent, events)
+      .handleEvents(self.currentState, pathToParent, event)
       .map(newState => self.copy(currentState = newState))
 end statefulStateHandlesEvents

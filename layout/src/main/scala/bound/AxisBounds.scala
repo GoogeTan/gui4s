@@ -1,9 +1,6 @@
 package me.katze.gui4s.layout
 package bound
 
-import scala.math.Ordered.orderingToOrdered
-import scala.math.Numeric.Implicits.*
-
 // TODO Написать, что max=None кодирует отсутствие верхнего предела => бесконечность
 final case class AxisBounds[+MeasurementUnit](max: Option[MeasurementUnit]):
   def this(max : MeasurementUnit) =

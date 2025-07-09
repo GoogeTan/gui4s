@@ -14,6 +14,7 @@ import cats.{Functor, Monad}
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
 import cats.syntax.all.*
+import cats.effect.syntax.all.*
 import me.katze.*
 import me.katze.gui4s.example
 import me.katze.gui4s.example.api.exported.{SkijaPlacedWidget, SkijaRecomposition, SkijaPlaceT, SkijaUpdateT, SkijaWidget, handleApplicationRequests, runPlaceLift, runPlaceStateT, skijaInnerRunPlace, skijaRunPlace, given}
@@ -41,7 +42,7 @@ def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
                                                           updateLoopExecutionContext: ExecutionContext,
                                                           drawLoopExecutionContext: ExecutionContext,
                                                           runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
-) =
+): F[ExitCode] =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,
     SkijaPlacedWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],

@@ -8,7 +8,8 @@ trait MapEvent[Widget[_]]:
   def mapEvent[A, B](value : Widget[A])(f : A => B) : Widget[B]
 end MapEvent
 
-final class mapEvent[
+// TODO for some reason name mapEvent without 2 is not compiled on mac os
+final class mapEvent2[
   Update[_, _],
   Place[_] : Functor,
   Draw,
@@ -32,4 +33,4 @@ final class mapEvent[
         )
     )
   end mapEvent
-end mapEvent
+end mapEvent2

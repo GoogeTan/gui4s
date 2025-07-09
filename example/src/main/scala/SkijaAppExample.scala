@@ -56,7 +56,7 @@ object SkijaAppExample extends IOApp:
       eventCatcherWithRect = eventCatcher,
       statefulWidget = transitiveStatefulWidget,
       mapUpdate = [A, B] => f => mapEvents(f),
-      mapEvent = mapEvent[Update = SkijaUpdate[Float, *, *]]([T, A, B] => f => mapEvents(f)),
+      mapEvent = me.katze.gui4s.widget.library.mapEvent2([T, A, B] => f => mapEvents(f)),
       name = name,
       catchEvent =
         (path, rect, event) =>
