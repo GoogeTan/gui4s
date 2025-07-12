@@ -2,29 +2,27 @@ package me.katze.gui4s.widget
 package handle
 
 import draw.Drawable
-import free.AsFree
 import merge.Mergable
 
-import catnip.BiMonad
-import catnip.syntax.all.given
-import cats.Functor
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import me.katze.gui4s.widget.CatchEvents
+import cats.{Functor, Monad}
 
 def statefulHandlesEvent[
-  Update[_, _] : {BiMonad, CatchEvents},
+  Update[_, _],
   Place[_] : Functor,
   Widget,
-  State,
+  State : Equiv as stateEquiality,
   Event,
   ChildEvent,
   HandleableEvent
 ](
-    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
-    drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childHandlesEvents  : HandlesEvent[Widget, HandleableEvent, Update[ChildEvent, Place[Widget]]],
-    widgetsAreMergable  : Mergable[Place[Widget]],
+    using Monad[Update[Event, *]]
+)(
+   stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
+   drawStateIntoWidget: Drawable[State, Place[Widget]],
+   childWidgetHandlesEvent  : HandlesEvent[Widget, HandleableEvent, Update[Event, (List[ChildEvent], Place[Widget])]],
+   widgetsAreMergable  : Mergable[Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
   HandleableEvent,
@@ -36,19 +34,22 @@ def statefulHandlesEvent[
     event: HandleableEvent
   ) =>
     for
-      (events, newChildWidget) <- childHandlesEvents(
+      (events, newChildWidget) <- childWidgetHandlesEvent(
         self.child,
         pathToParent.appendLast(self.name),
         event
-      ).catchEvents[Event]
-      newState <- NonEmptyList.fromList(events).map(stateHandlesEvents(self.state, pathToParent, _)).getOrElse(self.state.pure[Update[Event, *]])
-      newChildFreeWidget =
-          widgetsAreMergable.merge(
-            pathToParent.appendLast(self.name),
-            newChildWidget,
-            drawStateIntoWidget(newState)
-          )
-    yield newChildFreeWidget.map(newChild =>
-      self.copy(state = newState, child = newChild)
-    )
+      )
+      newState : Option[State] <- NonEmptyList.fromList(events).traverse(stateHandlesEvents(self.state, pathToParent, _))
+    yield newState
+      .filterNot(stateEquiality.equiv(_, self.state))
+      .map(newState =>
+        widgetsAreMergable.merge(
+          pathToParent.appendLast(self.name),
+          newChildWidget,
+          drawStateIntoWidget(newState)
+        ).map(newChild =>
+          self.copy(state = newState, child = newChild)
+        )
+      )
+      .getOrElse(newChildWidget.map(newChild => self.copy(child = newChild)))
 end statefulHandlesEvent

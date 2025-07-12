@@ -1,7 +1,7 @@
 package me.katze.gui4s.skija
 
 import catnip.FFI
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.given
 import cats.Monad
 import cats.data.ReaderT
 import cats.syntax.all.*

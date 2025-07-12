@@ -10,6 +10,7 @@ import me.katze.gui4s.widget.{CatchEvents, given}
 
 import scala.annotation.tailrec
 
+// TODO Заменить на Writer
 final case class EventResult_[+Event, +Widget](
                                                 widget: Widget,
                                                 events: List[Event],

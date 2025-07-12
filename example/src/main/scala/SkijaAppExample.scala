@@ -44,7 +44,6 @@ object SkijaAppExample extends IOApp:
           case Right(value) =>
             IO.pure(value)
     )
-  end run
 
   def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[Float, Event, Boolean], Float, SkijaDownEvent] = eventCatcherWithWidgetsRect(
     markEventHandled,
