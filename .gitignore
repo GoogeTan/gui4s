@@ -50,3 +50,5 @@ build/
 ### Metals ###
 .metals
 /.bloop/
+/project/.bloop
+project/**/metals.sbt
