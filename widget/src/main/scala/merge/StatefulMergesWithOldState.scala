@@ -17,20 +17,20 @@ def statefulMergesWithOldStates[
     stateAsFree : AsFreeF[
       Stateful[
         Widget,
-        StatefulState[State, Draw, EventHandler, State => RecompositionReaction],
+        StatefulBehaviour[State, Draw, EventHandler, State => RecompositionReaction],
       ],
       Place
     ]
 ) : MergesWithOldStates[
   Stateful[
     Widget,
-    StatefulState[State, Draw, EventHandler, State => RecompositionReaction],
+    StatefulBehaviour[State, Draw, EventHandler, State => RecompositionReaction],
   ],
   RecompositionReaction,
   Place[
     Stateful[
       Widget,
-      StatefulState[State, Draw, EventHandler, State => RecompositionReaction],
+      StatefulBehaviour[State, Draw, EventHandler, State => RecompositionReaction],
     ]
   ],
 ] =
@@ -40,11 +40,8 @@ def statefulMergesWithOldStates[
       path,
       (oldInitialState, oldState) =>
         stateAsFree(
-          if EQ.equiv(oldInitialState, self.state.initialState) then
-            self.copy(
-              state =
-                self.state.copy(currentState = oldState) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
-            )
+          if EQ.equiv(oldInitialState, self.stateBehaviour.state.initialState) then
+            self.copy(stateBehaviour = self.stateBehaviour.withNewState(oldState)) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
           else
             self
         )

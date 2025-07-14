@@ -39,16 +39,16 @@ def statefulHandlesEvent[
         pathToParent.appendLast(self.name),
         event
       )
-      newState : Option[State] <- NonEmptyList.fromList(events).traverse(stateHandlesEvents(self.state, pathToParent, _))
+      newState : Option[State] <- NonEmptyList.fromList(events).traverse(stateHandlesEvents(self.stateBehaviour, pathToParent, _))
     yield newState
-      .filterNot(stateEquiality.equiv(_, self.state))
+      .filterNot(stateEquiality.equiv(_, self.stateBehaviour))
       .map(newState =>
         widgetsAreMergable.merge(
           pathToParent.appendLast(self.name),
           newChildWidget,
           drawStateIntoWidget(newState)
         ).map(newChild =>
-          self.copy(state = newState, child = newChild)
+          self.copy(stateBehaviour = newState, child = newChild)
         )
       )
       .getOrElse(newChildWidget.map(newChild => self.copy(child = newChild)))

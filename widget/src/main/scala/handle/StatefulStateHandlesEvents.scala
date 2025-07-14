@@ -12,12 +12,12 @@ def statefulStateHandlesEvents[
   Event,
   Destructor
 ] : HandlesEventF[
-  StatefulState[State, Draw, HandlesEventF[State, Event, Update], Destructor],
+  StatefulBehaviour[State, Draw, HandlesEventF[State, Event, Update], Destructor],
   Event,
   Update,
 ] =
   (self, pathToParent, event) =>
     self
-      .handleEvents(self.currentState, pathToParent, event)
-      .map(newState => self.copy(currentState = newState))
+      .handleEvents(self.state.currentState, pathToParent, event)
+      .map(self.withNewState)
 end statefulStateHandlesEvents

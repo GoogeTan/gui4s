@@ -10,13 +10,13 @@ def statefulHasInnerStates[
 ](
   widgetHasInnerStates : HasInnerStates[PlacedWidget, RecompositionReaction]
 ): HasInnerStates[
-  Stateful[PlacedWidget, StatefulState[State, Draw, EventHandler, State => RecompositionReaction]],
+  Stateful[PlacedWidget, StatefulBehaviour[State, Draw, EventHandler, State => RecompositionReaction]],
   RecompositionReaction
 ] =
   self =>
-    val state = self.state
+    val behaviour = self.stateBehaviour
     Map(
-      self.name -> StateTree((state.initialState, state.currentState), state.destructor(state.currentState), widgetHasInnerStates(self.child))
+      self.name -> StateTree(behaviour.state, behaviour.destructor(behaviour.state.currentState), widgetHasInnerStates(self.child))
     )
 end statefulHasInnerStates
 

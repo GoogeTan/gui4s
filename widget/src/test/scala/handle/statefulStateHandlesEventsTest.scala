@@ -7,7 +7,7 @@ import cats.syntax.functor.*
 import me.katze.gui4s.widget.handle.statefulStateHandlesEvents
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import me.katze.gui4s.widget.{Path, StatefulState}
+import me.katze.gui4s.widget.{Path, StatefulBehaviour}
 
 final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
   val path = new Path("parent")
@@ -18,10 +18,12 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
 
     val handler: TestHandler = (state, _, events) => state + events.length
 
-    val initial = StatefulState(
+    val initial = StatefulBehaviour(
       name = "test",
-      initialState = 0,
-      currentState = 0,
+      state = StatefulState(
+        initialState = 0,
+        currentState = 0,
+      ),
       draw = (),
       handleEvents = handler,
       destructor = ()
@@ -29,7 +31,7 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
 
     val event = "event1"
     val result = statefulStateHandlesEvents[Id, TestState, Unit, String, Unit](initial, path, event)
-    result.currentState should be(6)
+    result.state should be(StatefulState(0, 6))
   }
 
   it should "preserve other fields when updating state" in {
@@ -39,21 +41,21 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
     val handler: TestHandler = (state, _, events) =>
       TestState(state.value + events.length)
 
-    val initial = StatefulState(
+    val initial = StatefulBehaviour(
       "test",
-      TestState(0),
-      TestState(0),
+      StatefulState(TestState(0), TestState(0)),
       "draw",
       handler,
       "destructor"
     )
 
     val events = "event1"
-    val result = statefulStateHandlesEvents[Id, TestState, String, String, String](initial, path, events)
-
-    result.name should be("test")
-    result.initialState should be(TestState(0))
-    result.draw should be("draw")
-    result.destructor should be("destructor")
+    statefulStateHandlesEvents[
+      Id,
+      TestState,
+      String,
+      String,
+      String
+    ](initial, path, events) should be(initial.copy(state = StatefulState(TestState(0), TestState(6))))
   }
 

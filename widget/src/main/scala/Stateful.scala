@@ -2,9 +2,9 @@ package me.katze.gui4s.widget
 
 final case class Stateful[
   PlacedWidget,
-  State,
+  StateBehaviour,
 ](
-  name : String,
-  state : State,
-  child : PlacedWidget,
+    name : String,
+    stateBehaviour : StateBehaviour,
+    child : PlacedWidget,
 )

@@ -1,10 +1,11 @@
 package me.katze.gui4s.widget.library
 
+import catnip.syntax.additional.*
 import cats.Functor
 import cats.syntax.all.*
 import me.katze.gui4s.widget.draw.Drawable
 import me.katze.gui4s.widget.free.AsFree
-import me.katze.gui4s.widget.handle.HandlesEvent
+import me.katze.gui4s.widget.handle.{HandlesEvent, HandlesEventF}
 import me.katze.gui4s.widget.merge.MergesWithOldStates
 import me.katze.gui4s.widget.recomposition.ReactsOnRecomposition
 import me.katze.gui4s.widget.state.HasInnerStates
@@ -75,15 +76,33 @@ def widgetHandlesEvent[
   Draw,
   RecompositionReaction,
   HandleableEvent
-] : HandlesEvent[
+] : HandlesEventF[
   Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent],
   HandleableEvent,
-  Update[Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]]
+  Update * Place
 ] =
   (self, pathToParent, event) =>
     self.valueHandlesEvent(self.valueToDecorate, pathToParent, event)
       .map(_.map(self.withValue))
 end widgetHandlesEvent
+
+
+def widgetHandlesEventTyped[
+  T,
+  Update[_] : Functor,
+  Place[_] : Functor,
+  Draw,
+  RecompositionReaction,
+  HandleableEvent
+]: HandlesEventF[
+  Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  HandleableEvent,
+  Update * Place
+] =
+  (self, pathToParent, event) =>
+    self.valueHandlesEvent(self.valueToDecorate, pathToParent, event)
+      .map(_.map(self.withValue))
+end widgetHandlesEventTyped
 
 def widgetMergesWithOldState[
   Update[_],

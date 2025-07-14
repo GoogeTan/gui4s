@@ -11,19 +11,19 @@ import me.katze.gui4s.widget.handle.{HandlesEvent, andThen, statefulHandlesEvent
 import me.katze.gui4s.widget.merge.{Mergable, statefulMergesWithOldStates}
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
 import me.katze.gui4s.widget.state.statefulHasInnerStates
-import me.katze.gui4s.widget.{CatchEvents, Path, Stateful, StatefulState}
+import me.katze.gui4s.widget.{CatchEvents, Path, Stateful, StatefulBehaviour, StatefulState}
 
 import scala.language.experimental.namedTypeArguments
 
 /**
  * Виджет с состоянием
  *
- * @tparam State Тип состояния
+ * @tparam State Тип хранимого состояния
  * @tparam ParentEvent Тип порождаемых событий верхнего уровня
  * @tparam ChildEvent Тип порождаемых событий дочерних виджетов
- * @tparam Update Контекст обновления виджета.
- * @tparam Place Контекст установки виджета на экран.(см. TODO ссылка)
- * @tparam Draw Контекст отрисовки
+ * @tparam Update Эффект обновления виджета.
+ * @tparam Place Эффект установки виджета на экран.(см. TODO ссылка)
+ * @tparam Draw Эффект отрисовки
  * @tparam RecompositionReaction Реакция на рекомпозицию(см. документацию по композиции TODO ссылка).
  * @tparam HandlableEvent Тип обрабатываемых внешних/системных событий
  * @tparam EventReaction Тип реакции на события. Обычно кодирует эффект, происходящий при обновлении состояния.
@@ -37,8 +37,6 @@ import scala.language.experimental.namedTypeArguments
  * @param runEventReaction Запускает реакцию на событие в контексте обновления. TODO может стоит вообще избавиться от реакции и напрямую конструировать Update[State]?
  * @param typeCheckState Позволяет восстановить стертый тип состояния внутри контекста установки. Имеет такой странный тип, чтобы обойти связанность с внутренней структурой контекста установки
  *
- * TODO подробное описание контрактов
- *
  * Пример использования:
  * {{{
  * stateful(...)(
@@ -49,6 +47,12 @@ import scala.language.experimental.namedTypeArguments
  *   destructor = _ => ()
  * )
  * }}}
+ *
+ * Виджет содержит в себе состояние и дочернее дерево виджетов, построенное при помощи функции render.
+ * Когда дочернее дерево порождает событие, виджет изменяет своё состояние соответсивующим образом в соответсвии с функцией handleEvent.
+ * Когда состояние изменилось, строится новое дочерние дерево и оно перенимает состояния из старого дерева при помощи widgetsAreMergable.
+ * Если изменилось родительское состояние, слияние происходит по следующему правилу: если initialState изменилось, то берется новое значение, иначе старое.(TODO написать, как деструктор действует в этом случае).
+ * Когда виджет покидает композицию, вызывается destructor для отчистки ресурсов, которые могут быть частью состояния.
  */
 def stateful[
   Update[Event, Value] : {BiMonad, CatchEvents},
@@ -71,7 +75,28 @@ def stateful[
     render : State => Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
     destructor : State => RecompositionReaction,
 ) : Place[
-  Widget_[
+  Widget[
+    Stateful[
+      Widget_[
+        Update[ChildEvent, *],
+        Place,
+        Draw,
+        RecompositionReaction,
+        HandlableEvent
+      ],
+      StatefulBehaviour[
+        State,
+        State => Place[Widget_[
+          Update[ChildEvent, *],
+          Place,
+          Draw,
+          RecompositionReaction,
+          HandlableEvent
+        ]],
+        (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
+        State => RecompositionReaction
+      ]
+    ],
     Update[ParentEvent, *],
     Place,
     Draw,
@@ -87,7 +112,7 @@ def stateful[
       RecompositionReaction,
       HandlableEvent
     ]
-    type StState = StatefulState[
+    type StState = StatefulBehaviour[
       State,
       State => Place[Widget[ChildEvent]],
       (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
@@ -95,10 +120,12 @@ def stateful[
     ]
     val stateful = Stateful(
       name = name,
-      state = StatefulState(
+      stateBehaviour = StatefulBehaviour(
         name = name,
-        initialState = initialState,
-        currentState = initialState,
+        state = StatefulState(
+          initialState = initialState,
+          currentState = initialState,
+        ),
         draw = render,
         handleEvents =
           (state : State, path : Path, events : NonEmptyList[ChildEvent]) =>
@@ -150,7 +177,7 @@ def statefulHandlesEvent_[
       RecompositionReaction,
       HandlableEvent
     ],
-    StatefulState[
+    StatefulBehaviour[
       State,
       State => Place[
         Widget_[
