@@ -13,7 +13,7 @@ def statefulMergesWithOldStates[
   EventHandler,
   RecompositionReaction
 ](
-    typeCheckState: [T] => (Any, Path, (State, State) => Place[T]) => Place[T],
+    typeCheckState: [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
     stateAsFree : AsFreeF[
       Stateful[
         Widget,
@@ -38,10 +38,10 @@ def statefulMergesWithOldStates[
     typeCheckState(
       innerStates(self.name).state,
       path,
-      (oldInitialState, oldState) =>
+      oldState =>
         stateAsFree(
-          if EQ.equiv(oldInitialState, self.stateBehaviour.state.initialState) then
-            self.copy(stateBehaviour = self.stateBehaviour.withNewState(oldState)) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
+          if EQ.equiv(oldState.initialState, self.stateBehaviour.state.initialState) then
+            self.copy(stateBehaviour = self.stateBehaviour.withNewState(oldState.currentState)) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
           else
             self
         )

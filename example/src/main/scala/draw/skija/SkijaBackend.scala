@@ -12,8 +12,8 @@ import me.katze.gui4s.layout.Sized
 import scalacache.Cache
 
 final case class SkijaBackend[F[_], Window](
-                                              private val glfw : Glfw[F, Window],
-                                              private val window: Window,
+                                              glfw : Glfw[F, Window],
+                                              window: Window,
                                               private val renderTargetCell : AtomicCell[F, SkiaRenderTarget],
                                               globalDispatcher : Dispatcher[F],
                                               globalShaper : Shaper,

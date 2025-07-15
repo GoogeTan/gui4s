@@ -45,10 +45,10 @@ given liftEitherTCatchEvents[F[_, _] : {BiMonad, CatchEvents}, Error] : CatchEve
   end extension
 end liftEitherTCatchEvents
 
-given[F[_] : Applicative]: CatchEvents[[Event, Value] =>> WriterT[F, List[Event], Value]] with
+given writerTCatchEvents[F[_] : Applicative]: CatchEvents[[Event, Value] =>> WriterT[F, List[Event], Value]] with
   extension[Event, Value](old : WriterT[F, List[Event], Value])
     override def catchEvents[NewEventType] : WriterT[F, List[NewEventType], (List[Event], Value)] =
       WriterT.liftF(old.run)
     end catchEvents
   end extension
-end given
+end writerTCatchEvents

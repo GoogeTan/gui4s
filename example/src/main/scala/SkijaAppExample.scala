@@ -16,11 +16,13 @@ import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.glfw.OglWindow
+import me.katze.gui4s.glfw.KeyAction.Press
+import me.katze.gui4s.glfw.{Glfw, OglWindow}
 import me.katze.gui4s.layout.{Point2d, Sized, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle}
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{EventReaction, Path}
+import org.lwjgl.glfw.GLFW.glfwGetCursorPos
 
 import scala.annotation.experimental
 import scala.language.experimental.namedTypeArguments
@@ -45,13 +47,13 @@ object SkijaAppExample extends IOApp:
             IO.pure(value)
     )
 
-  def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[Float, Event, Boolean], Float, SkijaDownEvent] = eventCatcherWithWidgetsRect(
+  def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, Event, Boolean], Float, SkijaDownEvent] = eventCatcherWithWidgetsRect(
     markEventHandled,
     getCoordinates,
   )
 
   def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
-    rememberLastEventOfTheType[Widget = Widget, Event = Event, MemorableEvent = Point2d[Float], Update = SkijaUpdate[Float, *, Boolean]](
+    rememberLastEventOfTheType[Widget = Widget, Event = Event, MemorableEvent = Point2d[Float], Update = SkijaUpdate[IO, Float, *, Boolean]](
       eventCatcherWithRect = eventCatcher,
       statefulWidget = transitiveStatefulWidget,
       mapUpdate = [A, B] => f => mapEvents(f),
@@ -61,24 +63,24 @@ object SkijaAppExample extends IOApp:
         (path, rect, event) =>
           event match
             case SkijaDownEvent.MouseMove(x, y) =>
-              raiseEvents[Float, Point2d[Float]](List(Point2d(x.toFloat, y.toFloat))).as(false)
-            case _ => false.pure
+              raiseEvents[IO, Float, Point2d[Float]](List(Point2d(x.toFloat, y.toFloat))).as(false)
+            case _ => false.pure[SkijaUpdateT[IO, Float, Point2d[Float]]]
     )
   end mouseTracker
 
-  def clickHandler[Event](name : String): ClickHandler[Widget[Event], SkijaUpdate[Float, Event, Boolean], Unit] =
+  def clickHandler[Window, Event](window : Window, glfw : Glfw[IO, Window]): ClickHandler[Widget[Event], SkijaUpdate[IO, Float, Event, Boolean], Unit] =
     makeClickHandler(
       eventCatcherWithRect = eventCatcher,
-      mouseTracker = mouseTracker(name).map(_.getOrElse(Point2d(0, 0)))
+      currentMousePosition = liftIOToSkijaUpdate(glfw.currentMousePosition(window).map((x, y) => Point2d(x.toFloat, y.toFloat))),
     )(
       extractClickHandlerEvent
     )
 
   extension[Event](widget : Widget[Event])
-    def onClick(name : String)(event : Event) : Widget[Event] =
-      clickHandler(name)(widget)(
+    def onClick[Window](window : Window, glfw : Glfw[IO, Window])(event : Event) : Widget[Event] =
+      clickHandler(window, glfw)(widget)(
         (_, _) =>
-          raiseEvents[Float, Event](List(event)).as(true)
+          raiseEvents[IO, Float, Event](List(event)).as(true)
       )
     end onClick
   end extension
@@ -95,7 +97,7 @@ object SkijaAppExample extends IOApp:
 
   def leaf[Marker, Event](marker : Marker) : Widget[Event] =
     leafWidget[
-      Update = SkijaUpdateT[Float, Event],
+      Update = SkijaUpdateT[IO, Float, Event],
       Place = SkijaPlaceT[IO, Float, String]
     ](
       new Sized(
@@ -112,13 +114,12 @@ object SkijaAppExample extends IOApp:
     app((0 until 6).toList)
   end main
 
-  def app(numbers : List[Int])(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
-    /*skijaColumn(
+  def app(numbers : List[Int])(using backend : SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
+    skijaColumn(
       verticalStrategy = MainAxisPlacementStrategy.Begin(0),
       horizontalStrategy = AdditionalAxisPlacementStrategy.Center,
       children = numbers.map:
-        lineNumber =>*/
-          val lineNumber = 1
+        lineNumber =>
           statefulWidget[Int, ApplicationRequest, Unit](
             name = "line-" + lineNumber.toString,
             initialState = 0,
@@ -126,16 +127,17 @@ object SkijaAppExample extends IOApp:
             body = state =>
               text(
                 "# " + lineNumber.toString + " : " + state.toString,
-                SkijaTextStyle(new Font(Typeface.makeDefault(), 26), new Paint().setColor(0xFF8484A4))
-              ).onClick("click_handler_" + lineNumber.toString)(())
-          )//, )
+                SkijaTextStyle(new Font(Typeface.makeDefault(), 48), new Paint().setColor(0xFF8484A4))
+              ).onClick(backend.window, backend.glfw)(())
+          ),
+    )
   end app
 end SkijaAppExample
 
 @experimental
 def extractClickHandlerEvent(downEvent : SkijaDownEvent) : Option[Unit] =
   downEvent match
-    case SkijaDownEvent.MouseClick(button, action, mods) =>
+    case SkijaDownEvent.MouseClick(button, action, mods) if action == Press =>
       Some(()) // TODO ClickHandlerDownEvent(button, action, mods))
     case _ => None
 end extractClickHandlerEvent

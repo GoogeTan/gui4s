@@ -67,7 +67,7 @@ def stateful[
 ](
     widgetsAreMergeable : Mergable[Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
     runEventReaction : (EventReaction, Path) => Update[ParentEvent, State],
-    typeCheckState : [T] => (Any, Path, (State, State) => Place[T]) => Place[T],
+    typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
 )(
     name : String,
     initialState : State,
@@ -75,28 +75,7 @@ def stateful[
     render : State => Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
     destructor : State => RecompositionReaction,
 ) : Place[
-  Widget[
-    Stateful[
-      Widget_[
-        Update[ChildEvent, *],
-        Place,
-        Draw,
-        RecompositionReaction,
-        HandlableEvent
-      ],
-      StatefulBehaviour[
-        State,
-        State => Place[Widget_[
-          Update[ChildEvent, *],
-          Place,
-          Draw,
-          RecompositionReaction,
-          HandlableEvent
-        ]],
-        (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
-        State => RecompositionReaction
-      ]
-    ],
+  Widget_[
     Update[ParentEvent, *],
     Place,
     Draw,

@@ -33,7 +33,7 @@ trait Glfw[F[_], Window]:
   def scrollCallback(window : Window, callback : (xoffset : Double, yoffset : Double) => F[Unit]) : F[Unit]
   def cursorPosCallback(window : Window, callback : (newXPos : Double, newYPos : Double) => F[Unit]) : F[Unit]
   def mouseButtonCallback(window : Window, callback : (key : Int, action : KeyAction, mode : KeyModes) => F[Unit]) : F[Unit]
-  
+  def currentMousePosition(window: Window): F[(Double, Double)]
   def windowSize(window : Window) : F[Size]
   def frameBufferSize(window : Window) : F[Size]
   def swapBuffers(window : Window) : F[Unit]

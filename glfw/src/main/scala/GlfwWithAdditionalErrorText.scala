@@ -27,6 +27,7 @@ trait GlfwError[Window, Monitor, OriginalError, AdaptedError]:
   def mouseButtonCallbackError(window: Window): ErrorMapper
   def scrollCallbackError(window: Window): ErrorMapper
   def windowResizeCallbackError(window: Window): ErrorMapper
+  def mousePositionError(window : Window): ErrorMapper
 end GlfwError
 
 final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Window, OriginalError, AdaptedError](
@@ -152,4 +153,8 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
   override def primaryMonitorScale: F[AdaptedError, Float] =
     original.primaryMonitorScale.mapError(error.primatyMonitorScaleGettingError)
   end primaryMonitorScale
+
+  override def currentMousePosition(window: Window): F[AdaptedError, *][(Double, Double)] =
+    original.currentMousePosition(window).mapError(error.mousePositionError(window))
+  end currentMousePosition
 end GlfwWithAdditionalErrorText

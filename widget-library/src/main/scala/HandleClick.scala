@@ -5,6 +5,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.layout.Point2d
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.library.EventCatcherWithRect
+
 import scala.language.experimental.namedTypeArguments
 
 type ClickHandler[Widget, Update, MouseClick] =
@@ -12,13 +13,13 @@ type ClickHandler[Widget, Update, MouseClick] =
 
 def makeClickHandler[
   Widget,
-  Update[_] : Applicative,
+  Update[_] : Monad,
   HandleableEvent,
   MeasurementUnit : Numeric,
   MouseClick
 ](
   eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], MeasurementUnit, HandleableEvent],
-  mouseTracker: WithContext[Widget, Point2d[MeasurementUnit]]
+  currentMousePosition : Update[Point2d[MeasurementUnit]]
 )(
   approprieteEvent: HandleableEvent => Option[MouseClick],
 ): ClickHandler[
@@ -27,13 +28,13 @@ def makeClickHandler[
   MouseClick
 ] =
   original => onClick =>
-    mouseTracker:
-      mousePosition =>
-        eventCatcherWithRect(original):
-          (path, widgetBoundingBox, event) =>
+    eventCatcherWithRect(original):
+      (path, widgetBoundingBox, event) =>
+        currentMousePosition.flatMap:
+          mousePosition =>
             approprieteEvent(event) match
               case Some(click) if widgetBoundingBox.containsPoint(mousePosition) =>
-                onClick(path, click).as(true)
+                onClick(path, click)
               case _ =>
                 false.pure[Update]
             end match

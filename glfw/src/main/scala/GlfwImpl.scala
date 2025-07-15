@@ -225,6 +225,17 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
       end if
   end mouseButtonCallback
 
+  override def currentMousePosition(window: OglWindow): F[(Double, Double)] =
+    stackPush.use:
+      stack =>
+        impure.delay:
+          val x = stack.mallocDouble(1)
+          val y = stack.mallocDouble(1)
+          glfwGetCursorPos(window.id, x, y)
+          (x.get(0), y.get(0))
+  end currentMousePosition
+  
+
   override def swapBuffers(window : OglWindow): F[Unit] =
     impure.delay:
       glfwSwapBuffers(window.id)
