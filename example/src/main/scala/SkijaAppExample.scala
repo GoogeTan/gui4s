@@ -111,7 +111,7 @@ object SkijaAppExample extends IOApp:
   end leaf
 
   def main(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
-    app((0 until 6).toList)
+    app((0 until 20).toList)
   end main
 
   def app(numbers : List[Int])(using backend : SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =

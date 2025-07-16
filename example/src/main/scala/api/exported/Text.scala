@@ -5,14 +5,12 @@ import catnip.FFI
 import catnip.syntax.all.given
 import cats.Monad
 import cats.syntax.all.*
-import io.github.humbleui.skija.shaper.Shaper
 import me.*
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.given
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
 
 def skijaText[IO[_] : Monad, PlaceError, DownEvent, Event](
-                                                            shaper : Shaper,
                                                             ffi : FFI[IO],
                                                             textSizer : (String, SkijaTextStyle) => SkijaPlace[IO, Float, PlaceError, SkijaPlacedText],
                                                             text : String, 

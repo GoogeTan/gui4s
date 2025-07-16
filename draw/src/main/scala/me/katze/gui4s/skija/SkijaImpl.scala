@@ -26,7 +26,7 @@ final class SkijaImpl[F[_]: Async](ffi : FFI[F]) extends Skija[F]:
     val inner: Resource[F, SkiaRenderTarget] = for
       renderTarget <- createGLRenderTarget(
         width = (width * dpi).toInt,
-        height = (height * dpi).toInt, 
+        height = (height * dpi).toInt,
         fbFormat = FramebufferFormat.GR_GL_RGBA8
       )
       surface <- createSurface(

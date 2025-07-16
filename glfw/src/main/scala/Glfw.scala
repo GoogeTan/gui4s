@@ -4,6 +4,7 @@ import cats.Functor
 import cats.effect.Resource
 import org.lwjgl.glfw.GLFWErrorCallback
 
+//TODO надо выделить окно(и, может, монитор) в отдельный интерфйс
 trait Glfw[F[_], Window]:
   type Monitor
   

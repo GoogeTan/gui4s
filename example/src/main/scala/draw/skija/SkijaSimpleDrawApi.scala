@@ -84,8 +84,8 @@ object SkijaSimpleDrawApi:
                                                       windowSize : Size
                                                     ) : Resource[F, AtomicCell[F, SkiaRenderTarget]] =
     for
-      scale <- Resource.eval(glfw.primaryMonitorScale)
       context <- skija.createDirectContext
+      scale <- Resource.eval(glfw.primaryMonitorScale)
       renderTarget <- Resource.eval(skija.createRenderTarget(context, windowSize.width, windowSize.height, scale))
       renderTargetCell <- Resource.eval(AtomicCell[F].of(renderTarget))
     yield renderTargetCell
@@ -108,7 +108,7 @@ object SkijaSimpleDrawApi:
                                               ): F[Unit] =
     glfw.windowResizeCallback(window, glfwCallbacks.onWindowResized)
       *> glfw.mouseButtonCallback(window, glfwCallbacks.onMouseClick)
-      //*> glfw.cursorPosCallback(window, glfwCallbacks.onMouseMove)
+      //*> glfw.cursorPosCallback(window, glfwCallbacks.onMouseMove) TODO remove this line
       *> glfw.keyCallback(window, glfwCallbacks.onKeyPress)
       *> glfw.scrollCallback(window, glfwCallbacks.onScroll)
   end registerCallbacks
@@ -119,6 +119,6 @@ def skijaDrawLoop[F[+_] : {Console as C, FFI, Clock}, Window](backend : SkijaBac
     drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
       currentWidget.flatMap(widget =>
         backend.drawState((widget.draw |+| flush[F, Window]).run) *> backend.pollEvents
-      )//.timed.flatMap((duration, _) => C.println(duration))
+      ).timed.flatMap((duration, _) => C.println(duration))
     ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop

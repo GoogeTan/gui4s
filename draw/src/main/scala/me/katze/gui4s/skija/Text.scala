@@ -19,6 +19,6 @@ def placeText[F[_]](
       case Some(value) => shaper.shape(text, style.font, value)
       case None => shaper.shape(text, style.font)
     val blobBounds = blob.getBounds
-    (SkijaPlacedText(text, blob, style.paint), blobBounds.getRight, blobBounds.getBottom)
+    (SkijaPlacedText(text, blob, style.paint), blobBounds.getWidth, blobBounds.getHeight)
 end placeText
 

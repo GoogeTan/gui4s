@@ -232,9 +232,8 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
           val x = stack.mallocDouble(1)
           val y = stack.mallocDouble(1)
           glfwGetCursorPos(window.id, x, y)
-          (x.get(0), y.get(0))
+          (x.get(0) * 2.0, y.get(0) * 2.0) // TODO Это странная дичь, тут надо делить на скейл монитора. Пока что так.
   end currentMousePosition
-  
 
   override def swapBuffers(window : OglWindow): F[Unit] =
     impure.delay:
