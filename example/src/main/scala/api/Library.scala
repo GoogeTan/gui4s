@@ -54,4 +54,6 @@ def makeSkijaTextWidget[F[_] : Monad, PlaceError](
   ffi: FFI[F],
   cache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
 ): TextWidget[SkijaWidget[F, Float, PlaceError, *, SkijaDownEvent]] =
-  [Event] => (text: String, style: SkijaTextStyle) => skijaText(ffi, skijaSizeText(cache)(ffi, _, globalShaper, _), text, style)
+  [Event] => (text: String, style: SkijaTextStyle) => 
+    skijaText(ffi, skijaSizeText(ffi, globalShaper, cache), text, style)
+end makeSkijaTextWidget

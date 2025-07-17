@@ -1,7 +1,7 @@
 package catnip
 package syntax
 
-import cats.{Applicative, Functor}
+import cats.{Applicative, ApplicativeError, Functor}
 import cats.kernel.Monoid
 import cats.syntax.all.*
 
@@ -21,4 +21,10 @@ object applicative:
       fa.map(_.map(f))
     end map
   end nestedFunctorsAreFunctors
+  
+  extension[T](value : Option[T])
+    def getOrRaise[F[_], Error](using A : ApplicativeError[F, Error])(error : Error) : F[T] =
+      value.map(_.pure[F]).getOrElse(A.raiseError(error))
+    end getOrRaise
+  end extension
 end applicative

@@ -1,14 +1,7 @@
 package me.katze.gui4s.example
 
-import catnip.BiMonad
-import cats.{Bifunctor, Bimonad, Semigroup}
-import cats.data.IndexedStateT.catsDataMonadForIndexedStateT
 import cats.data.{StateT, WriterT}
-import cats.syntax.all.*
 import me.katze.gui4s.layout.Point3d
-import me.katze.gui4s.widget.{CatchEvents, given}
-
-import scala.annotation.tailrec
 
 final case class EventResultState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
   def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : EventResultState[MeasurementUnit] =

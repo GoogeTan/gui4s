@@ -19,17 +19,16 @@ import me.katze.gui4s.example
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{Glfw, OglWindow}
 import me.katze.gui4s.layout.{Point2d, Sized, given}
-import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle}
+import me.katze.gui4s.skija.{SkijaDrawState, SkijaTextStyle}
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{EventReaction, Path}
-import org.lwjgl.glfw.GLFW.glfwGetCursorPos
 
 import scala.annotation.experimental
 import scala.language.experimental.namedTypeArguments
 
 @experimental
 object SkijaAppExample extends IOApp:
-  given MainAxisStrategyErrors = ENErrors
+  given MainAxisStrategyErrors[String] = ENErrors
   given ffi : FFI[IO] = SyncFFI[IO]
 
   private type Widget[Event] =  SkijaWidget[IO, Float, String, Event, SkijaDownEvent]

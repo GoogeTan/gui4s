@@ -24,7 +24,7 @@ import scala.reflect.Typeable
 
 // TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
-def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors)(
+def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
   children : List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
   horizontalStrategy: MainAxisPlacementStrategy[Float],
   verticalStrategy  : AdditionalAxisPlacementStrategy
@@ -38,7 +38,7 @@ def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: M
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float, PlaceError](
       errors,
       skijaGetBounds,
       skijaSetBounds,
@@ -49,7 +49,7 @@ def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: M
   )
 end skijaRow
 
-def skijaColumn[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors)(
+def skijaColumn[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
   children: List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
   verticalStrategy: MainAxisPlacementStrategy[Float],
   horizontalStrategy: AdditionalAxisPlacementStrategy
@@ -63,7 +63,7 @@ def skijaColumn[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors
     LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float, PlaceError](
       errors,
       skijaGetBounds,
       skijaSetBounds,

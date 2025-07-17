@@ -1,33 +1,29 @@
 package me.katze.gui4s.example
 
-import catnip.syntax.all.{*, given}
+import api.exported.{*, given}
 import draw.*
 import draw.skija.*
+import draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
 import place.RunPlacement
 import update.ApplicationRequest
 
 import catnip.FFI
 import catnip.cats.effect.ContextFFI
-import cats.arrow.FunctionK
+import catnip.syntax.all.{*, given}
+import cats.Functor
 import cats.data.EitherT
-import cats.{Functor, Monad}
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
-import cats.syntax.all.*
-import cats.effect.syntax.all.*
 import me.katze.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.exported.{SkijaPlacedWidget, SkijaRecomposition, SkijaPlaceT, SkijaUpdateT, SkijaWidget, handleApplicationRequests, runPlaceLift, runPlaceStateT, skijaInnerRunPlace, skijaRunPlace, given}
-import me.katze.gui4s.widget.library.{widgetHandlesEvent, widgetHasInnerStates, widgetIsDrawable, widgetReactsOnRecomposition}
-import me.katze.gui4s.example.draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
-import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglWindow, Size, WindowCreationSettings}
-import me.katze.gui4s.skija.SkijaDraw
-import me.katze.gui4s.widget.{Path, given}
+import me.katze.gui4s.glfw.*
 import me.katze.gui4s.layout.{*, given}
-import scala.math.Numeric.Implicits.*
+import me.katze.gui4s.skija.SkijaDraw
+import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget.library.{widgetHandlesEvent, widgetHasInnerStates, widgetIsDrawable, widgetReactsOnRecomposition}
 
-import scala.language.experimental.namedTypeArguments
 import scala.concurrent.ExecutionContext
+import scala.language.experimental.namedTypeArguments
 
 enum SkijaDownEvent:
   case WindowResized

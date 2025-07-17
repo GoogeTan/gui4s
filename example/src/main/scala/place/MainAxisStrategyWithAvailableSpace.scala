@@ -1,7 +1,10 @@
 package me.katze.gui4s.example
 package place
 
+import cats.ApplicativeError
 import me.katze.gui4s.widget.library.MainAxisPlacementStrategy
+import cats.syntax.all.*
+import catnip.syntax.applicative.getOrRaise
 
 enum MainAxisStrategyWithAvailableSpace[+MeasurementUnit]:
   case Begin(gap : MeasurementUnit)
@@ -12,26 +15,50 @@ enum MainAxisStrategyWithAvailableSpace[+MeasurementUnit]:
 end MainAxisStrategyWithAvailableSpace
 
 // TODO RENAME ME Переименовать поля, чтобы они были понятными
-final case class MainAxisStrategyErrors(
-  spaceBetweenInInfiniteContainer : String,
-  spaceAroundInInfiniteContainer : String,
-  spaceCenterInInfiniteContainer : String,
-  spaceEndInInfiniteContainer : String,
+final case class MainAxisStrategyErrors[Error](
+                                                attemptedToPlaceElementsWithStrategySpaceBetweenInInfiniteContainer : Error,
+                                                attemptedToPlaceElementsWithStrategySpaceAroundInInfiniteContainer : Error,
+                                                attemptedToPlaceElementsWithStrategyCenterInInfiniteContainer : Error,
+                                                attemptedToPlaceElementsWithStrategyEndInInfiniteContainer : Error,
 )
 
 // TODO Переписать с использованием Either
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
-def unsafeSizedStrategy[MeasurementUnit : Fractional](strategy: MainAxisPlacementStrategy[MeasurementUnit], bounds : Option[MeasurementUnit], errors : MainAxisStrategyErrors) : MainAxisStrategyWithAvailableSpace[MeasurementUnit] =
+def unsafeSizedStrategy[
+  F[_], 
+  MeasurementUnit : Fractional,
+  Error
+](
+  using A : ApplicativeError[F, Error]
+)(
+  strategy: MainAxisPlacementStrategy[MeasurementUnit], 
+  bounds : Option[MeasurementUnit], 
+  errors : MainAxisStrategyErrors[Error]
+) : F[MainAxisStrategyWithAvailableSpace[MeasurementUnit]] =
   strategy match
     case MainAxisPlacementStrategy.SpaceBetween =>
-      MainAxisStrategyWithAvailableSpace.SpaceBetween(bounds.getOrElse(throw Exception(errors.spaceBetweenInInfiniteContainer)))
+      bounds
+        .getOrRaise(errors.attemptedToPlaceElementsWithStrategySpaceBetweenInInfiniteContainer)
+        .map(MainAxisStrategyWithAvailableSpace.SpaceBetween(_))
     case MainAxisPlacementStrategy.SpaceAround =>
-      MainAxisStrategyWithAvailableSpace.SpaceAround(bounds.getOrElse(throw Exception(errors.spaceAroundInInfiniteContainer)))
+      bounds
+        .getOrRaise(errors.attemptedToPlaceElementsWithStrategySpaceAroundInInfiniteContainer)
+        .map(
+          MainAxisStrategyWithAvailableSpace.SpaceAround(_)   
+        )
     case MainAxisPlacementStrategy.Begin(gap) =>
-      MainAxisStrategyWithAvailableSpace.Begin(gap)
+      MainAxisStrategyWithAvailableSpace.Begin(gap).pure[F]
     case MainAxisPlacementStrategy.Center(gap) =>
-      MainAxisStrategyWithAvailableSpace.Center(gap, bounds.getOrElse(throw Exception(errors.spaceCenterInInfiniteContainer)))
+      bounds
+        .getOrRaise(errors.attemptedToPlaceElementsWithStrategyCenterInInfiniteContainer)
+        .map(
+          MainAxisStrategyWithAvailableSpace.Center(gap, _)
+        )
     case MainAxisPlacementStrategy.End(gap) =>
-      MainAxisStrategyWithAvailableSpace.End(gap, bounds.getOrElse(throw Exception(errors.spaceEndInInfiniteContainer)))
+      bounds
+        .getOrRaise(errors.attemptedToPlaceElementsWithStrategyEndInInfiniteContainer)
+        .map(
+          MainAxisStrategyWithAvailableSpace.End(gap, _)
+        )
   end match
 end unsafeSizedStrategy

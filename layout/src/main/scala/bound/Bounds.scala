@@ -1,6 +1,7 @@
 package me.katze.gui4s.layout
 package bound
 
+import me.katze
 import me.katze.gui4s
 import me.katze.gui4s.layout
 
@@ -21,4 +22,11 @@ final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUni
         )
     end match
   end cutAlong
+  
+  def along(axis : Axis) : AxisBounds[MeasurementUnit] =
+    axis match
+      case katze.gui4s.layout.Axis.Vertical => horizontal
+      case katze.gui4s.layout.Axis.Horizontal => vertical
+    end match
+  end along
 end Bounds

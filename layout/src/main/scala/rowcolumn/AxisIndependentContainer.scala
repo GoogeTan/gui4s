@@ -23,14 +23,13 @@ def sizeItems[MeasurementUnit : Numeric, T](items : List[Placed[MeasurementUnit,
   new Sized(items, width, height)
 end sizeItems
 
-
 def placeItems[Place[_] : Monad, MeasurementUnit : Numeric, Item, PlacedItems](
-                                                                                  items : List[Place[Sized[MeasurementUnit, Item]]],
-                                                                                  mainAxis : Axis,
-                                                                                  getBounds : Place[Bounds[MeasurementUnit]],
-                                                                                  setBounds : Bounds[MeasurementUnit] => Place[Unit],
-                                                                                  placeItemss : (List[Sized[MeasurementUnit, Item]], Bounds[MeasurementUnit]) => PlacedItems
-                                                                                ) : Place[PlacedItems] =
+                                                                                items : List[Place[Sized[MeasurementUnit, Item]]],
+                                                                                mainAxis : Axis,
+                                                                                getBounds : Place[Bounds[MeasurementUnit]],
+                                                                                setBounds : Bounds[MeasurementUnit] => Place[Unit],
+                                                                                placeItemss : (List[Sized[MeasurementUnit, Item]], Bounds[MeasurementUnit]) => PlacedItems
+                                                                              ) : Place[PlacedItems] =
   for
     initial <- getBounds
     res <- placeItems(
