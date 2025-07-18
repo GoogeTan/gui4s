@@ -1,6 +1,6 @@
 package me.katze.gui4s.skija
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import cats.effect.{Async, Resource, Sync}
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 import cats.syntax.all.*
@@ -10,7 +10,7 @@ import io.github.humbleui.skija.shaper.Shaper
  * @tparam F Эффект, в котором выполняются операции
  * @param ffi Оборачивает грязные эффекты. Должен гарантировать исполнение кода на том же поткое, где и был создан контекст OGL(вероятно, первый(на mac os только первый))
  */
-final class SkijaImpl[F[_]: Async](ffi : FFI[F]) extends Skija[F]:
+final class SkijaImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends Skija[F]:
   override def createDirectContext: Resource[F, DirectContext] =
     Resource.fromAutoCloseable(
       ffi.blocking(DirectContext.makeGL())
@@ -101,7 +101,7 @@ final class SkijaImpl[F[_]: Async](ffi : FFI[F]) extends Skija[F]:
 end SkijaImpl
 
 object SkijaImpl:
-  def apply[F[_]: Async](impure : FFI[F]): F[SkijaImpl[F]] =
+  def apply[F[_]: Async](impure : ForeighFunctionInterface[F]): F[SkijaImpl[F]] =
     Sync[F].delay(new SkijaImpl[F](impure))
   end apply
 end SkijaImpl

@@ -1,12 +1,12 @@
 package catnip.cats.effect
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import cats.effect.Async
 import cats.effect.syntax.async.*
 
 import scala.concurrent.ExecutionContext
 
-final class ContextFFI[F[_] : Async](ec : ExecutionContext, initial : FFI[F]) extends FFI[F]:
+final class ContextForeighFunctionInterface[F[_] : Async](ec : ExecutionContext, initial : ForeighFunctionInterface[F]) extends ForeighFunctionInterface[F]:
   override def delay[A](trunk: => A): F[A] =
     initial.delay(trunk).evalOn(ec)
   end delay
@@ -22,4 +22,4 @@ final class ContextFFI[F[_] : Async](ec : ExecutionContext, initial : FFI[F]) ex
   override def interruptibleMany[A](trunk: => A): F[A] =
     initial.interruptibleMany(trunk).evalOn(ec)
   end interruptibleMany
-end ContextFFI
+end ContextForeighFunctionInterface

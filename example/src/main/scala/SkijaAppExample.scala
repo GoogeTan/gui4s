@@ -7,8 +7,8 @@ import impl.ENErrors
 import place.MainAxisStrategyErrors
 import update.ApplicationRequest
 
-import catnip.FFI
-import catnip.cats.effect.SyncFFI
+import catnip.ForeighFunctionInterface
+import catnip.cats.effect.SyncForeighFunctionInterface
 import catnip.syntax.all.given
 import cats.data.*
 import cats.effect.{ExitCode, IO, IOApp}
@@ -29,7 +29,7 @@ import scala.language.experimental.namedTypeArguments
 @experimental
 object SkijaAppExample extends IOApp:
   given MainAxisStrategyErrors[String] = ENErrors
-  given ffi : FFI[IO] = SyncFFI[IO]
+  given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
 
   private type Widget[Event] =  SkijaWidget[IO, Float, String, Event, SkijaDownEvent]
 

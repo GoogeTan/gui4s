@@ -7,8 +7,8 @@ import draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
 import place.RunPlacement
 import update.ApplicationRequest
 
-import catnip.FFI
-import catnip.cats.effect.ContextFFI
+import catnip.ForeighFunctionInterface
+import catnip.cats.effect.ContextForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.Functor
 import cats.data.EitherT
@@ -33,7 +33,7 @@ enum SkijaDownEvent:
   case Scrolled(xoffset : Double, yoffset : Double)
 end SkijaDownEvent
 
-def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
+def skijaApp[F[+_] : {Async, Console, ForeighFunctionInterface}, PlaceError](
                                                           widget: SkijaBackend[F, OglWindow] ?=> SkijaWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
                                                           updateLoopExecutionContext: ExecutionContext,
                                                           drawLoopExecutionContext: ExecutionContext,
@@ -63,7 +63,7 @@ def skijaApp[F[+_] : {Async, Console, FFI}, PlaceError](
         resizeable = false,
         debugContext = true
       ),
-      ffi = ContextFFI(drawLoopExecutionContext, summon),
+      ffi = ContextForeighFunctionInterface(drawLoopExecutionContext, summon),
       callbacks = eventOfferingCallbacks(downEventSink.offer)
     ),
     drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow]]](

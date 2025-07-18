@@ -3,6 +3,7 @@ package me.katze.gui4s.example
 import cats.data.{StateT, WriterT}
 import me.katze.gui4s.layout.Point3d
 
+// TODO Переименовать в состояние обновления
 final case class EventResultState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
   def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : EventResultState[MeasurementUnit] =
     copy(widgetCoordinates = widgetCoordinates + point)

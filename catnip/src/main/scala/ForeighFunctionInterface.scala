@@ -3,7 +3,7 @@ package catnip
 /** Предоставляет интерфейс для безопасного выполнения эффектов в контексте.
  * @tparam F тип эффекта, в котором будут выполняться операции (например, IO, EitherT[IO, Error, T])
  */
-trait FFI[+F[_]]:
+trait ForeighFunctionInterface[+F[_]]:
   /** Оборачивает вычисление в чистый контекст.
    *
    * Используется для простых вычислений, которые не блокируют поток выполнения.
@@ -55,4 +55,4 @@ trait FFI[+F[_]]:
    * @return отложенное вычисление в контексте F
    */
   final def apply[A](trunk: => A): F[A] = delay(trunk)
-end FFI
+end ForeighFunctionInterface

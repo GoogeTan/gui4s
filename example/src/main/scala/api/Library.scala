@@ -3,7 +3,7 @@ package api
 
 import api.exported.{*, given}
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.Monad
 import cats.data.NonEmptyList
@@ -50,9 +50,9 @@ end makeSkijaStatefulWidget
 type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
 
 def makeSkijaTextWidget[F[_] : Monad, PlaceError](
-  globalShaper: Shaper,
-  ffi: FFI[F],
-  cache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                                   globalShaper: Shaper,
+                                                   ffi: ForeighFunctionInterface[F],
+                                                   cache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
 ): TextWidget[SkijaWidget[F, Float, PlaceError, *, SkijaDownEvent]] =
   [Event] => (text: String, style: SkijaTextStyle) => 
     skijaText(ffi, skijaSizeText(ffi, globalShaper, cache), text, style)

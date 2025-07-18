@@ -1,9 +1,9 @@
 package catnip.cats.effect
 
-import catnip.FFI
-import cats.effect.{Sync}
+import catnip.ForeighFunctionInterface
+import cats.effect.Sync
 
-final class SyncFFI[F[_] : Sync as S] extends FFI[F]:
+final class SyncForeighFunctionInterface[F[_] : Sync as S] extends ForeighFunctionInterface[F]:
   override def delay[A](trunk: => A): F[A] =
     S.delay(trunk)
   end delay
@@ -19,4 +19,4 @@ final class SyncFFI[F[_] : Sync as S] extends FFI[F]:
   override def interruptibleMany[A](trunk: => A): F[A] =
     S.interruptibleMany(trunk)
   end interruptibleMany
-end SyncFFI
+end SyncForeighFunctionInterface

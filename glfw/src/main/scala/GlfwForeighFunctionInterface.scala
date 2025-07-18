@@ -1,13 +1,13 @@
 package me.katze.gui4s.glfw
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import cats.Monad
 import cats.data.EitherT
 import cats.syntax.all.*
 import org.lwjgl.glfw.GLFW.{GLFW_NO_ERROR, glfwGetError}
 import org.lwjgl.system.MemoryUtil
 
-final class GlfwFFI[F[_] : {Monad, FFI as I}] extends FFI[EitherT[F, String, *]]:
+final class GlfwForeighFunctionInterface[F[_] : {Monad, ForeighFunctionInterface as I}] extends ForeighFunctionInterface[EitherT[F, String, *]]:
   override def delay[A](trunk: => A): EitherT[F, String, A] =
     EitherT.liftF(I(trunk)) <* getError
   end delay
@@ -38,4 +38,4 @@ final class GlfwFFI[F[_] : {Monad, FFI as I}] extends FFI[EitherT[F, String, *]]
           Right(())
     )
   end getError
-end GlfwFFI
+end GlfwForeighFunctionInterface

@@ -1,6 +1,6 @@
 package me.katze.gui4s.skija
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import catnip.syntax.all.given
 import cats.Monad
 import cats.data.ReaderT
@@ -9,19 +9,19 @@ import io.github.humbleui.skija.{Canvas, DirectContext}
 
 type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 
-def transition_[F[_]](ffi : FFI[F], canvas : Canvas, x : Float, y : Float) : F[Unit] =
+def transition_[F[_]](ffi : ForeighFunctionInterface[F], canvas : Canvas, x : Float, y : Float) : F[Unit] =
   ffi(canvas.translate(x, y))
 end transition_
 
-def saveState_[F[_]](ffi : FFI[F], canvas: Canvas) : F[Int] =
+def saveState_[F[_]](ffi : ForeighFunctionInterface[F], canvas: Canvas) : F[Int] =
   ffi(canvas.save())
 end saveState_
 
-def restoreState_[F[_]](ffi : FFI[F], canvas: Canvas, state : Int) : F[Unit] =
+def restoreState_[F[_]](ffi : ForeighFunctionInterface[F], canvas: Canvas, state : Int) : F[Unit] =
   ffi(canvas.restoreToCount(state))
 end restoreState_
 
-def moveAndBack_[F[_] : {Monad}, T](ffi : FFI[F], canvas: Canvas, x : Float, y : Float, value : F[T]) : F[T] =
+def moveAndBack_[F[_] : {Monad}, T](ffi : ForeighFunctionInterface[F], canvas: Canvas, x : Float, y : Float, value : F[T]) : F[T] =
   for
     state <- saveState_(ffi, canvas)
     _ <- transition_(ffi, canvas, x, y)
@@ -30,16 +30,16 @@ def moveAndBack_[F[_] : {Monad}, T](ffi : FFI[F], canvas: Canvas, x : Float, y :
   yield res
 end moveAndBack_
 
-def clear_[F[_]](ffi : FFI[F], canvas: Canvas, color : Int) : F[Unit] =
+def clear_[F[_]](ffi : ForeighFunctionInterface[F], canvas: Canvas, color : Int) : F[Unit] =
   ffi(canvas.clear(color))
 end clear_
 
-def flush_[F[_]](ffi : FFI[F], context : DirectContext) : F[Unit] =
+def flush_[F[_]](ffi : ForeighFunctionInterface[F], context : DirectContext) : F[Unit] =
   ffi(context.flush())
 end flush_
 
 
-def drawAt[F[_] : {Monad}, Window](ffi : FFI[F], original: SkijaDraw[F, Window], x : Float, y : Float): SkijaDraw[F, Window] =
+def drawAt[F[_] : {Monad}, Window](ffi : ForeighFunctionInterface[F], original: SkijaDraw[F, Window], x : Float, y : Float): SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](
     state =>
       moveAndBack_(
@@ -52,7 +52,7 @@ def drawAt[F[_] : {Monad}, Window](ffi : FFI[F], original: SkijaDraw[F, Window],
   )
 end drawAt
 
-def drawText[F[_], Window](ffi : FFI[F], text: SkijaPlacedText) : SkijaDraw[F, Window] =
+def drawText[F[_], Window](ffi : ForeighFunctionInterface[F], text: SkijaPlacedText) : SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](
     state =>
       ffi:
@@ -60,7 +60,7 @@ def drawText[F[_], Window](ffi : FFI[F], text: SkijaPlacedText) : SkijaDraw[F, W
   )
 end drawText
 
-def flush[F[_] : {Monad, FFI as I}, Window]: SkijaDraw[F, Window] =
+def flush[F[_] : {Monad, ForeighFunctionInterface as I}, Window]: SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
     I(state.context.flush())
       *> state.glfw.swapBuffers(state.window)
@@ -68,7 +68,7 @@ def flush[F[_] : {Monad, FFI as I}, Window]: SkijaDraw[F, Window] =
   )
 end flush
 
-def drawFrame[F[_] : {Monad}, Window](ffi : FFI[F], draw : SkijaDraw[F, Window]) : ReaderT[F, SkijaDrawState[F, Window], Unit] =
+def drawFrame[F[_] : {Monad}, Window](ffi : ForeighFunctionInterface[F], draw : SkijaDraw[F, Window]) : ReaderT[F, SkijaDrawState[F, Window], Unit] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
     clear_(ffi, state.canvas, 0xFFFFFFFF)
       |+| draw(state)

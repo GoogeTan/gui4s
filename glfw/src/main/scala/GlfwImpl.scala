@@ -1,6 +1,6 @@
 package me.katze.gui4s.glfw
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import cats.MonadError
 import cats.effect.std.Dispatcher
 import cats.effect.{Async, Resource, Sync}
@@ -12,13 +12,13 @@ import org.lwjgl.system.{MemoryStack, MemoryUtil}
 
 import java.util.Objects
 
-def stackPush[F[_] : {Sync, FFI as I}] : Resource[F, MemoryStack] =
+def stackPush[F[_] : {Sync, ForeighFunctionInterface as I}] : Resource[F, MemoryStack] =
   Resource.fromAutoCloseable(I.delay(MemoryStack.stackPush()))
 end stackPush
 
 final case class OglWindow(id : Long) // TODO move into a class
 
-final class GlfwImpl[F[_] : {FFI as impure, Sync}](
+final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](
                                                         unsafeRunF : [A] => F[A] => A,
                                                       ) extends Glfw[F, OglWindow]:
   override def centerWindow(window: OglWindow): F[Unit] =
@@ -242,7 +242,7 @@ final class GlfwImpl[F[_] : {FFI as impure, Sync}](
 end GlfwImpl
 
 object GlfwImpl:
-  def apply[F[_] : {FFI, Sync}](run : [A] => F[A] => A) : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : {ForeighFunctionInterface, Sync}](run : [A] => F[A] => A) : Resource[F, GlfwImpl[F]] =
     Resource.make(
       {
         val res = new GlfwImpl[F](run)
@@ -253,11 +253,11 @@ object GlfwImpl:
     )
   end apply
   
-  def apply[F[_] : {FFI, Sync}](dispatcher : Dispatcher[F]) : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : {ForeighFunctionInterface, Sync}](dispatcher : Dispatcher[F]) : Resource[F, GlfwImpl[F]] =
     GlfwImpl[F]([A] => (effect : F[A]) => dispatcher.unsafeRunSync(effect))
   end apply
   
-  def apply[F[_] : {FFI, Async}]() : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : {ForeighFunctionInterface, Async}]() : Resource[F, GlfwImpl[F]] =
     Dispatcher.sequential[F].flatMap(GlfwImpl[F](_))
   end apply
 end GlfwImpl

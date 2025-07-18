@@ -4,7 +4,7 @@ package api.exported
 import impl.containerPlacementCurried
 import place.MainAxisStrategyErrors
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.data.{NonEmptyList, StateT}
 import cats.syntax.all.*
@@ -24,7 +24,7 @@ import scala.reflect.Typeable
 
 // TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
-def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
+def skijaRow[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
   children : List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
   horizontalStrategy: MainAxisPlacementStrategy[Float],
   verticalStrategy  : AdditionalAxisPlacementStrategy
@@ -49,7 +49,7 @@ def skijaRow[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: M
   )
 end skijaRow
 
-def skijaColumn[F[+_] : {Monad, FFI}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
+def skijaColumn[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
   children: List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
   verticalStrategy: MainAxisPlacementStrategy[Float],
   horizontalStrategy: AdditionalAxisPlacementStrategy

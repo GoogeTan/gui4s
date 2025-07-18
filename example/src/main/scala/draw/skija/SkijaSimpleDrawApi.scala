@@ -3,7 +3,7 @@ package draw.skija
 
 import draw.{Drawable, drawLoopExceptionHandler}
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.effect.std.{AtomicCell, Console, Dispatcher}
 import cats.effect.{Async, Clock, Concurrent, ExitCode, Resource}
@@ -29,9 +29,9 @@ object SkijaSimpleDrawApi:
   def createForTests[
     F[+_] : {Async, Console},
   ](
-      settings : WindowCreationSettings,
-      ffi: FFI[F],
-      callbacks : GlfwCallbacks[F[Unit]],
+     settings : WindowCreationSettings,
+     ffi: ForeighFunctionInterface[F],
+     callbacks : GlfwCallbacks[F[Unit]],
     ): Resource[F, SkijaBackend[F, OglWindow]] =
     for
       skija <- Resource.eval(SkijaImpl(ffi))
@@ -114,7 +114,7 @@ object SkijaSimpleDrawApi:
   end registerCallbacks
 end SkijaSimpleDrawApi
 
-def skijaDrawLoop[F[+_] : {Console as C, FFI, Clock}, Window](backend : SkijaBackend[F, Window])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
+def skijaDrawLoop[F[+_] : {Console as C, ForeighFunctionInterface, Clock}, Window](backend : SkijaBackend[F, Window])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
   currentWidget =>
     drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
       currentWidget.flatMap(widget =>

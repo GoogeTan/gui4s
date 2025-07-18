@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package api.exported
 
-import catnip.FFI
+import catnip.ForeighFunctionInterface
 import cats.{Applicative, FlatMap, Monad, MonadError, ~>}
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
@@ -42,13 +42,13 @@ def skijaSetBounds[IO[_] : Monad, MeasurementUnit, PlaceError] : SetBounds[Skija
   setBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
 end skijaSetBounds
 
-type SizeText[F[_], G[_]] = (text: String, options: SkijaTextStyle) => G[SkijaPlacedText]
+type SizeText[G[_]] = (text: String, options: SkijaTextStyle) => G[SkijaPlacedText]
 
 def sizeTextStateT[IO[_] : Monad](
-                                    ffi : FFI[IO],
-                                    shaper: Shaper,
-                                    cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
-                                  ) : SizeText[IO, [Value] =>> StateT[IO, Bounds[Float], Sized[Float, Value]]] =
+                                   ffi : ForeighFunctionInterface[IO],
+                                   shaper: Shaper,
+                                   cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                  ) : SizeText[[Value] =>> StateT[IO, Bounds[Float], Sized[Float, Value]]] =
   (text: String, options: SkijaTextStyle) =>
     StateT(
       bounds =>
@@ -65,16 +65,16 @@ def sizeTextStateT[IO[_] : Monad](
     )
 end sizeTextStateT
 
-def sizeTextLift[U[_], F[_], G[_]](original : SizeText[U, F], inj : F ~> G) : SizeText[U, G] =
+def sizeTextLift[F[_], G[_]](original : SizeText[F], inj : F ~> G) : SizeText[G] =
   (text, options) =>
     inj(original(text, options))
 end sizeTextLift
 
 def skijaSizeText[IO[_] : Monad, PlaceError](
-                                              ffi : FFI[IO],
+                                              ffi : ForeighFunctionInterface[IO],
                                               shaper : Shaper,
                                               cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
-                                            ) : SizeText[IO, SkijaPlace[IO, Float, PlaceError, *]] =
+                                            ) : SizeText[SkijaPlace[IO, Float, PlaceError, *]] =
   sizeTextLift(sizeTextStateT(ffi, shaper, cache), mapF(EitherT.liftK[IO, PlaceError]))
 end skijaSizeText
 
