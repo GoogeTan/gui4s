@@ -11,6 +11,6 @@ import me.katze.gui4s.widget.library.Widget
 type SkijaRecomposition[F[_]] = F[Unit]
 
 type SkijaPlacedWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] = 
-  Widget[SkijaUpdateT[F, MeasurementUnit, Event], SkijaPlaceT[F, MeasurementUnit, PlaceError], SkijaDraw[F, OglWindow], SkijaRecomposition[F], DownEvent]
+  Widget[SkijaUpdateT[F, MeasurementUnit, Event], SkijaPlaceT[F, MeasurementUnit, PlaceError], SkijaDraw[F, OglWindow[F]], SkijaRecomposition[F], DownEvent]
 type SkijaWidget[F[_], MeasurementUnit, PlaceError, Event, DownEvent] =
   SkijaPlace[F, MeasurementUnit, PlaceError, SkijaPlacedWidget[F, MeasurementUnit, PlaceError, Event, DownEvent]]

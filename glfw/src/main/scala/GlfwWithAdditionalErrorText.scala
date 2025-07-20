@@ -41,10 +41,6 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
       .mapErrorR(error.windowCreationError)
   end createWindow
 
-  override def centerWindow(window: Window): F[AdaptedError, Unit] =
-    original.centerWindow(window).mapError(error.windowOperationError(window))
-  end centerWindow
-
   override def createOGLContext(window: Window, createCapabilities: F[AdaptedError, Unit]): F[AdaptedError, Unit] =
     original.createOGLContext(
       window, 
@@ -52,65 +48,13 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
     ).mapError(error.oglContextCreationError(window))
   end createOGLContext
 
-  override def cursorPosCallback(window: Window, callback: (newXPos : Double, newYPos : Double) => F[AdaptedError, Unit]): F[AdaptedError, Unit] =
-    original.cursorPosCallback(
-      window, 
-      (x, y) => callback(x, y).mapError(error.callbackError)
-    ).mapError(error.callbackRegistrationError(window))
-  end cursorPosCallback
-
-  override def frameBufferResizeCallback(window: Window, callback: Size => F[AdaptedError, Unit]): F[AdaptedError, Unit] =
-    original.frameBufferResizeCallback(
-      window,
-      size => callback(size).mapError(error.callbackError)
-    ).mapError(error.callbackRegistrationError(window))
-  end frameBufferResizeCallback
-
-  override def frameBufferSize(window: Window): F[AdaptedError, Size] =
-    original.frameBufferSize(window).mapError(error.frameBufferError(window))
-  end frameBufferSize
-
-  override def keyCallback(
-      window: Window, 
-      callback: (key : Int, scanCode : Int, keyAction : KeyAction, keyModes : KeyModes) => F[AdaptedError, Unit]
-  ): F[AdaptedError, Unit] =
-    original.keyCallback(
-      window, 
-      (key, scanCode, keyAction, keyModes) => callback(key, scanCode, keyAction, keyModes).mapError(error.callbackError)
-    ).mapError(error.callbackRegistrationError(window))
-  end keyCallback
-
-  override def makeVisible(window: Window): F[AdaptedError, Unit] =
-    original.makeVisible(window).mapError(error.visibilityError(window))
-  end makeVisible
-
-  override def markForBeingClosed(window: Window): F[AdaptedError, Unit] =
-    original.markForBeingClosed(window).mapError(error.windowOperationError(window))
-  end markForBeingClosed
-
   override def pollEvents: F[AdaptedError, Unit] =
     original.pollEvents.mapError(error.eventPollingError)
   end pollEvents
 
-  override def shouldClose(window: Window): F[AdaptedError, Boolean] =
-    original.shouldClose(window).mapError(error.windowOperationError(window))
-  end shouldClose
-
-  override def swapBuffers(window: Window): F[AdaptedError, Unit] =
-    original.swapBuffers(window).mapError(error.bufferOperationError(window))
-  end swapBuffers
-
   override def swapInterval(interval: Int): F[AdaptedError, Unit] =
     original.swapInterval(interval).mapError(error.swapIntervalError)
   end swapInterval
-
-  override def windowMonitor(window: Window): F[AdaptedError, Monitor] =
-    original.windowMonitor(window).mapError(error.windowMonitorError(window))
-  end windowMonitor
-
-  override def windowSize(window: Window): F[AdaptedError, Size] =
-    original.windowSize(window).mapError(error.windowSizeError(window))
-  end windowSize
 
   override def primaryMonitor: F[AdaptedError, Monitor] =
     original.primaryMonitor.mapError(error.primatyMonitorGettingError)
@@ -123,38 +67,7 @@ final class GlfwWithAdditionalErrorText[F[_, _] : {FailsWith, BiMonadCancel}, Wi
   override def createPrintErrorCallback: Resource[F[AdaptedError, *], org.lwjgl.glfw.GLFWErrorCallback] =
     original.createPrintErrorCallback.mapErrorR(error.printErrorCallbackError)
 
-  override def mouseButtonCallback(window: Window, callback: (key : Int, action : KeyAction, mode : KeyModes) => F[AdaptedError, Unit]): F[AdaptedError, Unit] =
-    original.mouseButtonCallback(
-      window,
-      (button, action, mods) => callback(button, action, mods).mapError(error.callbackError)
-    ).mapError(error.mouseButtonCallbackError(window))
-  end mouseButtonCallback
-
-  override def scrollCallback(
-      window: Window,
-      callback: (xoffset : Double, yoffset : Double) => F[AdaptedError, Unit]
-  ): F[AdaptedError, Unit] =
-    original.scrollCallback(
-      window,
-      (xOffset, yOffset) => callback(xOffset, yOffset).mapError(error.callbackError)
-    ).mapError(error.scrollCallbackError(window))
-  end scrollCallback
-
-  override def windowResizeCallback(
-      window: Window,
-      callback: Size => F[AdaptedError, Unit]
-  ): F[AdaptedError, Unit] =
-    original.windowResizeCallback(
-      window,
-      size => callback(size).mapError(error.callbackError)
-    ).mapError(error.windowResizeCallbackError(window))
-  end windowResizeCallback
-
   override def primaryMonitorScale: F[AdaptedError, Float] =
     original.primaryMonitorScale.mapError(error.primatyMonitorScaleGettingError)
   end primaryMonitorScale
-
-  override def currentMousePosition(window: Window): F[AdaptedError, *][(Double, Double)] =
-    original.currentMousePosition(window).mapError(error.mousePositionError(window))
-  end currentMousePosition
 end GlfwWithAdditionalErrorText

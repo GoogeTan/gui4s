@@ -12,10 +12,6 @@ object fail:
     end mapError
   end extension
 
-  def failWith[F[_, _], T, E](e : E)(using F : FailsWith[F]) : F[E, T] =
-    F.failWith(e)
-  end failWith
-
   given EitherTFails[F[_] : Applicative] : FailsWith[[Error, Value] =>> EitherT[F, Error, Value]] with
     override def mapError[T, E1, E2](fa: EitherT[F, E1, T])(f: E1 => E2): EitherT[F, E2, T] =
       fa.leftMap(f)

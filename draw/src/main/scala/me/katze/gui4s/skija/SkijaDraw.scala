@@ -60,24 +60,10 @@ def drawText[F[_], Window](ffi : ForeighFunctionInterface[F], text: SkijaPlacedT
   )
 end drawText
 
-def flush[F[_] : {Monad, ForeighFunctionInterface as I}, Window]: SkijaDraw[F, Window] =
+def flush[F[_] : {Monad, ForeighFunctionInterface as I}, Window <: me.katze.gui4s.glfw.Window[F, Monitor], Monitor]: SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
     I(state.context.flush())
-      *> state.glfw.swapBuffers(state.window)
+      *> state.window.swapBuffers
       *> I(state.canvas.clear(0xFFFFFFFF))
   )
 end flush
-
-def drawFrame[F[_] : {Monad}, Window](ffi : ForeighFunctionInterface[F], draw : SkijaDraw[F, Window]) : ReaderT[F, SkijaDrawState[F, Window], Unit] =
-  ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
-    clear_(ffi, state.canvas, 0xFFFFFFFF)
-      |+| draw(state)
-      |+| flush_(ffi, state.context)
-      |+| state.glfw.swapBuffers(state.window)
-      |+| state.glfw.pollEvents
-  )
-end drawFrame
-
-
-
-

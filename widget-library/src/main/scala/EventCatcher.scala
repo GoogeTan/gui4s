@@ -84,7 +84,7 @@ def eventCatcherWithWidgetsRect[
     original.map(
       placedWidget =>
         placedWidget.mapValue {
-          case widget: Widget.ValueWrapper[t, Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent] =>
+          case widget: Widget.ValueWrapper[valueType, Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent] =>
             eventCatcher(markEventHandled)(original = widget)(
               (path, event) =>
                 coordinatesOfTheWidget.flatMap(point3d =>

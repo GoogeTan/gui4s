@@ -33,16 +33,19 @@ enum SkijaDownEvent:
   case Scrolled(xoffset : Double, yoffset : Double)
 end SkijaDownEvent
 
-def skijaApp[F[+_] : {Async, Console, ForeighFunctionInterface}, PlaceError](
-                                                          widget: SkijaBackend[F, OglWindow] ?=> SkijaWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
-                                                          updateLoopExecutionContext: ExecutionContext,
-                                                          drawLoopExecutionContext: ExecutionContext,
-                                                          runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
+def skijaApp[
+  F[+_] : {Async, Console, ForeighFunctionInterface},
+  PlaceError
+](
+  widget: SkijaBackend[F, OglWindow[F], Long] ?=> SkijaWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
+  updateLoopExecutionContext: ExecutionContext,
+  drawLoopExecutionContext: ExecutionContext,
+  runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
 ): F[ExitCode] =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,
     SkijaPlacedWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
-    SkijaDraw[F, OglWindow],
+    SkijaDraw[F, OglWindow[F]],
     SkijaPlaceT[F, Float, PlaceError],
     SkijaUpdateT[F, Float, ApplicationRequest],
     SkijaRecomposition[F],
@@ -53,7 +56,7 @@ def skijaApp[F[+_] : {Async, Console, ForeighFunctionInterface}, PlaceError](
     F,
     SkijaDownEvent,
     SkijaRootWidget,
-    SkijaBackend[F, OglWindow]
+    SkijaBackend[F, OglWindow[F], Long]
   ](
     backend = downEventSink => SkijaSimpleDrawApi.createForTests(
       settings = WindowCreationSettings(
@@ -66,8 +69,8 @@ def skijaApp[F[+_] : {Async, Console, ForeighFunctionInterface}, PlaceError](
       ffi = ContextForeighFunctionInterface(drawLoopExecutionContext, summon),
       callbacks = eventOfferingCallbacks(downEventSink.offer)
     ),
-    drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow]]](
-      skijaDrawLoop[F, OglWindow](backend),
+    drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow[F]]]](
+      skijaDrawLoop[F, OglWindow[F], Long](backend),
       drawLoopExecutionContext
     ),
     updateLoop = backend => runUpdateLoopOnExecutionContext[F, SkijaRootWidget, SkijaDownEvent](
@@ -84,7 +87,7 @@ def skijaApp[F[+_] : {Async, Console, ForeighFunctionInterface}, PlaceError](
           RootWidget[
             F,
             SkijaPlacedWidget[F, Float, PlaceError, ApplicationRequest, SkijaDownEvent],
-            SkijaDraw[F, OglWindow],
+            SkijaDraw[F, OglWindow[F]],
             SkijaPlaceT[F, Float, PlaceError],
             SkijaUpdateT[F, Float, ApplicationRequest],
             SkijaRecomposition[F],

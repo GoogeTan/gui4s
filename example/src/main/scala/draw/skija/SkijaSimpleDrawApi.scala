@@ -32,17 +32,17 @@ object SkijaSimpleDrawApi:
      settings : WindowCreationSettings,
      ffi: ForeighFunctionInterface[F],
      callbacks : GlfwCallbacks[F[Unit]],
-    ): Resource[F, SkijaBackend[F, OglWindow]] =
+    ): Resource[F, SkijaBackend[F, OglWindow[F], Long]] =
     for
       skija <- Resource.eval(SkijaImpl(ffi))
       dispatcher <- Dispatcher.sequential[F]
-      glfw: Glfw[F, OglWindow] <- GlfwImpl[F](dispatcher)(using ffi)
+      glfw: Glfw[F, OglWindow[F]] <- GlfwImpl[F](dispatcher)(using ffi)
       res <- createForTests(glfw, ffi(createCapabilities()), skija, dispatcher, settings, callbacks)
     yield res
   end createForTests
 
   def createForTests[
-    F[+_] : {Async, Console}, Window
+    F[+_] : {Async, Console}, Window <: me.katze.gui4s.glfw.Window[F, Long]
   ](
       glfw : Glfw[F, Window],
       createGlCapabilities : F[Unit],
@@ -50,7 +50,7 @@ object SkijaSimpleDrawApi:
       dispatcher : Dispatcher[F],
       windowSettings : WindowCreationSettings,
       callbacks : GlfwCallbacks[F[Unit]],
-    ): Resource[F, SkijaBackend[F, Window]] =
+    ): Resource[F, SkijaBackend[F, Window, Long]] =
     for
       window <- glfw.createWindow(windowSettings)
       _ <- Resource.eval(glfw.createOGLContext(window, createGlCapabilities))
@@ -101,24 +101,27 @@ object SkijaSimpleDrawApi:
     )
   end recreateRenderTarget
 
-  def registerCallbacks[F[_] : Apply, Window](
-                                                glfw: Glfw[F, Window],
-                                                window: Window,
-                                                glfwCallbacks: GlfwCallbacks[F[Unit]]
-                                              ): F[Unit] =
-    glfw.windowResizeCallback(window, glfwCallbacks.onWindowResized)
-      *> glfw.mouseButtonCallback(window, glfwCallbacks.onMouseClick)
-      //*> glfw.cursorPosCallback(window, glfwCallbacks.onMouseMove) TODO remove this line
-      *> glfw.keyCallback(window, glfwCallbacks.onKeyPress)
-      *> glfw.scrollCallback(window, glfwCallbacks.onScroll)
+  def registerCallbacks[
+    F[_] : Apply,
+    Window <: me.katze.gui4s.glfw.Window[F, Monitor],
+    Monitor
+  ](
+    glfw: Glfw[F, Window],
+    window: Window,
+    glfwCallbacks: GlfwCallbacks[F[Unit]]
+  ): F[Unit] =
+    window.windowResizeCallback(glfwCallbacks.onWindowResized)
+      *> window.mouseButtonCallback(glfwCallbacks.onMouseClick)
+      *> window.keyCallback(glfwCallbacks.onKeyPress)
+      *> window.scrollCallback(glfwCallbacks.onScroll)
   end registerCallbacks
 end SkijaSimpleDrawApi
 
-def skijaDrawLoop[F[+_] : {Console as C, ForeighFunctionInterface, Clock}, Window](backend : SkijaBackend[F, Window])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
+def skijaDrawLoop[F[+_] : {Console as C, ForeighFunctionInterface, Clock}, Window <: me.katze.gui4s.glfw.Window[F, Monitor], Monitor](backend : SkijaBackend[F, Window, Monitor])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
   currentWidget =>
     drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
       currentWidget.flatMap(widget =>
-        backend.drawState((widget.draw |+| flush[F, Window]).run) *> backend.pollEvents
+        backend.drawState((widget.draw |+| flush[F, Window, Monitor]).run) *> backend.pollEvents
       ).timed.flatMap((duration, _) => C.println(duration))
     ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop

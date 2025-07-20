@@ -15,7 +15,22 @@ import cats.data.{StateT, WriterT}
 import cats.syntax.all.*
 import me.katze.gui4s.widget.{CatchEvents, given}
 
-opaque type SkijaUpdate[IO[_], MeasurementUnit, Event, Value] = EventResult[IO, MeasurementUnit, Event, Value]
+// TODO Переименовать в состояние обновления
+final case class EventResultState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
+  def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : EventResultState[MeasurementUnit] =
+    copy(widgetCoordinates = widgetCoordinates + point)
+  end addCoordinates
+end EventResultState
+
+def emptyEventResultState[MeasurementUnit : Numeric as N] : EventResultState[MeasurementUnit] =
+  EventResultState(false, Point3d(N.zero, N.zero, N.zero))
+end emptyEventResultState
+
+def markEventHandled[MeasuremementUnit](state : EventResultState[MeasuremementUnit]) : EventResultState[MeasuremementUnit] =
+  EventResultState(true, state.widgetCoordinates)
+end markEventHandled
+
+opaque type SkijaUpdate[IO[_], MeasurementUnit, Event, Value] = StateT[WriterT[IO, List[Event], *], EventResultState[MeasurementUnit], Value]
 type SkijaUpdateT[IO[_], MeasurementUnit, Event] = SkijaUpdate[IO, MeasurementUnit, Event, *]
 
 given[IO[_] : Monad, MeasurementUnit] : CatchEvents[SkijaUpdate[IO, MeasurementUnit, *, *]] = liftStateTCatchEvents[[A, B] =>> WriterT[IO, List[A], B], EventResultState[MeasurementUnit]](using writerIsBiMonad)
@@ -27,7 +42,7 @@ end liftIOToSkijaUpdate
 given[IO[_] : Monad, MeasurementUnit] : BiMonad[SkijaUpdate[IO, MeasurementUnit, *, *]] = stateWrapsBiMonad[[A, B] =>> WriterT[IO, List[A], B], EventResultState[MeasurementUnit]](using writerIsBiMonad)
 
 def markEventHandled[IO[_] : Applicative, MeasurementUnit, Event] : SkijaUpdate[IO, MeasurementUnit, Event, Unit] =
-  StateT.modify(me.katze.gui4s.example.markEventHandled)
+  StateT.modify(markEventHandled)
 end markEventHandled
 
 def getCoordinates[IO[_] : Applicative, MeasurementUnit, Event] : SkijaUpdate[IO, MeasurementUnit, Event, Point3d[MeasurementUnit]] =

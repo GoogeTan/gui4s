@@ -67,17 +67,17 @@ object SkijaAppExample extends IOApp:
     )
   end mouseTracker
 
-  def clickHandler[Window, Event](window : Window, glfw : Glfw[IO, Window]): ClickHandler[Widget[Event], SkijaUpdate[IO, Float, Event, Boolean], Unit] =
+  def clickHandler[Window <: me.katze.gui4s.glfw.Window[IO, Monitor], Event, Monitor](window : Window): ClickHandler[Widget[Event], SkijaUpdate[IO, Float, Event, Boolean], Unit] =
     makeClickHandler(
       eventCatcherWithRect = eventCatcher,
-      currentMousePosition = liftIOToSkijaUpdate(glfw.currentMousePosition(window).map((x, y) => Point2d(x.toFloat, y.toFloat))),
+      currentMousePosition = liftIOToSkijaUpdate(window.currentMousePosition.map((x, y) => Point2d(x.toFloat, y.toFloat))),
     )(
       extractClickHandlerEvent
     )
 
   extension[Event](widget : Widget[Event])
-    def onClick[Window](window : Window, glfw : Glfw[IO, Window])(event : Event) : Widget[Event] =
-      clickHandler(window, glfw)(widget)(
+    def onClick[Window <: me.katze.gui4s.glfw.Window[IO, Monitor], Monitor](window : Window)(event : Event) : Widget[Event] =
+      clickHandler(window)(widget)(
         (_, _) =>
           raiseEvents[IO, Float, Event](List(event)).as(true)
       )
@@ -90,7 +90,7 @@ object SkijaAppExample extends IOApp:
 
   def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Nothing] = TransitiveStatefulWidgetFromStatefulWidget(statefulWidget)
   
-  def text(using backend : SkijaBackend[IO, OglWindow]) : TextWidget[Widget] =
+  def text(using backend : SkijaBackend[IO, OglWindow[IO], Long]) : TextWidget[Widget] =
     makeSkijaTextWidget(backend.globalShaper, ffi, backend.globalTextCache)
   end text
 
@@ -105,16 +105,16 @@ object SkijaAppExample extends IOApp:
         0f,
         0f
       ).pure[SkijaPlaceInnerT[IO, Float, String]],
-      ReaderT.pure[IO, SkijaDrawState[IO, OglWindow], Unit](()),
+      ReaderT.pure[IO, SkijaDrawState[IO, OglWindow[IO]], Unit](()),
       ().pure[IO]
     ).map(a => a)
   end leaf
 
-  def main(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
+  def main(using SkijaBackend[IO, OglWindow[IO], Long]) : Widget[ApplicationRequest] =
     app((0 until 20).toList)
   end main
 
-  def app(numbers : List[Int])(using backend : SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =
+  def app(numbers : List[Int])(using backend : SkijaBackend[IO, OglWindow[IO], Long]) : Widget[ApplicationRequest] =
     skijaColumn(
       verticalStrategy = MainAxisPlacementStrategy.Begin(0),
       horizontalStrategy = AdditionalAxisPlacementStrategy.Center,
@@ -128,7 +128,7 @@ object SkijaAppExample extends IOApp:
               text(
                 "# " + lineNumber.toString + " : " + state.toString,
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 48), new Paint().setColor(0xFF8484A4))
-              ).onClick(backend.window, backend.glfw)(())
+              ).onClick(backend.window)(())
           ),
     )
   end app

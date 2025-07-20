@@ -11,20 +11,24 @@ import cats.syntax.all.*
 import me.katze.gui4s.layout.Sized
 import scalacache.Cache
 
-final case class SkijaBackend[F[_], Window](
-                                              glfw : Glfw[F, Window],
-                                              window: Window,
-                                              private val renderTargetCell : AtomicCell[F, SkiaRenderTarget],
-                                              globalDispatcher : Dispatcher[F],
-                                              globalShaper : Shaper,
-                                              globalTextCache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
-                                            ):
+final case class SkijaBackend[
+  F[_],
+  Window <: me.katze.gui4s.glfw.Window[F, Monitor],
+  Monitor
+](
+  glfw : Glfw[F, Window],
+  window: Window,
+  private val renderTargetCell : AtomicCell[F, SkiaRenderTarget],
+  globalDispatcher : Dispatcher[F],
+  globalShaper : Shaper,
+  globalTextCache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+):
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
-    glfw.frameBufferSize(window).map(a => new Bounds(a.width, a.height))
+    window.frameBufferSize.map(a => new Bounds(a.width, a.height))
   end windowBounds
 
   def windowShouldNotClose(using M : Monad[F]) : F[Boolean] =
-    glfw.shouldNotClose(window)
+    window.shouldNotClose
   end windowShouldNotClose
 
   def drawState[T](using M : Monad[F])(f : SkijaDrawState[F, Window] => F[T]) : F[T] =

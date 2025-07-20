@@ -17,7 +17,7 @@ def skijaText[IO[_] : Monad, PlaceError, DownEvent, Event](
                                                             style : SkijaTextStyle,
                                                           ) : SkijaWidget[IO, Float, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.text[
-    SkijaUpdateT[IO, Float, Event],  SkijaPlaceT[IO, Float, PlaceError], SkijaDraw[IO, OglWindow], SkijaRecomposition[IO], DownEvent, SkijaPlacedText
+    SkijaUpdateT[IO, Float, Event],  SkijaPlaceT[IO, Float, PlaceError], SkijaDraw[IO, OglWindow[IO]], SkijaRecomposition[IO], DownEvent, SkijaPlacedText
   ](
     textSizer(text, style),
     drawText(ffi, _),

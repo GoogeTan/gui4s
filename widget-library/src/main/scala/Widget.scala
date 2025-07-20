@@ -46,7 +46,6 @@ enum Widget[
 extension[T, Update[_] : Functor, Place[_] : Functor, Draw, RecompositionReaction, HandleableEvent](wrapper : ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent])
   def withValue(value: T): ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
     wrapper.copy(valueToDecorate = value)
-    //ValueWrapper(value, wrapper.valueAsFree, wrapper.valueIsDrawable, wrapper.valueHandlesEvent, wrapper.valueMergesWithOldState, wrapper.valueReactsOnRecomposition, wrapper.valueHasInnerState)
   end withValue
 end extension
 

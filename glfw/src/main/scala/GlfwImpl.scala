@@ -12,61 +12,52 @@ import org.lwjgl.system.{MemoryStack, MemoryUtil}
 
 import java.util.Objects
 
-def stackPush[F[_] : {Sync, ForeighFunctionInterface as I}] : Resource[F, MemoryStack] =
-  Resource.fromAutoCloseable(I.delay(MemoryStack.stackPush()))
+def stackPush[F[_] : {Sync}](ffi : ForeighFunctionInterface[F]): Resource[F, MemoryStack] =
+  Resource.fromAutoCloseable(ffi.delay(MemoryStack.stackPush()))
 end stackPush
 
-final case class OglWindow(id : Long) // TODO move into a class
-
-final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](
-                                                        unsafeRunF : [A] => F[A] => A,
-                                                      ) extends Glfw[F, OglWindow]:
-  override def centerWindow(window: OglWindow): F[Unit] =
-    windowSize(window).flatMap:
+final case class OglWindow[F[_] : Sync](id : Long, impure : ForeighFunctionInterface[F], unsafeRunF: [A] => F[A] => A) extends Window[F, Long]:
+  override def center: F[Unit] =
+    size.flatMap:
       case Size(width, height) =>
         impure.delay:
           val monitor = glfwGetPrimaryMonitor()
           val vidmode = Objects.requireNonNull(glfwGetVideoMode(monitor))
           glfwSetWindowPos(
-            window.id,
+            id,
             (vidmode.width - width) / 2,
             (vidmode.height - height) / 2
           )
-  end centerWindow
+  end center
 
-  override def createOGLContext(window: OglWindow, createCapabilities : F[Unit]): F[Unit] =
-    impure.delay(
-      glfwMakeContextCurrent(window.id)
-    ) *> createCapabilities
-  end createOGLContext
 
-  override def windowResizeCallback(window: OglWindow, callback: Size => F[Unit]): F[Unit] =
+  override def windowResizeCallback(callback: Size => F[Unit]): F[Unit] =
     impure.delay:
       glfwSetWindowSizeCallback(
-        window.id,
+        id,
         (_, width, height) =>
           unsafeRunF(callback(Size(width, height)))
       )
   end windowResizeCallback
 
-  override def makeVisible(window: OglWindow): F[Unit] =
+  override def makeVisible: F[Unit] =
     impure.delay:
-      glfwShowWindow(window.id)
+      glfwShowWindow(id)
   end makeVisible
 
-  override def shouldClose(window: OglWindow): F[Boolean] =
+  override def shouldClose: F[Boolean] =
     impure.delay:
-      glfwWindowShouldClose(window.id)
+      glfwWindowShouldClose(id)
   end shouldClose
 
-  override def markForBeingClosed(window: OglWindow): F[Unit] =
+  override def markForBeingClosed: F[Unit] =
     impure.delay:
-      glfwSetWindowShouldClose(window.id, true)
+      glfwSetWindowShouldClose(id, true)
   end markForBeingClosed
 
-  override def frameBufferResizeCallback(window: OglWindow, callback: Size => F[Unit]): F[Unit] =
+  override def frameBufferResizeCallback(callback: Size => F[Unit]): F[Unit] =
     impure.delay:
-      val old = glfwSetFramebufferSizeCallback(window.id, (_, width, height) =>
+      val old = glfwSetFramebufferSizeCallback(id, (_, width, height) =>
         unsafeRunF(callback(Size(width, height)))
       )
       if old != null then
@@ -74,15 +65,86 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](
       end if
   end frameBufferResizeCallback
 
-  override def keyCallback(window: OglWindow, callback: (key : Int, scanCode : Int, keyAction : KeyAction, keyModes : KeyModes) => F[Unit]): F[Unit] =
+  override def keyCallback(callback: (key : Int, scanCode : Int, keyAction : KeyAction, keyModes : KeyModes) => F[Unit]): F[Unit] =
     impure.delay:
-      val old = glfwSetKeyCallback(window.id, (_, key, scancode, action, modes) =>
+      val old = glfwSetKeyCallback(id, (_, key, scancode, action, modes) =>
         unsafeRunF(callback(key, scancode, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
       )
       if old != null then
         old.free()
-      end if  
+      end if
   end keyCallback
+
+  override def monitor : F[Long] =
+    impure.delay(glfwGetWindowMonitor(id)).ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
+  end monitor
+
+
+  override def size: F[Size] =
+    stackPush(impure).use:
+      stack =>
+        impure.delay({
+          val width = stack.mallocInt(1)
+          val height = stack.mallocInt(1)
+          glfwGetWindowSize(id, width, height)
+          Size(width.get(0), height.get(0))
+        })
+  end size
+
+  override def frameBufferSize: F[Size] =
+    stackPush(impure).use:
+      stack =>
+        impure.delay({
+          val width = stack.mallocInt(1)
+          val height = stack.mallocInt(1)
+          glfwGetFramebufferSize(id, width, height)
+          Size(width.get(0), height.get(0))
+        })
+  end frameBufferSize
+
+  override def scrollCallback(callback: (xoffset : Double, yoffset : Double) => F[Unit]): F[Unit] =
+    impure.delay:
+      val old = glfwSetScrollCallback(id, (_, xoffset, yoffset) => unsafeRunF[Unit](callback(xoffset, yoffset)))
+      if old != null then
+        old.free()
+      end if
+  end scrollCallback
+
+  override def cursorPosCallback(callback: (newXPos : Double, newYPos : Double) => F[Unit]): F[Unit] =
+    impure.delay:
+      val old = glfwSetCursorPosCallback(id, (_, xpos, ypos) => unsafeRunF[Unit](callback(xpos, ypos)))
+      if old != null then
+        old.free()
+      end if
+  end cursorPosCallback
+
+  override def mouseButtonCallback(callback: (key : Int, action : KeyAction, mode : KeyModes) => F[Unit]): F[Unit] =
+    impure.delay:
+      val old = glfwSetMouseButtonCallback(id, (_, key, action, modes) =>
+        unsafeRunF(callback(key, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
+      )
+      if old != null then
+        old.free()
+      end if
+  end mouseButtonCallback
+
+  override def currentMousePosition: F[(Double, Double)] =
+    stackPush(impure).use:
+      stack =>
+        impure.delay:
+          val x = stack.mallocDouble(1)
+          val y = stack.mallocDouble(1)
+          glfwGetCursorPos(id, x, y)
+          (x.get(0) * 2.0, y.get(0) * 2.0) // TODO Это странная дичь, тут надо делить на скейл монитора. Пока что так.
+  end currentMousePosition
+
+  override def swapBuffers: F[Unit] =
+    impure.delay:
+      glfwSwapBuffers(id)
+  end swapBuffers
+end OglWindow
+
+final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRunF : [A] => F[A] => A) extends Glfw[F, OglWindow[F]]:
 
   override def swapInterval(interval: Int): F[Unit] =
     impure.delay:
@@ -91,22 +153,23 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](
 
   override type Monitor = Long
 
+  override def createOGLContext(window : OglWindow[F], createCapabilities: F[Unit]): F[Unit] =
+    impure.delay(
+      glfwMakeContextCurrent(window.id)
+    ) *> createCapabilities
+  end createOGLContext
+
   override def primaryMonitor : F[Monitor] =
     impure.delay(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end primaryMonitor
 
-  override def windowMonitor(window : OglWindow) : F[Monitor] =
-    impure.delay(glfwGetWindowMonitor(window.id))
-      .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
-  end windowMonitor
-  
-  override def createWindow(settings: WindowCreationSettings): Resource[F, OglWindow] =
+  override def createWindow(settings: WindowCreationSettings): Resource[F, OglWindow[F]] =
     Resource.make(
       for
         _ <- windowHints(settings.visible, settings.resizeable, settings.debugContext)
         id <- createWindowId(settings.size.width, settings.size.height, settings.title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
-      yield OglWindow(id)
+      yield OglWindow(id, impure, unsafeRunF)
     )(a => 
         impure.delay:
           glfwFreeCallbacks(a.id)
@@ -123,7 +186,7 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](
   end createWindowId
 
   def monitorScale(monitor : Long): F[Float] =
-    stackPush.use:
+    stackPush(impure).use:
       s =>
         impure.delay:
           val px = s.mallocFloat(1)
@@ -177,68 +240,6 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](
     impure.delay(glfwTerminate())
   end terminate
   
-  override def windowSize(window: OglWindow): F[Size] =
-    stackPush.use:
-      stack =>
-        impure.delay({
-          val width = stack.mallocInt(1)
-          val height = stack.mallocInt(1)
-          glfwGetWindowSize(window.id, width, height)
-          Size(width.get(0), height.get(0))
-        })
-  end windowSize
-
-  override def frameBufferSize(window: OglWindow): F[Size] =
-    stackPush.use:
-      stack =>
-        impure.delay({
-          val width = stack.mallocInt(1)
-          val height = stack.mallocInt(1)
-          glfwGetFramebufferSize(window.id, width, height)
-          Size(width.get(0), height.get(0))
-        })
-  end frameBufferSize
-
-  override def scrollCallback(window: OglWindow, callback: (xoffset : Double, yoffset : Double) => F[Unit]): F[Unit] =
-    impure.delay:
-      val old = glfwSetScrollCallback(window.id, (_, xoffset, yoffset) => unsafeRunF[Unit](callback(xoffset, yoffset)))
-      if old != null then
-        old.free()
-      end if
-  end scrollCallback
-
-  override def cursorPosCallback(window: OglWindow, callback: (newXPos : Double, newYPos : Double) => F[Unit]): F[Unit] =
-    impure.delay:
-      val old = glfwSetCursorPosCallback(window.id, (_, xpos, ypos) => unsafeRunF[Unit](callback(xpos, ypos)))
-      if old != null then
-        old.free()
-      end if
-  end cursorPosCallback
-
-  override def mouseButtonCallback(window: OglWindow, callback: (key : Int, action : KeyAction, mode : KeyModes) => F[Unit]): F[Unit] =
-    impure.delay:
-      val old = glfwSetMouseButtonCallback(window.id, (_, key, action, modes) =>
-        unsafeRunF(callback(key, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
-      )
-      if old != null then
-        old.free()
-      end if
-  end mouseButtonCallback
-
-  override def currentMousePosition(window: OglWindow): F[(Double, Double)] =
-    stackPush.use:
-      stack =>
-        impure.delay:
-          val x = stack.mallocDouble(1)
-          val y = stack.mallocDouble(1)
-          glfwGetCursorPos(window.id, x, y)
-          (x.get(0) * 2.0, y.get(0) * 2.0) // TODO Это странная дичь, тут надо делить на скейл монитора. Пока что так.
-  end currentMousePosition
-
-  override def swapBuffers(window : OglWindow): F[Unit] =
-    impure.delay:
-      glfwSwapBuffers(window.id)
-  end swapBuffers
 end GlfwImpl
 
 object GlfwImpl:

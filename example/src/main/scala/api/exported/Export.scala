@@ -32,7 +32,7 @@ def skijaRow[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, DownE
   linearLayout[
     SkijaUpdateT[F, Float, Event],
     SkijaPlaceT[F, Float, PlaceError],
-    SkijaDraw[F, OglWindow],
+    SkijaDraw[F, OglWindow[F]],
     SkijaRecomposition[F],
     DownEvent,
     LayoutPlacementMeta[Float]
@@ -57,7 +57,7 @@ def skijaColumn[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, Do
   linearLayout[
     SkijaUpdateT[F, Float, Event],
     SkijaPlaceT[F, Float, PlaceError],
-    SkijaDraw[F, OglWindow],
+    SkijaDraw[F, OglWindow[F]],
     SkijaRecomposition[F],
     DownEvent,
     LayoutPlacementMeta[Float]
@@ -93,7 +93,7 @@ def skijaStateful[
   me.katze.gui4s.widget.library.stateful[
     SkijaUpdate[F, MeasurementUnit, *, *],
     SkijaPlaceT[F, MeasurementUnit, PlaceError],
-    SkijaDraw[F, OglWindow],
+    SkijaDraw[F, OglWindow[F]],
     SkijaRecomposition[F],
     DownEvent,
     EventReaction[State, Event, Nothing],
