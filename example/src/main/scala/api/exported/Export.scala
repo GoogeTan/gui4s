@@ -115,7 +115,7 @@ def skijaStateful[
     handleEvent = handleEvent, 
     render = render,
     destructor = destructor
-  )
+  ).map(a => a)
 end skijaStateful
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))

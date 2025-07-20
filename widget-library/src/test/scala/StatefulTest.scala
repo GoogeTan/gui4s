@@ -24,16 +24,16 @@ final class StatefulTest extends AnyFlatSpec with Matchers:
   type RecompositionReaction = Unit
   type HandleableEvent = String
 
-  type TestWidget[T, Event] = Widget[T, Update[Event, *], Place, Draw, RecompositionReaction, HandleableEvent]
-  type TestWidgetUntyped[Event] = Widget_[Update[Event, *], Place, Draw, RecompositionReaction, HandleableEvent]
+  type TestWidget[T, Event] = Widget.ValueWrapper[T, Update[Event, *], Place, Draw, RecompositionReaction, HandleableEvent]
+  type TestWidgetUntyped[Event] = Widget[Update[Event, *], Place, Draw, RecompositionReaction, HandleableEvent]
   type FreeTestWidget[T, Event] = Place[TestWidget[T, Event]]
   type FreeTestWidgetUntyped[Event] = Place[TestWidgetUntyped[Event]]
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def typeCheckState[State : Typeable]: [T] => (Any, Path, (State, State) => Place[T]) => Place[T] =
-    [T] => (value: Any, path: Path, callback: (State, State) => Place[T]) =>
+  def typeCheckState[State : Typeable]: [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T] =
+    [T] => (value: Any, path: Path, callback: StatefulState[State] => Place[T]) =>
       value match
-        case (initial: State, current: State) => callback(initial, current)
+        case StatefulState(initial: State, current: State) => callback(StatefulState(initial, current))
         case _ => Left(PlaceError.StateCheckError(path, value))
       end match
   end typeCheckState

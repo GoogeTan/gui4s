@@ -2,9 +2,9 @@ package me.katze.gui4s.widget
 
 final case class LaunchedEffect[
   Key,
-  Recomposition
+  Task,
 ](
   name : String,
   key : Key,
-  taskOnChange : Path => Recomposition
+  taskOnChange : Task,
 )

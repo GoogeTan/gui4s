@@ -15,7 +15,7 @@ def text[
     draw : PlacedText => Draw,
     emptyRecomposition : RecompositionReaction,
  ) : Place[
-  Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]
 ] =
   drawOnlyWidget[Update, Place, Draw, RecompositionReaction, HandleableEvent](text.map(draw), emptyRecomposition)
 end text

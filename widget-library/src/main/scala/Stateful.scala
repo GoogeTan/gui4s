@@ -65,17 +65,26 @@ def stateful[
   ParentEvent,
   ChildEvent
 ](
-    widgetsAreMergeable : Mergable[Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
-    runEventReaction : (EventReaction, Path) => Update[ParentEvent, State],
-    typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
+   widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
+   runEventReaction : (EventReaction, Path) => Update[ParentEvent, State],
+   typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
 )(
-    name : String,
-    initialState : State,
-    handleEvent : (State, NonEmptyList[ChildEvent]) => EventReaction,
-    render : State => Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
-    destructor : State => RecompositionReaction,
+   name : String,
+   initialState : State,
+   handleEvent : (State, NonEmptyList[ChildEvent]) => EventReaction,
+   render : State => Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
+   destructor : State => RecompositionReaction,
 ) : Place[
-  Widget_[
+  Widget.ValueWrapper[
+    Stateful[
+      Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
+      StatefulBehaviour[
+        State,
+        State => Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
+        (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
+        State => RecompositionReaction
+      ],
+    ],
     Update[ParentEvent, *],
     Place,
     Draw,
@@ -84,7 +93,7 @@ def stateful[
   ]
 ] =
   render(initialState).map(initialChild =>
-    type Widget[E] = Widget_[
+    type Widget_[E] = Widget[
       Update[E, *],
       Place,
       Draw,
@@ -93,7 +102,7 @@ def stateful[
     ]
     type StState = StatefulBehaviour[
       State,
-      State => Place[Widget[ChildEvent]],
+      State => Place[Widget_[ChildEvent]],
       (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
       State => RecompositionReaction
     ]
@@ -113,11 +122,11 @@ def stateful[
       ),
       child = initialChild
     )
-    val statefulAsFree_ = statefulAsFree[Place, Widget[ChildEvent], StState](widgetAsFree)
-    Widget[
-      T = Stateful[Widget[ChildEvent], StState],
-      Update = Update[ParentEvent, *],
-      Place = Place
+    val statefulAsFree_ = statefulAsFree[Place, Widget_[ChildEvent], StState](widgetAsFree)
+    Widget.ValueWrapper[
+      T = Stateful[Widget_[ChildEvent], StState],
+      Update_ = Update[ParentEvent, *],
+      Place_ = Place
     ](
       valueToDecorate = stateful,
       valueAsFree = statefulAsFree_, // TODO Rename me
@@ -145,11 +154,11 @@ def statefulHandlesEvent_[
   ParentEvent,
   ChildEvent
 ](
-  widgetsAreMergeable : Mergable[Place[Widget_[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
+   widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
 ): HandlesEventPlace[
   [T] =>> Update[ParentEvent, Place[T]],
   Stateful[
-    Widget_[
+    Widget[
       Update[ChildEvent, *],
       Place,
       Draw,
@@ -159,7 +168,7 @@ def statefulHandlesEvent_[
     StatefulBehaviour[
       State,
       State => Place[
-        Widget_[
+        Widget[
           Update[ChildEvent, *],
           Place, Draw, RecompositionReaction, HandlableEvent
         ]

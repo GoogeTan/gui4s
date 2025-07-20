@@ -97,7 +97,8 @@ object SkijaAppExample extends IOApp:
   def leaf[Marker, Event](marker : Marker) : Widget[Event] =
     leafWidget[
       Update = SkijaUpdateT[IO, Float, Event],
-      Place = SkijaPlaceT[IO, Float, String]
+      Place = SkijaPlaceT[IO, Float, String],
+      HandleableEvent = SkijaDownEvent
     ](
       new Sized(
         marker,
@@ -105,8 +106,8 @@ object SkijaAppExample extends IOApp:
         0f
       ).pure[SkijaPlaceInnerT[IO, Float, String]],
       ReaderT.pure[IO, SkijaDrawState[IO, OglWindow], Unit](()),
-      ().pure
-    )
+      ().pure[IO]
+    ).map(a => a)
   end leaf
 
   def main(using SkijaBackend[IO, OglWindow]) : Widget[ApplicationRequest] =

@@ -1,6 +1,5 @@
 package me.katze.gui4s.widget.library
 
-import catnip.BiMonad
 import cats.{Applicative, Functor, Monoid}
 import cats.syntax.all.*
 import me.katze.gui4s.widget.draw.resourceIsDrawable
@@ -24,19 +23,19 @@ def resource[
   HandlableEvent,
 ](
   fAsAction : F[Unit] => RecompositionReaction,
-  widgetsAreMergable : Mergable[Place[Widget_[Update, Place, Draw, RecompositionReaction, HandlableEvent]]]
+  widgetsAreMergable : Mergable[Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]]]
 ) : ResourceWidget[
-  Place[Widget_[Update, Place, Draw, RecompositionReaction, HandlableEvent]],
+  Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]],
   F
 ] =
   [T] => (name : String, allocator : F[(T, F[Unit])]) => freeWidget =>
     freeWidget(None).map:
       widget =>
-        type Widget = Widget_[Update, Place, Draw, RecompositionReaction, HandlableEvent]
-        type ResourceState = Resource[Widget, Option[(T, F[Unit])]]
+        type Widget_ = Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]
+        type ResourceState = Resource[Widget_, Option[(T, F[Unit])]]
 
         val resourceAsFree_ : AsFreeF[ResourceState, Place] = resourceAsFree(widgetAsFree)
-        Widget[
+        Widget.ValueWrapper[
           ResourceState,
           Update,
           Place,

@@ -1,9 +1,10 @@
 package catnip
 package syntax
 
-import cats.{Applicative, ApplicativeError, Functor}
+import cats.arrow.{Profunctor, Strong}
 import cats.kernel.Monoid
 import cats.syntax.all.*
+import cats.{Applicative, ApplicativeError, Functor}
 
 object applicative:
   given applicativesAreMonoids[F[_] : Applicative as A] : Monoid[F[Unit]] with
@@ -27,4 +28,18 @@ object applicative:
       value.map(_.pure[F]).getOrElse(A.raiseError(error))
     end getOrRaise
   end extension
+
+  given[F[_] : Functor] : Strong[[A, B] =>> A => F[B]] with
+    override def dimap[A, B, C, D](fab: A => F[B])(f: C => A)(g: B => D): C => F[D] =
+      c => fab(f(c)).map(g)
+    end dimap
+
+    override def first[A, B, C](fa: A => F[B]): ((A, C)) => F[(B, C)] =
+      (a, c) => fa(a).map(b => (b, c))
+    end first
+
+    override def second[A, B, C](fa: A => F[B]): ((C, A)) => F[(C, B)] =
+      (c, a) => fa(a).map(b => (c, b))
+    end second
+  end given
 end applicative

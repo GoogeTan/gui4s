@@ -3,45 +3,52 @@ package me.katze.gui4s.widget.library
 import catnip.syntax.additional.*
 import cats.Functor
 import cats.syntax.all.*
+import me.katze.gui4s.widget.{Path, StateTree}
 import me.katze.gui4s.widget.draw.Drawable
 import me.katze.gui4s.widget.free.AsFree
 import me.katze.gui4s.widget.handle.{HandlesEvent, HandlesEventF}
+import me.katze.gui4s.widget.library.Widget.ValueWrapper
 import me.katze.gui4s.widget.merge.MergesWithOldStates
 import me.katze.gui4s.widget.recomposition.ReactsOnRecomposition
 import me.katze.gui4s.widget.state.HasInnerStates
 
-type Widget_[
-  Update[_],
-  Place[_],
+enum Widget[
+  Update[_] : Functor,
+  Place[_] : Functor,
   Draw,
   RecompositionReaction,
-  -HandleableEvent
-] = Widget[?, Update, Place, Draw, RecompositionReaction, HandleableEvent]
-
-final case class Widget[
-  T,
-  Update[_],
-  Place[_],
-  Draw,
-  RecompositionReaction,
-  -HandleableEvent
+  HandleableEvent
 ](
-   valueToDecorate : T,
-   valueAsFree : AsFree[T, Place[T]],
-   valueIsDrawable: Drawable[T, Draw],
-   valueHandlesEvent: HandlesEvent[T, HandleableEvent, Update[Place[T]]],
-   valueMergesWithOldState : MergesWithOldStates[T, RecompositionReaction, Place[T]],
-   valueReactsOnRecomposition : ReactsOnRecomposition[T, RecompositionReaction],
-   valueHasInnerState : HasInnerStates[T, RecompositionReaction],
+   val asFree : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
+   val draw : Draw,
+   val handleEvent : (path : Path, event : HandleableEvent) => Update[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
+   val mergeWithOldState : (path: Path, oldState:  Map[String, StateTree[RecompositionReaction]]) => Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
+   val reactOnRecomposition : (pathToParent: Path, oldStates: Map[String, StateTree[RecompositionReaction]]) => RecompositionReaction,
+   val innerStates: Map[String, StateTree[RecompositionReaction]]
 ):
-  def withValue(newValue : T): Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
-    copy(valueToDecorate = newValue)
-  end withValue
+  case ValueWrapper[T, Update_[_], Place_[_], Draw_, RecompositionReaction_, HandleableEvent_](
+    valueToDecorate : T,
+    valueAsFree : AsFree[T, Place_[T]],
+    valueIsDrawable: Drawable[T, Draw_],
+    valueHandlesEvent: HandlesEvent[T, HandleableEvent_, Update_[Place_[T]]],
+    valueMergesWithOldState : MergesWithOldStates[T, RecompositionReaction_, Place_[T]],
+    valueReactsOnRecomposition : ReactsOnRecomposition[T, RecompositionReaction_],
+    valueHasInnerState : HasInnerStates[T, RecompositionReaction_],
+  )(using val updateFunctor : Functor[Update_], val placeFunctor : Functor[Place_]) extends Widget[Update_, Place_, Draw_, RecompositionReaction_, HandleableEvent_](
+    valueAsFree(valueToDecorate).map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState)),
+    valueIsDrawable(valueToDecorate),
+    (a, b) => valueHandlesEvent(valueToDecorate, a, b).map(_.map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState))),
+    (a, b) => valueMergesWithOldState(valueToDecorate, a, b).map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState)),
+    valueReactsOnRecomposition(valueToDecorate, _, _),
+    valueHasInnerState(valueToDecorate)
+  )
 
-  override def toString: String = 
-    "W[" + valueToDecorate.toString + "]"
-  end toString
-end Widget
+extension[T, Update[_] : Functor, Place[_] : Functor, Draw, RecompositionReaction, HandleableEvent](wrapper : ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent])
+  def withValue(value: T): ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
+    wrapper.copy(valueToDecorate = value)
+    //ValueWrapper(value, wrapper.valueAsFree, wrapper.valueIsDrawable, wrapper.valueHandlesEvent, wrapper.valueMergesWithOldState, wrapper.valueReactsOnRecomposition, wrapper.valueHasInnerState)
+  end withValue
+end extension
 
 def widgetAsFree[
   Update[_],
@@ -50,11 +57,10 @@ def widgetAsFree[
   RecompositionReaction,
   HandleableEvent
 ] : AsFree[
-  Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent],
-  Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]
 ] =
-  self =>
-    self.valueAsFree(self.valueToDecorate).map(self.withValue)
+  _.asFree
 end widgetAsFree
 
 def widgetIsDrawable[
@@ -64,10 +70,10 @@ def widgetIsDrawable[
   RecompositionReaction,
   HandleableEvent
 ] : Drawable[
-  Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
   Draw
 ] =
-  self => self.valueIsDrawable(self.valueToDecorate)
+  _.draw
 end widgetIsDrawable
 
 def widgetHandlesEvent[
@@ -77,13 +83,11 @@ def widgetHandlesEvent[
   RecompositionReaction,
   HandleableEvent
 ] : HandlesEventF[
-  Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
   HandleableEvent,
   Update * Place
 ] =
-  (self, pathToParent, event) =>
-    self.valueHandlesEvent(self.valueToDecorate, pathToParent, event)
-      .map(_.map(self.withValue))
+  _.handleEvent(_, _)
 end widgetHandlesEvent
 
 
@@ -95,7 +99,7 @@ def widgetHandlesEventTyped[
   RecompositionReaction,
   HandleableEvent
 ]: HandlesEventF[
-  Widget[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
   HandleableEvent,
   Update * Place
 ] =
@@ -111,13 +115,11 @@ def widgetMergesWithOldState[
   RecompositionReaction,
   HandleableEvent
 ] : MergesWithOldStates[
-  Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
   RecompositionReaction,
-  Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
+  Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
 ] =
-  (self, path, oldState) =>
-    self.valueMergesWithOldState(self.valueToDecorate, path, oldState)
-      .map(self.withValue)
+  _.mergeWithOldState(_, _)
 
 def widgetReactsOnRecomposition[
   Update[_],
@@ -126,11 +128,10 @@ def widgetReactsOnRecomposition[
   RecompositionReaction,
   HandleableEvent
 ] : ReactsOnRecomposition[
-  Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
   RecompositionReaction
 ] =
-  (self, pathToParent, oldStates) =>
-    self.valueReactsOnRecomposition(self.valueToDecorate, pathToParent, oldStates)
+  _.reactOnRecomposition(_, _)
 end widgetReactsOnRecomposition
 
 def widgetHasInnerStates[
@@ -140,10 +141,9 @@ def widgetHasInnerStates[
   RecompositionReaction,
   HandleableEvent
 ] : HasInnerStates[
-  Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
   RecompositionReaction
 ] =
-  self =>
-    self.valueHasInnerState(self.valueToDecorate)
+  _.innerStates
 end widgetHasInnerStates
 

@@ -15,7 +15,7 @@ def widgetsAreMergable[
   Draw,
   RecompositionReaction,
   HandleableEvent,
-] : Mergable[OuterPlace[InnerPlace[Widget_[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
+] : Mergable[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
   type Place[Value] = OuterPlace[InnerPlace[Value]]
   given Functor[Place] = nestedFunctorsAreFunctors
 

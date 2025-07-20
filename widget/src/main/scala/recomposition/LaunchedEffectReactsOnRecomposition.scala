@@ -4,13 +4,12 @@ package recomposition
 import scala.reflect.Typeable
 
 def launchedEffectReactsOnRecomposition[
-  Place,
   Recomposition,
-  Key : {Typeable, Equiv as eq}
+  Key : {Typeable, Equiv as eq},
 ](
   emptyRecomposition : Recomposition,
-  keysTypeMismatchError : Recomposition
-) : ReactsOnRecomposition[LaunchedEffect[Key, Recomposition], Recomposition] =
+  keysTypeMismatchError : Recomposition,
+) : ReactsOnRecomposition[LaunchedEffect[Key, Path => Recomposition], Recomposition] =
   (self, pathToParent, states) =>
     states.get(self.name) match
       case Some(key : Key) =>

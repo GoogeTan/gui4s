@@ -32,17 +32,17 @@ def linearLayout[
   HandleableEvent,
   Meta : Ordering,
 ](
-    children : List[Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
-    layout : Layout[Place, Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
-    adjustDrawToMeta : (Draw, Meta) => Draw,
-    adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
-    eventConsumed : Update[Boolean],
-) : Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
-  type Widget = Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+   children : List[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
+   layout : Layout[Place, Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent], Meta],
+   adjustDrawToMeta : (Draw, Meta) => Draw,
+   adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
+   eventConsumed : Update[Boolean],
+) : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+  type Widget_ = Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]
   layout(children).map(
     placedChildren =>
-      Widget[
-        Container[(Widget, Meta), Layout[Place, Widget, Meta]],
+      Widget.ValueWrapper[
+        Container[(Widget_, Meta), Layout[Place, Widget_, Meta]],
         Update, Place, Draw, RecompositionReaction, HandleableEvent
       ](
         valueToDecorate = Container(placedChildren, layout),
@@ -55,8 +55,8 @@ def linearLayout[
             adjustDrawToMeta
           )
         ),
-        valueHandlesEvent = containerHandlesEvent[Update, Place, Widget, HandleableEvent, Meta](
-          childrenHandleEvent[Update, Place, Widget, HandleableEvent, Meta](
+        valueHandlesEvent = containerHandlesEvent[Update, Place, Widget_, HandleableEvent, Meta](
+          childrenHandleEvent[Update, Place, Widget_, HandleableEvent, Meta](
             widgetHandlesEvent = widgetHandlesEvent[Update, Place, Draw, RecompositionReaction, HandleableEvent],
             widgetAsFree = widgetAsFree[Update, Place, Draw, RecompositionReaction, HandleableEvent],
             isEventConsumed = eventConsumed,
@@ -64,19 +64,19 @@ def linearLayout[
           )
         ),
         valueMergesWithOldState = containerMergesWithOldStates[
-          Place, Widget, RecompositionReaction, Meta
+          Place, Widget_, RecompositionReaction, Meta
         ](
           widgetMergesWithOldState[Update, Place, Draw, RecompositionReaction, HandleableEvent]
         ),
         valueReactsOnRecomposition = containerReactsOnRecomposition[
-          (Widget, Meta), Layout[Place, Widget, Meta], RecompositionReaction
+          (Widget_, Meta), Layout[Place, Widget_, Meta], RecompositionReaction
         ](
-          widgetWithMetaReactsOnRecomposition[Widget, Meta, RecompositionReaction](
+          widgetWithMetaReactsOnRecomposition[Widget_, Meta, RecompositionReaction](
             widgetReactsOnRecomposition[Update, Place, Draw, RecompositionReaction, HandleableEvent]
           )
         ),
-        valueHasInnerState = containerHasInnerStates[(Widget, Meta), Layout[Place, Widget, Meta], RecompositionReaction](
-          widgetWithMetaHasInnerStates[Widget, Meta, RecompositionReaction](
+        valueHasInnerState = containerHasInnerStates[(Widget_, Meta), Layout[Place, Widget_, Meta], RecompositionReaction](
+          widgetWithMetaHasInnerStates[Widget_, Meta, RecompositionReaction](
             widgetHasInnerStates
           )
         ),

@@ -17,11 +17,11 @@ def drawOnlyWidget[
 ](
     toDraw : Place[Draw], 
     emptyRecomposition : RecompositionReaction,
- ) : Place[Widget_[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+ ) : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
   toDraw.map(
     draw =>
       val asFree : AsFree[Draw, Place[Draw]] = (_ : Draw) => toDraw
-      Widget[Draw, Update, Place, Draw, RecompositionReaction, HandleableEvent](
+      Widget.ValueWrapper[Draw, Update, Place, Draw, RecompositionReaction, HandleableEvent](
         valueToDecorate = draw,
         valueAsFree = asFree,
         valueIsDrawable = identity, 
