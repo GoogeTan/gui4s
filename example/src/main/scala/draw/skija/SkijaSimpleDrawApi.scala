@@ -66,7 +66,7 @@ object SkijaSimpleDrawApi:
         )
       )
       shaper <- skija.createShaper
-      cache <- Resource.eval(CaffeineCache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]])
+      cache <- Resource.eval(CaffeineCache[F, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]])
     yield SkijaBackend(glfw, window, renderTargetCell, dispatcher, shaper, cache)
   end createForTests
 

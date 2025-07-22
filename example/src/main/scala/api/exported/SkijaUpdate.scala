@@ -15,38 +15,37 @@ import cats.data.{StateT, WriterT}
 import cats.syntax.all.*
 import me.katze.gui4s.widget.{CatchEvents, given}
 
-// TODO Переименовать в состояние обновления
-final case class EventResultState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
-  def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : EventResultState[MeasurementUnit] =
+final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
+  def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : UpdateEffectState[MeasurementUnit] =
     copy(widgetCoordinates = widgetCoordinates + point)
   end addCoordinates
-end EventResultState
+end UpdateEffectState
 
-def emptyEventResultState[MeasurementUnit : Numeric as N] : EventResultState[MeasurementUnit] =
-  EventResultState(false, Point3d(N.zero, N.zero, N.zero))
-end emptyEventResultState
+def emptyUpdateState[MeasurementUnit : Numeric as N] : UpdateEffectState[MeasurementUnit] =
+  UpdateEffectState(false, Point3d(N.zero, N.zero, N.zero))
+end emptyUpdateState
 
-def markEventHandled[MeasuremementUnit](state : EventResultState[MeasuremementUnit]) : EventResultState[MeasuremementUnit] =
-  EventResultState(true, state.widgetCoordinates)
+def markEventHandled[MeasuremementUnit](state : UpdateEffectState[MeasuremementUnit]) : UpdateEffectState[MeasuremementUnit] =
+  UpdateEffectState(true, state.widgetCoordinates)
 end markEventHandled
 
-opaque type SkijaUpdate[IO[_], MeasurementUnit, Event, Value] = StateT[WriterT[IO, List[Event], *], EventResultState[MeasurementUnit], Value]
+opaque type SkijaUpdate[IO[_], MeasurementUnit, Event, Value] = StateT[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit], Value]
 type SkijaUpdateT[IO[_], MeasurementUnit, Event] = SkijaUpdate[IO, MeasurementUnit, Event, *]
 
-given[IO[_] : Monad, MeasurementUnit] : CatchEvents[SkijaUpdate[IO, MeasurementUnit, *, *]] = liftStateTCatchEvents[[A, B] =>> WriterT[IO, List[A], B], EventResultState[MeasurementUnit]](using writerIsBiMonad)
+given[IO[_] : Monad, MeasurementUnit] : CatchEvents[SkijaUpdate[IO, MeasurementUnit, *, *]] = liftStateTCatchEvents[[A, B] =>> WriterT[IO, List[A], B], UpdateEffectState[MeasurementUnit]](using writerIsBiMonad)
 
 def liftIOToSkijaUpdate[IO[_] : Monad, MeasurementUnit, Event, Value](io : IO[Value]) : SkijaUpdate[IO, MeasurementUnit, Event, Value] =
   StateT.liftF(WriterT.liftF(io))
 end liftIOToSkijaUpdate
 
-given[IO[_] : Monad, MeasurementUnit] : BiMonad[SkijaUpdate[IO, MeasurementUnit, *, *]] = stateWrapsBiMonad[[A, B] =>> WriterT[IO, List[A], B], EventResultState[MeasurementUnit]](using writerIsBiMonad)
+given[IO[_] : Monad, MeasurementUnit] : BiMonad[SkijaUpdate[IO, MeasurementUnit, *, *]] = stateWrapsBiMonad[[A, B] =>> WriterT[IO, List[A], B], UpdateEffectState[MeasurementUnit]](using writerIsBiMonad)
 
 def markEventHandled[IO[_] : Applicative, MeasurementUnit, Event] : SkijaUpdate[IO, MeasurementUnit, Event, Unit] =
   StateT.modify(markEventHandled)
 end markEventHandled
 
 def getCoordinates[IO[_] : Applicative, MeasurementUnit, Event] : SkijaUpdate[IO, MeasurementUnit, Event, Point3d[MeasurementUnit]] =
-  StateT.get[WriterT[IO, List[Event], *], EventResultState[MeasurementUnit]].map(_.widgetCoordinates)
+  StateT.get[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit]].map(_.widgetCoordinates)
 end getCoordinates
 
 def addCoordinates[IO[_] : Applicative, MeasurementUnit : Numeric, Event](coordinates : Point3d[MeasurementUnit]) : SkijaUpdate[IO, MeasurementUnit, Event, Unit] =
@@ -67,7 +66,7 @@ end runEventReaction
 
 def handleApplicationRequests[IO[_] : Monad, MeasurementUnit : Numeric as N] : [T] => SkijaUpdate[IO, MeasurementUnit, ApplicationRequest, T] => IO[Either[ExitCode, T]] =
   [T] => update =>
-    update.run(emptyEventResultState).run.flatMap(result =>
+    update.run(emptyUpdateState).run.flatMap(result =>
       val (events, (_, widget)) = result
       events.foldM[IO, Either[ExitCode, T]](Right(widget))((_, request) =>
         request match

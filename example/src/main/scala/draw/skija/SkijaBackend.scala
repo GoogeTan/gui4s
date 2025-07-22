@@ -6,7 +6,7 @@ import cats.effect.std.{AtomicCell, Dispatcher}
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.glfw.Glfw
 import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.skija.{SkiaRenderTarget, SkijaDrawState, SkijaPlacedText, SkijaTextStyle}
+import me.katze.gui4s.skija.{Pixel, SkiaRenderTarget, SkijaDrawState, SkijaPlacedText, SkijaTextStyle, given}
 import cats.syntax.all.*
 import me.katze.gui4s.layout.Sized
 import scalacache.Cache
@@ -21,10 +21,10 @@ final case class SkijaBackend[
   private val renderTargetCell : AtomicCell[F, SkiaRenderTarget],
   globalDispatcher : Dispatcher[F],
   globalShaper : Shaper,
-  globalTextCache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+  globalTextCache : Cache[F, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]]
 ):
-  def windowBounds(using Functor[F]) : F[Bounds[Float]] =
-    window.frameBufferSize.map(a => new Bounds(a.width, a.height))
+  def windowBounds(using Functor[F]) : F[Bounds[Pixel]] =
+    window.frameBufferSize.map(a => new Bounds(Pixel(a.width.toFloat), Pixel(a.height.toFloat)))
   end windowBounds
 
   def windowShouldNotClose(using M : Monad[F]) : F[Boolean] =

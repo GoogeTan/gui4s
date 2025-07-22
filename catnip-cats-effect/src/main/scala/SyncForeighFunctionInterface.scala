@@ -9,7 +9,7 @@ final class SyncForeighFunctionInterface[F[_] : Sync as S] extends ForeighFuncti
   end delay
 
   override def blocking[A](trunk: => A): F[A] =
-    S.delay(trunk) // TODO это костыль, позволяющий вызывать блокинг для GLFW контекста. Надо исправить в будущем.
+    S.blocking(trunk)
   end blocking
 
   override def interruptible[A](trunk: => A): F[A] =

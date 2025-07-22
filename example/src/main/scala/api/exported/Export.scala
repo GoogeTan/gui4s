@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package api.exported
 
 import impl.containerPlacementCurried
-import place.MainAxisStrategyErrors
+import place.ElementPlacementInInfiniteContainerAttemptError
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
@@ -15,7 +15,7 @@ import api.{LayoutPlacementMeta, given}
 
 import me.katze.gui4s.glfw.OglWindow
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.skija.{SkijaDraw, drawAt}
+import me.katze.gui4s.skija.{Pixel, SkijaDraw, drawAt, given}
 import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, linearLayout, widgetsAreMergable, given}
 import me.katze.gui4s.widget.{EventReaction, Path, StatefulState, given}
 
@@ -24,53 +24,53 @@ import scala.reflect.Typeable
 
 // TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
-def skijaRow[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
-  children : List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
-  horizontalStrategy: MainAxisPlacementStrategy[Float],
+def skijaRow[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, DownEvent](using errors: ElementPlacementInInfiniteContainerAttemptError[PlaceError])(
+  children : List[SkijaWidget[F, Pixel, PlaceError, Event, DownEvent]],
+  horizontalStrategy: MainAxisPlacementStrategy[Pixel],
   verticalStrategy  : AdditionalAxisPlacementStrategy
-): SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
+): SkijaWidget[F, Pixel, PlaceError, Event, DownEvent] =
   linearLayout[
-    SkijaUpdateT[F, Float, Event],
-    SkijaPlaceT[F, Float, PlaceError],
+    SkijaUpdateT[F, Pixel, Event],
+    SkijaPlaceT[F, Pixel, PlaceError],
     SkijaDraw[F, OglWindow[F]],
     SkijaRecomposition[F],
     DownEvent,
-    LayoutPlacementMeta[Float]
+    LayoutPlacementMeta[Pixel]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float, PlaceError](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Pixel, PlaceError], SkijaPlacedWidget[F, Pixel, PlaceError, *, DownEvent], Pixel, PlaceError](
       errors,
       skijaGetBounds,
       skijaSetBounds,
     )(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     [T] => (update, meta) => addCoordinates(meta.point) *> update <* addCoordinates(-meta.point),
-    false.pure[SkijaUpdateT[F, Float, Event]] // TODO
+    false.pure[SkijaUpdateT[F, Pixel, Event]] // TODO
   )
 end skijaRow
 
-def skijaColumn[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, DownEvent](using errors: MainAxisStrategyErrors[PlaceError])(
-  children: List[SkijaWidget[F, Float, PlaceError, Event, DownEvent]],
-  verticalStrategy: MainAxisPlacementStrategy[Float],
+def skijaColumn[F[+_] : {Monad, ForeighFunctionInterface}, PlaceError, Event, DownEvent](using errors: ElementPlacementInInfiniteContainerAttemptError[PlaceError])(
+  children: List[SkijaWidget[F, Pixel, PlaceError, Event, DownEvent]],
+  verticalStrategy: MainAxisPlacementStrategy[Pixel],
   horizontalStrategy: AdditionalAxisPlacementStrategy
-): SkijaWidget[F, Float, PlaceError, Event, DownEvent] =
+): SkijaWidget[F, Pixel, PlaceError, Event, DownEvent] =
   linearLayout[
-    SkijaUpdateT[F, Float, Event],
-    SkijaPlaceT[F, Float, PlaceError],
+    SkijaUpdateT[F, Pixel, Event],
+    SkijaPlaceT[F, Pixel, PlaceError],
     SkijaDraw[F, OglWindow[F]],
     SkijaRecomposition[F],
     DownEvent,
-    LayoutPlacementMeta[Float]
+    LayoutPlacementMeta[Pixel]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, PlaceError, *, DownEvent], Float, PlaceError](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Pixel, PlaceError], SkijaPlacedWidget[F, Pixel, PlaceError, *, DownEvent], Pixel, PlaceError](
       errors,
       skijaGetBounds,
       skijaSetBounds,
     )(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     [T] => (update, meta) => addCoordinates(meta.point) *> update <* addCoordinates(-meta.point),
-    false.pure[SkijaUpdateT[F, Float, Event]] // TODO
+    false.pure[SkijaUpdateT[F, Pixel, Event]] // TODO
   )
 end skijaColumn
 

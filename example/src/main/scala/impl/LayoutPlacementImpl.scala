@@ -38,9 +38,9 @@ def containerPlacementCurried[
   MeasurementUnit: Fractional,
   Error
 ](
-  strategyErrors : MainAxisStrategyErrors[Error],
-  getBounds : GetBounds[Place, MeasurementUnit],
-  setBounds : SetBounds[Place, MeasurementUnit],
+   strategyErrors : ElementPlacementInInfiniteContainerAttemptError[Error],
+   getBounds : GetBounds[Place, MeasurementUnit],
+   setBounds : SetBounds[Place, MeasurementUnit],
 ) :  LayoutPlacement[[Value] =>> Place[Sized[MeasurementUnit, Value]], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
   [Event] => (axis, elements, main, additional) => 
     containerPlacementCurriedGeneralized[Place, Widget[Event], MeasurementUnit, Error](strategyErrors, getBounds, setBounds)(axis, elements, main, additional)
@@ -53,9 +53,9 @@ def containerPlacementCurriedGeneralized[
   MeasurementUnit: Fractional, 
   Error
 ](
-  strategyErrors: MainAxisStrategyErrors[Error],
-  getBounds : GetBounds[Place, MeasurementUnit],
-  setBounds : SetBounds[Place, MeasurementUnit],
+   strategyErrors: ElementPlacementInInfiniteContainerAttemptError[Error],
+   getBounds : GetBounds[Place, MeasurementUnit],
+   setBounds : SetBounds[Place, MeasurementUnit],
 ): LayoutPlacementGeneralized[[Value] =>> Place[Sized[MeasurementUnit, Value]], MeasurementUnit, LayoutPlacementMeta[MeasurementUnit], Widget, Axis] =
   (axis, elements, mainAxisStrategy, additionalAxisStrategy) =>
     val rowColumnPlacement = (elements: List[Sized[MeasurementUnit, Widget]], bounds : Bounds[MeasurementUnit]) =>
@@ -87,10 +87,10 @@ def containerPlacementCurriedGeneralized[
     ).flatten
 end containerPlacementCurriedGeneralized
 
-val ENErrors = MainAxisStrategyErrors(
-  attemptedToPlaceElementsWithStrategyCenterInInfiniteContainer = "Tried to place elements in layout with Center mode. It requires container to be finite but infinite container found. You have tried to place something in the middle of infinity xD",
-  attemptedToPlaceElementsWithStrategyEndInInfiniteContainer = "Tried to place elements in layout with End mode. It requires container to be finite but infinite container found. You have tried to place something in the end of infinity xD",
-  attemptedToPlaceElementsWithStrategySpaceAroundInInfiniteContainer = "Tried to place elements in layout with SpaceAround mode. It requires container to be finite but infinite container found. You have tried to place elements with infinite space around them xD",
-  attemptedToPlaceElementsWithStrategySpaceBetweenInInfiniteContainer = "Tried to place elements in layout with SpaceBetween mode. It requires container to be finite but infinite container found. You have tried to place elements with infinite space between them xD",
+val ENErrors = ElementPlacementInInfiniteContainerAttemptError(
+  withCenterStrategy = "Tried to place elements in layout with Center mode. It requires container to be finite but infinite container found. You have tried to place something in the middle of infinity xD",
+  withEndStrategy = "Tried to place elements in layout with End mode. It requires container to be finite but infinite container found. You have tried to place something in the end of infinity xD",
+  withSpaceAroundStrategy = "Tried to place elements in layout with SpaceAround mode. It requires container to be finite but infinite container found. You have tried to place elements with infinite space around them xD",
+  withSpaceBetweenStrategy = "Tried to place elements in layout with SpaceBetween mode. It requires container to be finite but infinite container found. You have tried to place elements with infinite space between them xD",
 )
 

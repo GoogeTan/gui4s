@@ -135,7 +135,7 @@ final case class OglWindow[F[_] : Sync](id : Long, impure : ForeighFunctionInter
           val x = stack.mallocDouble(1)
           val y = stack.mallocDouble(1)
           glfwGetCursorPos(id, x, y)
-          (x.get(0) * 2.0, y.get(0) * 2.0) // TODO Это странная дичь, тут надо делить на скейл монитора. Пока что так.
+          (x.get(0) * 2.0, y.get(0) * 2.0) // TODO Это странная дичь, тут надо умножать на скейл монитора. Пока что так.
   end currentMousePosition
 
   override def swapBuffers: F[Unit] =

@@ -9,8 +9,8 @@ import io.github.humbleui.skija.{Canvas, DirectContext}
 
 type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 
-def transition_[F[_]](ffi : ForeighFunctionInterface[F], canvas : Canvas, x : Float, y : Float) : F[Unit] =
-  ffi(canvas.translate(x, y))
+def transition_[F[_]](ffi : ForeighFunctionInterface[F], canvas : Canvas, x : Pixel, y : Pixel) : F[Unit] =
+  ffi(canvas.translate(x.toFloat, y.toFloat))
 end transition_
 
 def saveState_[F[_]](ffi : ForeighFunctionInterface[F], canvas: Canvas) : F[Int] =
@@ -21,7 +21,7 @@ def restoreState_[F[_]](ffi : ForeighFunctionInterface[F], canvas: Canvas, state
   ffi(canvas.restoreToCount(state))
 end restoreState_
 
-def moveAndBack_[F[_] : {Monad}, T](ffi : ForeighFunctionInterface[F], canvas: Canvas, x : Float, y : Float, value : F[T]) : F[T] =
+def moveAndBack_[F[_] : {Monad}, T](ffi : ForeighFunctionInterface[F], canvas: Canvas, x : Pixel, y : Pixel, value : F[T]) : F[T] =
   for
     state <- saveState_(ffi, canvas)
     _ <- transition_(ffi, canvas, x, y)
@@ -39,7 +39,7 @@ def flush_[F[_]](ffi : ForeighFunctionInterface[F], context : DirectContext) : F
 end flush_
 
 
-def drawAt[F[_] : {Monad}, Window](ffi : ForeighFunctionInterface[F], original: SkijaDraw[F, Window], x : Float, y : Float): SkijaDraw[F, Window] =
+def drawAt[F[_] : {Monad}, Window](ffi : ForeighFunctionInterface[F], original: SkijaDraw[F, Window], x : Pixel, y : Pixel): SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](
     state =>
       moveAndBack_(

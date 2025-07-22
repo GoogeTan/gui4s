@@ -13,7 +13,7 @@ import io.github.humbleui.skija.shaper.Shaper
 final class SkijaImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends Skija[F]:
   override def createDirectContext: Resource[F, DirectContext] =
     Resource.fromAutoCloseable(
-      ffi.blocking(DirectContext.makeGL())
+      ffi.delay(DirectContext.makeGL())
     )
   end createDirectContext
 
@@ -51,7 +51,7 @@ final class SkijaImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends Sk
                               props: Option[SurfaceProps]
                             ): Resource[F, Surface] =
     Resource.fromAutoCloseable(
-      ffi.blocking(
+      ffi.delay(
         Surface.wrapBackendRenderTarget(
           context,
           target,
@@ -77,7 +77,7 @@ final class SkijaImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends Sk
                                       fbFormat: Int
                                     ): Resource[F, BackendRenderTarget] =
     Resource.fromAutoCloseable(
-      ffi.blocking(
+      ffi.delay(
         BackendRenderTarget.makeGL(
           width, height,
           samples,
@@ -90,13 +90,13 @@ final class SkijaImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends Sk
   end createGLRenderTarget
 
   def closeRenderTarget(target: SkiaRenderTarget): F[Unit] =
-    ffi.blocking:
+    ffi.delay:
       target.target.close()
       target.surface.close()
   end closeRenderTarget
 
   override def createShaper: Resource[F, Shaper] =
-    Resource.fromAutoCloseable(ffi.blocking(Shaper.make()))
+    Resource.fromAutoCloseable(ffi.delay(Shaper.make()))
   end createShaper
 end SkijaImpl
 

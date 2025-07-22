@@ -14,16 +14,13 @@ enum MainAxisStrategyWithAvailableSpace[+MeasurementUnit]:
   case SpaceAround(size : MeasurementUnit)
 end MainAxisStrategyWithAvailableSpace
 
-// TODO RENAME ME Переименовать поля, чтобы они были понятными
-final case class MainAxisStrategyErrors[Error](
-                                                attemptedToPlaceElementsWithStrategySpaceBetweenInInfiniteContainer : Error,
-                                                attemptedToPlaceElementsWithStrategySpaceAroundInInfiniteContainer : Error,
-                                                attemptedToPlaceElementsWithStrategyCenterInInfiniteContainer : Error,
-                                                attemptedToPlaceElementsWithStrategyEndInInfiniteContainer : Error,
+final case class ElementPlacementInInfiniteContainerAttemptError[Error](
+                                                                          withSpaceBetweenStrategy : Error,
+                                                                          withSpaceAroundStrategy : Error,
+                                                                          withCenterStrategy : Error,
+                                                                          withEndStrategy : Error,
 )
 
-// TODO Переписать с использованием Either
-@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 def unsafeSizedStrategy[
   F[_], 
   MeasurementUnit : Fractional,
@@ -33,16 +30,16 @@ def unsafeSizedStrategy[
 )(
   strategy: MainAxisPlacementStrategy[MeasurementUnit], 
   bounds : Option[MeasurementUnit], 
-  errors : MainAxisStrategyErrors[Error]
+  errors : ElementPlacementInInfiniteContainerAttemptError[Error]
 ) : F[MainAxisStrategyWithAvailableSpace[MeasurementUnit]] =
   strategy match
     case MainAxisPlacementStrategy.SpaceBetween =>
       bounds
-        .getOrRaise(errors.attemptedToPlaceElementsWithStrategySpaceBetweenInInfiniteContainer)
+        .getOrRaise(errors.withSpaceBetweenStrategy)
         .map(MainAxisStrategyWithAvailableSpace.SpaceBetween(_))
     case MainAxisPlacementStrategy.SpaceAround =>
       bounds
-        .getOrRaise(errors.attemptedToPlaceElementsWithStrategySpaceAroundInInfiniteContainer)
+        .getOrRaise(errors.withSpaceAroundStrategy)
         .map(
           MainAxisStrategyWithAvailableSpace.SpaceAround(_)   
         )
@@ -50,13 +47,13 @@ def unsafeSizedStrategy[
       MainAxisStrategyWithAvailableSpace.Begin(gap).pure[F]
     case MainAxisPlacementStrategy.Center(gap) =>
       bounds
-        .getOrRaise(errors.attemptedToPlaceElementsWithStrategyCenterInInfiniteContainer)
+        .getOrRaise(errors.withCenterStrategy)
         .map(
           MainAxisStrategyWithAvailableSpace.Center(gap, _)
         )
     case MainAxisPlacementStrategy.End(gap) =>
       bounds
-        .getOrRaise(errors.attemptedToPlaceElementsWithStrategyEndInInfiniteContainer)
+        .getOrRaise(errors.withEndStrategy)
         .map(
           MainAxisStrategyWithAvailableSpace.End(gap, _)
         )
