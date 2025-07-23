@@ -3,7 +3,6 @@ package me.katze.gui4s.example
 import api.exported.{*, given}
 import draw.*
 import draw.skija.*
-import draw.skija.SkijaSimpleDrawApi.GlfwCallbacks
 import place.RunPlacement
 import update.ApplicationRequest
 
@@ -22,32 +21,39 @@ import me.katze.gui4s.skija.{Pixel, SkijaDraw, given}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.library.{widgetHandlesEvent, widgetHasInnerStates, widgetIsDrawable, widgetReactsOnRecomposition}
 
+import scala.annotation.experimental
 import scala.concurrent.ExecutionContext
 import scala.language.experimental.namedTypeArguments
 
+@SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum SkijaDownEvent:
   case WindowResized
   case MouseClick(button: Int, action: KeyAction, mods: KeyModes)
   case MouseMove(x: Pixel, y: Pixel)
   case KeyPress(key: Int, scancode: Int, action: KeyAction, mods: KeyModes)
   case Scrolled(xoffset : Pixel, yoffset : Pixel)
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  case TaskRaisedEvent(path : Path, event : Any)
 end SkijaDownEvent
 
+@experimental
 def skijaApp[
   F[+_] : {Async, Console, ForeighFunctionInterface},
-  PlaceError
+  UpdateError,
+  PlaceError,
 ](
-  widget: SkijaBackend[F, OglWindow[F], Long] ?=> SkijaWidget[F, Pixel, PlaceError, ApplicationRequest, SkijaDownEvent],
-  updateLoopExecutionContext: ExecutionContext,
-  drawLoopExecutionContext: ExecutionContext,
-  runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T]
+   widget: SkijaBackend[F, OglGlfwWindow[F], Long] ?=> SkijaWidget[F, Pixel, UpdateError, PlaceError, ApplicationRequest, SkijaDownEvent],
+   updateLoopExecutionContext: ExecutionContext,
+   drawLoopExecutionContext: ExecutionContext,
+   updateErrorAsExitCode : UpdateError => F[ExitCode],
+   runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T],
 ): F[ExitCode] =
   type SkijaRootWidget[DownEvent] = RootWidget[
     F,
-    SkijaPlacedWidget[F, Pixel, PlaceError, ApplicationRequest, SkijaDownEvent],
-    SkijaDraw[F, OglWindow[F]],
+    SkijaPlacedWidget[F, Pixel, UpdateError, PlaceError, ApplicationRequest, SkijaDownEvent],
+    SkijaDraw[F, OglGlfwWindow[F]],
     SkijaPlaceT[F, Pixel, PlaceError],
-    SkijaUpdateT[F, Pixel, ApplicationRequest],
+    SkijaUpdateT[F, UpdateError, Pixel, ApplicationRequest],
     SkijaRecomposition[F],
     DownEvent,
   ]
@@ -56,9 +62,10 @@ def skijaApp[
     F,
     SkijaDownEvent,
     SkijaRootWidget,
-    SkijaBackend[F, OglWindow[F], Long]
+    SkijaBackend[F, OglGlfwWindow[F], Long]
   ](
     backend = downEventSink => SkijaSimpleDrawApi.createForTests(
+      queue = downEventSink,
       settings = WindowCreationSettings(
         title = "Gui4s window",
         size = Size(620, 480),
@@ -69,12 +76,12 @@ def skijaApp[
       ffi = ContextForeighFunctionInterface(drawLoopExecutionContext, summon),
       callbacks = eventOfferingCallbacks(downEventSink.offer)
     ),
-    drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglWindow[F]]]](
-      skijaDrawLoop[F, OglWindow[F], Long](backend),
+    drawLoop = backend => runDrawLoopOnExecutionContext[F, Drawable[SkijaDraw[F, OglGlfwWindow[F]]]](
+      skijaDrawLoop[F, OglGlfwWindow[F], Long](backend),
       drawLoopExecutionContext
     ),
     updateLoop = backend => runUpdateLoopOnExecutionContext[F, SkijaRootWidget, SkijaDownEvent](
-      updateLoop(handleApplicationRequests[F, Pixel]),
+      updateLoop(handleApplicationRequests[F, UpdateError, Pixel](updateErrorAsExitCode)),
       updateLoopExecutionContext
     ),
     rootWidget = backend =>
@@ -86,28 +93,29 @@ def skijaApp[
         Functor[SkijaPlaceT[F, Pixel, PlaceError]].map(widget(using backend))(widget =>
           RootWidget[
             F,
-            SkijaPlacedWidget[F, Pixel, PlaceError, ApplicationRequest, SkijaDownEvent],
-            SkijaDraw[F, OglWindow[F]],
+            SkijaPlacedWidget[F, Pixel, UpdateError, PlaceError, ApplicationRequest, SkijaDownEvent],
+            SkijaDraw[F, OglGlfwWindow[F]],
             SkijaPlaceT[F, Pixel, PlaceError],
-            SkijaUpdateT[F, Pixel, ApplicationRequest],
+            SkijaUpdateT[F, UpdateError, Pixel, ApplicationRequest],
             SkijaRecomposition[F],
             SkijaDownEvent,
           ](
             Path(List("ROOT")),
             widget,
             identity[F[Unit]],
-            widgetHandlesEvent[Update = SkijaUpdateT[F, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]],
-            widgetReactsOnRecomposition[Update = SkijaUpdateT[F, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]],
-            widgetHasInnerStates[Update = SkijaUpdateT[F, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]],
-            widgetIsDrawable[Update = SkijaUpdateT[F, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]]
+            widgetHandlesEvent[Update = SkijaUpdateT[F, UpdateError, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]],
+            widgetReactsOnRecomposition[Update = SkijaUpdateT[F, UpdateError, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]],
+            widgetHasInnerStates[Update = SkijaUpdateT[F, UpdateError, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]],
+            widgetIsDrawable[Update = SkijaUpdateT[F, UpdateError, Pixel, ApplicationRequest], Place = SkijaPlaceT[F, Pixel, PlaceError]]
           )
         )
       )
   )
 end skijaApp
 
-def eventOfferingCallbacks[F](offerEvent : SkijaDownEvent => F) : GlfwCallbacks[F] =
-  GlfwCallbacks(
+@experimental
+def eventOfferingCallbacks[F](offerEvent : SkijaDownEvent => F) : draw.skija.SkijaSimpleDrawApi.GlfwCallbacks[F] =
+  draw.skija.SkijaSimpleDrawApi.GlfwCallbacks(
     onWindowResized = _ => offerEvent(SkijaDownEvent.WindowResized),
     onMouseClick = (button, action, mods) => offerEvent(SkijaDownEvent.MouseClick(button, action, mods)),
     onMouseMove = (x, y) => offerEvent(SkijaDownEvent.MouseMove(Pixel(x.toFloat), Pixel(y.toFloat))),

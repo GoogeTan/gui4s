@@ -19,9 +19,9 @@ type SkijaPlaceInnerT[IO[_], MeasurementUnit, Error] = SkijaPlaceInner[IO, Measu
 type SkijaPlace[IO[_], MeasurementUnit, Error, Value] = SkijaPlaceInner[IO, MeasurementUnit, Error, Sized[MeasurementUnit, Value]]
 type SkijaPlaceT[IO[_], MeasurementUnit, Error] = SkijaPlace[IO, MeasurementUnit, Error, *]
 
-given[F[_] : Monad, MeasurementUnit, Error] : MonadError[SkijaPlaceInner[F, MeasurementUnit, Error, *], Error] = summon
+given skijaInnerMonadIsAnMonadError[F[_] : Monad, MeasurementUnit, Error] : MonadError[SkijaPlaceInner[F, MeasurementUnit, Error, *], Error] = summon
 
-def raiseError[IO[_] : Monad, MeasurementUnit, PlaceError](error : => PlaceError) : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Nothing] =
+def raiseError[IO[_] : Monad, MeasurementUnit, PlaceError, Value](error : => PlaceError) : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Value] =
   StateT.liftF(EitherT.left(error.pure))
 end raiseError
 

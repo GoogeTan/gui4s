@@ -5,14 +5,15 @@ import cats.syntax.all.*
 import me.katze.gui4s.widget.draw.resourceIsDrawable
 import me.katze.gui4s.widget.free.{AsFreeF, resourceAsFree}
 import me.katze.gui4s.widget.handle.resourceHandlesEvent
-import me.katze.gui4s.widget.{CatchEvents, Resource}
+import me.katze.gui4s.widget.Resource
 import me.katze.gui4s.widget.merge.{Mergable, resourceMergesWithOldState}
 import me.katze.gui4s.widget.recomposition.resourceReactsOnRecomposition
 import me.katze.gui4s.widget.state.resourceHasInnerStates
 
 import scala.language.experimental.namedTypeArguments
+import scala.reflect.Typeable
 
-type ResourceWidget[Widget, F[_]] = [T] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
+type ResourceWidget[Widget, F[_]] = [T : Typeable] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
 
 def resource[
   Update[_] : Applicative,
@@ -28,7 +29,7 @@ def resource[
   Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]],
   F
 ] =
-  [T] => (name : String, allocator : F[(T, F[Unit])]) => freeWidget =>
+  [T : Typeable] => (name : String, allocator : F[(T, F[Unit])]) => freeWidget =>
     freeWidget(None).map:
       widget =>
         type Widget_ = Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]

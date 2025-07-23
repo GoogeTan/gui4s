@@ -4,7 +4,7 @@ import cats.Functor
 import cats.effect.Resource
 import org.lwjgl.glfw.GLFWErrorCallback
 
-trait Window[F[_], Monitor]:
+trait GlfwWindow[F[_], Monitor]:
   def center: F[Unit]
 
   def makeVisible: F[Unit]

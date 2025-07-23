@@ -20,7 +20,7 @@ object monad:
       ctx => M.tailRecM(a)(f(_)(ctx))
     end tailRecM
   end readerMonad
-
+  /*
   given pairMonad[S : Monoid as sm] : Monad[(S, *)] with
     override def pure[A](x: A) : (S, A) =
       (sm.empty, x)
@@ -44,5 +44,5 @@ object monad:
 
       helper(a, sm.empty)
     end tailRecM
-  end pairMonad
+  end pairMonad*/
 end monad

@@ -24,7 +24,7 @@ def launchedEffect[
 ](
   keyTypeError : [T] => Path => Place[T],
   keysTypeMismatchError : RecompositionReaction,
-) : LaunchedEffectWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]], Key, RecompositionReaction] =
+) : LaunchedEffectWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]], Key, Path => RecompositionReaction] =
   type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]
   (name, freeChild, key, task) =>
     freeChild.map:
@@ -43,7 +43,7 @@ def launchedEffect[
           RecompositionReaction,
           HandlableEvent
         ](
-          valueToDecorate = (LaunchedEffect(name, key, _ => task), child),
+          valueToDecorate = (LaunchedEffect(name, key, task), child),
           valueAsFree = Strong[[A, B] =>> A => Place[B]].second(widgetAsFree(using PF)),
           valueIsDrawable = Contravariant[[A] =>> A => Draw].contramap(widgetIsDrawable)(_._2),
           valueHandlesEvent = handlesEventFIsStrong.second(widgetHandlesEvent(using UA, PF)),

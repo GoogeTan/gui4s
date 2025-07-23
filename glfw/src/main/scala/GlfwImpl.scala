@@ -16,7 +16,7 @@ def stackPush[F[_] : {Sync}](ffi : ForeighFunctionInterface[F]): Resource[F, Mem
   Resource.fromAutoCloseable(ffi.delay(MemoryStack.stackPush()))
 end stackPush
 
-final case class OglWindow[F[_] : Sync](id : Long, impure : ForeighFunctionInterface[F], unsafeRunF: [A] => F[A] => A) extends Window[F, Long]:
+final case class OglGlfwWindow[F[_] : Sync](id : Long, impure : ForeighFunctionInterface[F], unsafeRunF: [A] => F[A] => A) extends GlfwWindow[F, Long]:
   override def center: F[Unit] =
     size.flatMap:
       case Size(width, height) =>
@@ -142,9 +142,9 @@ final case class OglWindow[F[_] : Sync](id : Long, impure : ForeighFunctionInter
     impure.delay:
       glfwSwapBuffers(id)
   end swapBuffers
-end OglWindow
+end OglGlfwWindow
 
-final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRunF : [A] => F[A] => A) extends Glfw[F, OglWindow[F]]:
+final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRunF : [A] => F[A] => A) extends Glfw[F, OglGlfwWindow[F]]:
 
   override def swapInterval(interval: Int): F[Unit] =
     impure.delay:
@@ -153,7 +153,7 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRu
 
   override type Monitor = Long
 
-  override def createOGLContext(window : OglWindow[F], createCapabilities: F[Unit]): F[Unit] =
+  override def createOGLContext(window : OglGlfwWindow[F], createCapabilities: F[Unit]): F[Unit] =
     impure.delay(
       glfwMakeContextCurrent(window.id)
     ) *> createCapabilities
@@ -164,12 +164,12 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRu
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end primaryMonitor
 
-  override def createWindow(settings: WindowCreationSettings): Resource[F, OglWindow[F]] =
+  override def createWindow(settings: WindowCreationSettings): Resource[F, OglGlfwWindow[F]] =
     Resource.make(
       for
         _ <- windowHints(settings.visible, settings.resizeable, settings.debugContext)
         id <- createWindowId(settings.size.width, settings.size.height, settings.title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
-      yield OglWindow(id, impure, unsafeRunF)
+      yield OglGlfwWindow(id, impure, unsafeRunF)
     )(a => 
         impure.delay:
           glfwFreeCallbacks(a.id)

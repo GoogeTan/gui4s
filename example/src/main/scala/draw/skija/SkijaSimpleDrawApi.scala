@@ -5,7 +5,7 @@ import draw.{Drawable, drawLoopExceptionHandler}
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
-import cats.effect.std.{AtomicCell, Console, Dispatcher}
+import cats.effect.std.{AtomicCell, Console, Dispatcher, QueueSink, Supervisor}
 import cats.effect.{Async, Clock, Concurrent, ExitCode, Resource}
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
@@ -16,6 +16,9 @@ import me.katze.gui4s.skija.*
 import org.lwjgl.opengl.GL.createCapabilities
 import scalacache.caffeine.CaffeineCache
 
+import scala.annotation.experimental
+
+@experimental
 object SkijaSimpleDrawApi:
   final case class GlfwCallbacks[F](
                                       onWindowResized: (newSize : Size) => F,
@@ -29,27 +32,31 @@ object SkijaSimpleDrawApi:
   def createForTests[
     F[+_] : {Async, Console},
   ](
-     settings : WindowCreationSettings,
-     ffi: ForeighFunctionInterface[F],
-     callbacks : GlfwCallbacks[F[Unit]],
-    ): Resource[F, SkijaBackend[F, OglWindow[F], Long]] =
+      queue : QueueSink[F, SkijaDownEvent],
+      settings : WindowCreationSettings,
+      ffi: ForeighFunctionInterface[F],
+      callbacks : GlfwCallbacks[F[Unit]],
+    ): Resource[F, SkijaBackend[F, OglGlfwWindow[F], Long]] =
     for
       skija <- Resource.eval(SkijaImpl(ffi))
       dispatcher <- Dispatcher.sequential[F]
-      glfw: Glfw[F, OglWindow[F]] <- GlfwImpl[F](dispatcher)(using ffi)
-      res <- createForTests(glfw, ffi(createCapabilities()), skija, dispatcher, settings, callbacks)
+      supervisor <- Supervisor[F]
+      glfw: Glfw[F, OglGlfwWindow[F]] <- GlfwImpl[F](dispatcher)(using ffi)
+      res <- createForTests(queue, glfw, ffi(createCapabilities()), skija, dispatcher, supervisor, settings, callbacks)
     yield res
   end createForTests
 
   def createForTests[
-    F[+_] : {Async, Console}, Window <: me.katze.gui4s.glfw.Window[F, Long]
+    F[+_] : {Async, Console}, Window <: me.katze.gui4s.glfw.GlfwWindow[F, Long]
   ](
-      glfw : Glfw[F, Window],
-      createGlCapabilities : F[Unit],
-      skija : Skija[F],
-      dispatcher : Dispatcher[F],
-      windowSettings : WindowCreationSettings,
-      callbacks : GlfwCallbacks[F[Unit]],
+     queue : QueueSink[F, SkijaDownEvent],
+     glfw : Glfw[F, Window],
+     createGlCapabilities : F[Unit],
+     skija : Skija[F],
+     dispatcher : Dispatcher[F],
+     supervisor : Supervisor[F],
+     windowSettings : WindowCreationSettings,
+     callbacks : GlfwCallbacks[F[Unit]],
     ): Resource[F, SkijaBackend[F, Window, Long]] =
     for
       window <- glfw.createWindow(windowSettings)
@@ -67,7 +74,7 @@ object SkijaSimpleDrawApi:
       )
       shaper <- skija.createShaper
       cache <- Resource.eval(CaffeineCache[F, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]])
-    yield SkijaBackend(glfw, window, renderTargetCell, dispatcher, shaper, cache)
+    yield SkijaBackend(queue, glfw, window, renderTargetCell, dispatcher, supervisor, shaper, cache)
   end createForTests
 
   def addRenderTargetRecreation[F : Monoid](callbacks: GlfwCallbacks[F], recreation : Size => F) : GlfwCallbacks[F] =
@@ -103,7 +110,7 @@ object SkijaSimpleDrawApi:
 
   def registerCallbacks[
     F[_] : Apply,
-    Window <: me.katze.gui4s.glfw.Window[F, Monitor],
+    Window <: me.katze.gui4s.glfw.GlfwWindow[F, Monitor],
     Monitor
   ](
     glfw: Glfw[F, Window],
@@ -117,7 +124,8 @@ object SkijaSimpleDrawApi:
   end registerCallbacks
 end SkijaSimpleDrawApi
 
-def skijaDrawLoop[F[+_] : {Console as C, ForeighFunctionInterface, Clock}, Window <: me.katze.gui4s.glfw.Window[F, Monitor], Monitor](backend : SkijaBackend[F, Window, Monitor])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
+@experimental
+def skijaDrawLoop[F[+_] : {Console as C, ForeighFunctionInterface, Clock}, Window <: me.katze.gui4s.glfw.GlfwWindow[F, Monitor], Monitor](backend : SkijaBackend[F, Window, Monitor])(using MonadError[F, Throwable]) : DrawLoop[F, Drawable[SkijaDraw[F, Window]]] =
   currentWidget =>
     drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
       currentWidget.flatMap(widget =>
