@@ -18,7 +18,7 @@ def placeText[F[_]](
     val blob = maxWidth match
       case Some(value) => shaper.shape(text, style.font, value.toFloat)
       case None => shaper.shape(text, style.font)
-    val blobBounds = blob.getBounds
+    val blobBounds = style.font.measureText(text, style.paint) // границы из text blob кривые
     (SkijaPlacedText(text, blob, style.paint), Pixel(blobBounds.getWidth), Pixel(blobBounds.getHeight))
 end placeText
 

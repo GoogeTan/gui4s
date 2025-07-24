@@ -45,9 +45,9 @@ end skijaSetBounds
 type SizeText[G[_]] = (text: String, options: SkijaTextStyle) => G[SkijaPlacedText]
 
 def sizeTextStateT[IO[_] : Monad](
-                                   ffi : ForeighFunctionInterface[IO],
-                                   shaper: Shaper,
-                                   cache : Cache[IO, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]]
+                                    ffi : ForeighFunctionInterface[IO],
+                                    shaper: Shaper,
+                                    cache : Cache[IO, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]]
                                   ) : SizeText[[Value] =>> StateT[IO, Bounds[Pixel], Sized[Pixel, Value]]] =
   (text: String, options: SkijaTextStyle) =>
     StateT(
