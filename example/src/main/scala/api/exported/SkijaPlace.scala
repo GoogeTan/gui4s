@@ -1,18 +1,19 @@
 package me.katze.gui4s.example
 package api.exported
 
+import impl.{GetBounds, SetBounds, getBoundsStateT, setBoundsStateT}
+import place.{RunPlacement, runPlaceStateT}
+
 import catnip.ForeighFunctionInterface
-import cats.{Applicative, FlatMap, Monad, MonadError, ~>}
-import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
-import scalacache.Cache
-import cats.syntax.all.*
 import catnip.syntax.additional.*
 import cats.data.{EitherT, StateT}
-import me.katze.gui4s.example.impl.{GetBounds, SetBounds, getBoundsStateT, setBoundsStateT}
-import me.katze.gui4s.example.place.{RunPlacement, runPlaceStateT}
+import cats.syntax.all.*
+import cats.{Applicative, FlatMap, Monad, MonadError, ~>}
+import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.bound.Bounds
+import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
+import scalacache.Cache
 
 opaque type SkijaPlaceInner[IO[_], MeasurementUnit, Error, Value] = StateT[EitherT[IO, Error, *], Bounds[MeasurementUnit], Value]
 type SkijaPlaceInnerT[IO[_], MeasurementUnit, Error] = SkijaPlaceInner[IO, MeasurementUnit, Error, *]

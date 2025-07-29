@@ -1,7 +1,7 @@
 package catnip
 package syntax
 
-import cats.arrow.Strong
+import cats.arrow.{Profunctor, Strong}
 import cats.kernel.Monoid
 import cats.syntax.all.*
 import cats.{Applicative, ApplicativeError, Functor}

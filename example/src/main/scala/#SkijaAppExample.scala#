@@ -134,7 +134,7 @@ object SkijaAppExample extends IOApp:
   def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
     val lew : LaunchedEffectWidget[Widget[Event], Key, Path => SkijaRecomposition[IO]] = library.launchedEffect(
       [T] => (path : Path) => raiseError("Key has changed type at " + path.toString),
-      SkijaRecomposition.lift(
+      SkijaRecomposition.lift[IO, Nothing](
         IO.raiseError(Exception("Key changed the type"))
       )
     )

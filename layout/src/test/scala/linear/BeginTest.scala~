@@ -5,6 +5,7 @@ import org.scalatest.flatspec.*
 import org.scalatest.*
 
 import scala.collection.immutable.List
+import scala.math.Numeric.Implicits.*
 
 class BeginTest extends AnyFlatSpec:
   "placeBegin" should "always return 0" in:

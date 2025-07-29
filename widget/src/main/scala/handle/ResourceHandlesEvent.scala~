@@ -1,7 +1,8 @@
 package me.katze.gui4s.widget
 package handle
 
-import cats.*
+import catnip.syntax.additional.*
+import cats.{Applicative, Functor}
 import cats.syntax.all.*
 import catnip.syntax.all.{*, given}
 import me.katze.gui4s.widget.free.AsFreeF

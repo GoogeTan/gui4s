@@ -18,7 +18,7 @@ import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisP
 
 import scala.language.experimental.namedTypeArguments
 
-def skijaColumn[
+def skijaLayout[
   F[+_] : {Monad, ForeighFunctionInterface as ffi},
   Update[_] : Monad,
   Draw : Monoid,
@@ -51,7 +51,7 @@ def skijaColumn[
   updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
   isEventConsumed : Update[Boolean]
 ) =
-  skijaLayout[
+  placementAwareLayout[
     Update,
     SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
     Draw,
@@ -69,9 +69,9 @@ def skijaColumn[
     updateAt,
     isEventConsumed
   )
-end skijaColumn
+end skijaLayout
 
-def skijaLayout[
+def placementAwareLayout[
   Update[_] : Monad,
   OuterPlace[_] : Monad,
   Draw : Monoid,
@@ -110,4 +110,4 @@ def skijaLayout[
     adjustUpdateToMeta = updateAt,
     isEventConsumed = isEventConsumed
   )
-end skijaLayout
+end placementAwareLayout

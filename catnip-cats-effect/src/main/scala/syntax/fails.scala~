@@ -4,7 +4,7 @@ package syntax
 import syntax.all.{BiMonadCancel, given}
 
 import catnip.FailsWith
-import catnip.syntax.all.*
+import catnip.syntax.all.{*, given}
 import cats.*
 import cats.arrow.FunctionK
 import cats.effect.Resource

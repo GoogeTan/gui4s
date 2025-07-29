@@ -21,29 +21,25 @@ end spaceBetweenElements
 
 def spaceAroundElements[T: Numeric](elements : List[SizedElement[T]], space : T): List[T] =
   elements match
-    case firstElement :: tail =>
-      tail.lastOption.fold(
-       List(firstElement.coordinateOfStart, space - firstElement.coordinateOfEnd)
-      )(lastElement =>
-        val between = spaceBetweenElements(elements)
-        val endGap = space - lastElement.coordinateOfEnd
-        (firstElement.coordinateOfStart :: between) :+ endGap
-      )
-    case Nil =>
-      List(space)
+    case firstElement :: (_ :+ lastElement) =>
+      val between = spaceBetweenElements(elements)
+      val endGap = space - lastElement.coordinateOfEnd
+      (firstElement.coordinateOfStart :: between) :+ endGap
+    case onlyOneElement :: Nil =>
+      List(onlyOneElement.coordinateOfStart, space - onlyOneElement.coordinateOfEnd)
+    case Nil => List(space)
 end spaceAroundElements
 
 def minimalRequiredSpace[T: Numeric](widgets: List[T]): T = widgets.sum
 
 def spaceCovered[T : Numeric](elements : List[SizedElement[T]]) : CoveredSpace[T] =
   elements match
-    case firstElement :: tail =>
-      tail.lastOption.fold(
-        CoveredSpace(firstElement.coordinateOfStart, firstElement.coordinateOfEnd)
-      )(lastElement =>
-         CoveredSpace(firstElement.coordinateOfStart, lastElement.coordinateOfEnd)
-      )
+    case firstElement :: (_ :+ lastElement) =>
+      CoveredSpace(firstElement.coordinateOfStart, lastElement.coordinateOfEnd)
+    case onlyOneElement :: Nil =>
+      CoveredSpace(onlyOneElement.coordinateOfStart, onlyOneElement.coordinateOfEnd)
     case Nil => CoveredSpace(Numeric[T].zero, Numeric[T].zero)
+  end match
 end spaceCovered
 
 def beginEndGaps[T : Numeric](elements : List[SizedElement[T]], space : T) : (T, T) =

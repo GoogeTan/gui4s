@@ -2,6 +2,7 @@ package me.katze.gui4s.skija
 
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
+import io.github.humbleui.types.Rect
 
 import java.nio.file.{Files, Paths}
 

@@ -95,7 +95,7 @@ def skijaApp[
           ](
             Path(List("ROOT")),
             widget,
-            identity[F[Unit]],
+            SkijaRecomposition.run[F],
             widgetHandlesEvent[Update = SkijaUpdateT[F, UpdateError, Float, ApplicationRequest], Place = SkijaPlaceT[F, Float, PlaceError]],
             widgetReactsOnRecomposition[Update = SkijaUpdateT[F, UpdateError, Float, ApplicationRequest], Place = SkijaPlaceT[F, Float, PlaceError]],
             widgetHasInnerStates[Update = SkijaUpdateT[F, UpdateError, Float, ApplicationRequest], Place = SkijaPlaceT[F, Float, PlaceError]],

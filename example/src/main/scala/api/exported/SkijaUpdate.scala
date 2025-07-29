@@ -6,10 +6,10 @@ import update.ApplicationRequest
 import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import catnip.syntax.bi.{stateWrapsBiMonad, writerIsBiMonad}
-import cats.{Applicative, Monad}
 import cats.data.{EitherT, StateT, WriterT}
 import cats.effect.ExitCode
 import cats.syntax.all.*
+import cats.{Applicative, Monad}
 import me.katze.gui4s.geometry.Point3d
 import me.katze.gui4s.widget.{CatchEvents, EventReaction, Path, given}
 

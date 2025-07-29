@@ -2,6 +2,7 @@ package me.katze.gui4s.widget
 package handle
 
 import cats.Functor
+import cats.data.NonEmptyList
 import cats.syntax.functor.*
 
 def statefulStateHandlesEvents[

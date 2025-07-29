@@ -2,7 +2,7 @@ package me.katze.gui4s.widget
 package merge
 
 import cats.Functor
-import cats.arrow.{CommutativeArrow, Strong}
+import cats.arrow.{Arrow, CommutativeArrow, Strong}
 import cats.syntax.all.*
 
 type MergesWithOldStates[-Self, -RecompositionAction, +UpdatedSelf] =

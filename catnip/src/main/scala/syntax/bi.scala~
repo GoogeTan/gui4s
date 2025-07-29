@@ -2,7 +2,8 @@ package catnip
 package syntax
 
 import cats.Monad
-import cats.data.{StateT, WriterT, EitherT}
+import cats.data.{StateT, Writer, WriterT, EitherT}
+import cats.syntax.all.*
 
 object bi:
   given[Trait[G[_]], F[_, _] : Bi[Trait] as b, A] : Trait[F[A, *]] = b[A]()

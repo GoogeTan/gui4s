@@ -1,8 +1,9 @@
 package me.katze.gui4s.widget
 package handle
 
-import catnip.syntax.all.{given}
-import cats.data.{EitherT, Writer}
+import catnip.syntax.all.{*, given}
+import cats.data.{EitherT, NonEmptyList, OptionT, Writer}
+import cats.{Id, Monad}
 import cats.syntax.all.*
 import me.katze.gui4s.widget.draw.Drawable
 import me.katze.gui4s.widget.merge.Mergable
