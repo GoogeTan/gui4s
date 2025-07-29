@@ -1,4 +1,4 @@
-package me.katze.gui4s.layout
+package me.katze.gui4s.geometry
 
 import scala.math.Numeric.Implicits.*
 import scala.math.Ordering.Implicits.*

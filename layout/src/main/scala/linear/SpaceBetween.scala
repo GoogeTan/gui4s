@@ -12,5 +12,6 @@ def spaceBetween[T : Fractional](sizes : List[T], space : T) : T =
   val gapsCount = Fractional[T].fromInt(sizes.size - 1)
   val allSize = sizes.sum
   val freeSpace = space - allSize
+  println(space.toString + " " + freeSpace.toString + " " + gapsCount.toString + " " + allSize + " " + (freeSpace / gapsCount).toString)
   freeSpace / gapsCount
 end spaceBetween

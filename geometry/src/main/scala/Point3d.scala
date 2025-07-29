@@ -1,4 +1,4 @@
-package me.katze.gui4s.layout
+package me.katze.gui4s.geometry
 
 final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementUnit, z : MeasurementUnit):
   def projectToXY[T >: MeasurementUnit] : Point2d[T] =

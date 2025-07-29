@@ -1,6 +1,7 @@
 package me.katze.gui4s.layout
 
 import cats.Comonad
+import me.katze.gui4s.geometry.Rect
 
 final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementUnit]):
   def this(value : T, x : MeasurementUnit, y : MeasurementUnit) =

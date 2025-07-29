@@ -2,7 +2,7 @@ package me.katze.gui4s.widget.library
 
 import cats.*
 import cats.syntax.all.*
-import me.katze.gui4s.layout.Point2d
+import me.katze.gui4s.geometry.Point2d
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.library.EventCatcherWithRect
 

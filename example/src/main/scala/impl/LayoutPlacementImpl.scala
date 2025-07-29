@@ -68,7 +68,7 @@ def containerPlacementCurriedGeneralized[
               mainAxisPlace = (elements, bounds) =>
                 mainAxisStrategyPlacement[MeasurementUnit](sizedStrategy, elements),
               additionalAxisPlace = (elements, bounds) => 
-                additionalAxisStrategyPlacement[MeasurementUnit](additionalAxisStrategy, elements, bounds.maxValueUnsafe),
+                additionalAxisStrategyPlacement[MeasurementUnit](additionalAxisStrategy, elements, bounds.maxValueUnsafe), // TODO remove unsafe
               zLevel = Fractional[MeasurementUnit].zero
             )
           ).mapValue(unpack)

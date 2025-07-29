@@ -4,7 +4,7 @@ package api.exported
 import catnip.ForeighFunctionInterface
 import cats.{Applicative, FlatMap, Monad, MonadError, ~>}
 import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.skija.{Pixel, SkijaPlacedText, SkijaTextStyle, placeText}
+import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
 import scalacache.Cache
 import cats.syntax.all.*
 import catnip.syntax.additional.*
@@ -47,8 +47,8 @@ type SizeText[G[_]] = (text: String, options: SkijaTextStyle) => G[SkijaPlacedTe
 def sizeTextStateT[IO[_] : Monad](
                                     ffi : ForeighFunctionInterface[IO],
                                     shaper: Shaper,
-                                    cache : Cache[IO, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]]
-                                  ) : SizeText[[Value] =>> StateT[IO, Bounds[Pixel], Sized[Pixel, Value]]] =
+                                    cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                  ) : SizeText[[Value] =>> StateT[IO, Bounds[Float], Sized[Float, Value]]] =
   (text: String, options: SkijaTextStyle) =>
     StateT(
       bounds =>
@@ -73,8 +73,8 @@ end sizeTextLift
 def skijaSizeText[IO[_] : Monad, PlaceError](
                                               ffi : ForeighFunctionInterface[IO],
                                               shaper : Shaper,
-                                              cache : Cache[IO, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]]
-                                            ) : SizeText[SkijaPlace[IO, Pixel, PlaceError, *]] =
+                                              cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                            ) : SizeText[SkijaPlace[IO, Float, PlaceError, *]] =
   sizeTextLift(sizeTextStateT(ffi, shaper, cache), mapF(EitherT.liftK[IO, PlaceError]))
 end skijaSizeText
 

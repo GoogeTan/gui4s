@@ -5,7 +5,7 @@ import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.skija.SkiaRenderTarget
 
-trait Skija[F[_]]:
+trait SkijaInit[F[_]]:
   def createDirectContext: Resource[F, DirectContext]
   
   def createRenderTarget(
@@ -36,4 +36,4 @@ trait Skija[F[_]]:
   ): Resource[F, BackendRenderTarget]
   
   def createShaper : Resource[F, Shaper]
-end Skija
+end SkijaInit

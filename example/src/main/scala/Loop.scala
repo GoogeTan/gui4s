@@ -22,9 +22,9 @@ end runDrawLoopOnExecutionContext
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).
  */
-type UpdateLoop[F[_], Widget[_], DownEvent] = (Widget[DownEvent], Widget[DownEvent] => F[Unit], F[DownEvent]) => F[ExitCode]
+type UpdateLoop[F[_], Widget, DownEvent] = (Widget, Widget => F[Unit], F[DownEvent]) => F[ExitCode]
 
-def runUpdateLoopOnExecutionContext[F[_]: Async, Widget[_], HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
+def runUpdateLoopOnExecutionContext[F[_]: Async, Widget, HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
   (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
 end runUpdateLoopOnExecutionContext
 
@@ -39,11 +39,11 @@ type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
 def applicationLoop[
   F[+_] : Concurrent, 
   DownEvent, 
-  Widget[_]
+  Widget
 ](
     eventBus     : Queue[F, DownEvent],
-    widgetCell   : Ref[F, Widget[DownEvent]],
-    drawLoop     : DrawLoop[F, Widget[DownEvent]],
+    widgetCell   : Ref[F, Widget],
+    drawLoop     : DrawLoop[F, Widget],
     updateLoop   : UpdateLoop[F, Widget, DownEvent]
 ): F[ApplicationControl[F, DownEvent]] =
   for

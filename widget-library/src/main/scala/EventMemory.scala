@@ -2,7 +2,7 @@ package me.katze.gui4s.widget.library
 
 import cats.*
 import cats.data.NonEmptyList
-import me.katze.gui4s.layout.RectAtPoint2d
+import me.katze.gui4s.geometry.RectAtPoint2d
 import me.katze.gui4s.widget.{EventReaction, Path}
 
 import scala.reflect.Typeable

@@ -10,7 +10,7 @@ import io.github.humbleui.skija.shaper.Shaper
  * @tparam F Эффект, в котором выполняются операции
  * @param ffi Оборачивает грязные эффекты. Должен гарантировать исполнение кода на том же поткое, где и был создан контекст OGL(вероятно, первый(на mac os только первый))
  */
-final class SkijaImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends Skija[F]:
+final class SkijaInitImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends SkijaInit[F]:
   override def createDirectContext: Resource[F, DirectContext] =
     Resource.fromAutoCloseable(
       ffi.delay(DirectContext.makeGL())
@@ -98,10 +98,10 @@ final class SkijaImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extends Sk
   override def createShaper: Resource[F, Shaper] =
     Resource.fromAutoCloseable(ffi.delay(Shaper.make()))
   end createShaper
-end SkijaImpl
+end SkijaInitImpl
 
-object SkijaImpl:
-  def apply[F[_]: Async](impure : ForeighFunctionInterface[F]): F[SkijaImpl[F]] =
-    Sync[F].delay(new SkijaImpl[F](impure))
+object SkijaInitImpl:
+  def apply[F[_]: Async](impure : ForeighFunctionInterface[F]): F[SkijaInitImpl[F]] =
+    Sync[F].delay(new SkijaInitImpl[F](impure))
   end apply
-end SkijaImpl
+end SkijaInitImpl

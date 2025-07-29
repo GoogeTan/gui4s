@@ -10,13 +10,13 @@ import cats.syntax.all.*
 def runApplicationLoopsWithBackend[
   F[+_] : Async,
   DownEvent,
-  RootWidget[_],
+  RootWidget,
   Backend
 ](
     backend : QueueSink[F, DownEvent] => Resource[F, Backend],
-    drawLoop : Backend => DrawLoop[F, RootWidget[DownEvent]],
+    drawLoop : Backend => DrawLoop[F, RootWidget],
     updateLoop : Backend => UpdateLoop[F, RootWidget, DownEvent],
-    rootWidget : Backend => F[RootWidget[DownEvent]]
+    rootWidget : Backend => F[RootWidget]
 ) : F[ExitCode] =
   runApplicationLoops[
     F,
@@ -36,12 +36,12 @@ end runApplicationLoopsWithBackend
 def runApplicationLoops[
   F[+_] : Async,
   DownEvent,
-  RootWidget[_],
+  RootWidget,
 ](
   loops: QueueSink[F, DownEvent] => Resource[F, (
-      DrawLoop[F, RootWidget[DownEvent]],
+      DrawLoop[F, RootWidget],
       UpdateLoop[F, RootWidget, DownEvent],
-      F[RootWidget[DownEvent]],
+      F[RootWidget],
     )
   ],
 ) : F[ExitCode] =
@@ -50,7 +50,7 @@ def runApplicationLoops[
     code <- loops(eventBus).use((drawLoop, updateLoop, freeRootWidget) =>
       for
         rootWidget <- freeRootWidget
-        widgetCell <- Ref[F].of(rootWidget)
+        widgetCell : Ref[F, RootWidget] <- Ref[F].of(rootWidget)
         code <- applicationLoop(
           eventBus,
           widgetCell,

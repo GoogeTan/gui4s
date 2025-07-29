@@ -7,13 +7,13 @@ import catnip.BiMonad
 import cats.effect.ExitCode
 import me.katze.gui4s.widget.{EventReaction, Path}
 import cats.Applicative
-import me.katze.gui4s.layout.Point3d
 import catnip.syntax.all.{*, given}
 import catnip.syntax.bi.{stateWrapsBiMonad, writerIsBiMonad}
 import cats.Monad
 import cats.data.{EitherT, StateT, WriterT}
 import cats.effect.std.Supervisor
 import cats.syntax.all.*
+import me.katze.gui4s.geometry.Point3d
 import me.katze.gui4s.widget.{CatchEvents, given}
 
 final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):

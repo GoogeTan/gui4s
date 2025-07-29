@@ -17,25 +17,49 @@ import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
+import me.katze.gui4s.example.draw.skija
+import me.katze.gui4s.geometry.Point2d
 import me.katze.gui4s.glfw.KeyAction.Press
-import me.katze.gui4s.glfw.{GlfwWindow, OglGlfwWindow}
-import me.katze.gui4s.layout.{Point2d, Sized, given}
-import me.katze.gui4s.skija.{Pixel, SkijaDraw, SkijaDrawState, SkijaTextStyle}
+import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, OglGlfwWindow}
+import me.katze.gui4s.layout.{Sized, given}
+import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle}
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{EventReaction, Path, library}
 
 import scala.annotation.experimental
 import scala.reflect.Typeable
 
+@SuppressWarnings(Array("org.wartremover.warts.Any"))
+enum SkijaDownEvent[+MeasurementUnit]:
+  case WindowResized extends SkijaDownEvent[Nothing]
+  case MouseClick(button: Int, action: KeyAction, mods: KeyModes)
+  case MouseMove(position: Point2d[MeasurementUnit])
+  case KeyPress(key: Int, scancode: Int, action: KeyAction, mods: KeyModes)
+  case Scrolled(xoffset: MeasurementUnit, yoffset: MeasurementUnit)
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  case TaskRaisedEvent(path: Path, event: Any)
+end SkijaDownEvent
+
+@experimental
+def eventOfferingCallbacks[F, MeasurementUnit](offerEvent: SkijaDownEvent[MeasurementUnit] => F):  skija.SkijaSimpleDrawApi.GlfwCallbacks[F, MeasurementUnit] =
+  skija.SkijaSimpleDrawApi.GlfwCallbacks(
+    onWindowResized = _ => offerEvent(SkijaDownEvent.WindowResized),
+    onMouseClick = (button, action, mods) => offerEvent(SkijaDownEvent.MouseClick(button, action, mods)),
+    onMouseMove = newPosition => offerEvent(SkijaDownEvent.MouseMove(newPosition)),
+    onKeyPress = (key, scancode, action, mods) => offerEvent(SkijaDownEvent.KeyPress(key, scancode, action, mods)),
+    onScroll = (xoffset, yoffset) => offerEvent(SkijaDownEvent.Scrolled(xoffset, yoffset))
+  )
+end eventOfferingCallbacks
+
 @experimental
 object SkijaAppExample extends IOApp:
   given ElementPlacementInInfiniteContainerAttemptError[String] = ENErrors
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
 
-  private type Widget[Event] = SkijaWidget[IO, Pixel, String, String, Event, SkijaDownEvent]
+  private type Widget[Event] = SkijaWidget[IO, Float, String, String, Event, SkijaDownEvent[Float]]
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaApp[IO, String, String](
+    skijaApp[IO, String, String, SkijaDownEvent[Float]](
       widget = main, 
       updateLoopExecutionContext = this.runtime.compute,
       drawLoopExecutionContext = MainThread,
@@ -45,16 +69,17 @@ object SkijaAppExample extends IOApp:
           case Left(error) =>
             IO.raiseError(new Exception(error))
           case Right(value) =>
-            IO.pure(value)
+            IO.pure(value),
+      createGlfwCallbacks = eventOfferingCallbacks
     )
 
-  def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, String, Pixel, Event, Boolean], Pixel, SkijaDownEvent] = eventCatcherWithWidgetsRect(
+  def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, String, Float, Event, Boolean], Float, SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
     markEventHandled,
     getCoordinates,
   )
 
-  def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Pixel]]] =
-    rememberLastEventOfTheType[Widget, SkijaUpdate[IO, String, Pixel, *, Boolean], Path => IO[Unit], Pixel, Event, SkijaDownEvent, Point2d[Pixel]](
+  def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
+    rememberLastEventOfTheType[Widget, SkijaUpdate[IO, String, Float, *, Boolean], Path => IO[Unit], Float, Event, SkijaDownEvent[Float], Point2d[Float]](
       eventCatcherWithRect = eventCatcher,
       statefulWidget = transitiveStatefulWidget,
       mapUpdate = [A, B] => f => mapEvents(f),
@@ -63,9 +88,9 @@ object SkijaAppExample extends IOApp:
       catchEvent =
         (path, rect, event) =>
           event match
-            case SkijaDownEvent.MouseMove(x, y) =>
-              raiseEvents[IO, String, Pixel, Point2d[Pixel]](List(Point2d(x, y))).as(false)
-            case _ => false.pure[SkijaUpdateT[IO, String, Pixel, Point2d[Pixel]]]
+            case SkijaDownEvent.MouseMove(newPosition) =>
+              raiseEvents[IO, String, Float, Point2d[Float]](List(newPosition)).as(false)
+            case _ => false.pure[SkijaUpdateT[IO, String, Float, Point2d[Float]]]
     )
   end mouseTracker
 
@@ -78,19 +103,19 @@ object SkijaAppExample extends IOApp:
     end mapEvent
   end extension
 
-  def clickHandler[Window <: GlfwWindow[IO, Monitor], Event, Monitor](window : Window): ClickHandler[Widget[Event], SkijaUpdate[IO, String, Pixel, Event, Boolean], Unit] =
+  def clickHandler[Window <: GlfwWindow[IO, Monitor, Float], Event, Monitor](window : Window): ClickHandler[Widget[Event], SkijaUpdate[IO, String, Float, Event, Boolean], Unit] =
     makeClickHandler(
       eventCatcherWithRect = eventCatcher,
-      currentMousePosition = liftIOToSkijaUpdate(window.currentMousePosition.map((x, y) => Point2d(Pixel(x.toFloat), Pixel(y.toFloat)))),
+      currentMousePosition = liftIOToSkijaUpdate(window.currentMousePosition),
     )(
       extractClickHandlerEvent
     )
 
   extension[Event](widget : Widget[Event])
-    def onClick[Window <: GlfwWindow[IO, Monitor], Monitor](window : Window)(event : Event) : Widget[Event] =
+    def onClick[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](window : Window)(event : Event) : Widget[Event] =
       clickHandler(window)(widget)(
         (_, _) =>
-          raiseEvents[IO, String, Pixel, Event](List(event)).as(true)
+          raiseEvents[IO, String, Float, Event](List(event)).as(true)
       )
     end onClick
   end extension
@@ -101,7 +126,7 @@ object SkijaAppExample extends IOApp:
 
   def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Path => IO[Unit]] = TransitiveStatefulWidgetFromStatefulWidget(statefulWidget)
   
-  def text[Window <: GlfwWindow[IO, Monitor], Monitor](using backend : SkijaBackend[IO, Window, Monitor]) : TextWidget[Widget] =
+  def text[Monitor, Window <: GlfwWindow[IO, Monitor, Float], DownEvent](using backend : SkijaBackend[IO, Monitor, Window, DownEvent]) : TextWidget[Widget] =
     makeSkijaTextWidget(backend.globalShaper, ffi, backend.globalTextCache)
   end text
 
@@ -121,7 +146,7 @@ object SkijaAppExample extends IOApp:
 
   // TODO refactor me
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def resource[Window <: GlfwWindow[IO, Monitor], Monitor, Event](supervisor : Supervisor[IO], backend : SkijaBackend[IO, Window, Monitor]) : ResourceWidget[Widget[Event], IO] =
+  def resource[Window <: GlfwWindow[IO, Monitor, Float], Monitor, Event](supervisor : Supervisor[IO], backend : SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : ResourceWidget[Widget[Event], IO] =
     [Value : Typeable] => (name : String, resource : IO[(Value, IO[Unit])]) =>
       (widget : Option[Value] => Widget[Event]) =>
         transitiveStatefulWidget[Option[(Value, IO[Unit])], Event, (Value, IO[Unit])](
@@ -138,9 +163,9 @@ object SkijaAppExample extends IOApp:
                 event match
                   case SkijaDownEvent.TaskRaisedEvent(taskPath, value : Any) if path == taskPath =>
                     destructableIsTypeable.unapply(value) match
-                      case Some(event) => raiseEvents[IO, String, Pixel, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
-                      case _ => false.pure[SkijaUpdateT[IO, String, Pixel, Either[(Value, IO[Unit]), Event]]]
-                  case _ => false.pure[SkijaUpdateT[IO, String, Pixel, Either[(Value, IO[Unit]), Event]]]
+                      case Some(event) => raiseEvents[IO, String, Float, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
+                      case _ => false.pure[SkijaUpdateT[IO, String, Float, Either[(Value, IO[Unit]), Event]]]
+                  case _ => false.pure[SkijaUpdateT[IO, String, Float, Either[(Value, IO[Unit]), Event]]]
               ),
               (),
               path => resource.flatMap(value => backend.raiseEvent(SkijaDownEvent.TaskRaisedEvent(path, value)))
@@ -151,29 +176,31 @@ object SkijaAppExample extends IOApp:
   def leaf[Marker, Event](marker : Marker) : Widget[Event] =
     leafWidget[
       Marker,
-      SkijaUpdateT[IO, String, Pixel, Event],
-      SkijaPlaceT[IO, Pixel, String],
-      SkijaDraw[IO, OglGlfwWindow[IO]],
+      SkijaUpdateT[IO, String, Float, Event],
+      SkijaPlaceT[IO, Float, String],
+      SkijaDraw[IO, GlfwWindow[IO, Long, Float]],
       SkijaRecomposition[IO],
-      SkijaDownEvent
+      SkijaDownEvent[Float]
     ](
       new Sized(
         marker,
-        Pixel(0f),
-        Pixel(0f)
-      ).pure[SkijaPlaceInnerT[IO, Pixel, String]],
-      ReaderT.pure[IO, SkijaDrawState[IO, OglGlfwWindow[IO]], Unit](()),
+        0f,
+        0f
+      ).pure[SkijaPlaceInnerT[IO, Float, String]],
+      ReaderT.pure[IO, SkijaDrawState[IO, GlfwWindow[IO, Long, Float]], Unit](()),
       ().pure[IO]
     ).map(a => a)
   end leaf
 
-  def main(using SkijaBackend[IO, OglGlfwWindow[IO], Long]) : Widget[ApplicationRequest] =
-    app((0 until 20).toList)
+  def main[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](using SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
+    grid((0 until 20).toList)
   end main
 
-  def app(numbers : List[Int])(using backend : SkijaBackend[IO, OglGlfwWindow[IO], Long]) : Widget[ApplicationRequest] =
+  def app[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](numbers : List[Int])(
+    using backend : SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]
+  ) : Widget[ApplicationRequest] =
     skijaColumn(
-      verticalStrategy = MainAxisPlacementStrategy.Begin(Pixel(0f)),
+      verticalStrategy = MainAxisPlacementStrategy.Begin(0f),
       horizontalStrategy = AdditionalAxisPlacementStrategy.Center,
       children = numbers.map:
         lineNumber =>
@@ -182,31 +209,43 @@ object SkijaAppExample extends IOApp:
             initialState = 0,
             eventHandler = (state, _) => EventReaction(state + 1, Nil, Nil),
             body = state =>
-              text(
+              text[Monitor, Window, SkijaDownEvent[Float]](
                 "# " + lineNumber.toString + " : " + state.toString,
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 24), new Paint().setColor(0xFF8484A4))
-              ).onClick(backend.window)(())
+              ).onClick[Monitor, Window](backend.window)(())
           ),
     )
   end app
 
-  def grid[Event](numbers : List[Int])(using SkijaBackend[IO, OglGlfwWindow[IO], Long]) : Widget[Event] =
+  def grid[
+    Monitor, 
+    Window <: GlfwWindow[IO, Monitor, Float],
+    Event
+  ](
+      numbers : List[Int]
+  )(using SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : Widget[Event] =
     skijaColumn(
-      verticalStrategy = MainAxisPlacementStrategy.Begin(Pixel(0f)),
+      verticalStrategy = MainAxisPlacementStrategy.SpaceBetween,
       horizontalStrategy = AdditionalAxisPlacementStrategy.Begin,
       children =
         numbers.map:
           lineIndex =>
-            val lineJindex = 0
-            text(
-              lineIndex.toString + ":" + lineJindex.toString,
-              SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))
-            )
+            /*skijaRow(
+              horizontalStrategy = MainAxisPlacementStrategy.Begin(Pixel(0f)),
+              verticalStrategy = AdditionalAxisPlacementStrategy.Begin,
+              children =
+                numbers.map:*/
+                val  lineJindex = 0
+                    text[Monitor, Window, SkijaDownEvent[Float]](
+                      lineIndex.toString + ":" + lineJindex.toString,
+                      SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))
+                    )
+            //)
     )
 end SkijaAppExample
 
 @experimental
-def extractClickHandlerEvent(downEvent : SkijaDownEvent) : Option[Unit] =
+def extractClickHandlerEvent[MeasurementUnit](downEvent : SkijaDownEvent[MeasurementUnit]) : Option[Unit] =
   downEvent match
     case SkijaDownEvent.MouseClick(button, action, mods) if action == Press =>
       Some(()) // TODO ClickHandlerDownEvent(button, action, mods))

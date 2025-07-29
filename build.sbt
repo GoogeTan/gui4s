@@ -49,6 +49,15 @@ def testLibs = List(
   "org.scalacheck" %% "scalacheck" % "1.18.1" % "test"
 )
 
+val geometry = (project in file("geometry"))
+  .settings(
+    name := "geometry",
+    idePackagePrefix := Some("me.katze.gui4s.geometry"),
+    libraryDependencies ++= catsLibs ++ testLibs,
+    wartremoverErrors := Warts.all,
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
+  )
+
 val catnip = (project in file("catnip"))
   .settings(
     name := "catnip",
@@ -75,7 +84,7 @@ lazy val layout = (project in file("layout"))
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  )
+  ).dependsOn(geometry)
 
 lazy val widget = (project in file("widget"))
   .settings(
@@ -120,7 +129,7 @@ lazy val glfw = (project in file("glfw"))
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(catnip, catnipEffect)
+  ).dependsOn(catnip, catnipEffect, geometry)
 
 lazy val skijaLibs = List(
   "io.github.humbleui" % "skija-shared" % "0.116.4",

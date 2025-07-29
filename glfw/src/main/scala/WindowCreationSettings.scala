@@ -1,9 +1,11 @@
 package me.katze.gui4s.glfw
 
-final case class WindowCreationSettings(
-                                          title : String, 
-                                          size : Size, 
-                                          visible : Boolean, 
-                                          resizeable : Boolean, 
-                                          debugContext : Boolean
-                                        )
+import me.katze.gui4s.geometry.Rect
+
+final case class WindowCreationSettings[MeasurementUnit](
+                                                          title : String, 
+                                                          size : Rect[MeasurementUnit], 
+                                                          visible : Boolean, 
+                                                          resizeable : Boolean, 
+                                                          debugContext : Boolean
+                                                        )

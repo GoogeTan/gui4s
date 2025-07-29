@@ -14,9 +14,9 @@ import api.exported.given
 import api.{LayoutPlacementMeta, given}
 
 import cats.effect.std.Supervisor
-import me.katze.gui4s.glfw.OglGlfwWindow
+import me.katze.gui4s.glfw.GlfwWindow
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.skija.{Pixel, SkijaDraw, drawAt, given}
+import me.katze.gui4s.skija.{SkijaDraw, drawAt, given}
 import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, linearLayout, widgetsAreMergable, given}
 import me.katze.gui4s.widget.{EventReaction, Path, StatefulState, given}
 
@@ -26,52 +26,52 @@ import scala.reflect.Typeable
 // TODO может, можно сделать более общим без таких уточнений
 // TODO Remove using errors
 def skijaRow[F[+_] : {Monad, ForeighFunctionInterface}, UpdateError, PlaceError, Event, DownEvent](using errors: ElementPlacementInInfiniteContainerAttemptError[PlaceError])(
-  children : List[SkijaWidget[F, Pixel, UpdateError, PlaceError, Event, DownEvent]],
-  horizontalStrategy: MainAxisPlacementStrategy[Pixel],
+  children : List[SkijaWidget[F, Float, UpdateError, PlaceError, Event, DownEvent]],
+  horizontalStrategy: MainAxisPlacementStrategy[Float],
   verticalStrategy  : AdditionalAxisPlacementStrategy
-): SkijaWidget[F, Pixel, UpdateError, PlaceError, Event, DownEvent] =
+): SkijaWidget[F, Float, UpdateError, PlaceError, Event, DownEvent] =
   linearLayout[
-    SkijaUpdateT[F, UpdateError, Pixel, Event],
-    SkijaPlaceT[F, Pixel, PlaceError],
-    SkijaDraw[F, OglGlfwWindow[F]],
+    SkijaUpdateT[F, UpdateError, Float, Event],
+    SkijaPlaceT[F, Float, PlaceError],
+    SkijaDraw[F, GlfwWindow[F, Long, Float]],
     SkijaRecomposition[F],
     DownEvent,
-    LayoutPlacementMeta[Pixel]
+    LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, Pixel, PlaceError], SkijaPlacedWidget[F, Pixel, UpdateError, PlaceError, *, DownEvent], Pixel, PlaceError](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, UpdateError, PlaceError, *, DownEvent], Float, PlaceError](
       errors,
       skijaGetBounds,
       skijaSetBounds,
     )(Axis.Horizontal, _, horizontalStrategy, verticalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     [T] => (update, meta) => addCoordinates(meta.point) *> update <* addCoordinates(-meta.point),
-    false.pure[SkijaUpdateT[F, UpdateError, Pixel, Event]] // TODO
+    false.pure[SkijaUpdateT[F, UpdateError, Float, Event]] // TODO
   )
 end skijaRow
 
 def skijaColumn[F[+_] : {Monad, ForeighFunctionInterface}, UpdateError, PlaceError, Event, DownEvent](using errors: ElementPlacementInInfiniteContainerAttemptError[PlaceError])(
-  children: List[SkijaWidget[F, Pixel, UpdateError, PlaceError, Event, DownEvent]],
-  verticalStrategy: MainAxisPlacementStrategy[Pixel],
+  children: List[SkijaWidget[F, Float, UpdateError, PlaceError, Event, DownEvent]],
+  verticalStrategy: MainAxisPlacementStrategy[Float],
   horizontalStrategy: AdditionalAxisPlacementStrategy
-): SkijaWidget[F, Pixel, UpdateError, PlaceError, Event, DownEvent] =
+): SkijaWidget[F, Float, UpdateError, PlaceError, Event, DownEvent] =
   linearLayout[
-    SkijaUpdateT[F, UpdateError, Pixel, Event],
-    SkijaPlaceT[F, Pixel, PlaceError],
-    SkijaDraw[F, OglGlfwWindow[F]],
+    SkijaUpdateT[F, UpdateError, Float, Event],
+    SkijaPlaceT[F, Float, PlaceError],
+    SkijaDraw[F, GlfwWindow[F, Long, Float]],
     SkijaRecomposition[F],
     DownEvent,
-    LayoutPlacementMeta[Pixel]
+    LayoutPlacementMeta[Float]
   ](
     children,
-    containerPlacementCurried[SkijaPlaceInnerT[F, Pixel, PlaceError], SkijaPlacedWidget[F, Pixel, UpdateError, PlaceError, *, DownEvent], Pixel, PlaceError](
+    containerPlacementCurried[SkijaPlaceInnerT[F, Float, PlaceError], SkijaPlacedWidget[F, Float, UpdateError, PlaceError, *, DownEvent], Float, PlaceError](
       errors,
       skijaGetBounds,
       skijaSetBounds,
     )(Axis.Vertical, _, verticalStrategy, horizontalStrategy),
     (effect, meta) => drawAt(summon, effect, meta.x, meta.y),
     [T] => (update, meta) => addCoordinates(meta.point) *> update <* addCoordinates(-meta.point),
-    false.pure[SkijaUpdateT[F, UpdateError, Pixel, Event]] // TODO
+    false.pure[SkijaUpdateT[F, UpdateError, Float, Event]] // TODO
   )
 end skijaColumn
 
@@ -95,7 +95,7 @@ def skijaStateful[
   me.katze.gui4s.widget.library.stateful[
     SkijaUpdate[F, UpdateError, MeasurementUnit, *, *],
     SkijaPlaceT[F, MeasurementUnit, PlaceError],
-    SkijaDraw[F, OglGlfwWindow[F]],
+    SkijaDraw[F, GlfwWindow[F, Long, Float]],
     SkijaRecomposition[F],
     DownEvent,
     EventReaction[State, Event, Path => F[Unit]],

@@ -12,13 +12,13 @@ def placeText[F[_]](
                       shaper : Shaper,
                       text : String,
                       style : SkijaTextStyle,
-                      maxWidth : Option[Pixel]
-                    ) : F[(text : SkijaPlacedText, width : Pixel, height : Pixel)] =
+                      maxWidth : Option[Float]
+                    ) : F[(text : SkijaPlacedText, width : Float, height : Float)] =
   ffi.delay:
     val blob = maxWidth match
       case Some(value) => shaper.shape(text, style.font, value.toFloat)
       case None => shaper.shape(text, style.font)
     val blobBounds = style.font.measureText(text, style.paint) // границы из text blob кривые
-    (SkijaPlacedText(text, blob, style.paint), Pixel(blobBounds.getWidth), Pixel(blobBounds.getHeight))
+    (SkijaPlacedText(text, blob, style.paint), blobBounds.getWidth, blobBounds.getHeight)
 end placeText
 

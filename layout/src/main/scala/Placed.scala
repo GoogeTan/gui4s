@@ -2,6 +2,7 @@ package me.katze.gui4s.layout
 
 import cats.Functor
 import me.katze
+import me.katze.gui4s.geometry.{Point3d, Rect}
 
 final case class Placed[+MeasurementUnit, +T](value : T, coordinate : Point3d[MeasurementUnit], size : Rect[MeasurementUnit]):
   def this(sized : Sized[MeasurementUnit, T], coordinate : Point3d[MeasurementUnit]) = this(sized.value, coordinate, Rect(sized.width, sized.height))

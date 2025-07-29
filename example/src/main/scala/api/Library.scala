@@ -11,7 +11,7 @@ import cats.effect.std.Supervisor
 import cats.syntax.all.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.layout.Sized
-import me.katze.gui4s.skija.{Pixel, SkijaPlacedText, SkijaTextStyle}
+import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle}
 import me.katze.gui4s.widget.library.StatefulWidget
 import me.katze.gui4s.widget.{EventReaction, Path}
 import scalacache.Cache
@@ -58,8 +58,8 @@ def makeSkijaTextWidget[
 ](
   globalShaper: Shaper,
   ffi: ForeighFunctionInterface[F],
-  cache : Cache[F, (String, SkijaTextStyle, Option[Pixel]), Sized[Pixel, SkijaPlacedText]]
-): TextWidget[SkijaWidget[F, Pixel, UpdateError, PlaceError, *, DownEvent]] =
+  cache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+): TextWidget[SkijaWidget[F, Float, UpdateError, PlaceError, *, DownEvent]] =
   [Event] => (text: String, style: SkijaTextStyle) => 
     skijaText(ffi, skijaSizeText(ffi, globalShaper, cache), text, style)
 end makeSkijaTextWidget
