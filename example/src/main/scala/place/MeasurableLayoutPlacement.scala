@@ -4,38 +4,88 @@ package place
 import api.LayoutPlacementMeta
 
 import cats.*
+import cats.syntax.all.*
+import catnip.syntax.all.{*, given}
 import me.katze.gui4s.geometry.Point3d
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.{Axis, Placed, Sized}
-import me.katze.gui4s.widget.library.AdditionalAxisPlacementStrategy
+import me.katze.gui4s.widget.library.*
 
 import scala.math.Fractional.Implicits.*
 
-def mainAxisStrategyPlacement[MeasurementUnit : Fractional as F](strategy: MainAxisStrategyWithAvailableSpace[MeasurementUnit], elements: List[MeasurementUnit]): List[MeasurementUnit] =
+def mainAxisStrategyPlacement[
+  Place[_] : ApplicativeErrorT[PlacementError],
+  PlacementError,
+  MeasurementUnit : Fractional as F
+](
+  strategy: MainAxisPlacementStrategy[MeasurementUnit],
+  elements: List[MeasurementUnit],
+  bounds : AxisBounds[MeasurementUnit],
+  errors : ElementPlacementInInfiniteContainerAttemptError[PlacementError]
+): Place[List[MeasurementUnit]] =
   strategy match
-    case MainAxisStrategyWithAvailableSpace.Begin(gap) =>
+    case MainAxisPlacementStrategy.Begin(gap) =>
       placeBeginMany(elements.map(_ + gap))
         .map(_.coordinateOfStart)
-    case MainAxisStrategyWithAvailableSpace.Center(gap, space) =>
-      placeCenterMany(elements.map(_ + gap), space)
-        .map(_.coordinateOfStart + (gap / F.fromInt(2)))
-    case MainAxisStrategyWithAvailableSpace.End(gap, space) =>
-      placeEndMany(elements.map(_ + gap), space)
-        .map(_.coordinateOfStart + gap)
-    case MainAxisStrategyWithAvailableSpace.SpaceBetween(space) =>
-      placeSpaceBetween(elements, space)
-        .map(_.coordinateOfStart)
-    case MainAxisStrategyWithAvailableSpace.SpaceAround(space) =>
-      placeSpaceAround(elements, space)
-        .map(_.coordinateOfStart)
+        .pure[Place]
+    case MainAxisPlacementStrategy.Center(gap) =>
+      bounds.max
+        .getOrRaiseError(errors.withCenterStrategy)
+        .map(space =>
+          placeCenterMany(elements.map(_ + gap), space)
+            .map(_.coordinateOfStart + (gap / F.fromInt(2)))
+        )
+    case MainAxisPlacementStrategy.End(gap) =>
+      bounds.max
+        .getOrRaiseError(errors.withEndStrategy)
+        .map(space =>
+          placeEndMany(elements.map(_ + gap), space)
+            .map(_.coordinateOfStart + gap)
+        )
+    case MainAxisPlacementStrategy.SpaceBetween =>
+      bounds.max
+        .getOrRaiseError(errors.withSpaceBetweenStrategy)
+        .map(space =>
+          placeSpaceBetween(elements, space)
+            .map(_.coordinateOfStart)
+        )
+    case MainAxisPlacementStrategy.SpaceAround =>
+      bounds.max
+        .getOrRaiseError(errors.withSpaceAroundStrategy)
+        .map(space =>
+          placeSpaceAround(elements, space)
+            .map(_.coordinateOfStart)
+        )
 end mainAxisStrategyPlacement
 
-def additionalAxisStrategyPlacement[MeasurementUnit : Fractional](strategy: AdditionalAxisPlacementStrategy, element: MeasurementUnit, space : => MeasurementUnit): MeasurementUnit =
+def additionalAxisStrategyPlacement[
+  Place[_] : ApplicativeErrorT[PlacementError],
+  PlacementError,
+  MeasurementUnit : Fractional
+](
+  strategy: AdditionalAxisPlacementStrategy, 
+  element: MeasurementUnit, 
+  space : AxisBounds[MeasurementUnit],
+  errors : ElementPlacementInInfiniteContainerAttemptError[PlacementError]
+): Place[MeasurementUnit] =
   strategy match
-    case AdditionalAxisPlacementStrategy.Begin => placeBegin
-    case AdditionalAxisPlacementStrategy.Center => placeCenter(element, space)
-    case AdditionalAxisPlacementStrategy.End => placeEnd(element, space)
+    case AdditionalAxisPlacementStrategy.Begin => 
+      placeBegin.pure[Place]
+    case AdditionalAxisPlacementStrategy.Center =>
+      space
+        .max
+        .getOrRaiseError(errors.withCenterStrategy)
+        .map(space =>
+          placeCenter(element, space)
+        )
+    case AdditionalAxisPlacementStrategy.End =>
+      space
+        .max
+        .getOrRaiseError(errors.withEndStrategy)
+        .map(space =>
+          placeEnd(element, space)
+        )
   end match
 end additionalAxisStrategyPlacement
 
@@ -48,24 +98,30 @@ def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[Measuremen
   (placed.value, new LayoutPlacementMeta(placed))
 end placedElementAsLayoutMetadata
 
-def rowColumnPlace[MeasurementUnit, T](
-                                        elements           : List[Sized[MeasurementUnit, T]],
-                                        bounds             : AxisDependentBounds[MeasurementUnit],
-                                        mainAxisPlace      : (List[MeasurementUnit], AxisBounds[MeasurementUnit]) => List[MeasurementUnit],
-                                        additionalAxisPlace: (MeasurementUnit, AxisBounds[MeasurementUnit]) => MeasurementUnit,
-                                        zLevel : MeasurementUnit,
-                                      ): List[Placed[MeasurementUnit, T]] =
-  val mainAxisCoordinates = mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis)
-  val crossAxisCoordinates = elements.map(el => additionalAxisPlace(el.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
-
-  val compoundCoordinates =
-    mainAxisCoordinates.zip(crossAxisCoordinates).map(
-      (mainAxisCoordinate, additionalAxisCoordinate) =>
-        if bounds.axis == Axis.Vertical then
-          Point3d(x = additionalAxisCoordinate, y = mainAxisCoordinate, z = zLevel)
-        else
-          Point3d(x = mainAxisCoordinate, y = additionalAxisCoordinate, z = zLevel)
-    )
-    
-  Monad[List].map(elements.zip(compoundCoordinates))(new Placed(_, _))
+def rowColumnPlace[
+  Place[_] : Applicative,
+  MeasurementUnit, 
+  T
+](
+  elements           : List[Sized[MeasurementUnit, T]],
+  bounds             : AxisDependentBounds[MeasurementUnit],
+  mainAxisPlace      : (List[MeasurementUnit], AxisBounds[MeasurementUnit]) => Place[List[MeasurementUnit]],
+  additionalAxisPlace: (MeasurementUnit, AxisBounds[MeasurementUnit]) => Place[MeasurementUnit],
+  zLevel : MeasurementUnit,
+): Place[List[Placed[MeasurementUnit, T]]] =
+  Applicative[Place].map2(
+    mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis),
+    elements.traverse(el => additionalAxisPlace(el.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
+  )(
+    (mainAxisCoordinates, crossAxisCoordinates) =>
+      Monad[List].map(elements.zip(combineCoordinates(bounds.axis, mainAxisCoordinates, crossAxisCoordinates, zLevel)))(new Placed(_, _))
+  )
 end rowColumnPlace
+
+def combineCoordinates[MeasurementUnit](axis : Axis, mainAxis : List[MeasurementUnit], additionalAxis : List[MeasurementUnit], zLevel : MeasurementUnit) : List[Point3d[MeasurementUnit]] =
+  if axis == Axis.Vertical then
+    additionalAxis.zip(mainAxis).map((x, y) => Point3d(x, y, zLevel))
+  else
+    mainAxis.zip(additionalAxis).map((x, y) => Point3d(x, y, zLevel))
+  end if
+end combineCoordinates

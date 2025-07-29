@@ -1,10 +1,8 @@
 package me.katze.gui4s.example
 
 import api.exported.{*, given}
-import api.{TextWidget, makeSkijaStatefulWidget, makeSkijaTextWidget}
 import draw.skija.SkijaBackend
-import impl.ENErrors
-import place.ElementPlacementInInfiniteContainerAttemptError
+import place.*
 import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
@@ -21,8 +19,8 @@ import me.katze.gui4s.example.draw.skija
 import me.katze.gui4s.geometry.Point2d
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, OglGlfwWindow}
-import me.katze.gui4s.layout.{Sized, given}
-import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle}
+import me.katze.gui4s.layout.{Axis, Sized, given}
+import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle, drawAt}
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{EventReaction, Path, library}
 
@@ -120,14 +118,17 @@ object SkijaAppExample extends IOApp:
     end onClick
   end extension
   
-  def statefulWidget: StatefulWidget[Widget, Path => IO[Unit]] = makeSkijaStatefulWidget(
+  def statefulWidget: StatefulWidget[Widget, Path => IO[Unit]] = skijaStatefulWidget(
     (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]",
   )
 
   def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Path => IO[Unit]] = TransitiveStatefulWidgetFromStatefulWidget(statefulWidget)
-  
+
+  type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
+
   def text[Monitor, Window <: GlfwWindow[IO, Monitor, Float], DownEvent](using backend : SkijaBackend[IO, Monitor, Window, DownEvent]) : TextWidget[Widget] =
-    makeSkijaTextWidget(backend.globalShaper, ffi, backend.globalTextCache)
+    [Event] => (text: String, style: SkijaTextStyle) =>
+      skijaText(ffi, skijaSizeText(ffi, backend.globalShaper, backend.globalTextCache), text, style)
   end text
 
   def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
@@ -196,12 +197,31 @@ object SkijaAppExample extends IOApp:
     grid((0 until 20).toList)
   end main
 
+  def layout[Event](
+                      children : List[Widget[Event]],
+                      axis : Axis,
+                      mainAxisStrategy : MainAxisPlacementStrategy[Float],
+                      additionalAxisStrategy : AdditionalAxisPlacementStrategy
+                    ) : Widget[Event] =
+    skijaColumn(
+      ENErrors,
+      children,
+      axis,
+      mainAxisStrategy,
+      additionalAxisStrategy,
+      (draw, meta) => drawAt(summon, draw, meta.x, meta.y),
+      [T] => (update, meta) => addCoordinates[IO, String, Float, Event](meta.point) *> update <* addCoordinates[IO, String, Float, Event](-meta.point),
+      isEventHandled
+    )
+  end layout
+
   def app[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](numbers : List[Int])(
     using backend : SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]
   ) : Widget[ApplicationRequest] =
-    skijaColumn(
-      verticalStrategy = MainAxisPlacementStrategy.Begin(0f),
-      horizontalStrategy = AdditionalAxisPlacementStrategy.Center,
+    layout(
+      axis = Axis.Vertical,
+      mainAxisStrategy = MainAxisPlacementStrategy.Begin(0f),
+      additionalAxisStrategy = AdditionalAxisPlacementStrategy.Center,
       children = numbers.map:
         lineNumber =>
           statefulWidget[Int, ApplicationRequest, Unit](
@@ -224,13 +244,15 @@ object SkijaAppExample extends IOApp:
   ](
       numbers : List[Int]
   )(using SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : Widget[Event] =
-    skijaColumn(
-      verticalStrategy = MainAxisPlacementStrategy.SpaceBetween,
-      horizontalStrategy = AdditionalAxisPlacementStrategy.Begin,
+    layout(
+      axis = Axis.Vertical,
+      mainAxisStrategy = MainAxisPlacementStrategy.SpaceBetween,
+      additionalAxisStrategy = AdditionalAxisPlacementStrategy.Begin,
       children =
         numbers.map:
           lineIndex =>
-            /*skijaRow(
+            /*layout(
+              axis = Axis.Horizontal,
               horizontalStrategy = MainAxisPlacementStrategy.Begin(Pixel(0f)),
               verticalStrategy = AdditionalAxisPlacementStrategy.Begin,
               children =

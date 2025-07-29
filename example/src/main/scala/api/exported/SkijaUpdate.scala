@@ -4,17 +4,14 @@ package api.exported
 import update.ApplicationRequest
 
 import catnip.BiMonad
-import cats.effect.ExitCode
-import me.katze.gui4s.widget.{EventReaction, Path}
-import cats.Applicative
 import catnip.syntax.all.{*, given}
 import catnip.syntax.bi.{stateWrapsBiMonad, writerIsBiMonad}
-import cats.Monad
+import cats.{Applicative, Monad}
 import cats.data.{EitherT, StateT, WriterT}
-import cats.effect.std.Supervisor
+import cats.effect.ExitCode
 import cats.syntax.all.*
 import me.katze.gui4s.geometry.Point3d
-import me.katze.gui4s.widget.{CatchEvents, given}
+import me.katze.gui4s.widget.{CatchEvents, EventReaction, Path, given}
 
 final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
   def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : UpdateEffectState[MeasurementUnit] =
@@ -57,6 +54,10 @@ given skijaUpdateBiMonad[IO[_] : Monad, UpdateError, MeasurementUnit] : BiMonad[
 def markEventHandled[IO[_] : Applicative, UpdateError, MeasurementUnit, Event] : SkijaUpdate[IO, UpdateError, MeasurementUnit, Event, Unit] =
   EitherT.liftF(StateT.modify(markEventHandled))
 end markEventHandled
+
+def isEventHandled[IO[_] : Applicative, UpdateError, MeasurementUnit, Event] : SkijaUpdate[IO, UpdateError, MeasurementUnit, Event, Boolean] =
+  EitherT.liftF(StateT.get[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit]].map(_.consumed))
+end isEventHandled
 
 def getCoordinates[IO[_] : Applicative,  UpdateError, MeasurementUnit, Event] : SkijaUpdate[IO,  UpdateError, MeasurementUnit, Event, Point3d[MeasurementUnit]] =
   EitherT.liftF(StateT.get[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit]].map(_.widgetCoordinates))

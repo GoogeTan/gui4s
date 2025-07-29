@@ -6,7 +6,7 @@ import cats.effect.std.Queue
 import cats.effect.syntax.all.*
 import cats.effect.{Async, Concurrent, ExitCode, Ref}
 import cats.syntax.all.given
-import cats.{Monad, MonadError}
+import cats.{Monad, MonadError, ApplicativeError}
 
 import scala.concurrent.ExecutionContext
 
@@ -32,6 +32,7 @@ end runUpdateLoopOnExecutionContext
  * Каррированная версия MonadError.
  */
 type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
+type ApplicativeErrorT[T] = [F[_]] =>> ApplicativeError[F, T]
 
 /**
  * Запускает в отдельных потоках обновление виджета и его отрисовку.

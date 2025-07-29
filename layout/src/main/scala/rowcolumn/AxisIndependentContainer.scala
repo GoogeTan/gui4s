@@ -23,37 +23,49 @@ def sizeItems[MeasurementUnit : Numeric, T](items : List[Placed[MeasurementUnit,
   new Sized(items, width, height)
 end sizeItems
 
-def placeItems[Place[_] : Monad, MeasurementUnit : Numeric, Item, PlacedItems](
-                                                                                items : List[Place[Sized[MeasurementUnit, Item]]],
-                                                                                mainAxis : Axis,
-                                                                                getBounds : Place[Bounds[MeasurementUnit]],
-                                                                                setBounds : Bounds[MeasurementUnit] => Place[Unit],
-                                                                                placeItemss : (List[Sized[MeasurementUnit, Item]], Bounds[MeasurementUnit]) => PlacedItems
-                                                                              ) : Place[PlacedItems] =
+def measureItems[
+  Place[_] : Monad, 
+  MeasurementUnit : Numeric, 
+  Item
+](
+  items : List[Place[Sized[MeasurementUnit, Item]]],
+  mainAxis : Axis,
+  getBounds : Place[Bounds[MeasurementUnit]],
+  setBounds : Bounds[MeasurementUnit] => Place[Unit],
+) : Place[List[Sized[MeasurementUnit, Item]]] =
+    measureItemsKeepingBoundsSame(
+      items,
+      updateBoundsWithSizedItem[Place, MeasurementUnit, Item](f => getBounds.map(f) >>= setBounds)(_, mainAxis),
+      getBounds,
+      setBounds
+    )
+end measureItems
+
+def measureItemsKeepingBoundsSame[
+  Measure[_] : Monad,
+  MeasurementUnit,
+  Item
+](
+  items : List[Measure[Item]],
+  updateBounds : Item => Measure[Unit],
+  getBounds : Measure[Bounds[MeasurementUnit]],
+  setBounds : Bounds[MeasurementUnit] => Measure[Unit],
+) : Measure[List[Item]] =
   for
     initial <- getBounds
-    res <- placeItems(
-      items,
-      updateBoundsWithSizedItem[MeasurementUnit = MeasurementUnit](f => getBounds.map(f) >>= setBounds)(_, mainAxis),
-      placeItemss(_, initial)
+    measuredItems <- measureItemsDirty(
+      updateBounds,
+      items
     )
     _ <- setBounds(initial)
-  yield res
-end placeItems
+  yield measuredItems
+end measureItemsKeepingBoundsSame
 
-def placeItems[Place[_] : Monad, SizedItem, PlacedItems](
-                                                          items : List[Place[SizedItem]],
-                                                          updateBounds : SizedItem => Place[Unit],
-                                                          placeItems : List[SizedItem] => PlacedItems
-                                                        ) : Place[PlacedItems] =
-  measureItems[Place, SizedItem](updateBounds, items).map(placeItems)
-end placeItems
-
-def measureItems[Measure[_] : Monad, Item](updateBounds : Item => Measure[Unit], items : List[Measure[Item]]) : Measure[List[Item]] =
+def measureItemsDirty[Measure[_] : Monad, Item](updateBounds : Item => Measure[Unit], items : List[Measure[Item]]) : Measure[List[Item]] =
   items.foldM(Nil):
     (processedElements, current) =>
         for
           currentItem <- current
           _ <- updateBounds(currentItem)
         yield processedElements :+ currentItem
-end measureItems
+end measureItemsDirty

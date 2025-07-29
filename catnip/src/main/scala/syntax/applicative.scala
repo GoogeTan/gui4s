@@ -42,4 +42,10 @@ object applicative:
       (c, a) => fa(a).map(b => (c, b))
     end second
   end given
+  
+  extension[T](value : Option[T])
+    def getOrRaiseError[F[_], Error](using AE: ApplicativeError[F, Error])(error : => Error) : F[T] =
+      value.map(_.pure[F]).getOrElse(AE.raiseError(error))
+    end getOrRaiseError
+  end extension
 end applicative

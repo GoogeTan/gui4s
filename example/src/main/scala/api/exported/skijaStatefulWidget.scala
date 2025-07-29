@@ -1,25 +1,19 @@
 package me.katze.gui4s.example
-package api
+package api.exported
 
-import api.exported.{*, given}
+import api.exported.given
 
-import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.Monad
 import cats.data.NonEmptyList
-import cats.effect.std.Supervisor
 import cats.syntax.all.*
-import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.layout.Sized
-import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle}
 import me.katze.gui4s.widget.library.StatefulWidget
 import me.katze.gui4s.widget.{EventReaction, Path}
-import scalacache.Cache
 
 import scala.language.experimental.namedTypeArguments
 import scala.reflect.Typeable
 
-def makeSkijaStatefulWidget[F[_]: Monad, UpdateError, PlaceError, MeasurementUnit, DownEvent](
+def skijaStatefulWidget[F[_]: Monad, UpdateError, PlaceError, MeasurementUnit, DownEvent](
   typecheckError: (Any, Path) => PlaceError,
 ): StatefulWidget[
   SkijaWidget[F, MeasurementUnit, UpdateError, PlaceError, *, DownEvent],
@@ -46,20 +40,4 @@ def makeSkijaStatefulWidget[F[_]: Monad, UpdateError, PlaceError, MeasurementUni
         )
     end apply
   end new
-end makeSkijaStatefulWidget
-
-type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
-
-def makeSkijaTextWidget[
-  F[_] : Monad,
-  UpdateError,
-  PlaceError,
-  DownEvent,
-](
-  globalShaper: Shaper,
-  ffi: ForeighFunctionInterface[F],
-  cache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
-): TextWidget[SkijaWidget[F, Float, UpdateError, PlaceError, *, DownEvent]] =
-  [Event] => (text: String, style: SkijaTextStyle) => 
-    skijaText(ffi, skijaSizeText(ffi, globalShaper, cache), text, style)
-end makeSkijaTextWidget
+end skijaStatefulWidget

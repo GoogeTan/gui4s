@@ -6,8 +6,8 @@ import draw.{Drawable, drawLoopExceptionHandler}
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.effect.std.{AtomicCell, Console, Dispatcher, QueueSink, Supervisor}
-import cats.effect.{Async, Clock, Concurrent, ExitCode, Resource}
 import cats.effect.syntax.all.*
+import cats.effect.*
 import cats.syntax.all.*
 import cats.{Apply, MonadError, Monoid}
 import me.katze.gui4s.geometry.{Point2d, Rect}
