@@ -1,4 +1,6 @@
-package me.katze.gui4s.layout
+package me.katze.gui4s.geometry
+
+import cats.kernel.Eq
 
 enum Axis:
   case Vertical
@@ -9,3 +11,5 @@ enum Axis:
     case Axis.Horizontal => Vertical
   end another
 end Axis
+
+given Eq[Axis] = Eq.fromUniversalEquals

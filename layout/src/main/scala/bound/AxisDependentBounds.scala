@@ -1,6 +1,8 @@
 package me.katze.gui4s.layout
 package bound
 
+import me.katze.gui4s.geometry.Axis
+
 // TODO Переименовать axis в mainAxis и два других поля во что-то более понятное
 final case class AxisDependentBounds[+T](mainAxis : AxisBounds[T], additionalAxis : AxisBounds[T], axis : Axis):
   val bounds : Bounds[T] =

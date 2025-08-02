@@ -1,17 +1,19 @@
 package me.katze.gui4s.example
 package api.exported
 
-import impl.containerPlacementCurriedOvergeneralized
+import me.katze.gui4s.layout.rowcolumn.rowColumnLayoutPlacement
 import place.*
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.Monad
+import cats.syntax.all.*
 import me.katze.gui4s.example.{*, given}
 import api.exported.given
 import api.{LayoutPlacementMeta, given}
 
 import cats.kernel.Monoid
+import me.katze.gui4s.geometry.Axis
 import me.katze.gui4s.layout.bound.{AxisBounds, Bounds}
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, Widget, linearLayout}
@@ -98,14 +100,14 @@ def placementAwareLayout[
     LayoutPlacementMeta[MeasurementUnit]
   ](
     children = children,
-    layout = containerPlacementCurriedOvergeneralized(
+    layout = children => rowColumnLayoutPlacement(
       getBounds,
       setBounds,
       mainAxis,
-      _,
+      children,
       mainAxisPlacement,
       additionalAxisPlacement
-    ),
+    ).map(_.mapValue(unpack)),
     adjustDrawToMeta = drawAt,
     adjustUpdateToMeta = updateAt,
     isEventConsumed = isEventConsumed

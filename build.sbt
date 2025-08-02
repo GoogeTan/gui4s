@@ -84,7 +84,7 @@ lazy val layout = (project in file("layout"))
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(geometry)
+  ).dependsOn(geometry, catnip)
 
 lazy val widget = (project in file("widget"))
   .settings(

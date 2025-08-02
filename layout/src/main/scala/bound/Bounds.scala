@@ -3,10 +3,15 @@ package bound
 
 import me.katze
 import me.katze.gui4s
-import me.katze.gui4s.layout
+import me.katze.gui4s.geometry.Axis
+import me.katze.gui4s.{geometry, layout}
 
 final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUnit], vertical : AxisBounds[MeasurementUnit]):
   def this(width : MeasurementUnit, height : MeasurementUnit)(using Numeric[MeasurementUnit]) =
+    this(new AxisBounds(width), new AxisBounds(height))
+  end this
+
+  def this(width : Option[MeasurementUnit], height : Option[MeasurementUnit])(using Numeric[MeasurementUnit]) =
     this(new AxisBounds(width), new AxisBounds(height))
   end this
 
@@ -25,8 +30,8 @@ final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUni
   
   def along(axis : Axis) : AxisBounds[MeasurementUnit] =
     axis match
-      case katze.gui4s.layout.Axis.Vertical => horizontal
-      case katze.gui4s.layout.Axis.Horizontal => vertical
+      case Axis.Vertical => horizontal
+      case geometry.Axis.Horizontal => vertical
     end match
   end along
 end Bounds

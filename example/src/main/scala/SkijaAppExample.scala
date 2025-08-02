@@ -16,10 +16,10 @@ import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.example.draw.skija
-import me.katze.gui4s.geometry.Point2d
+import me.katze.gui4s.geometry.{Axis, Point2d}
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, OglGlfwWindow}
-import me.katze.gui4s.layout.{Axis, Sized, given}
+import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle, drawAt}
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{EventReaction, Path, library}

@@ -9,6 +9,10 @@ final case class SizedElement[T](size: T, coordinateOfStart: T):
   def addBeginCoordinate(using n : Numeric[T])(value : T) : SizedElement[T] =
     SizedElement(size, coordinateOfStart + value)
   end addBeginCoordinate
+
+  def addSize(using n : Numeric[T])(value : T) : SizedElement[T] =
+    SizedElement(size + value, coordinateOfStart)
+  end addSize
 end SizedElement
 
 object SizedElement:

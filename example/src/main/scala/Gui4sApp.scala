@@ -1,7 +1,5 @@
 package me.katze.gui4s.example
 
-import impl.given
-
 import cats.*
 import cats.effect.*
 import cats.effect.std.{Queue, QueueSink}

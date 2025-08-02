@@ -1,7 +1,6 @@
 package me.katze.gui4s.example
 package api.exported
 
-import impl.{GetBounds, SetBounds, getBoundsStateT, setBoundsStateT}
 import place.{RunPlacement, runPlaceStateT}
 
 import catnip.ForeighFunctionInterface
@@ -11,7 +10,7 @@ import cats.syntax.all.*
 import cats.{Applicative, FlatMap, Monad, MonadError, ~>}
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.layout.Sized
-import me.katze.gui4s.layout.bound.Bounds
+import me.katze.gui4s.layout.bound.{Bounds, GetBounds, SetBounds}
 import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
 import scalacache.Cache
 
@@ -36,11 +35,11 @@ def skijaRunPlace[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds
 end skijaRunPlace
 
 def skijaGetBounds[IO[_] : Monad, MeasurementUnit, PlaceError] : GetBounds[SkijaPlaceInner[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
-  getBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
+  GetBounds.getBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
 end skijaGetBounds
 
 def skijaSetBounds[IO[_] : Monad, MeasurementUnit, PlaceError] : SetBounds[SkijaPlaceInner[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
-  setBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
+  SetBounds.setBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
 end skijaSetBounds
 
 type SizeText[G[_]] = (text: String, options: SkijaTextStyle) => G[SkijaPlacedText]

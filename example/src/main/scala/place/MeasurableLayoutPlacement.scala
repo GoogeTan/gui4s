@@ -6,10 +6,10 @@ import api.LayoutPlacementMeta
 import cats.*
 import cats.syntax.all.*
 import catnip.syntax.all.{*, given}
-import me.katze.gui4s.geometry.Point3d
+import me.katze.gui4s.geometry.{Axis, Point3d}
 import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds}
 import me.katze.gui4s.layout.linear.*
-import me.katze.gui4s.layout.{Axis, Placed, Sized}
+import me.katze.gui4s.layout.{Placed, Sized}
 import me.katze.gui4s.widget.library.*
 
 import scala.math.Fractional.Implicits.*
