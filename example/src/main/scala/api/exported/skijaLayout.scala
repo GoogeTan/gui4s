@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package api.exported
 
-import me.katze.gui4s.layout.rowcolumn.rowColumnLayoutPlacement
+import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement, rowColumnLayoutPlacement}
 import place.*
 
 import catnip.ForeighFunctionInterface
@@ -29,7 +29,6 @@ def skijaLayout[
   HandleableEvent,
   PlaceError,
 ](
-  errors: ElementPlacementInInfiniteContainerAttemptError[PlaceError],
   children : List[
     SkijaPlaceInner[
       F,
@@ -47,8 +46,8 @@ def skijaLayout[
     ]
   ],
   mainAxis : Axis,
-  mainAxisStrategy: MainAxisPlacementStrategy[MeasurementUnit],
-  additionalAxisStrategy: AdditionalAxisPlacementStrategy,
+  mainAxisPlacement : MainAxisPlacement[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], MeasurementUnit],
+  additionalAxisPlacement : AdditionalAxisPlacement[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], MeasurementUnit],
   drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,
   updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
   isEventConsumed : Update[Boolean]
@@ -63,8 +62,8 @@ def skijaLayout[
   ](
     children,
     mainAxis,
-    mainAxisStrategyPlacement(mainAxisStrategy, _, _, errors),
-    additionalAxisStrategyPlacement(additionalAxisStrategy, _, _, errors),
+    mainAxisPlacement,
+    additionalAxisPlacement,
     skijaGetBounds,
     skijaSetBounds,
     drawAt,
@@ -83,8 +82,8 @@ def placementAwareLayout[
 ](
   children : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]]],
   mainAxis : Axis,
-  mainAxisPlacement : (List[MeasurementUnit], AxisBounds[MeasurementUnit]) => OuterPlace[List[MeasurementUnit]],
-  additionalAxisPlacement : (MeasurementUnit, AxisBounds[MeasurementUnit]) => OuterPlace[MeasurementUnit],
+  mainAxisPlacement : MainAxisPlacement[OuterPlace, MeasurementUnit],
+  additionalAxisPlacement : AdditionalAxisPlacement[OuterPlace, MeasurementUnit],
   getBounds : OuterPlace[Bounds[MeasurementUnit]],
   setBounds : Bounds[MeasurementUnit] => OuterPlace[Unit],
   drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,

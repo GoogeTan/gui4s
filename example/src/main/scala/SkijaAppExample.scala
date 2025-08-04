@@ -18,7 +18,8 @@ import me.katze.gui4s.example
 import me.katze.gui4s.example.draw.skija
 import me.katze.gui4s.geometry.{Axis, Point2d}
 import me.katze.gui4s.glfw.KeyAction.Press
-import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, OglGlfwWindow}
+import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes}
+import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle, drawAt}
 import me.katze.gui4s.widget.library.{*, given}
@@ -134,7 +135,7 @@ object SkijaAppExample extends IOApp:
   def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
     val lew : LaunchedEffectWidget[Widget[Event], Key, Path => SkijaRecomposition[IO]] = library.launchedEffect(
       [T] => (path : Path) => raiseError("Key has changed type at " + path.toString),
-      SkijaRecomposition.lift(
+      SkijaRecomposition.lift[IO, Nothing](
         IO.raiseError(Exception("Key changed the type"))
       )
     )
@@ -206,11 +207,10 @@ object SkijaAppExample extends IOApp:
   def layout[Event](
                       children : List[Widget[Event]],
                       axis : Axis,
-                      mainAxisStrategy : MainAxisPlacementStrategy[Float],
-                      additionalAxisStrategy : AdditionalAxisPlacementStrategy
+                      mainAxisStrategy : MainAxisPlacement[SkijaPlaceInnerT[IO, Float, String], Float],
+                      additionalAxisStrategy : AdditionalAxisPlacement[SkijaPlaceInnerT[IO, Float, String], Float],
                     ) : Widget[Event] =
     skijaLayout(
-      ENErrors,
       children,
       axis,
       mainAxisStrategy,
@@ -226,8 +226,8 @@ object SkijaAppExample extends IOApp:
   ) : Widget[ApplicationRequest] =
     layout(
       axis = Axis.Vertical,
-      mainAxisStrategy = MainAxisPlacementStrategy.Begin(0f),
-      additionalAxisStrategy = AdditionalAxisPlacementStrategy.Center,
+      mainAxisStrategy = MainAxisPlacement.Begin(0f),
+      additionalAxisStrategy = AdditionalAxisPlacement.Center(ENErrors.withCenterStrategy),
       children = numbers.map:
         lineNumber =>
           statefulWidget[Int, ApplicationRequest, Unit](
@@ -252,8 +252,8 @@ object SkijaAppExample extends IOApp:
   )(using SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : Widget[Event] =
     layout(
       axis = Axis.Vertical,
-      mainAxisStrategy = MainAxisPlacementStrategy.SpaceBetween,
-      additionalAxisStrategy = AdditionalAxisPlacementStrategy.Begin,
+      mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
+      additionalAxisStrategy = AdditionalAxisPlacement.Begin,
       children =
         numbers.map:
           lineIndex =>
