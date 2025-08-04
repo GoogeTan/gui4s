@@ -14,6 +14,7 @@ import scalacache.caffeine.CaffeineCache
 import cats.{Functor, Monad}
 import cats.effect.std.{AtomicCell, Dispatcher, QueueSink, Supervisor}
 import cats.syntax.all.*
+import cats.effect.syntax.all.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.glfw.{Glfw, GlfwWindow}
 import me.katze.gui4s.layout.bound.Bounds
@@ -21,6 +22,8 @@ import me.katze.gui4s.skija.{SkiaRenderTarget, SkijaDrawState, SkijaPlacedText, 
 import cats.syntax.all.*
 import me.katze.gui4s.layout.Sized
 import scalacache.Cache
+
+import catnip.syntax.all.{*, given}
 
 import scala.annotation.experimental
 
@@ -80,11 +83,11 @@ object SkijaBackend:
   def createForTestsTrue[
     F[+_] : {Async, Console}, DownEvent
   ](
-     queue : QueueSink[F, DownEvent],
-     settings : WindowCreationSettings[Float],
-     ffi: ForeighFunctionInterface[F],
-     callbacks : GlfwCallbacks[F[Unit], Float],
-   ): Resource[F, SkijaBackend[F, Long, GlfwWindow[F, Long, Float], DownEvent]] =
+      queue : QueueSink[F, DownEvent],
+      settings : WindowCreationSettings[Float],
+      ffi: ForeighFunctionInterface[F],
+      callbacks : GlfwCallbacks[F[Unit], Float],
+    ): Resource[F, SkijaBackend[F, Long, GlfwWindow[F, Long, Float], DownEvent]] =
     for
       skija <- Resource.eval(SkijaInitImpl(ffi))
       dispatcher <- Dispatcher.sequential[F]
@@ -100,21 +103,20 @@ object SkijaBackend:
     Window <: me.katze.gui4s.glfw.GlfwWindow[F, Monitor, Float],
     DownEvent
   ](
-     queue : QueueSink[F, DownEvent],
-     glfw : Glfw[F, Monitor, Window],
-     skija : SkijaInit[F],
-     dispatcher : Dispatcher[F],
-     supervisor : Supervisor[F],
-     windowSettings : WindowCreationSettings[Float],
-     callbacks : GlfwCallbacks[F[Unit], Float],
-   ): Resource[F, SkijaBackend[F, Monitor, Window, DownEvent]] =
+      queue : QueueSink[F, DownEvent],
+      glfw : Glfw[F, Monitor, Window],
+      skija : SkijaInit[F],
+      dispatcher : Dispatcher[F],
+      supervisor : Supervisor[F],
+      windowSettings : WindowCreationSettings[Float],
+      callbacks : GlfwCallbacks[F[Unit], Float],
+    ): Resource[F, SkijaBackend[F, Monitor, Window, DownEvent]] =
     for
       window <- glfw.createWindow(windowSettings)
       _ <- Resource.eval(window.makeContextCurrent)
       renderTargetCell <- createRenderTarget(glfw, skija, windowSettings.size)
       _ <- Resource.eval(
         registerCallbacks[F, Monitor, Window, Float](
-          glfw,
           window,
           addRenderTargetRecreation[F[Unit], Float](
             callbacks,
@@ -162,15 +164,14 @@ object SkijaBackend:
   end recreateRenderTarget
 
   def registerCallbacks[
-    F[_] : Apply,
+    IO[_] : Apply,
     Monitor,
-    Window <: me.katze.gui4s.glfw.GlfwWindow[F, Monitor, MeasurementUnit],
+    Window <: me.katze.gui4s.glfw.GlfwWindow[IO, Monitor, MeasurementUnit],
     MeasurementUnit
   ](
-     glfw: Glfw[F, Monitor, Window],
-     window: Window,
-     glfwCallbacks: GlfwCallbacks[F[Unit], MeasurementUnit]
-   ): F[Unit] =
+      window: Window,
+      glfwCallbacks: GlfwCallbacks[IO[Unit], MeasurementUnit]
+    ): IO[Unit] =
     window.windowResizeCallback(glfwCallbacks.onWindowResized)
       *> window.mouseButtonCallback(glfwCallbacks.onMouseClick)
       *> window.keyCallback(glfwCallbacks.onKeyPress)
@@ -184,7 +185,6 @@ def skijaDrawLoop[
   Monitor,
   Window <: me.katze.gui4s.glfw.GlfwWindow[F, Monitor, Float],
   DownEvent,
-  MeasurementUnit,
   Widget
 ](
     backend : SkijaBackend[F, Monitor, Window, DownEvent],

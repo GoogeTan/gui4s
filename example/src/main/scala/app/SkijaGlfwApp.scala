@@ -2,7 +2,6 @@ package me.katze.gui4s.example
 package app
 
 import api.exported.{*, given}
-import draw.*
 import place.RunPlacement
 import update.ApplicationRequest
 
@@ -15,7 +14,7 @@ import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
 import me.katze.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.skija.{SkijaBackend, SkijaBackend, skijaDrawLoop}
+import me.katze.gui4s.example.skija.{SkijaBackend, skijaDrawLoop}
 import me.katze.gui4s.geometry.Rect
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.layout.{*, given}
@@ -58,7 +57,7 @@ def skijaGlfwApp[
     ),
     drawLoop = backend =>
       runDrawLoopOnExecutionContext(
-        skijaDrawLoop[F, Long, GlfwWindow[F, Long, Float], DownEvent, Float, PlacedWidget](backend, widgetIsDrawable),
+        skijaDrawLoop[F, Long, GlfwWindow[F, Long, Float], DownEvent, PlacedWidget](backend, widgetIsDrawable),
         drawLoopExecutionContext
       ),
     updateLoop = backend => runUpdateLoopOnExecutionContext[F, PlacedWidget, DownEvent](

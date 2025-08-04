@@ -14,8 +14,6 @@ import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
-import draw.skija
-
 import me.katze.gui4s.example.app.skijaGlfwApp
 import me.katze.gui4s.example.skija.SkijaBackend
 import me.katze.gui4s.geometry.{Axis, Point2d, Rect}
