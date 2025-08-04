@@ -3,7 +3,7 @@ package bound
 
 import me.katze
 import me.katze.gui4s
-import me.katze.gui4s.geometry.Axis
+import me.katze.gui4s.geometry.{Axis, Rect}
 import me.katze.gui4s.{geometry, layout}
 
 final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUnit], vertical : AxisBounds[MeasurementUnit]):
@@ -11,8 +11,12 @@ final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUni
     this(new AxisBounds(width), new AxisBounds(height))
   end this
 
+  def this(rect : Rect[MeasurementUnit])(using Numeric[MeasurementUnit]) =
+    this(rect.width, rect.height)
+  end this
+
   def this(width : Option[MeasurementUnit], height : Option[MeasurementUnit])(using Numeric[MeasurementUnit]) =
-    this(new AxisBounds(width), new AxisBounds(height))
+    this(AxisBounds(width), AxisBounds(height))
   end this
 
   def cutAlong[T >: MeasurementUnit](axis: Axis, amount : T)(using Numeric[T]) : Bounds[T] =

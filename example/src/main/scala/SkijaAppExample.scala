@@ -15,7 +15,7 @@ import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.example.draw.skija
+import draw.skija
 import me.katze.gui4s.geometry.{Axis, Point2d}
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes}
@@ -201,7 +201,7 @@ object SkijaAppExample extends IOApp:
   end leaf
 
   def main[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](using SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
-    grid((0 until 20).toList)
+    grid((0 until 10).toList)
   end main
 
   def layout[Event](
@@ -257,18 +257,18 @@ object SkijaAppExample extends IOApp:
       children =
         numbers.map:
           lineIndex =>
-            /*layout(
+            layout(
               axis = Axis.Horizontal,
-              horizontalStrategy = MainAxisPlacementStrategy.Begin(Pixel(0f)),
-              verticalStrategy = AdditionalAxisPlacementStrategy.Begin,
+              mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
+              additionalAxisStrategy = AdditionalAxisPlacement.Begin,
               children =
-                numbers.map:*/
-                val  lineJindex = 0
+                numbers.map:
+                  lineJindex =>
                     text[Monitor, Window, SkijaDownEvent[Float]](
                       lineIndex.toString + ":" + lineJindex.toString,
                       SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))
                     )
-            //)
+            )
     )
 end SkijaAppExample
 

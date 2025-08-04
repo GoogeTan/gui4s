@@ -8,6 +8,6 @@ final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : Measur
   def this(mainAxis : Axis, mainAxisLength : MeasurementUnit, additionalAxisLength : MeasurementUnit) =
     this(
       if mainAxis === Axis.Horizontal then mainAxisLength else additionalAxisLength, 
-      if mainAxis === Axis.Vertical then additionalAxisLength else mainAxisLength
+      if mainAxis === Axis.Horizontal then additionalAxisLength else mainAxisLength
     )
     
