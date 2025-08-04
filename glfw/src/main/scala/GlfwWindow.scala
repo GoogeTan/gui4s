@@ -37,4 +37,6 @@ trait GlfwWindow[F[_], Monitor, MeasurementUnit]:
   def mouseButtonCallback(callback: (key: Int, action: KeyAction, mode: KeyModes) => F[Unit]): F[Unit]
 
   def currentMousePosition: F[Point2d[MeasurementUnit]]
+
+  def makeContextCurrent : F[Unit]
 end GlfwWindow

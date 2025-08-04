@@ -10,7 +10,6 @@ trait Glfw[F[_], Monitor, Window]:
   def monitorScale(monitor : Monitor) : F[Float]
   def primaryMonitorScale : F[Float]
   def swapInterval(interval : Int) : F[Unit]
-  def createOGLContext(window : Window) : F[Unit] // TODO move to window
   def pollEvents : F[Unit]
 end Glfw
 

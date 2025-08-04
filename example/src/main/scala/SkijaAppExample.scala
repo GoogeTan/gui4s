@@ -1,7 +1,6 @@
 package me.katze.gui4s.example
 
 import api.exported.{*, given}
-import draw.skija.SkijaBackend
 import place.*
 import update.ApplicationRequest
 
@@ -16,9 +15,12 @@ import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
 import draw.skija
-import me.katze.gui4s.geometry.{Axis, Point2d}
+
+import me.katze.gui4s.example.app.skijaGlfwApp
+import me.katze.gui4s.example.skija.SkijaBackend
+import me.katze.gui4s.geometry.{Axis, Point2d, Rect}
 import me.katze.gui4s.glfw.KeyAction.Press
-import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes}
+import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, WindowCreationSettings}
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle, drawAt}
@@ -40,8 +42,8 @@ enum SkijaDownEvent[+MeasurementUnit]:
 end SkijaDownEvent
 
 @experimental
-def eventOfferingCallbacks[F, MeasurementUnit](offerEvent: SkijaDownEvent[MeasurementUnit] => F):  skija.SkijaSimpleDrawApi.GlfwCallbacks[F, MeasurementUnit] =
-  skija.SkijaSimpleDrawApi.GlfwCallbacks(
+def eventOfferingCallbacks[F, MeasurementUnit](offerEvent: SkijaDownEvent[MeasurementUnit] => F):  skija.SkijaBackend.GlfwCallbacks[F, MeasurementUnit] =
+  skija.SkijaBackend.GlfwCallbacks(
     onWindowResized = _ => offerEvent(SkijaDownEvent.WindowResized),
     onMouseClick = (button, action, mods) => offerEvent(SkijaDownEvent.MouseClick(button, action, mods)),
     onMouseMove = newPosition => offerEvent(SkijaDownEvent.MouseMove(newPosition)),
@@ -58,7 +60,7 @@ object SkijaAppExample extends IOApp:
   private type Widget[Event] = SkijaWidget[IO, Float, String, String, Event, SkijaDownEvent[Float]]
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaApp[IO, String, String, SkijaDownEvent[Float]](
+    skijaGlfwApp[IO, String, String, SkijaDownEvent[Float]](
       widget = main, 
       updateLoopExecutionContext = this.runtime.compute,
       drawLoopExecutionContext = MainThread,
@@ -69,7 +71,14 @@ object SkijaAppExample extends IOApp:
             IO.raiseError(new Exception(error))
           case Right(value) =>
             IO.pure(value),
-      createGlfwCallbacks = eventOfferingCallbacks
+      createGlfwCallbacks = eventOfferingCallbacks,
+      settings = WindowCreationSettings(
+        title = "Gui4s window",
+        size = Rect(620f, 480f),
+        visible = true,
+        resizeable = false,
+        debugContext = true
+      )
     )
 
   def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, String, Float, Event, Boolean], Float, SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
@@ -102,17 +111,17 @@ object SkijaAppExample extends IOApp:
     end mapEvent
   end extension
 
-  def clickHandler[Window <: GlfwWindow[IO, Monitor, Float], Event, Monitor](window : Window): ClickHandler[Widget[Event], SkijaUpdate[IO, String, Float, Event, Boolean], Unit] =
+  def clickHandler[Event](currentMousePosition : IO[Point2d[Float]]): ClickHandler[Widget[Event], SkijaUpdate[IO, String, Float, Event, Boolean], Unit] =
     makeClickHandler(
       eventCatcherWithRect = eventCatcher,
-      currentMousePosition = liftIOToSkijaUpdate(window.currentMousePosition),
+      currentMousePosition = liftIOToSkijaUpdate(currentMousePosition),
     )(
       extractClickHandlerEvent
     )
 
   extension[Event](widget : Widget[Event])
-    def onClick[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](window : Window)(event : Event) : Widget[Event] =
-      clickHandler(window)(widget)(
+    def onClick(currentMousePosition : IO[Point2d[Float]])(event : Event) : Widget[Event] =
+      clickHandler(currentMousePosition)(widget)(
         (_, _) =>
           raiseEvents[IO, String, Float, Event](List(event)).as(true)
       )
@@ -238,7 +247,7 @@ object SkijaAppExample extends IOApp:
               text[Monitor, Window, SkijaDownEvent[Float]](
                 "# " + lineNumber.toString + " : " + state.toString,
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 24), new Paint().setColor(0xFF8484A4))
-              ).onClick[Monitor, Window](backend.window)(())
+              ).onClick(backend.window.currentMousePosition)(())
           ),
     )
   end app

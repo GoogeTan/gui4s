@@ -99,18 +99,17 @@ end runWhileNoError
 
 def updateLoop[
                 F[_] : Monad,
-                Update[_],
-                PlacedWidget <: EventConsumer[Update, F[PlacedWidget], DownEvent],
+                PlacedWidget,
                 DownEvent
               ](
-                runUpdate  : [A] => Update[A] => F[Either[ExitCode, A]]
+                  processEvent : (PlacedWidget, DownEvent) => F[Either[ExitCode, F[PlacedWidget]]]
               )(
                 initial: PlacedWidget,
                 pushNew: PlacedWidget => F[Unit],
                 nextEvent: F[DownEvent],
               ) : F[ExitCode] =
   Monad[F].tailRecM(initial)(
-    updateStep(_, nextEvent, runUpdate) >>= doIfLeft(pushNew)
+    updateStep(_, nextEvent, processEvent) >>= doIfLeft(pushNew)
   )
 end updateLoop
 
@@ -130,20 +129,18 @@ end doIfLeft
  * @return Left(widget), если обновление должно продолжиться, Right(ExitCode) иначе
  */
 def updateStep[
-              F[_] : Monad,
-              Update[_],
-              PlacedWidget <: EventConsumer[Update, F[PlacedWidget], DownEvent],
-              DownEvent
-            ](
-                widget     : PlacedWidget,
-                eventSource: F[DownEvent],
-                runUpdate  : [A] => Update[A] => F[Either[ExitCode, A]]
-            ): F[Either[PlacedWidget, ExitCode]] =
-  for
-    event         <- eventSource
-    exitCodeOrWidget   <- runUpdate[F[PlacedWidget]](widget.processEvent(event))
-    res <- exitCodeOrWidget match
-      case Left(value) => Right(value).pure[F]
-      case Right(value) => value.map(Left(_))
-  yield res
+                F[_] : Monad,
+                PlacedWidget,
+                DownEvent
+              ](
+                  widget     : PlacedWidget,
+                  eventSource: F[DownEvent],
+                  processEvent : (PlacedWidget, DownEvent) => F[Either[ExitCode, F[PlacedWidget]]]
+              ): F[Either[PlacedWidget, ExitCode]] =
+  eventSource.flatMap(event =>
+    processEvent(widget, event)
+  ).flatMap {
+    case Left(code) => Right(code).pure[F]
+    case Right(widget) => widget.map(Left(_))
+  }
 end updateStep

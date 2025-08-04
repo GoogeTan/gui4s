@@ -156,5 +156,11 @@ final case class OglGlfwWindow[F[_] : Sync](
     impure.delay:
       glfwSwapBuffers(id)
   end swapBuffers
+
+  override def makeContextCurrent: F[Unit] =
+    impure.delay(
+      glfwMakeContextCurrent(id)
+    )
+  end makeContextCurrent
 end OglGlfwWindow
 

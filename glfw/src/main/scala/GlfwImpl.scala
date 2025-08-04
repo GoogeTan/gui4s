@@ -17,12 +17,6 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRu
       glfwSwapInterval(interval)
   end swapInterval
 
-  override def createOGLContext(window : OglGlfwWindow[F]): F[Unit] =
-    impure.delay(
-      glfwMakeContextCurrent(window.id)
-    ) 
-  end createOGLContext
-
   override def primaryMonitor : F[Long] =
     impure.delay(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
