@@ -6,7 +6,7 @@ import catnip.syntax.all.given
 import cats.Monad
 import cats.syntax.all.*
 import me.*
-import me.katze.gui4s.glfw.GlfwWindow
+import me.katze.gui4s.glfw.{GlfwWindow, OglGlfwWindow}
 import me.katze.gui4s.layout.given
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
 
@@ -28,7 +28,7 @@ def skijaText[
   me.katze.gui4s.widget.library.text[
     SkijaUpdateT[IO, UpdateError, MeasurementUnit, Event],
     SkijaPlaceT[IO, MeasurementUnit, PlaceError],
-    SkijaDraw[IO, GlfwWindow[IO, Long, Float]],
+    SkijaDraw[IO, OglGlfwWindow],
     SkijaRecomposition[IO],
     DownEvent,
     SkijaPlacedText

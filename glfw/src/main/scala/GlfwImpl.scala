@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.system.MemoryUtil
 
 // TODO Сделать типизированные ошибки, а не использовать MonadThrow из Sync.
-final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRunF : [A] => F[A] => A) extends Glfw[F, Long, OglGlfwWindow[F]]:
+final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}] extends Glfw[F, Long, OglGlfwWindow]:
   override def swapInterval(interval: Int): F[Unit] =
     impure.delay:
       glfwSwapInterval(interval)
@@ -22,12 +22,12 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}](unsafeRu
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end primaryMonitor
 
-  override def createWindow(settings: WindowCreationSettings[Float]): Resource[F, OglGlfwWindow[F]] =
+  override def createWindow(settings: WindowCreationSettings[Float]): Resource[F, OglGlfwWindow] =
     Resource.make(
       for
         _ <- windowHints(settings.visible, settings.resizeable, settings.debugContext)
         id <- createWindowId(settings.size.width.toInt, settings.size.height.toInt, settings.title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
-      yield OglGlfwWindow(id, impure, unsafeRunF)
+      yield OglGlfwWindow(id)
     )(a => 
         impure.delay:
           glfwFreeCallbacks(a.id)
@@ -103,7 +103,7 @@ object GlfwImpl:
   def apply[F[_] : {ForeighFunctionInterface, Sync}](run : [A] => F[A] => A) : Resource[F, GlfwImpl[F]] =
     Resource.make(
       {
-        val res = new GlfwImpl[F](run)
+        val res = new GlfwImpl[F]()
         res.initGlfw.as(res)
       }
     )(_.terminate).flatMap(impl =>

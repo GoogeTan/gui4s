@@ -18,7 +18,8 @@ import me.katze.gui4s.example.app.skijaGlfwApp
 import me.katze.gui4s.example.skija.SkijaBackend
 import me.katze.gui4s.geometry.{Axis, Point2d, Rect}
 import me.katze.gui4s.glfw.KeyAction.Press
-import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, WindowCreationSettings}
+import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
+import me.katze.gui4s.glfw.GlfwWindow.*
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle, drawAt}
@@ -134,7 +135,7 @@ object SkijaAppExample extends IOApp:
 
   type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
 
-  def text[Monitor, Window <: GlfwWindow[IO, Monitor, Float], DownEvent](using backend : SkijaBackend[IO, Monitor, Window, DownEvent]) : TextWidget[Widget] =
+  def text[Monitor, Window, DownEvent](using backend : SkijaBackend[IO, Monitor, Window, DownEvent]) : TextWidget[Widget] =
     [Event] => (text: String, style: SkijaTextStyle) =>
       skijaText(ffi, skijaSizeText(ffi, backend.globalShaper, backend.globalTextCache), text, style)
   end text
@@ -161,7 +162,7 @@ object SkijaAppExample extends IOApp:
 
   // TODO refactor me
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def resource[Window <: GlfwWindow[IO, Monitor, Float], Monitor, Event](supervisor : Supervisor[IO], backend : SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : ResourceWidget[Widget[Event], IO] =
+  def resource[Window, Monitor, Event](supervisor : Supervisor[IO], backend : SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : ResourceWidget[Widget[Event], IO] =
     [Value : Typeable] => (name : String, resource : IO[(Value, IO[Unit])]) =>
       (widget : Option[Value] => Widget[Event]) =>
         transitiveStatefulWidget[Option[(Value, IO[Unit])], Event, (Value, IO[Unit])](
@@ -193,7 +194,7 @@ object SkijaAppExample extends IOApp:
       Marker,
       SkijaUpdateT[IO, String, Float, Event],
       SkijaPlaceT[IO, Float, String],
-      SkijaDraw[IO, GlfwWindow[IO, Long, Float]],
+      SkijaDraw[IO, OglGlfwWindow],
       SkijaRecomposition[IO],
       SkijaDownEvent[Float]
     ](
@@ -202,12 +203,12 @@ object SkijaAppExample extends IOApp:
         0f,
         0f
       ).pure[SkijaPlaceInnerT[IO, Float, String]],
-      ReaderT.pure[IO, SkijaDrawState[IO, GlfwWindow[IO, Long, Float]], Unit](()),
+      ReaderT.pure[IO, SkijaDrawState[IO, OglGlfwWindow], Unit](()),
       SkijaRecomposition.empty[IO]
     ).map(a => a)
   end leaf
 
-  def main[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](using SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
+  def main[Monitor](using SkijaBackend[IO, Monitor, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
     grid((0 until 10).toList)
   end main
 
@@ -222,14 +223,14 @@ object SkijaAppExample extends IOApp:
       axis,
       mainAxisStrategy,
       additionalAxisStrategy,
-      (draw, meta) => drawAt(summon, draw, meta.x, meta.y),
+      (draw, meta) => drawAt[IO, OglGlfwWindow](summon, draw, meta.x, meta.y),
       [T] => (update, meta) => addCoordinates[IO, String, Float, Event](meta.point) *> update <* addCoordinates[IO, String, Float, Event](-meta.point),
-      isEventHandled
+      isEventHandled[IO, String, Float, Event]
     )
   end layout
 
-  def app[Monitor, Window <: GlfwWindow[IO, Monitor, Float]](numbers : List[Int])(
-    using backend : SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]
+  def app[Monitor](numbers : List[Int])(
+    using backend : SkijaBackend[IO, Monitor, OglGlfwWindow, SkijaDownEvent[Float]]
   ) : Widget[ApplicationRequest] =
     layout(
       axis = Axis.Vertical,
@@ -242,21 +243,20 @@ object SkijaAppExample extends IOApp:
             initialState = 0,
             eventHandler = (state, _) => EventReaction(state + 1, Nil, Nil),
             body = state =>
-              text[Monitor, Window, SkijaDownEvent[Float]](
+              text[Monitor, OglGlfwWindow, SkijaDownEvent[Float]](
                 "# " + lineNumber.toString + " : " + state.toString,
                 SkijaTextStyle(new Font(Typeface.makeDefault(), 24), new Paint().setColor(0xFF8484A4))
-              ).onClick(backend.window.currentMousePosition)(())
+              ).onClick(backend.mousePosition)(())
           ),
     )
   end app
 
   def grid[
     Monitor, 
-    Window <: GlfwWindow[IO, Monitor, Float],
     Event
   ](
       numbers : List[Int]
-  )(using SkijaBackend[IO, Monitor, Window, SkijaDownEvent[Float]]) : Widget[Event] =
+  )(using SkijaBackend[IO, Monitor, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[Event] =
     layout(
       axis = Axis.Vertical,
       mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
@@ -271,7 +271,7 @@ object SkijaAppExample extends IOApp:
               children =
                 numbers.map:
                   lineJindex =>
-                    text[Monitor, Window, SkijaDownEvent[Float]](
+                    text[Monitor, OglGlfwWindow, SkijaDownEvent[Float]](
                       lineIndex.toString + ":" + lineJindex.toString,
                       SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))
                     )

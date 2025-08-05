@@ -5,7 +5,8 @@ import cats.Monad
 import cats.data.ReaderT
 import cats.syntax.all.*
 import io.github.humbleui.skija.{Canvas, DirectContext}
-import me.katze.gui4s.glfw.GlfwWindow
+import me.katze.gui4s.glfw.*
+import me.katze.gui4s.glfw.GlfwWindow.*
 
 type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 
@@ -43,10 +44,10 @@ def drawAt[
   F[_] : Monad,
   Window,
 ](
-   ffi : ForeighFunctionInterface[F],
-   original: SkijaDraw[F, Window],
-   x : Float,
-   y : Float
+    ffi : ForeighFunctionInterface[F],
+    original: SkijaDraw[F, Window],
+    x : Float,
+    y : Float
 ): SkijaDraw[F, Window] =
   ReaderT[F, SkijaDrawState[F, Window], Unit](
     state =>
@@ -70,7 +71,7 @@ end drawText
 
 def flush[
   F[_] : {Monad, ForeighFunctionInterface as I},
-  Window <: GlfwWindow[F, Monitor, Pixels],
+  Window : GlfwWindowT[F, Monitor, Pixels],
   Monitor,
   Pixels,
 ]: SkijaDraw[F, Window] =

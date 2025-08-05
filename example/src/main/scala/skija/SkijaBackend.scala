@@ -2,28 +2,22 @@ package me.katze.gui4s.example
 package skija
 
 import catnip.ForeighFunctionInterface
-import cats.{Apply, MonadError, Monoid}
-import cats.effect.{Async, Clock, Concurrent, ExitCode, Resource}
-import cats.effect.std.Console
-import me.katze.gui4s.geometry.{Point2d, Rect}
-import me.katze.gui4s.glfw.{GlfwImpl, KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
-import me.katze.gui4s.skija.{SkijaDraw, SkijaInit, SkijaInitImpl, flush}
-import me.katze.gui4s.widget.draw.Drawable
-import scalacache.caffeine.CaffeineCache
-
-import cats.{Functor, Monad}
-import cats.effect.std.{AtomicCell, Dispatcher, QueueSink, Supervisor}
-import cats.syntax.all.*
-import cats.effect.syntax.all.*
-import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.glfw.{Glfw, GlfwWindow}
-import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.skija.{SkiaRenderTarget, SkijaDrawState, SkijaPlacedText, SkijaTextStyle, given}
-import cats.syntax.all.*
-import me.katze.gui4s.layout.Sized
-import scalacache.Cache
-
 import catnip.syntax.all.{*, given}
+import cats.effect.std.{AtomicCell, Console, Dispatcher, QueueSink, Supervisor}
+import cats.effect.syntax.all.*
+import cats.effect.*
+import cats.syntax.all.*
+import cats.{Apply, Functor, Monad, MonadError, Monoid}
+import io.github.humbleui.skija.shaper.Shaper
+import me.katze.gui4s.geometry.{Point2d, Rect}
+import me.katze.gui4s.glfw.*
+import me.katze.gui4s.glfw.GlfwWindow.*
+import me.katze.gui4s.layout.Sized
+import me.katze.gui4s.layout.bound.Bounds
+import me.katze.gui4s.skija.*
+import me.katze.gui4s.widget.draw.Drawable
+import scalacache.Cache
+import scalacache.caffeine.CaffeineCache
 
 import scala.annotation.experimental
 
@@ -31,21 +25,27 @@ import scala.annotation.experimental
 final case class SkijaBackend[
   F[_],
   Monitor,
-  +Window <: GlfwWindow[F, Monitor, Float],
+  Window,
   DownEvent
 ](
   queue : QueueSink[F, DownEvent],
-  glfw : Glfw[F, Monitor, ?],
+  glfw : Glfw[F, Monitor, Window],
   window: Window,
   renderTargetCell : AtomicCell[F, SkiaRenderTarget],
   globalDispatcher : Dispatcher[F],
   globalSupervisor : Supervisor[F],
   globalShaper : Shaper,
   globalTextCache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+)(
+  using val windowIsGlfwWindow : GlfwWindow[F, Window, Monitor, Float]
 ):
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
     window.frameBufferSize.map(a => new Bounds(a.width.toFloat, a.height.toFloat))
   end windowBounds
+
+  def mousePosition : F[Point2d[Float]] =
+    window.currentMousePosition
+  end mousePosition
 
   def windowShouldNotClose(using M : Monad[F]) : F[Boolean] =
     window.shouldNotClose
@@ -87,12 +87,13 @@ object SkijaBackend:
       settings : WindowCreationSettings[Float],
       ffi: ForeighFunctionInterface[F],
       callbacks : GlfwCallbacks[F[Unit], Float],
-    ): Resource[F, SkijaBackend[F, Long, GlfwWindow[F, Long, Float], DownEvent]] =
+    ): Resource[F, SkijaBackend[F, Long, OglGlfwWindow, DownEvent]] =
     for
       skija <- Resource.eval(SkijaInitImpl(ffi))
       dispatcher <- Dispatcher.sequential[F]
       supervisor <- Supervisor[F]
-      glfw: Glfw[F, Long, OglGlfwWindow[F]] <- GlfwImpl[F](dispatcher)(using ffi)
+      glfw: Glfw[F, Long, OglGlfwWindow] <- GlfwImpl[F](dispatcher)(using ffi)
+      given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(ffi, [T] => f => dispatcher.unsafeRunSync(f))
       res <- createForTests(queue, glfw, skija, dispatcher, supervisor, settings, callbacks)
     yield res
   end createForTestsTrue
@@ -100,7 +101,7 @@ object SkijaBackend:
   def createForTests[
     F[+_] : {Async, Console},
     Monitor,
-    Window <: me.katze.gui4s.glfw.GlfwWindow[F, Monitor, Float],
+    Window : GlfwWindowT[F, Monitor, Float],
     DownEvent
   ](
       queue : QueueSink[F, DownEvent],
@@ -166,7 +167,7 @@ object SkijaBackend:
   def registerCallbacks[
     IO[_] : Apply,
     Monitor,
-    Window <: me.katze.gui4s.glfw.GlfwWindow[IO, Monitor, MeasurementUnit],
+    Window : GlfwWindowT[IO, Monitor, MeasurementUnit],
     MeasurementUnit
   ](
       window: Window,
@@ -183,7 +184,7 @@ end SkijaBackend
 def skijaDrawLoop[
   F[+_] : {Console as C, ForeighFunctionInterface, Clock},
   Monitor,
-  Window <: me.katze.gui4s.glfw.GlfwWindow[F, Monitor, Float],
+  Window : GlfwWindowT[F, Monitor, Float],
   DownEvent,
   Widget
 ](

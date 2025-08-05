@@ -28,18 +28,18 @@ import scala.language.experimental.namedTypeArguments
 
 @experimental
 def skijaGlfwApp[
-  F[+_] : {Async as FAsync, Console, ForeighFunctionInterface},
+  F[+_] : {Async as FAsync, Console, ForeighFunctionInterface as ffi},
   UpdateError,
   PlaceError,
   DownEvent
 ](
-   widget: SkijaBackend[F, Long, GlfwWindow[F, Long, Float], DownEvent] ?=> SkijaWidget[F, Float, UpdateError, PlaceError, ApplicationRequest, DownEvent],
-   updateLoopExecutionContext: ExecutionContext,
-   drawLoopExecutionContext: ExecutionContext,
-   updateErrorAsExitCode : UpdateError => F[ExitCode],
-   runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T],
-   createGlfwCallbacks : (DownEvent => F[Unit]) =>  skija.SkijaBackend.GlfwCallbacks[F[Unit], Float],
-   settings : WindowCreationSettings[Float],
+    widget: SkijaBackend[F, Long, OglGlfwWindow, DownEvent] ?=> SkijaWidget[F, Float, UpdateError, PlaceError, ApplicationRequest, DownEvent],
+    updateLoopExecutionContext: ExecutionContext,
+    drawLoopExecutionContext: ExecutionContext,
+    updateErrorAsExitCode : UpdateError => F[ExitCode],
+    runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T],
+    createGlfwCallbacks : (DownEvent => F[Unit]) =>  skija.SkijaBackend.GlfwCallbacks[F[Unit], Float],
+    settings : WindowCreationSettings[Float],
 ): F[ExitCode] =
   type PlacedWidget = SkijaPlacedWidget[F, Float, UpdateError, PlaceError, ApplicationRequest, DownEvent]
 
@@ -47,7 +47,7 @@ def skijaGlfwApp[
     F,
     DownEvent,
     PlacedWidget,
-    SkijaBackend[F, Long, GlfwWindow[F, Long, Float], DownEvent]
+    SkijaBackend[F, Long, OglGlfwWindow, DownEvent]
   ](
     backend = downEventSink => SkijaBackend.createForTestsTrue(
       queue = downEventSink,
@@ -56,8 +56,9 @@ def skijaGlfwApp[
       callbacks = createGlfwCallbacks(downEventSink.offer)
     ),
     drawLoop = backend =>
+      given a : backend.windowIsGlfwWindow.type = backend.windowIsGlfwWindow // TODO remove this 
       runDrawLoopOnExecutionContext(
-        skijaDrawLoop[F, Long, GlfwWindow[F, Long, Float], DownEvent, PlacedWidget](backend, widgetIsDrawable),
+        skijaDrawLoop[F, Long, OglGlfwWindow, DownEvent, PlacedWidget](backend, widgetIsDrawable),
         drawLoopExecutionContext
       ),
     updateLoop = backend => runUpdateLoopOnExecutionContext[F, PlacedWidget, DownEvent](

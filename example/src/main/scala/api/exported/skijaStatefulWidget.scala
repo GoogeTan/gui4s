@@ -7,7 +7,7 @@ import catnip.syntax.all.{*, given}
 import cats.{Applicative, Monad}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import me.katze.gui4s.glfw.GlfwWindow
+import me.katze.gui4s.glfw.{GlfwWindow, OglGlfwWindow}
 import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget.library.{StatefulWidget, widgetsAreMergable}
 import me.katze.gui4s.widget.{EventReaction, Path, StatefulState}
@@ -55,17 +55,17 @@ def skijaStateful[
   Event,
   ChildEvent,
 ](
-   name : String,
-   initialState : State,
-   handleEvent : (State, NonEmptyList[ChildEvent]) => EventReaction[State, Event, Path => F[Unit]],
-   render : State => SkijaWidget[F, MeasurementUnit, UpdateError, PlaceError, ChildEvent, DownEvent],
-   destructor : State => SkijaRecomposition[F],
-   typecheckError : (Any, Path) => PlaceError
- ) : SkijaWidget[F, MeasurementUnit, UpdateError, PlaceError, Event, DownEvent] =
+    name : String,
+    initialState : State,
+    handleEvent : (State, NonEmptyList[ChildEvent]) => EventReaction[State, Event, Path => F[Unit]],
+    render : State => SkijaWidget[F, MeasurementUnit, UpdateError, PlaceError, ChildEvent, DownEvent],
+    destructor : State => SkijaRecomposition[F],
+    typecheckError : (Any, Path) => PlaceError
+) : SkijaWidget[F, MeasurementUnit, UpdateError, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.stateful[
     SkijaUpdate[F, UpdateError, MeasurementUnit, *, *],
     SkijaPlaceT[F, MeasurementUnit, PlaceError],
-    SkijaDraw[F, GlfwWindow[F, Long, Float]],
+    SkijaDraw[F, OglGlfwWindow],
     SkijaRecomposition[F],
     DownEvent,
     EventReaction[State, Event, Path => F[Unit]],
