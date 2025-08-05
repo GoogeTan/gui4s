@@ -26,7 +26,7 @@ def skijaStateful[
   MeasurementUnit,
 ](
     typecheckError: (Any, Path) => PlaceError,
- ) : StatefulWidget[
+) : StatefulWidget[
   [Event] =>> SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
   Update,
   [Value] =>> Value => RecompositionReaction
@@ -36,13 +36,17 @@ def skijaStateful[
     Update,
     [Value] =>> Value => RecompositionReaction
   ]:
-    override def apply[State: Typeable, Event, ChildEvent](
-                                                            name: String,
-                                                            initialState: State,
-                                                            eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
-                                                            body: State => SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[ChildEvent, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
-                                                            destructor : State => RecompositionReaction
-                                                          ): SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]] =
+    override def apply[
+      State: Typeable,
+      Event, 
+      ChildEvent
+    ](
+      name: String,
+      initialState: State,
+      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
+      body: State => SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[ChildEvent, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
+      destructor : State => RecompositionReaction
+    ): SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]] =
       library.stateful[
         Update,
         SkijaPlaceT[F, MeasurementUnit, PlaceError],

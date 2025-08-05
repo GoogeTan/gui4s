@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 
 import api.exported.{*, given}
-import app.skijaGlfwApp
+import app.{SkijaWidget, skijaGlfwApp}
 import place.*
 import skija.SkijaBackend
 import update.ApplicationRequest
