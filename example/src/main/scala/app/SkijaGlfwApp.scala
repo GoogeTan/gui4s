@@ -64,12 +64,12 @@ def skijaGlfwApp[
             [T] => (place : SkijaPlaceT[F, Float, PlaceError][T]) =>
               runEitherTError(SkijaPlace.run[F, Float, PlaceError](backend.windowBounds)(place))
 
-          SkijaUpdate.handleApplicationRequests[F, UpdateError, Float](updateErrorAsExitCode)(
+          SkijaUpdate.handleApplicationRequests[F, Float, UpdateError](updateErrorAsExitCode)(
             processEvent[
               F,
               PlacedWidget,
               SkijaPlaceT[F, Float, PlaceError],
-              SkijaUpdateT[F, UpdateError, Float, ApplicationRequest],
+              SkijaUpdateT[F, Float, UpdateError, ApplicationRequest],
               SkijaRecomposition[F],
               DownEvent
             ](

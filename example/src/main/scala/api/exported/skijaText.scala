@@ -12,9 +12,6 @@ import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawTex
 
 import scala.language.experimental.namedTypeArguments
 
-
-
-
 def skijaText[
   IO[_] : Monad,
   UpdateError,
@@ -29,7 +26,7 @@ def skijaText[
   style : SkijaTextStyle,
 ) : SkijaWidget[IO, MeasurementUnit, UpdateError, PlaceError, Event, DownEvent] =
   me.katze.gui4s.widget.library.text[
-    SkijaUpdateT[IO, UpdateError, MeasurementUnit, Event],
+    SkijaUpdateT[IO, MeasurementUnit, UpdateError, Event],
     SkijaPlaceT[IO, MeasurementUnit, PlaceError],
     SkijaDraw[IO, OglGlfwWindow],
     SkijaRecomposition[IO],
