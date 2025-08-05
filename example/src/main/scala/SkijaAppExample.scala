@@ -80,28 +80,28 @@ object SkijaAppExample extends IOApp:
     )
 
   def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, String, Float, Event, Boolean], Float, SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
-    markEventHandled,
-    getCoordinates,
+    SkijaUpdate.markEventHandled,
+    SkijaUpdate.getCoordinates,
   )
 
   def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
     rememberLastEventOfTheType[Widget, SkijaUpdate[IO, String, Float, *, *], Float, Event, SkijaDownEvent[Float], Point2d[Float], Boolean](
       eventCatcherWithRect = eventCatcher,
       statefulWidget = transitiveStatefulWidget,
-      mapUpdate = [A, B] => f => mapEvents(f),
-      mapEvent = library.mapEvent2([T, A, B] => f => mapEvents(f)),
+      mapUpdate = [A, B] => f => SkijaUpdate.mapEvents(f),
+      mapEvent = library.mapEvent2([T, A, B] => f => SkijaUpdate.mapEvents(f)),
       name = name,
       catchEvent =
         (path, rect, event) =>
           event match
             case SkijaDownEvent.MouseMove(newPosition) =>
-              raiseEvents[IO, String, Float, Point2d[Float]](List(newPosition)).as(false)
+              SkijaUpdate.raiseEvents[IO, String, Float, Point2d[Float]](List(newPosition)).as(false)
             case _ => false.pure[SkijaUpdateT[IO, String, Float, Point2d[Float]]]
     )
   end mouseTracker
 
   def mmapEvent : MapEvent[Widget] =
-    library.mapEvent2([T, A, B] => (f : A => B) => mapEvents(f))
+    library.mapEvent2([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))
 
   extension[Event](value : Widget[Event])
     def mapEvent[NewEvent](f : Event => NewEvent) : Widget[NewEvent] =
@@ -112,7 +112,7 @@ object SkijaAppExample extends IOApp:
   def clickHandler[Event](currentMousePosition : IO[Point2d[Float]]): ClickHandler[Widget[Event], SkijaUpdate[IO, String, Float, Event, Boolean], Unit] =
     makeClickHandler(
       eventCatcherWithRect = eventCatcher,
-      currentMousePosition = liftIOToSkijaUpdate(currentMousePosition),
+      currentMousePosition = SkijaUpdate.liftF(currentMousePosition),
     )(
       extractClickHandlerEvent
     )
@@ -121,7 +121,7 @@ object SkijaAppExample extends IOApp:
     def onClick(currentMousePosition : IO[Point2d[Float]])(event : Event) : Widget[Event] =
       clickHandler(currentMousePosition)(widget)(
         (_, _) =>
-          raiseEvents[IO, String, Float, Event](List(event)).as(true)
+          SkijaUpdate.raiseEvents[IO, String, Float, Event](List(event)).as(true)
       )
     end onClick
   end extension
@@ -132,7 +132,7 @@ object SkijaAppExample extends IOApp:
 
   def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, SkijaUpdate[IO, String, Float, *, *]] =
     TransitiveStatefulWidgetFromStatefulWidget[Widget, SkijaUpdate[IO, String, Float, *, *], [Value] =>> Value => SkijaRecomposition[IO]](
-      statefulWidget, [Event] => events => raiseEvents[IO, String, Float, Event](events)
+      statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, String, Float, Event](events)
     )
 
   type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
@@ -181,7 +181,7 @@ object SkijaAppExample extends IOApp:
                 event match
                   case SkijaDownEvent.TaskRaisedEvent(taskPath, value : Any) if path == taskPath =>
                     destructableIsTypeable.unapply(value) match
-                      case Some(event) => raiseEvents[IO, String, Float, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
+                      case Some(event) => SkijaUpdate.raiseEvents[IO, String, Float, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
                       case _ => false.pure[SkijaUpdateT[IO, String, Float, Either[(Value, IO[Unit]), Event]]]
                   case _ => false.pure[SkijaUpdateT[IO, String, Float, Either[(Value, IO[Unit]), Event]]]
               ),
@@ -215,10 +215,10 @@ object SkijaAppExample extends IOApp:
   end main
 
   def layout[Event](
-                     children : List[Widget[Event]],
-                     axis : Axis,
-                     mainAxisStrategy : MainAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
-                     additionalAxisStrategy : AdditionalAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
+                      children : List[Widget[Event]],
+                      axis : Axis,
+                      mainAxisStrategy : MainAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
+                      additionalAxisStrategy : AdditionalAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
                     ) : Widget[Event] =
     skijaLayout(
       children,
@@ -226,8 +226,8 @@ object SkijaAppExample extends IOApp:
       mainAxisStrategy,
       additionalAxisStrategy,
       (draw, meta) => drawAt[IO, OglGlfwWindow](summon, draw, meta.x, meta.y),
-      [T] => (update, meta) => addCoordinates[IO, String, Float, Event](meta.point) *> update <* addCoordinates[IO, String, Float, Event](-meta.point),
-      isEventHandled[IO, String, Float, Event]
+      [T] => (update, meta) => SkijaUpdate.addCoordinates[IO, String, Float, Event](meta.point) *> update <* SkijaUpdate.addCoordinates[IO, String, Float, Event](-meta.point),
+      SkijaUpdate.isEventHandled[IO, String, Float, Event]
     )
   end layout
 
