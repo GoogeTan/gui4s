@@ -9,10 +9,10 @@ import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.Widget
 
+type EventHandleDecorator[Widget, Update] = (Widget, Update => Update) => Widget
+
 /**
  * Декорирует обновление виджета.
- * @param original Декорируемый виджет
- * @param decorator Декоратор
  */
 def eventHandleDecorator[
   T,
@@ -21,13 +21,12 @@ def eventHandleDecorator[
   Draw,
   RecompositionReaction,
   HandleableEvent,
-](
-   original : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
-   decorator : HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
-) : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
-  original.copy(
-    valueHandlesEvent = decorator(original.valueHandlesEvent)
-  )
+] : EventHandleDecorator[
+  Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  HandlesEvent[T, HandleableEvent, Update[Place[T]]]
+] =
+  (original, decorator) =>
+    original.copy(valueHandlesEvent = decorator(original.valueHandlesEvent))
 end eventHandleDecorator
 
 /**
@@ -46,11 +45,11 @@ def eventCatcher[
 ](
   markEventHandled : Update[Unit]
 )(
-   original : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  original : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
 )(
     decorator : (Path, HandleableEvent) => Update[Boolean]
 ) : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
-  eventHandleDecorator(
+  eventHandleDecorator[T, Update, Place, Draw, RecompositionReaction, HandleableEvent](
     original,
     handler =>
       (state, path, event) =>

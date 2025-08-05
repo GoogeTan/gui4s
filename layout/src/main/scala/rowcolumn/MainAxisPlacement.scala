@@ -30,9 +30,9 @@ object MainAxisPlacement:
     ) : MainAxisPlacement[Place, MeasurementUnit] =
         (children, bounds) =>
             bounds
-              .max
-              .map(space => (space, placeCenterManyWithGap(children, space, gap).map(_.coordinateOfStart)))
-              .getOrRaiseError(errorWhenInfiniteSpace)
+                .max
+                .map(space => (space, placeCenterManyWithGap(children, space, gap).map(_.coordinateOfStart)))
+                .getOrRaiseError(errorWhenInfiniteSpace)
     end Center
 
     def End[

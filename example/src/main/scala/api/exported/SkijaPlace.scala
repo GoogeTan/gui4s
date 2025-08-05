@@ -19,7 +19,16 @@ type SkijaPlaceInnerT[IO[_], MeasurementUnit, Error] = SkijaPlaceInner[IO, Measu
 type SkijaPlace[IO[_], MeasurementUnit, Error, Value] = SkijaPlaceInner[IO, MeasurementUnit, Error, Sized[MeasurementUnit, Value]]
 type SkijaPlaceT[IO[_], MeasurementUnit, Error] = SkijaPlace[IO, MeasurementUnit, Error, *]
 
-given skijaInnerMonadIsAnMonadError[F[_] : Monad, MeasurementUnit, Error] : MonadError[SkijaPlaceInner[F, MeasurementUnit, Error, *], Error] = summon
+given skijaInnerMonadIsAnMonadError[IO[_] : Monad, MeasurementUnit, Error] : MonadError[SkijaPlaceInner[IO, MeasurementUnit, Error, *], Error] = summon
+
+def withBounds[IO[_] : Monad, MeasurementUnit, Error, T](original : SkijaPlaceInner[IO, MeasurementUnit, Error, T], bounds : Bounds[MeasurementUnit] => Bounds[MeasurementUnit]) : SkijaPlaceInner[IO, MeasurementUnit, Error, T] =
+  for
+    initialBounds <- GetBounds.getBoundsStateT[EitherT[IO, Error, *], MeasurementUnit] // Это skijaGetBounds, но почему-то, если его вызвать, а не подставить его тело, то не найдется метод flatMap
+    _ <- skijaSetBounds(bounds(initialBounds))
+    result <- original
+    _ <- skijaSetBounds(initialBounds)
+  yield result
+end withBounds
 
 def raiseError[IO[_] : Monad, MeasurementUnit, PlaceError, Value](error : => PlaceError) : SkijaPlaceInner[IO, MeasurementUnit, PlaceError, Value] =
   StateT.liftF(EitherT.left(error.pure))

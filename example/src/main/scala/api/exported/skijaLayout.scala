@@ -1,9 +1,6 @@
 package me.katze.gui4s.example
 package api.exported
 
-import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement, rowColumnLayoutPlacement}
-import place.*
-
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.Monad
@@ -14,9 +11,10 @@ import api.{LayoutPlacementMeta, given}
 
 import cats.kernel.Monoid
 import me.katze.gui4s.geometry.Axis
-import me.katze.gui4s.layout.bound.{AxisBounds, Bounds}
+import me.katze.gui4s.layout.bound.Bounds
+import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement, rowColumnLayoutPlacement}
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy, Widget, linearLayout}
+import me.katze.gui4s.widget.library.{Widget, linearLayout}
 
 import scala.language.experimental.namedTypeArguments
 
@@ -106,9 +104,17 @@ def placementAwareLayout[
       children,
       mainAxisPlacement,
       additionalAxisPlacement
-    ).map(_.mapValue(unpack)),
+    ).map(_.mapValue(placedChildrenAsChildrenWithMetadata)),
     adjustDrawToMeta = drawAt,
     adjustUpdateToMeta = updateAt,
     isEventConsumed = isEventConsumed
   )
 end placementAwareLayout
+
+def placedChildrenAsChildrenWithMetadata[MeasurementUnit, T](lst: List[Placed[MeasurementUnit, T]]): List[(T, LayoutPlacementMeta[MeasurementUnit])] =
+  lst.map(placedElementAsLayoutMetadata)
+end placedChildrenAsChildrenWithMetadata
+
+def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[MeasurementUnit, T]) : (T, LayoutPlacementMeta[MeasurementUnit]) =
+  (placed.value, new LayoutPlacementMeta(placed))
+end placedElementAsLayoutMetadata

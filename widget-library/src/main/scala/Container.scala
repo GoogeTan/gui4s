@@ -2,27 +2,28 @@ package me.katze.gui4s.widget.library
 
 import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
-import cats.{Applicative, Functor, Monad, Monoid}
+import cats.{Functor, Monad, Monoid}
 import me.*
+import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.widget.Container
 import me.katze.gui4s.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
 import me.katze.gui4s.widget.free.containerAsFree
 import me.katze.gui4s.widget.handle.{Layout, childrenHandleEvent, containerHandlesEvent}
-import me.katze.gui4s.widget.library.{AdditionalAxisPlacementStrategy, MainAxisPlacementStrategy}
 import me.katze.gui4s.widget.merge.containerMergesWithOldStates
 import me.katze.gui4s.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
 import me.katze.gui4s.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}
 
 type LinearLayout[
-  Widget[_],
+  Widget,
+  Place[_],
   MeasurementUnit,
   Axis,
-] = [Event] => (
-  children               : List[Widget[Event]],
+] = (
+  children               : List[Widget],
   mainAxis               : Axis,
-  mainAxisStrategy       : MainAxisPlacementStrategy[MeasurementUnit],
-  additionalAxisStrategy : AdditionalAxisPlacementStrategy,
-) => Widget[Event]
+  mainAxisStrategy       : MainAxisPlacement[Place, MeasurementUnit],
+  additionalAxisStrategy : AdditionalAxisPlacement[Place, MeasurementUnit],
+) => Widget
 
 def linearLayout[
   Update[_] : Monad,

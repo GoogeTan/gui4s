@@ -15,10 +15,12 @@ final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementU
     copy(value = f(value))
   end mapValue
 
+  def withSize[NewMeasurementUnit](newSize : Rect[NewMeasurementUnit]) : Sized[NewMeasurementUnit, T] =
+    Sized(value, newSize)
+  end withSize
+
   /**
    * Возвращает ширину вдоль оси
-   * @param axis
-   * @return
    */
   def lengthAlong(axis : Axis) : MeasurementUnit =
     axis match

@@ -32,6 +32,12 @@ final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUni
     end match
   end cutAlong
   
+  def cut[T >: MeasurementUnit](horizontal : T, vertical : T)(using Numeric[T]) : Bounds[T] =
+    Bounds(
+      this.horizontal.cut(horizontal),
+      this.vertical.cut(vertical)
+    )
+  
   def along(axis : Axis) : AxisBounds[MeasurementUnit] =
     axis match
       case Axis.Vertical => horizontal
