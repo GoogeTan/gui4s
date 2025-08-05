@@ -3,39 +3,41 @@ package api.exported
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.given
-import cats.Monad
+import cats.{Monad, Monoid}
 import cats.syntax.all.*
 import me.*
 import me.katze.gui4s.glfw.{GlfwWindow, OglGlfwWindow}
 import me.katze.gui4s.layout.given
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
+import me.katze.gui4s.widget.library.Widget
 
 import scala.language.experimental.namedTypeArguments
 
 def skijaText[
   IO[_] : Monad,
-  UpdateError,
+  Update[_] : Monad,
+  RecompositionReaction : Monoid as RRM,
+  HandlableEvent,
+  Window,
   PlaceError,
   MeasurementUnit,
-  DownEvent,
-  Event
 ](
   ffi : ForeighFunctionInterface[IO],
   textSizer : SizeText[SkijaPlaceT[IO, MeasurementUnit, PlaceError]],
   text : String,
   style : SkijaTextStyle,
-) : SkijaWidget[IO, MeasurementUnit, UpdateError, PlaceError, Event, DownEvent] =
+) : SkijaPlace[IO, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[IO, MeasurementUnit, PlaceError], SkijaDraw[IO, Window], RecompositionReaction, HandlableEvent]] =
   me.katze.gui4s.widget.library.text[
-    SkijaUpdateT[IO, MeasurementUnit, UpdateError, Event],
+    Update,
     SkijaPlaceT[IO, MeasurementUnit, PlaceError],
-    SkijaDraw[IO, OglGlfwWindow],
-    SkijaRecomposition[IO],
-    DownEvent,
+    SkijaDraw[IO, Window],
+    RecompositionReaction,
+    HandlableEvent,
     SkijaPlacedText
   ](
     textSizer(text, style),
     drawText(ffi, _),
-    SkijaRecomposition.empty[IO],
+    RRM.empty,
   )
 end skijaText
 
