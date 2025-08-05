@@ -3,11 +3,11 @@ package api.exported
 
 import place.{RunPlacement, runPlaceStateT}
 
-import catnip.ForeighFunctionInterface
+import catnip.*
 import catnip.syntax.additional.*
-import cats.data.{EitherT, StateT}
-import cats.syntax.all.*
-import cats.{FlatMap, Monad, MonadError, ~>}
+import _root_.cats.data.{EitherT, StateT}
+import _root_.cats.syntax.all.*
+import _root_.cats.{FlatMap, Monad, MonadError, ~>}
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.bound.{Bounds, GetBounds, SetBounds}
@@ -22,7 +22,7 @@ type SkijaPlaceT[IO[_], MeasurementUnit, Error] = SkijaPlace[IO, MeasurementUnit
 object SkijaOuterPlace:
   def withBounds[IO[_] : Monad, MeasurementUnit, Error, T](original : SkijaOuterPlace[IO, MeasurementUnit, Error, T], bounds : Bounds[MeasurementUnit] => Bounds[MeasurementUnit]) : SkijaOuterPlace[IO, MeasurementUnit, Error, T] =
     for
-      initialBounds <- GetBounds.getBoundsStateT[EitherT[IO, Error, *], MeasurementUnit] // Это skijaGetBounds, но почему-то, если его вызвать, а не подставить его тело, то не найдется метод flatMap
+      initialBounds <- Get.stateT[EitherT[IO, Error, *], Bounds[MeasurementUnit]] // Это skijaGetBounds, но почему-то, если его вызвать, а не подставить его тело, то не найдется метод flatMap
       _ <- setBounds(bounds(initialBounds))
       result <- original
       _ <- setBounds(initialBounds)
@@ -40,11 +40,11 @@ object SkijaOuterPlace:
   end run
 
   def getBounds[IO[_] : Monad, MeasurementUnit, PlaceError]: GetBounds[SkijaOuterPlace[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
-    GetBounds.getBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
+    Get.stateT[EitherT[IO, PlaceError, *], Bounds[MeasurementUnit]]
   end getBounds
 
   def setBounds[IO[_] : Monad, MeasurementUnit, PlaceError]: SetBounds[SkijaOuterPlace[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
-    SetBounds.setBoundsStateT[EitherT[IO, PlaceError, *], MeasurementUnit]
+    Set.stateT[EitherT[IO, PlaceError, *], Bounds[MeasurementUnit]]
   end setBounds
 end SkijaOuterPlace
 
