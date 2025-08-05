@@ -40,7 +40,7 @@ final case class SkijaBackend[
   using val windowIsGlfwWindow : GlfwWindow[F, Window, Monitor, Float]
 ):
   def windowBounds(using Functor[F]) : F[Bounds[Float]] =
-    window.frameBufferSize.map(a => new Bounds(a.width.toFloat, a.height.toFloat))
+    window.frameBufferSize.map(a => new Bounds(a.width, a.height))
   end windowBounds
 
   def mousePosition : F[Point2d[Float]] =
@@ -93,7 +93,7 @@ object SkijaBackend:
       dispatcher <- Dispatcher.sequential[F]
       supervisor <- Supervisor[F]
       glfw: Glfw[F, Long, OglGlfwWindow] <- GlfwImpl[F](dispatcher)(using ffi)
-      given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(ffi, [T] => f => dispatcher.unsafeRunSync(f))
+      given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(ffi, dispatcher.unsafeRunAndForget)
       res <- createForTests(queue, glfw, skija, dispatcher, supervisor, settings, callbacks)
     yield res
   end createForTestsTrue
@@ -160,7 +160,7 @@ object SkijaBackend:
                                           size : Rect[Float]
                                         ): F[Unit] =
     cell.evalUpdate(state =>
-      skija.createRenderTarget(state.directContext, size.width.toFloat, size.height.toFloat, state.dpi)
+      skija.createRenderTarget(state.directContext, size.width, size.height, state.dpi)
     )
   end recreateRenderTarget
 
@@ -173,7 +173,7 @@ object SkijaBackend:
       window: Window,
       glfwCallbacks: GlfwCallbacks[IO[Unit], MeasurementUnit]
     ): IO[Unit] =
-    window.windowResizeCallback(glfwCallbacks.onWindowResized)
+    window.frameBufferResizeCallback(glfwCallbacks.onWindowResized)
       *> window.mouseButtonCallback(glfwCallbacks.onMouseClick)
       *> window.keyCallback(glfwCallbacks.onKeyPress)
       *> window.scrollCallback(glfwCallbacks.onScroll)
@@ -195,7 +195,7 @@ def skijaDrawLoop[
     drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
       currentWidget.flatMap(widget =>
         backend.drawState((widgetIsDrawable(widget) |+| flush[F, Window, Monitor, Float]).run) *> backend.pollEvents
-      ).timed.flatMap((duration, _) => C.println(duration)) // TODO Remove me
+      )
     ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop
 

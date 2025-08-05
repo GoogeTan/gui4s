@@ -3,24 +3,20 @@ package app
 
 import api.exported.{*, given}
 import place.RunPlacement
+import skija.{SkijaBackend, skijaDrawLoop}
 import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
-import catnip.cats.effect.ContextForeighFunctionInterface
-import catnip.syntax.all.{*, given}
-import cats.Functor
+import catnip.syntax.all.given
 import cats.data.EitherT
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
 import me.katze.*
 import me.katze.gui4s.example
-import me.katze.gui4s.example.skija.{SkijaBackend, skijaDrawLoop}
-import me.katze.gui4s.geometry.Rect
 import me.katze.gui4s.glfw.*
-import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.skija.{SkijaDraw, given}
+import me.katze.gui4s.layout.given
 import me.katze.gui4s.widget.Path
-import me.katze.gui4s.widget.library.{processEvent, widgetHandlesEvent, widgetHasInnerStates, widgetIsDrawable, widgetReactsOnRecomposition}
+import me.katze.gui4s.widget.library.*
 
 import scala.annotation.experimental
 import scala.concurrent.ExecutionContext
@@ -52,11 +48,11 @@ def skijaGlfwApp[
     backend = downEventSink => SkijaBackend.createForTestsTrue(
       queue = downEventSink,
       settings = settings,
-      ffi = ContextForeighFunctionInterface(drawLoopExecutionContext, summon),
+      ffi = summon,
       callbacks = createGlfwCallbacks(downEventSink.offer)
-    ),
+    ).evalOn(drawLoopExecutionContext),
     drawLoop = backend =>
-      given a : backend.windowIsGlfwWindow.type = backend.windowIsGlfwWindow // TODO remove this 
+      given a : backend.windowIsGlfwWindow.type = backend.windowIsGlfwWindow // TODO remove this
       runDrawLoopOnExecutionContext(
         skijaDrawLoop[F, Long, OglGlfwWindow, DownEvent, PlacedWidget](backend, widgetIsDrawable),
         drawLoopExecutionContext

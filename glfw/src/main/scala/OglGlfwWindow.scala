@@ -5,13 +5,13 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import me.katze.gui4s.geometry.{Point2d, Rect}
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.system.MemoryUtil
+import org.lwjgl.system.{MemoryStack, MemoryUtil}
 
 final case class OglGlfwWindow(id: Long)
   
 final class OglWindowIsGlfwWindow[F[_] : Sync](
                                                 impure : ForeighFunctionInterface[F],
-                                                unsafeRunF: [A] => F[A] => A
+                                                unsafeRunF: F[Unit] => Unit
                                               ) extends GlfwWindow[F, OglGlfwWindow, Long, Float]:
   override def center(window: OglGlfwWindow): F[Unit] =
     size(window).flatMap:
@@ -25,15 +25,6 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
                   (vidmode.height - height.toInt) / 2
                 )
   end center
-
-  override def windowResizeCallback(window: OglGlfwWindow)(callback: Rect[Float] => F[Unit]): F[Unit] =
-    impure.delay:
-      glfwSetWindowSizeCallback(
-        window.id,
-        (_, width, height) =>
-          unsafeRunF(getScale(window).flatMap((scaleX, scaleY) => callback(Rect(width * scaleX, height * scaleY))))
-      )
-  end windowResizeCallback
 
   override def makeVisible(window: OglGlfwWindow): F[Unit] =
     impure.delay:
@@ -112,7 +103,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
     impure.delay:
       val old = glfwSetScrollCallback(window.id,
         (_, xoffset, yoffset) =>
-          unsafeRunF[Unit](
+          unsafeRunF(
             getScale(window).flatMap((scaleX, scaleY) => callback(xoffset.toFloat * scaleX, yoffset.toFloat * scaleY))
           )
       )
@@ -124,7 +115,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   override def cursorPosCallback(window: OglGlfwWindow)(callback: (newPos: Point2d[Float]) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetCursorPosCallback(window.id, (_, xCursorPosition, yCursorPosition) =>
-        unsafeRunF[Unit](getScale(window).flatMap((scaleX, scaleY) => callback(Point2d(xCursorPosition.toFloat * scaleX, yCursorPosition.toFloat * scaleY))))
+        unsafeRunF(getScale(window).flatMap((scaleX, scaleY) => callback(Point2d(xCursorPosition.toFloat * scaleX, yCursorPosition.toFloat * scaleY))))
       )
       if old != null then
         old.free()

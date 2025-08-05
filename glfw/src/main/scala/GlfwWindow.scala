@@ -22,8 +22,6 @@ trait GlfwWindow[F[_], -Window, Monitor, MeasurementUnit]:
 
   def swapBuffers(window: Window): F[Unit]
 
-  def windowResizeCallback(window: Window)(callback: Rect[MeasurementUnit] => F[Unit]): F[Unit]
-
   def frameBufferResizeCallback(window: Window)(callback: Rect[MeasurementUnit] => F[Unit]): F[Unit]
 
   def keyCallback(window: Window)(callback: (key: Int, scanCode: Int, keyAction: KeyAction, keyModes: KeyModes) => F[Unit]): F[Unit]
@@ -52,7 +50,6 @@ object GlfwWindow:
     def size: F[Rect[MeasurementUnit]] = W.size(window)
     def frameBufferSize: F[Rect[MeasurementUnit]] = W.frameBufferSize(window)
     def swapBuffers: F[Unit] = W.swapBuffers(window)
-    def windowResizeCallback(callback: Rect[MeasurementUnit] => F[Unit]): F[Unit] = W.windowResizeCallback(window)(callback)
     def frameBufferResizeCallback(callback: Rect[MeasurementUnit] => F[Unit]): F[Unit] = W.frameBufferResizeCallback(window)(callback)
     def keyCallback(callback: (key: Int, scanCode: Int, keyAction: KeyAction, keyModes: KeyModes) => F[Unit]): F[Unit] = W.keyCallback(window)(callback)
     def scrollCallback(callback: (xoffset: MeasurementUnit, yoffset: MeasurementUnit) => F[Unit]): F[Unit] = W.scrollCallback(window)(callback)

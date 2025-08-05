@@ -75,7 +75,7 @@ object SkijaAppExample extends IOApp:
         title = "Gui4s window",
         size = Rect(620f, 480f),
         visible = true,
-        resizeable = false,
+        resizeable = true,
         debugContext = true
       )
     )
@@ -282,7 +282,7 @@ end SkijaAppExample
 @experimental
 def extractClickHandlerEvent[MeasurementUnit](downEvent : SkijaDownEvent[MeasurementUnit]) : Option[Unit] =
   downEvent match
-    case SkijaDownEvent.MouseClick(button, action, mods) if action == Press =>
+    case SkijaDownEvent.MouseClick(_, action, _) if action == Press =>
       Some(()) // TODO ClickHandlerDownEvent(button, action, mods))
     case _ => None
 end extractClickHandlerEvent

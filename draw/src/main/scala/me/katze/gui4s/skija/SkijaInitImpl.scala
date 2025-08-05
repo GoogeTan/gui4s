@@ -77,7 +77,7 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extend
                                       fbFormat: Int
                                     ): Resource[F, BackendRenderTarget] =
     Resource.fromAutoCloseable(
-      ffi.delay(
+      ffi.delay:
         BackendRenderTarget.makeGL(
           width, height,
           samples,
@@ -85,7 +85,6 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extend
           fbId,
           fbFormat
         )
-      )
     )
   end createGLRenderTarget
 
