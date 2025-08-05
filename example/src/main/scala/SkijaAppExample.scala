@@ -139,12 +139,12 @@ object SkijaAppExample extends IOApp:
 
   def text[Monitor, Window, DownEvent](using backend : SkijaBackend[IO, Monitor, Window, DownEvent]) : TextWidget[Widget] =
     [Event] => (text: String, style: SkijaTextStyle) =>
-      skijaText(ffi, skijaSizeText(ffi, backend.globalShaper, backend.globalTextCache), text, style)
+      skijaText(ffi, SkijaPlace.sizeText(ffi, backend.globalShaper, backend.globalTextCache), text, style)
   end text
 
   def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
     val lew : LaunchedEffectWidget[Widget[Event], Key, Path => SkijaRecomposition[IO]] = library.launchedEffect(
-      [T] => (path : Path) => raiseError("Key has changed type at " + path.toString),
+      [T] => (path : Path) => SkijaOuterPlace.raiseError("Key has changed type at " + path.toString),
       SkijaRecomposition.lift[IO, Nothing](
         IO.raiseError(Exception("Key changed the type"))
       )
@@ -204,7 +204,7 @@ object SkijaAppExample extends IOApp:
         marker,
         0f,
         0f
-      ).pure[SkijaPlaceInnerT[IO, Float, String]],
+      ).pure[SkijaOuterPlaceT[IO, Float, String]],
       ReaderT.pure[IO, SkijaDrawState[IO, OglGlfwWindow], Unit](()),
       SkijaRecomposition.empty[IO]
     ).map(a => a)
@@ -215,10 +215,10 @@ object SkijaAppExample extends IOApp:
   end main
 
   def layout[Event](
-                      children : List[Widget[Event]],
-                      axis : Axis,
-                      mainAxisStrategy : MainAxisPlacement[SkijaPlaceInnerT[IO, Float, String], Float],
-                      additionalAxisStrategy : AdditionalAxisPlacement[SkijaPlaceInnerT[IO, Float, String], Float],
+                     children : List[Widget[Event]],
+                     axis : Axis,
+                     mainAxisStrategy : MainAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
+                     additionalAxisStrategy : AdditionalAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
                     ) : Widget[Event] =
     skijaLayout(
       children,

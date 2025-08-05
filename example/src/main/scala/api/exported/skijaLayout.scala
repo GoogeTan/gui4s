@@ -27,15 +27,15 @@ def skijaLayout[
   HandleableEvent,
   PlaceError,
 ](
-  children : List[
-    SkijaPlaceInner[
+                  children : List[
+    SkijaOuterPlace[
       F,
       MeasurementUnit,
       PlaceError,
       Sized[MeasurementUnit,
         Widget[
           Update,
-          [Value] =>> SkijaPlaceInner[F, MeasurementUnit, PlaceError, Sized[MeasurementUnit, Value]],
+          [Value] =>> SkijaOuterPlace[F, MeasurementUnit, PlaceError, Sized[MeasurementUnit, Value]],
           Draw,
           RecompositionReaction,
           HandleableEvent
@@ -43,16 +43,16 @@ def skijaLayout[
       ]
     ]
   ],
-  mainAxis : Axis,
-  mainAxisPlacement : MainAxisPlacement[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], MeasurementUnit],
-  additionalAxisPlacement : AdditionalAxisPlacement[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], MeasurementUnit],
-  drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,
-  updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
-  isEventConsumed : Update[Boolean]
+                  mainAxis : Axis,
+                  mainAxisPlacement : MainAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
+                  additionalAxisPlacement : AdditionalAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
+                  drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,
+                  updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
+                  isEventConsumed : Update[Boolean]
 ) =
   placementAwareLayout[
     Update,
-    SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
+    SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
     Draw,
     MeasurementUnit,
     RecompositionReaction,
@@ -62,8 +62,8 @@ def skijaLayout[
     mainAxis,
     mainAxisPlacement,
     additionalAxisPlacement,
-    skijaGetBounds,
-    skijaSetBounds,
+    SkijaOuterPlace.getBounds,
+    SkijaOuterPlace.setBounds,
     drawAt,
     updateAt,
     isEventConsumed

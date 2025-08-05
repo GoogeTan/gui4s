@@ -28,7 +28,7 @@ def gapPaddingWidget[
   drawDecorations : (draw : Draw, shift : Point2d[MeasurementUnit]) => Draw
 ) : PaddingWidget[SkijaPlace[F, MeasurementUnit, PlaceError, Widget.ValueWrapper[T, Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
   initialWidget => paddings =>
-    withBounds(
+    SkijaOuterPlace.withBounds(
       initialWidget,
       _.cut(paddings.horizontalLength, paddings.verticalLength)
     ).map {

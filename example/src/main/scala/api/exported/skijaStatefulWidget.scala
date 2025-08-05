@@ -55,14 +55,14 @@ def skijaStateful[
       ](
         widgetsAreMergeable = widgetsAreMergable[
           Update[ChildEvent, *],
-          SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
+          SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
           Sized[MeasurementUnit, *],
           Draw,
           RecompositionReaction,
           HandleableEvent
         ],
         typeCheckState = [T] => (value: Any, path: Path, callback: StatefulState[State] => SkijaPlace[F, MeasurementUnit, PlaceError, T]) =>
-          typecheckState[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], State](value, raiseError(typecheckError(value, path)))
+          typecheckState[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], State](value, SkijaOuterPlace.raiseError(typecheckError(value, path)))
             .flatMap(callback)
       )(
         name = name,

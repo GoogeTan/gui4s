@@ -62,7 +62,7 @@ def skijaGlfwApp[
         (widget, event) =>
           given runPlacement : RunPlacement[SkijaPlaceT[F, Float, PlaceError], F] =
             [T] => (place : SkijaPlaceT[F, Float, PlaceError][T]) =>
-              runEitherTError(skijaRunPlace[F, Float, PlaceError](backend.windowBounds)(place))
+              runEitherTError(SkijaPlace.run[F, Float, PlaceError](backend.windowBounds)(place))
 
           handleApplicationRequests[F, UpdateError, Float](updateErrorAsExitCode)(
             processEvent[
@@ -87,7 +87,7 @@ def skijaGlfwApp[
     rootWidget = backend =>
       given runPlacement : RunPlacement[SkijaPlaceT[F, Float, PlaceError], F] =
         [T] => (place : SkijaPlaceT[F, Float, PlaceError][T]) =>
-          runEitherTError(skijaRunPlace[F, Float, PlaceError](backend.windowBounds)(place))
+          runEitherTError(SkijaPlace.run[F, Float, PlaceError](backend.windowBounds)(place))
       runPlacement(widget(using backend))
   )
 end skijaGlfwApp

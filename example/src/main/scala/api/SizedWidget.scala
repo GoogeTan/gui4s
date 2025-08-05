@@ -25,5 +25,5 @@ def sizedWidget[
   MeasurementUnit
 ] =
   (originalWidget, bounds) =>
-    withBounds(originalWidget, _ => new Bounds(bounds)).map(_.withSize(bounds))
+    SkijaOuterPlace.withBounds(originalWidget, _ => new Bounds(bounds)).map(_.withSize(bounds))
 end sizedWidget

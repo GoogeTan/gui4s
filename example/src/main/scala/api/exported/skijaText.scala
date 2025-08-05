@@ -12,6 +12,9 @@ import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawTex
 
 import scala.language.experimental.namedTypeArguments
 
+
+
+
 def skijaText[
   IO[_] : Monad,
   UpdateError,
@@ -21,7 +24,7 @@ def skijaText[
   Event
 ](
   ffi : ForeighFunctionInterface[IO],
-  textSizer : (String, SkijaTextStyle) => SkijaPlace[IO, MeasurementUnit, PlaceError, SkijaPlacedText],
+  textSizer : SizeText[SkijaPlaceT[IO, MeasurementUnit, PlaceError]],
   text : String,
   style : SkijaTextStyle,
 ) : SkijaWidget[IO, MeasurementUnit, UpdateError, PlaceError, Event, DownEvent] =
