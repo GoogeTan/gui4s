@@ -11,7 +11,7 @@ import cats.effect.ExitCode
 import cats.syntax.all.*
 import cats.{Applicative, Monad}
 import me.katze.gui4s.geometry.Point3d
-import me.katze.gui4s.widget.{CatchEvents, EventReaction, Path, given}
+import me.katze.gui4s.widget.{CatchEvents, Path, given}
 
 final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
   def addCoordinates(using Numeric[MeasurementUnit])(point : Point3d[MeasurementUnit]) : UpdateEffectState[MeasurementUnit] =
@@ -82,15 +82,6 @@ end raiseErrorInUpdate
 def mapEvents[IO[_] : Monad,  UpdateError, MeasurementUnit, Event1, Event2, T](f : Event1 => Event2)(skijaUpdate : SkijaUpdate[IO,  UpdateError, MeasurementUnit, Event1, T]) : SkijaUpdate[IO,  UpdateError, MeasurementUnit, Event2, T] =
   skijaUpdate.catchEvents.flatMap((newEvents, value) => raiseEvents(newEvents.map(f)).as(value))
 end mapEvents
-
-def runEventReaction[IO[_] : Monad,  UpdateError, MeasurementUnit, T, Event](reaction : EventReaction[T, Event, Path => IO[Unit]], path : Path) : SkijaUpdate[IO,  UpdateError, MeasurementUnit, Event, T] =
-  EitherT.liftF(
-    StateT(isEventHandled =>
-      WriterT.tell(reaction.parentEvent).as((isEventHandled, reaction.newState))
-        <* WriterT.liftF(reaction.ios.traverse_(_(path)))
-    )
-  )
-end runEventReaction
 
 def handleApplicationRequests[IO[_] : Monad,  UpdateError, MeasurementUnit : Numeric as N](updateErrorAsExitCode : UpdateError => IO[ExitCode]) : [T] => SkijaUpdate[IO,  UpdateError, MeasurementUnit, ApplicationRequest, T] => IO[Either[ExitCode, T]] =
   [T] => update =>

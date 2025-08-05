@@ -7,7 +7,7 @@ import cats.syntax.all.*
 import cats.{Eq, Functor, Monoid}
 import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import me.katze.gui4s.widget.free.statefulAsFree
-import me.katze.gui4s.widget.handle.{HandlesEvent, andThen, statefulHandlesEvent, statefulStateHandlesEvents}
+import me.katze.gui4s.widget.handle.{HandlesEvent, HandlesEventF, andThen, statefulHandlesEvent, statefulStateHandlesEvents}
 import me.katze.gui4s.widget.merge.{Mergable, statefulMergesWithOldStates}
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
 import me.katze.gui4s.widget.state.statefulHasInnerStates
@@ -60,20 +60,18 @@ def stateful[
   Draw,
   RecompositionReaction : Monoid as M,
   HandlableEvent,
-  EventReaction,
   State : Equiv,
   ParentEvent,
   ChildEvent
 ](
-   widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
-   runEventReaction : (EventReaction, Path) => Update[ParentEvent, State],
-   typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
+  widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
+  typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
 )(
-   name : String,
-   initialState : State,
-   handleEvent : (State, NonEmptyList[ChildEvent]) => EventReaction,
-   render : State => Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
-   destructor : State => RecompositionReaction,
+  name : String,
+  initialState : State,
+  handleEvent : HandlesEventF[State, NonEmptyList[ChildEvent], Update[ParentEvent, *]],
+  render : State => Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
+  destructor : State => RecompositionReaction,
 ) : Place[
   Widget.ValueWrapper[
     Stateful[
@@ -115,9 +113,7 @@ def stateful[
           currentState = initialState,
         ),
         draw = render,
-        handleEvents =
-          (state : State, path : Path, events : NonEmptyList[ChildEvent]) =>
-            runEventReaction(handleEvent(state, events), path),
+        handleEvents = handleEvent,
         destructor = destructor
       ),
       child = initialChild

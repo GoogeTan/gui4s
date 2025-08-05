@@ -1,12 +1,15 @@
 package me.katze.gui4s.widget.library
 
+import catnip.BiMonad
+import catnip.syntax.all.{*, given}
 import cats.*
 import cats.data.NonEmptyList
 import me.katze.gui4s.geometry.RectAtPoint2d
-import me.katze.gui4s.widget.{EventReaction, Path}
+import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget.handle.HandlesEventF
 
-import scala.reflect.Typeable
 import scala.language.experimental.namedTypeArguments
+import scala.reflect.Typeable
 
 type WithContext[Widget, +Memories] =
   (Memories => Widget) => Widget
@@ -19,22 +22,22 @@ end given
 
 def eventMemory[
   Widget[_], 
-  Update[_],
-  Task,
-  MeasurementUnit, 
+  Update[_, _],
+  MeasurementUnit,
   Event,
   HandlableEvent, 
   Memories : Typeable,
-  MemorableEvent
+  MemorableEvent,
+  T
 ](
-   eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event]], MeasurementUnit, HandlableEvent],
-   statefulWidget: TransitiveStatefulWidget[Widget, Task],
-   mapUpdate : [A, B] => (A => B) => Update[A] => Update[B],
-   mapEvent: MapEvent[Widget],
-   name : String,
-   initialMemories : Memories,
-   handleEvent : (Memories, NonEmptyList[MemorableEvent]) => EventReaction[Memories, Event, Task],
-   catchEvent : (Path, RectAtPoint2d[MeasurementUnit], HandlableEvent) => Update[MemorableEvent]
+  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], MeasurementUnit, HandlableEvent],
+  statefulWidget: TransitiveStatefulWidget[Widget, Update],
+  mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
+  mapEvent: MapEvent[Widget],
+  name : String,
+  initialMemories : Memories,
+  handleEvent : HandlesEventF[Memories, NonEmptyList[MemorableEvent], Update[Event, *]],
+  catchEvent : (Path, RectAtPoint2d[MeasurementUnit], HandlableEvent) => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Memories] =
   widget =>
     statefulWidget[Memories, Event, MemorableEvent](
@@ -53,19 +56,19 @@ end eventMemory
 
 def rememberLastEventOfTheType[
   Widget[_],
-  Update[_],
-  Task,
+  Update[_, _] : BiMonad as UBM,
   MeasurementUnit,
   Event,
   HandlableEvent,
-  MemorableEvent : Typeable
+  MemorableEvent : Typeable,
+  T
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event]], MeasurementUnit, HandlableEvent],
-  statefulWidget: TransitiveStatefulWidget[Widget, Task],
-  mapUpdate : [A, B] => (A => B) => Update[A] => Update[B],
+  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], MeasurementUnit, HandlableEvent],
+  statefulWidget: TransitiveStatefulWidget[Widget, Update],
+  mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,
-  catchEvent : (Path, RectAtPoint2d[MeasurementUnit], HandlableEvent) => Update[MemorableEvent]
+  catchEvent : (Path, RectAtPoint2d[MeasurementUnit], HandlableEvent) => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Option[MemorableEvent]] =
   eventMemory[Memories = Option[MemorableEvent], MemorableEvent = MemorableEvent](
     eventCatcherWithRect,
@@ -74,8 +77,7 @@ def rememberLastEventOfTheType[
     mapEvent,
     name,
     None,
-    (_, events) =>
-      EventReaction(Some(events.last), Nil, Nil),
+    (_, _, events) => UBM().pure(Some(events.last)),
     catchEvent
   )
 

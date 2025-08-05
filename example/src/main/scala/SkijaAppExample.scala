@@ -1,7 +1,9 @@
 package me.katze.gui4s.example
 
 import api.exported.{*, given}
+import app.skijaGlfwApp
 import place.*
+import skija.SkijaBackend
 import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
@@ -14,17 +16,14 @@ import cats.syntax.all.*
 import io.github.humbleui.skija.{Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.example.app.skijaGlfwApp
-import me.katze.gui4s.example.skija.SkijaBackend
 import me.katze.gui4s.geometry.{Axis, Point2d, Rect}
 import me.katze.gui4s.glfw.KeyAction.Press
-import me.katze.gui4s.glfw.{GlfwWindow, KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
-import me.katze.gui4s.glfw.GlfwWindow.*
+import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaDrawState, SkijaTextStyle, drawAt}
 import me.katze.gui4s.widget.library.{*, given}
-import me.katze.gui4s.widget.{EventReaction, Path, library}
+import me.katze.gui4s.widget.{Path, library}
 
 import scala.annotation.experimental
 import scala.reflect.Typeable
@@ -86,7 +85,7 @@ object SkijaAppExample extends IOApp:
   )
 
   def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
-    rememberLastEventOfTheType[Widget, SkijaUpdate[IO, String, Float, *, Boolean], Path => IO[Unit], Float, Event, SkijaDownEvent[Float], Point2d[Float]](
+    rememberLastEventOfTheType[Widget, SkijaUpdate[IO, String, Float, *, *], Float, Event, SkijaDownEvent[Float], Point2d[Float], Boolean](
       eventCatcherWithRect = eventCatcher,
       statefulWidget = transitiveStatefulWidget,
       mapUpdate = [A, B] => f => mapEvents(f),
@@ -127,11 +126,14 @@ object SkijaAppExample extends IOApp:
     end onClick
   end extension
   
-  def statefulWidget: StatefulWidget[Widget, Path => IO[Unit]] = skijaStatefulWidget(
-    (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]",
+  def statefulWidget: StatefulWidget[Widget, SkijaUpdate[IO, String, Float, *, *], [Value] =>> Value => SkijaRecomposition[IO]] = skijaStateful(
+    (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"
   )
 
-  def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Path => IO[Unit]] = TransitiveStatefulWidgetFromStatefulWidget(statefulWidget)
+  def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, SkijaUpdate[IO, String, Float, *, *]] =
+    TransitiveStatefulWidgetFromStatefulWidget[Widget, SkijaUpdate[IO, String, Float, *, *], [Value] =>> Value => SkijaRecomposition[IO]](
+      statefulWidget, [Event] => events => raiseEvents[IO, String, Float, Event](events)
+    )
 
   type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
 
@@ -168,10 +170,10 @@ object SkijaAppExample extends IOApp:
         transitiveStatefulWidget[Option[(Value, IO[Unit])], Event, (Value, IO[Unit])](
           name = name,
           initialState = None,
-          eventHandler = (state, events) =>
+          eventHandler = (state, _, events) =>
             (state, events) match
-              case (None, NonEmptyList(event, Nil)) => EventReaction(Some(event), Nil, Nil)
-              case _ => EventReaction(state, Nil, Nil), //TODO raiseErrorInUpdate[IO, String, Pixel, Event, ]("Resource was allocated twice"),
+              case (None, NonEmptyList(event, Nil)) => Some(event).pure[SkijaUpdateT[IO, String, Float, Event]]
+              case _ => state.pure[SkijaUpdateT[IO, String, Float, Event]], //TODO raiseErrorInUpdate[IO, String, Pixel, Event, ]("Resource was allocated twice"),
           body = state =>
             launchedEffect[Either[(Value, IO[Unit]), Event], Unit](supervisor)(
               name + "_effect_launcher",
@@ -241,7 +243,7 @@ object SkijaAppExample extends IOApp:
           statefulWidget[Int, ApplicationRequest, Unit](
             name = "line-" + lineNumber.toString,
             initialState = 0,
-            eventHandler = (state, _) => EventReaction(state + 1, Nil, Nil),
+            eventHandler = (state, _, _) => (state + 1).pure[SkijaUpdateT[IO, String, Float, ApplicationRequest]],
             body = state =>
               text[Monitor, OglGlfwWindow, SkijaDownEvent[Float]](
                 "# " + lineNumber.toString + " : " + state.toString,

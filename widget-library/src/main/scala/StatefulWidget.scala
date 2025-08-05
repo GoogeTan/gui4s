@@ -1,15 +1,22 @@
 package me.katze.gui4s.widget.library
 
 import cats.data.NonEmptyList
-import me.katze.gui4s.widget.EventReaction
+import me.katze.gui4s.widget.handle.HandlesEventF
 
 import scala.reflect.Typeable
 
-trait StatefulWidget[Widget[_], Task]:
+trait StatefulWidget[Widget[_], Update[Event, Value], Destructor[_]]:
   def apply[State : Typeable, Event, ChildEvent](
                                                   name : String,
                                                   initialState : State,
-                                                  eventHandler : (State, NonEmptyList[ChildEvent]) => EventReaction[State, Event, Task],
+                                                  eventHandler : HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
                                                   body : State => Widget[ChildEvent]
                                                 ) : Widget[Event]
 
+  def apply[State: Typeable, Event, ChildEvent](
+                                                  name: String,
+                                                  initialState: State,
+                                                  eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
+                                                  body: State => Widget[ChildEvent],
+                                                  destructor: Destructor[State]
+                                                ): Widget[Event]

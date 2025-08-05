@@ -1,35 +1,46 @@
 package me.katze.gui4s.widget.library
 
-import cats.Functor
+import catnip.BiMonad
+import catnip.syntax.all.{*, given}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import me.katze.gui4s.widget.EventReaction
+import me.katze.gui4s.widget.CatchEvents
+import me.katze.gui4s.widget.handle.HandlesEventF
 
 import scala.reflect.Typeable
 
-trait TransitiveStatefulWidget[Widget[_], Task]:
+trait TransitiveStatefulWidget[Widget[_], Update[Event, Value]]:
   def apply[State: Typeable, TransitiveEvent, OwnEvent](
                                                           name: String,
                                                           initialState: State,
-                                                          eventHandler: (State, NonEmptyList[OwnEvent]) => EventReaction[State, TransitiveEvent, Task],
-                                                          body: State => Widget[Either[OwnEvent, TransitiveEvent]]
+                                                          eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
+                                                          body: State => Widget[Either[OwnEvent, TransitiveEvent]],
                                                         ): Widget[TransitiveEvent]
 
-final class TransitiveStatefulWidgetFromStatefulWidget[Widget[_], Task](statefulWidget: StatefulWidget[Widget, Task]) extends TransitiveStatefulWidget[Widget, Task]:
+final class TransitiveStatefulWidgetFromStatefulWidget[
+  Widget[_],
+  Update[Event, Value] : {BiMonad, CatchEvents},
+  Destructor[_]
+](
+  statefulWidget: StatefulWidget[Widget, Update, Destructor],
+  raiseEvents : [Event] => List[Event] => Update[Event, Unit]
+) extends TransitiveStatefulWidget[Widget, Update]:
   override def apply[State: Typeable, TransitiveEvent, OwnEvent](
                                                                   name: String,
                                                                   initialState: State,
-                                                                  eventHandler: (State, NonEmptyList[OwnEvent]) => EventReaction[State, TransitiveEvent, Task],
+                                                                  eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
                                                                   body: State => Widget[Either[OwnEvent, TransitiveEvent]]
                                                                 ): Widget[TransitiveEvent] =
     statefulWidget[State, TransitiveEvent, Either[OwnEvent, TransitiveEvent]](
       name,
       initialState,
-      (state, events) => {
+      (state, path, events) => {
         val (ownEvents, transitiveEvents) = events.toList.partitionMap(identity)
-        val ownEventResult =
-          NonEmptyList.fromList(ownEvents).map(eventHandler(state, _)).getOrElse(EventReaction(state, Nil, Nil))
-        ownEventResult.copy(parentEvent = transitiveEvents ++ ownEventResult.parentEvent, ios = ownEventResult.ios)
+        raiseEvents(transitiveEvents)
+          *> NonEmptyList
+              .fromList(ownEvents)
+              .map(eventHandler(state, path, _))
+              .getOrElse(state.pure)
       },
       body
     )
