@@ -3,6 +3,7 @@ package me.katze.gui4s.example.api
 import me.katze.gui4s.geometry.Point3d
 import me.katze.gui4s.layout.Placed
 
+// TODO replace with point 3d
 final case class LayoutPlacementMeta[+MeasurementUnit](x: MeasurementUnit, y: MeasurementUnit, z : MeasurementUnit):
   def this(placed : Placed[MeasurementUnit, ?]) =
     this(placed.x, placed.y, placed.z)

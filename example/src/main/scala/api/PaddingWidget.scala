@@ -10,29 +10,6 @@ import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlaceme
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.widget.library.{LinearLayout, Widget, drawDecorator}
 
-import scala.math.Numeric.Implicits.*
-
-final case class Paddings[Padding](left : Padding, top : Padding, right : Padding, bottom : Padding):
-  def verticalLength(using Numeric[Padding]) : Padding =
-    top + bottom
-  end verticalLength
-
-  def horizontalLength(using Numeric[Padding]) : Padding =
-    left + right
-  end horizontalLength
-
-  def topLeftCornerShift : Point2d[Padding] =
-    Point2d(left, top)
-  end topLeftCornerShift
-
-  def extraBoundsRect(using Numeric[Padding]) : Rect[Padding] =
-    Rect(horizontalLength, verticalLength)
-  end extraBoundsRect
-
-  def map[NewPadding](f : Padding => NewPadding) : Paddings[NewPadding] =
-    Paddings(f(left), f(top), f(right), f(bottom))
-end Paddings
-
 type PaddingWidget[Widget, Padding] = Widget => Paddings[Padding] => Widget
 
 def gapPaddingWidget[
@@ -67,16 +44,7 @@ def gapPaddingWidget[
     }
 end gapPaddingWidget
 
-enum Padding[+MeasurementUnit]:
-  case Gap(gap : MeasurementUnit)
-  case Fill extends Padding[Nothing]
-end Padding
-
-def gapOrZero[MeasurementUnit : Numeric as MUN](padding : Padding[MeasurementUnit]) : MeasurementUnit = padding match
-  case Padding.Fill => MUN.zero
-  case Padding.Gap(gap) => gap
-
-def verticalStrategy[
+def paddingLayoutVerticalStrategy[
   Place[_] : MonadErrorT[Error],
   MeasurementUnit : Fractional as MUF,
   Error
@@ -88,8 +56,9 @@ def verticalStrategy[
     case (Padding.Gap(_), _)            => MainAxisPlacement.Begin(MUF.zero)
     case (Padding.Fill, Padding.Gap(_)) => MainAxisPlacement.End(MUF.zero, error)
     case (Padding.Fill, Padding.Fill)   => MainAxisPlacement.Center(MUF.zero, error)
+end paddingLayoutVerticalStrategy
 
-def horizontalStrategy[
+def paddingLayoutHorizontalStrategy[
   Place[_] : MonadErrorT[Error],
   MeasurementUnit: Fractional,
   Error
@@ -101,6 +70,7 @@ def horizontalStrategy[
     case (Padding.Gap(_), _) => AdditionalAxisPlacement.Begin
     case (Padding.Fill, Padding.Gap(_)) => AdditionalAxisPlacement.End(error)
     case (Padding.Fill, Padding.Fill) => AdditionalAxisPlacement.Center(error)
+end paddingLayoutHorizontalStrategy
 
 def paddingWidget[
   Update[_],
@@ -127,12 +97,12 @@ def paddingWidget[
   Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
   Padding[MeasurementUnit]
 ] =
-  widget => padding =>
+  widget => paddings =>
     layout(
       List(
-        innerGaps(widget)(padding.map(gapOrZero))
+        innerGaps(widget)(paddings.map(_.gapOrZero))
       ),
       Axis.Vertical,
-      verticalStrategy(padding, infinitePaddingInInfiniteContainer),
-      horizontalStrategy(padding, infinitePaddingInInfiniteContainer)
+      paddingLayoutVerticalStrategy(paddings, infinitePaddingInInfiniteContainer),
+      paddingLayoutHorizontalStrategy(paddings, infinitePaddingInInfiniteContainer)
     )

@@ -75,19 +75,19 @@ def skijaStateful[
   ](
     widgetsAreMergeable = widgetsAreMergable[
       Update = SkijaUpdateT[F, UpdateError, MeasurementUnit, ChildEvent],
-    OuterPlace = SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
-  ],
-runEventReaction = runEventReaction,
-typeCheckState = [T] => (value : Any, path : Path, callback : StatefulState[State] => SkijaPlace[F, MeasurementUnit, PlaceError, T]) =>
-  typecheckState[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], State](value, raiseError(typecheckError(value, path)))
-    .flatMap(callback)
-)(
-  name = name,
-  initialState = initialState,
-  handleEvent = handleEvent,
-  render = render,
-  destructor = destructor
-).map(a => a)
+      OuterPlace = SkijaPlaceInnerT[F, MeasurementUnit, PlaceError],
+    ],
+    runEventReaction = runEventReaction,
+    typeCheckState = [T] => (value : Any, path : Path, callback : StatefulState[State] => SkijaPlace[F, MeasurementUnit, PlaceError, T]) =>
+      typecheckState[SkijaPlaceInnerT[F, MeasurementUnit, PlaceError], State](value, raiseError(typecheckError(value, path)))
+        .flatMap(callback)
+  )(
+    name = name,
+    initialState = initialState,
+    handleEvent = handleEvent,
+    render = render,
+    destructor = destructor
+  ).map(a => a)
 end skijaStateful
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
