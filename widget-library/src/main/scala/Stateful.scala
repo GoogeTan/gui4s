@@ -4,9 +4,9 @@ import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import cats.{Eq, Functor, Monoid}
+import cats.{Functor, Monoid}
 import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
-import me.katze.gui4s.widget.free.statefulAsFree
+import me.katze.gui4s.widget
 import me.katze.gui4s.widget.handle.{HandlesEvent, HandlesEventF, andThen, statefulHandlesEvent, statefulStateHandlesEvents}
 import me.katze.gui4s.widget.merge.{Mergable, statefulMergesWithOldStates}
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
@@ -118,17 +118,17 @@ def stateful[
       ),
       child = initialChild
     )
-    val statefulAsFree_ = statefulAsFree[Place, Widget_[ChildEvent], StState](widgetAsFree)
+    val statefulAsFree = widget.free.statefulAsFree[Place, Widget_[ChildEvent], StState](widgetAsFree)
     Widget.ValueWrapper[
       T = Stateful[Widget_[ChildEvent], StState],
       Update_ = Update[ParentEvent, *],
       Place_ = Place
     ](
       valueToDecorate = stateful,
-      valueAsFree = statefulAsFree_, // TODO Rename me
+      valueAsFree = statefulAsFree,
       valueIsDrawable = statefulIsDrawable(widgetIsDrawable),
       valueHandlesEvent = statefulHandlesEvent_(widgetsAreMergeable),
-      valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree_),
+      valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
         widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
         M.empty
