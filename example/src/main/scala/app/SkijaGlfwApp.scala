@@ -10,7 +10,7 @@ import catnip.ForeighFunctionInterface
 import catnip.syntax.all.given
 import cats.data.EitherT
 import cats.effect.std.Console
-import cats.effect.{Async, ExitCode}
+import cats.effect.{Async, ExitCode, Resource}
 import me.katze.*
 import me.katze.gui4s.example
 import me.katze.gui4s.glfw.*
@@ -28,9 +28,11 @@ def skijaGlfwApp[
   F[+_] : {Async as FAsync, Console, ForeighFunctionInterface as ffi},
   UpdateError,
   PlaceError,
-  HandleableEvent
+  HandleableEvent,
+  MainThreadPreInit,
 ](
-    widget: SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent] ?=> SkijaWidget[F, Float, UpdateError, PlaceError, ApplicationRequest, HandleableEvent],
+    preInit : SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent] => Resource[F, MainThreadPreInit],
+    widget: MainThreadPreInit => SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent] ?=> SkijaWidget[F, Float, UpdateError, PlaceError, ApplicationRequest, HandleableEvent],
     updateLoopExecutionContext: ExecutionContext,
     drawLoopExecutionContext: ExecutionContext,
     updateErrorAsExitCode : UpdateError => F[ExitCode],
@@ -44,21 +46,25 @@ def skijaGlfwApp[
     F,
     HandleableEvent,
     PlacedWidget,
-    SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent]
+    (MainThreadPreInit, SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent])
   ](
-    backend = downEventSink => SkijaBackend.createForTestsTrue(
-      queue = downEventSink,
-      settings = settings,
-      ffi = summon,
-      callbacks = createGlfwCallbacks(downEventSink.offer)
-    ).evalOn(drawLoopExecutionContext),
-    drawLoop = backend =>
+    backend = downEventSink => 
+      for
+        skijaBackend <- SkijaBackend.createForTestsTrue(
+          queue = downEventSink,
+          settings = settings,
+          ffi = summon,
+          callbacks = createGlfwCallbacks(downEventSink.offer)
+        ).evalOn(drawLoopExecutionContext)
+        preinit <- preInit(skijaBackend)
+      yield (preinit, skijaBackend),
+    drawLoop = (_, backend) =>
       given a : backend.windowIsGlfwWindow.type = backend.windowIsGlfwWindow // TODO remove this
       runDrawLoopOnExecutionContext(
         skijaDrawLoop[F, Long, OglGlfwWindow, HandleableEvent, PlacedWidget](backend, widgetIsDrawable),
         drawLoopExecutionContext
       ),
-    updateLoop = backend => runUpdateLoopOnExecutionContext[F, PlacedWidget, HandleableEvent](
+    updateLoop = (_, backend) => runUpdateLoopOnExecutionContext[F, PlacedWidget, HandleableEvent](
       updateLoop(
         (widget, event) =>
           given runPlacement : RunPlacement[SkijaPlaceT[F, Float, PlaceError], F] =
@@ -85,10 +91,10 @@ def skijaGlfwApp[
       ),
       updateLoopExecutionContext
     ),
-    rootWidget = backend =>
+    rootWidget = (preInit, backend) =>
       given runPlacement : RunPlacement[SkijaPlaceT[F, Float, PlaceError], F] =
         [T] => (place : SkijaPlaceT[F, Float, PlaceError][T]) =>
           runEitherTError(SkijaPlace.run[F, Float, PlaceError](backend.windowBounds)(place))
-      runPlacement(widget(using backend))
+      runPlacement(widget(preInit)(using backend))
   )
 end skijaGlfwApp

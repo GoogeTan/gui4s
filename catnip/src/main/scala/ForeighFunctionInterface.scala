@@ -1,9 +1,12 @@
 package catnip
 
+import cats.~>
+
 /** Предоставляет интерфейс для безопасного выполнения эффектов в контексте.
+ *
  * @tparam F тип эффекта, в котором будут выполняться операции (например, IO, EitherT[IO, Error, T])
  */
-trait ForeighFunctionInterface[+F[_]]:
+trait ForeighFunctionInterface[F[_]]:
   /** Оборачивает вычисление в чистый контекст.
    *
    * Используется для простых вычислений, которые не блокируют поток выполнения.
@@ -55,4 +58,16 @@ trait ForeighFunctionInterface[+F[_]]:
    * @return отложенное вычисление в контексте F
    */
   final def apply[A](trunk: => A): F[A] = delay(trunk)
+  
+  final def mapK[G[_]](f : F ~> G) : ForeighFunctionInterface[G] =
+    new ForeighFunctionInterface[G]:
+      override def delay[A](trunk: => A): G[A] = f(ForeighFunctionInterface.this.delay(trunk))
+
+      override def blocking[A](trunk: => A): G[A] = f(ForeighFunctionInterface.this.blocking(trunk))
+
+      override def interruptible[A](trunk: => A): G[A] = f(ForeighFunctionInterface.this.interruptible(trunk))
+
+      override def interruptibleMany[A](trunk: => A): G[A] = f(ForeighFunctionInterface.this.interruptibleMany(trunk))
+    end new
+  end mapK
 end ForeighFunctionInterface

@@ -6,6 +6,8 @@ import cats.kernel.Monoid
 import cats.syntax.all.*
 import cats.{Applicative, ApplicativeError, Functor}
 
+import scala.Tuple.:*
+
 object applicative:
   given applicativesAreMonoids[F[_] : Applicative as A] : Monoid[F[Unit]] with
     override def empty: F[Unit] =

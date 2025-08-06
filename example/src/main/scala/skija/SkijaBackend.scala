@@ -29,13 +29,10 @@ final case class SkijaBackend[
   DownEvent
 ](
   queue : QueueSink[F, DownEvent],
+  skija : SkijaInit[F],
   glfw : Glfw[F, Monitor, Window],
   window: Window,
   renderTargetCell : AtomicCell[F, SkiaRenderTarget],
-  globalDispatcher : Dispatcher[F],
-  globalSupervisor : Supervisor[F],
-  globalShaper : Shaper,
-  globalTextCache : Cache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
 )(
   using val windowIsGlfwWindow : GlfwWindow[F, Window, Monitor, Float]
 ):
@@ -91,10 +88,9 @@ object SkijaBackend:
     for
       skija <- Resource.eval(SkijaInitImpl(ffi))
       dispatcher <- Dispatcher.sequential[F]
-      supervisor <- Supervisor[F]
       glfw: Glfw[F, Long, OglGlfwWindow] <- GlfwImpl[F](dispatcher)(using ffi)
       given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(ffi, dispatcher.unsafeRunAndForget)
-      res <- createForTests(queue, glfw, skija, dispatcher, supervisor, settings, callbacks)
+      res <- createForTests(queue, glfw, skija, settings, callbacks)
     yield res
   end createForTestsTrue
 
@@ -107,8 +103,6 @@ object SkijaBackend:
       queue : QueueSink[F, DownEvent],
       glfw : Glfw[F, Monitor, Window],
       skija : SkijaInit[F],
-      dispatcher : Dispatcher[F],
-      supervisor : Supervisor[F],
       windowSettings : WindowCreationSettings[Float],
       callbacks : GlfwCallbacks[F[Unit], Float],
     ): Resource[F, SkijaBackend[F, Monitor, Window, DownEvent]] =
@@ -125,9 +119,7 @@ object SkijaBackend:
           )
         )
       )
-      shaper <- skija.createShaper
-      cache <- Resource.eval(CaffeineCache[F, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]])
-    yield SkijaBackend[F, Monitor, Window, DownEvent](queue, glfw, window, renderTargetCell, dispatcher, supervisor, shaper, cache)
+    yield SkijaBackend[F, Monitor, Window, DownEvent](queue, skija, glfw, window, renderTargetCell)
   end createForTests
 
   def addRenderTargetRecreation[F : Monoid, MeasurementUnit](

@@ -46,6 +46,10 @@ object SkijaOuterPlace:
   def setBounds[IO[_] : Monad, MeasurementUnit, PlaceError]: SetBounds[SkijaOuterPlace[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
     Set.stateT[EitherT[IO, PlaceError, *], Bounds[MeasurementUnit]]
   end setBounds
+  
+  def liftK[IO[_] : Monad, MeasurementUnit, PlaceError] : IO ~> SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError] =
+    EitherT.liftK.andThen(StateT.liftK)
+  end liftK
 end SkijaOuterPlace
 
 object SkijaPlace:
@@ -55,11 +59,17 @@ object SkijaPlace:
   end run
 
   def sizeText[IO[_] : Monad, PlaceError](
-                                                ffi : ForeighFunctionInterface[IO],
-                                                shaper : Shaper,
-                                                cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
-                                              ) : SizeText[SkijaPlace[IO, Float, PlaceError, *]] =
-    sizeTextLift(sizeTextStateTFFI(ffi, shaper, cache), mapKStateT(EitherT.liftK[IO, PlaceError]))
+                                            ffi : ForeighFunctionInterface[IO],
+                                            shaper : Shaper,
+                                            cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                          ) : SizeText[SkijaPlace[IO, Float, PlaceError, *]] =
+    sizeTextFFI[IO, SkijaOuterPlaceT[IO, Float, PlaceError]](
+      SkijaOuterPlace.getBounds,
+      ffi,
+      shaper,
+      cache,
+      SkijaOuterPlace.liftK,
+    )
   end sizeText
 
   def mapKStateT[F[_] : FlatMap, G[_], U[_], S](f : F ~> G) : (StateT[F, S, *] * U) ~> (StateT[G, S, *] * U) =
