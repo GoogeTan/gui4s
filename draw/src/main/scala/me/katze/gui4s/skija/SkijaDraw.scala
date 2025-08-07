@@ -8,6 +8,7 @@ import io.github.humbleui.skija.{Canvas, DirectContext}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.glfw.GlfwWindow.*
 
+type SkijaDrawLoud[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
 
 def transition_[F[_]](ffi : ForeighFunctionInterface[F], canvas : Canvas, x : Float, y : Float) : F[Unit] =
