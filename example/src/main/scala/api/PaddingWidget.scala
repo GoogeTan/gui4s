@@ -39,7 +39,7 @@ def gapPaddingWidget[
             eventHandleDecorator(widget, paddings.topLeftCornerShift),
             drawDecorations(_, paddings.topLeftCornerShift)
           ),
-          size + paddings.extraBoundsRect
+          size + paddings.addedBoundsRect
         )
     }
 end gapPaddingWidget

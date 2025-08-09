@@ -14,8 +14,8 @@ object MainAxisPlacement:
     def Begin[Place[_] : Applicative, MeasurementUnit : Numeric](gap : MeasurementUnit) : MainAxisPlacement[Place, MeasurementUnit] =
         (children, _) =>
             val placedChildren = placeBeginManyWithGap(children, gap)
-            val size = placedChildren.map(_.coordinateOfEnd).maxOption.getOrElse(Numeric[MeasurementUnit].zero)
-            (size, placedChildren.map(_.coordinateOfStart)).pure[Place]
+            val size = placedChildren.map(_.coordinateOfTheEnd).maxOption.getOrElse(Numeric[MeasurementUnit].zero)
+            (size, placedChildren.map(_.coordinateOfTheBeginning)).pure[Place]
     end Begin
 
     def Center[
@@ -30,8 +30,8 @@ object MainAxisPlacement:
     ) : MainAxisPlacement[Place, MeasurementUnit] =
         (children, bounds) =>
             bounds
-                .max
-                .map(space => (space, placeCenterManyWithGap(children, space, gap).map(_.coordinateOfStart)))
+                .maximumLimit
+                .map(space => (space, placeCenterManyWithGap(children, space, gap).map(_.coordinateOfTheBeginning)))
                 .getOrRaiseError(errorWhenInfiniteSpace)
     end Center
 
@@ -47,8 +47,8 @@ object MainAxisPlacement:
     ) : MainAxisPlacement[Place, MeasurementUnit] =
         (children, bounds) =>
         bounds
-            .max
-            .map(maxSpace => (maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfStart)))
+            .maximumLimit
+            .map(maxSpace => (maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)))
             .getOrRaiseError(errorWhenInfiniteSpace)
     end End
 
@@ -64,8 +64,8 @@ object MainAxisPlacement:
     ) : MainAxisPlacement[Place, MeasurementUnit] =
         (children, bounds) =>
         bounds
-            .max
-            .map(maxSpace => (maxSpace, placeSpaceAround(children, maxSpace).map(_.coordinateOfStart)))
+            .maximumLimit
+            .map(maxSpace => (maxSpace, placeSpaceAround(children, maxSpace).map(_.coordinateOfTheBeginning)))
             .getOrRaiseError(errorWhenInfiniteSpace)
     end SpaceAround
 
@@ -80,8 +80,8 @@ object MainAxisPlacement:
     ) : MainAxisPlacement[Place, MeasurementUnit] =
         (children, bounds) =>
         bounds
-            .max
-            .map(maxSpace => (maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfStart)))
+            .maximumLimit
+            .map(maxSpace => (maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)))
             .getOrRaiseError(errorWhenInfiniteSpace)
     end SpaceBetween
 end MainAxisPlacement

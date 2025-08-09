@@ -13,6 +13,7 @@ type EventHandleDecorator[Widget, Update] = (Widget, Update => Update) => Widget
 
 /**
  * Декорирует обновление виджета.
+ * TODO проверить, как оно работает с asFree. Есть впечатление, что это сбросит эффект. Это относится ко всем декораторам. 
  */
 def eventHandleDecorator[
   T,

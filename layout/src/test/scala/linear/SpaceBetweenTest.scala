@@ -8,7 +8,7 @@ class SpaceBetweenTest extends AnyFlatSpec:
     val widgets = List[Float](2, 5, 2)
     val freeSpace = minimalRequiredSpace(widgets) + 6.0f
     val result = placeSpaceBetween[Float](widgets, freeSpace)
-    assertResult(CoveredSpace(0, freeSpace))(spaceCovered(result))
+    assertResult(Rect1dOnPoint1d(freeSpace, 0f))(spaceCovered(result))
 
   "Space between elements" should "be distributed equally" in:
     val widgets = List[Float](2, 5, 2)

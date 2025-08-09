@@ -17,7 +17,7 @@ import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{Canvas, Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.geometry.{Axis, Point2d, Rect}
+import me.katze.gui4s.geometry.{Axis, Point2d, Rect, given }
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
@@ -108,7 +108,7 @@ object SkijaAppExample extends IOApp:
         eventCatcherWithRect = eventCatcher,
         statefulWidget = transitiveStatefulWidget,
         mapUpdate = [A, B] => f => SkijaUpdate.mapEvents(f),
-        mapEvent = library.mapEvent2([T, A, B] => f => SkijaUpdate.mapEvents(f)),
+        mapEvent = mmapEvent,
         name = name,
         catchEvent =
           (path, rect, event) =>
@@ -120,11 +120,11 @@ object SkijaAppExample extends IOApp:
     end mouseTracker
 
     def mmapEvent : MapEvent[Widget] =
-      library.mapEvent2([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))
+      library.mapEvent([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))
 
     extension[Event](value : Widget[Event])
       def mapEvent[NewEvent](f : Event => NewEvent) : Widget[NewEvent] =
-        mmapEvent.mapEvent(value)(f)
+        mmapEvent.apply(value)(f)
       end mapEvent
     end extension
 

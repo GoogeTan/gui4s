@@ -17,9 +17,9 @@ final case class Paddings[Padding](left : Padding, top : Padding, right : Paddin
     Point2d(left, top)
   end topLeftCornerShift
 
-  def extraBoundsRect(using Numeric[Padding]) : Rect[Padding] =
+  def addedBoundsRect(using Numeric[Padding]) : Rect[Padding] =
     Rect(horizontalLength, verticalLength)
-  end extraBoundsRect
+  end addedBoundsRect
 
   def map[NewPadding](f : Padding => NewPadding) : Paddings[NewPadding] =
     Paddings(f(left), f(top), f(right), f(bottom))

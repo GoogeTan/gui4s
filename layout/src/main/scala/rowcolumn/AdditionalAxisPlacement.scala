@@ -6,11 +6,15 @@ import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.bound.*
 import catnip.syntax.all.* 
 
-type AdditionalAxisPlacement[Place[_], MeasurementUnit] = (MeasurementUnit, AxisBounds[MeasurementUnit]) => Place[CoveredSpace[MeasurementUnit]]
+type AdditionalAxisPlacement[Place[_], MeasurementUnit] = (itemLength : MeasurementUnit, bounds : AxisBounds[MeasurementUnit]) => Place[Rect1dOnPoint1d[MeasurementUnit]]
 
 object AdditionalAxisPlacement:
     def Begin[Place[_] : Applicative, MeasurementUnit : Numeric] : AdditionalAxisPlacement[Place, MeasurementUnit] =
-        (widget, _) => CoveredSpace(placeBegin[MeasurementUnit], widget).pure[Place]
+        (itemLength, _) =>
+            Rect1dOnPoint1d(
+                coordinateOfTheBeginning = placeBegin[MeasurementUnit],
+                length = itemLength
+            ).pure[Place]
     end Begin
 
     def Center[
@@ -20,12 +24,17 @@ object AdditionalAxisPlacement:
     ](
         errorWhenInfiniteSpace : Error
     )(
-        using ME:  MonadError[Place, Error]
+        using MonadError[Place, Error]
     ) : AdditionalAxisPlacement[Place, MeasurementUnit] =
-        (widget, bounds) =>
+        (itemLength, bounds) =>
             bounds
-                .max
-                .map(space => CoveredSpace(placeCenter(widget, space), space))
+                .maximumLimit
+                .map(space =>
+                    Rect1dOnPoint1d(
+                        length = itemLength,
+                        coordinateOfTheBeginning = placeCenter(itemLength, space)
+                    )
+                )
                 .getOrRaiseError(errorWhenInfiniteSpace)
     end Center
 
@@ -36,12 +45,18 @@ object AdditionalAxisPlacement:
     ](
         errorWhenInfiniteSpace : Error
     )(
-        using ME:  MonadError[Place, Error]
+        using MonadError[Place, Error]
     ) : AdditionalAxisPlacement[Place, MeasurementUnit] =
-        (widget, bounds) =>
+        (itemLength, bounds) =>
             bounds
-                .max
-                .map(space => CoveredSpace(placeEnd(widget, space), space))
+                .maximumLimit
+                .map(
+                    space =>
+                        Rect1dOnPoint1d(
+                            length = space,
+                            coordinateOfTheBeginning = placeEnd(itemLength, space)
+                        )
+                )
                 .getOrRaiseError(errorWhenInfiniteSpace)
     end End
 end AdditionalAxisPlacement

@@ -9,7 +9,7 @@ class SpaceAroundTest extends AnyFlatSpec:
     val freeSpace = minimalRequiredSpace(widgets) + 6f
     val spaceAround = spaceBetween[Float]((0f :: widgets) :+ 0f, freeSpace)
     assertResult(
-      CoveredSpace(spaceAround, freeSpace - spaceAround)
+      Rect1dOnPoint1d.fromStartAndEnd(spaceAround, freeSpace - spaceAround)
     )(
       spaceCovered(
         placeSpaceAround(widgets, freeSpace)
@@ -23,7 +23,7 @@ class SpaceAroundTest extends AnyFlatSpec:
       spaceAroundElements(
         placeSpaceAround(widgets, freeSpace), 
         freeSpace
-      ).toSet.size == 1
+      ).toNes.length == 1
     )
 end SpaceAroundTest
 

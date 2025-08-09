@@ -25,11 +25,11 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
 
     object Place:
         val getBounds : GetBounds[Place, MeasurementUnit] = GetBounds.liftK[State[Bounds[MeasurementUnit], *], Place, MeasurementUnit](
-            GetBounds.getBoundsStateT[Eval, MeasurementUnit],
+            GetBounds.stateT[Eval, MeasurementUnit],
             EitherT.liftK[State[Bounds[MeasurementUnit], *], PlacementError]
         )
         val setBounds : SetBounds[Place, MeasurementUnit] = SetBounds.liftK[State[Bounds[MeasurementUnit], *], Place, MeasurementUnit](
-            SetBounds.setBoundsStateT[Eval, MeasurementUnit],
+            SetBounds.stateT[Eval, MeasurementUnit],
             EitherT.liftK[State[Bounds[MeasurementUnit], *], PlacementError]
         )
     end Place

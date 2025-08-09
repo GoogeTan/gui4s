@@ -84,19 +84,19 @@ def rowColumnPlace[
   zLevel : MeasurementUnit,
 ): Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, T]]]] =
   Applicative[Place].map2(
-    mainAxisPlace(elements.map(_.lengthAlong(bounds.axis)), bounds.mainAxis),
-    elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(bounds.axis), bounds.additionalAxis))
+    mainAxisPlace(elements.map(_.lengthAlong(bounds.mainAxis)), bounds.boundsAlongMainAxis),
+    elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(bounds.mainAxis), bounds.boundsalongCrossAxis))
   ) {
     case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), additionalAxisElementsPlaced) =>
-      val additionalAxisElementsCoordinates = additionalAxisElementsPlaced.map(_.coordinateOfStart)
-      val additionalAxisCoordinateOfEnd = additionalAxisElementsPlaced.map(_.coordinateOfEnd).maxOption.getOrElse(measurementUnitsAreNumbers.zero)
-      val coordinatesCombined = combineCoordinates(bounds.axis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zLevel)
+      val additionalAxisElementsCoordinates = additionalAxisElementsPlaced.map(_.coordinateOfTheBeginning)
+      val additionalAxisCoordinateOfEnd = additionalAxisElementsPlaced.map(_.coordinateOfTheEnd).maxOption.getOrElse(measurementUnitsAreNumbers.zero)
+      val coordinatesCombined = combineCoordinates(bounds.mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zLevel)
       Sized(
         elements
           .zip(coordinatesCombined)
           .map(new Placed(_, _)),
         new Rect(
-          bounds.axis,
+          bounds.mainAxis,
           mainAxisCoordinateOfEnd,
           additionalAxisCoordinateOfEnd
         )

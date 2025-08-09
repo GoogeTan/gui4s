@@ -42,7 +42,7 @@ def rowColumnLayoutPlacement[
   )((sizedItems, bounds) =>
     rowColumnPlace[Place, MeasurementUnit, Widget](
       elements = sizedItems,
-      bounds = AxisDependentBounds.fromConstraints(bounds, mainAxis),
+      bounds = AxisDependentBounds.fromBounds(bounds, mainAxis),
       mainAxisPlace = mainAxisPlacement,
       additionalAxisPlace = additionalAxisPlacement,
       zLevel = Numeric[MeasurementUnit].zero

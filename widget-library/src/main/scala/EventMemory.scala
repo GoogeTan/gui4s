@@ -47,7 +47,7 @@ def eventMemory[
       body =
         memories =>
             eventCatcherWithRect(
-              mapEvent.mapEvent(
+              mapEvent.apply(
                 widget(memories)
               )(Right(_))
             )((path, rect, handlableEvent) => mapUpdate[MemorableEvent, Either[MemorableEvent, Event]](Left(_))(catchEvent(path, rect, handlableEvent)))

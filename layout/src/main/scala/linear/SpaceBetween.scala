@@ -3,9 +3,9 @@ package linear
 
 import scala.math.Fractional.Implicits.*
 
-def placeSpaceBetween[T : Fractional](sizes : List[T], space : T) : List[SizedElement[T]] =
+def placeSpaceBetween[T : Fractional](sizes : List[T], space : T) : List[Rect1dOnPoint1d[T]] =
   val gap = spaceBetween(sizes, space)
-  placeBeginMany(sizes.map(_ + gap)).map(sized => sized.copy(size = sized.size - gap))
+  placeBeginMany(sizes.map(_ + gap)).map(sized => sized.copy(length = sized.length - gap))
 end placeSpaceBetween
 
 def spaceBetween[T : Fractional](sizes : List[T], space : T) : T =

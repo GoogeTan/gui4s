@@ -28,13 +28,13 @@ def sizeTextFFI[
       bounds =>
         f(
           cache.cachingF(
-            (text, options, bounds.horizontal.max)
+            (text, options, bounds.horizontal.maximumLimit)
           )(None)(
             placeText(ffi = ffi,
               shaper = shaper,
               text = text,
               style = options,
-              maxWidth = bounds.horizontal.max
+              maxWidth = bounds.horizontal.maximumLimit
             ).map(placedText => new Sized(placedText.text, placedText.width, placedText.height))
           )
         )
