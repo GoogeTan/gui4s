@@ -21,12 +21,11 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extend
                                     context: DirectContext,
                                     width: Float,
                                     height: Float,
-                                    dpi: Float
                                   ): F[SkiaRenderTarget] =
     val inner: Resource[F, SkiaRenderTarget] = for
       renderTarget <- createGLRenderTarget(
-        width = (width * dpi).toInt,
-        height = (height * dpi).toInt,
+        width = width.toInt,
+        height = height.toInt,
         fbFormat = FramebufferFormat.GR_GL_RGBA8
       )
       surface <- createSurface(
@@ -38,7 +37,7 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeighFunctionInterface[F]) extend
         Some(new SurfaceProps(PixelGeometry.RGB_H))
       )
       canvas <- Resource.eval(getCanvas(surface))
-    yield SkiaRenderTarget(context, renderTarget, surface, canvas, dpi)
+    yield SkiaRenderTarget(context, renderTarget, surface, canvas)
     inner.allocated.map((a, _) => a)
   end createRenderTarget
 

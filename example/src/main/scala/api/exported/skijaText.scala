@@ -18,7 +18,6 @@ def skijaText[
   Update[_] : Monad,
   RecompositionReaction : Monoid as RRM,
   HandlableEvent,
-  Window,
   PlaceError,
   MeasurementUnit,
 ](
@@ -26,11 +25,11 @@ def skijaText[
   textSizer : SizeText[SkijaPlaceT[IO, MeasurementUnit, PlaceError]],
   text : String,
   style : SkijaTextStyle,
-) : SkijaPlace[IO, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[IO, MeasurementUnit, PlaceError], SkijaDraw[IO, Window], RecompositionReaction, HandlableEvent]] =
+) : SkijaPlace[IO, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[IO, MeasurementUnit, PlaceError], SkijaDraw[IO], RecompositionReaction, HandlableEvent]] =
   me.katze.gui4s.widget.library.text[
     Update,
     SkijaPlaceT[IO, MeasurementUnit, PlaceError],
-    SkijaDraw[IO, Window],
+    SkijaDraw[IO],
     RecompositionReaction,
     HandlableEvent,
     SkijaPlacedText

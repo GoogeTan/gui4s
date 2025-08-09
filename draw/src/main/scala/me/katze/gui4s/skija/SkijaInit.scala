@@ -12,7 +12,6 @@ trait SkijaInit[F[_]]:
     context: DirectContext, 
     width: Float, 
     height: Float, 
-    dpi: Float
   ): F[SkiaRenderTarget]
   
   def createSurface(

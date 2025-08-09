@@ -104,7 +104,7 @@ lazy val widgetLibrary = (project in file("widget-library"))
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(catnip, widget, layout)
+  ).dependsOn(catnip, widget, layout, geometry)
 
 lazy val lwjglVersion = "3.3.6"
 

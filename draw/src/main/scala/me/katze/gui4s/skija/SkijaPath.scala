@@ -4,7 +4,7 @@ import catnip.ForeighFunctionInterface
 import cats.data.ReaderT
 import cats.{Applicative, Monad}
 import cats.syntax.all.*
-import io.github.humbleui.skija.{Canvas, Path}
+import io.github.humbleui.skija.{Canvas, Paint, Path}
 import me.katze.gui4s.geometry.Point2d
 
 def containsPoint2d[IO[_]](ffi : ForeighFunctionInterface[IO], path : Path, point : Point2d[Float]) : IO[Boolean] =
@@ -22,9 +22,11 @@ def clipPath_[IO[_] : Monad](ffi : ForeighFunctionInterface[IO], canvas: Canvas,
     ).flatMap(state => ffi(canvas.restoreToCount(state)))
 end clipPath_
 
-def clipToPath[IO[_] : Monad, Window](ffi : ForeighFunctionInterface[IO], path: Path, original : SkijaDraw[IO, Window]) : SkijaDraw[IO, Window] =
-  ReaderT.ask[IO, SkijaDrawState[IO, Window]].flatMap:
-    state =>
-      ReaderT.liftF(
-        clipPath_[IO](ffi, state.canvas, path, original.run(state))
-      )
+def drawPath[IO[_]](ffi : ForeighFunctionInterface[IO], canvas : Canvas, path : Path, paint: Paint) : IO[Unit] =
+  ffi(canvas.drawPath(path, paint))
+end drawPath
+
+def clipToPath[IO[_] : Monad](ffi : ForeighFunctionInterface[IO], path: Path, original : SkijaDraw[IO]) : SkijaDraw[IO] =
+  SkijaDrawLoud.getCanvas.flatMap:
+    clipPath_(ffi.mapK(SkijaDrawLoud.liftK), _, path, original)
+end clipToPath

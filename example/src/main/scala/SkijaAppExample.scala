@@ -14,7 +14,7 @@ import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import io.github.humbleui.skija.shaper.Shaper
-import io.github.humbleui.skija.{Font, Paint, Typeface}
+import io.github.humbleui.skija.{Canvas, Font, Paint, Typeface}
 import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.geometry.{Axis, Point2d, Rect}
@@ -220,7 +220,7 @@ object SkijaAppExample extends IOApp:
         Marker,
         SkijaUpdateT[IO, Float, String, Event],
         SkijaPlaceT[IO, Float, String],
-        SkijaDraw[IO, OglGlfwWindow],
+        SkijaDraw[IO],
         SkijaRecomposition[IO],
         SkijaDownEvent[Float]
       ](
@@ -229,7 +229,7 @@ object SkijaAppExample extends IOApp:
           0f,
           0f
         ).pure[SkijaOuterPlaceT[IO, Float, String]],
-        ReaderT.pure[IO, SkijaDrawState[IO, OglGlfwWindow], Unit](()),
+        ReaderT.pure[IO, Canvas, Unit](()),
         SkijaRecomposition.empty[IO]
       ).map(a => a)
     end leaf
@@ -246,7 +246,7 @@ object SkijaAppExample extends IOApp:
         axis,
         mainAxisStrategy,
         additionalAxisStrategy,
-        (draw, meta) => drawAt[IO, OglGlfwWindow](summon, draw, meta.x, meta.y),
+        (draw, meta) => drawAt[IO](summon, draw, meta.x, meta.y),
         [T] => (update, meta) => SkijaUpdate.withCoordinates(update)(_ => meta.point),
         SkijaUpdate.isEventHandled[IO, Float, String, Event]
       )

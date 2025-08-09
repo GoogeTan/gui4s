@@ -4,7 +4,7 @@ import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import cats.*
 import cats.data.NonEmptyList
-import me.katze.gui4s.geometry.RectAtPoint2d
+import me.katze.gui4s.geometry.*
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEventF
 

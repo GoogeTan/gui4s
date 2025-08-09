@@ -7,12 +7,29 @@ import cats.syntax.all.*
 import io.github.humbleui.skija.{Canvas, DirectContext}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.glfw.GlfwWindow.*
+import cats.Applicative
+import cats.arrow.FunctionK
 
-type SkijaDrawLoud[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
-type SkijaDraw[F[_], Window] = ReaderT[F, SkijaDrawState[F, Window], Unit]
+type SkijaDrawLoud[F[_], T] = ReaderT[F, Canvas, T]
+
+object SkijaDrawLoud:
+  def liftF[F[_], T](original : F[T]) : SkijaDrawLoud[F, T] =
+    ReaderT.liftF(original)
+  end liftF
+
+  def getCanvas[F[_] : Applicative] : SkijaDrawLoud[F, Canvas] =
+    ReaderT.ask
+  end getCanvas
+
+  def liftK[F[_] : Applicative] : FunctionK[F, SkijaDrawLoud[F, *]] =
+    ReaderT.liftK
+  end liftK
+end SkijaDrawLoud
+
+type SkijaDraw[F[_]] = SkijaDrawLoud[F, Unit]
 
 def transition_[F[_]](ffi : ForeighFunctionInterface[F], canvas : Canvas, x : Float, y : Float) : F[Unit] =
-  ffi(canvas.translate(x.toFloat, y.toFloat))
+  ffi(canvas.translate(x, y))
 end transition_
 
 def saveState_[F[_]](ffi : ForeighFunctionInterface[F], canvas: Canvas) : F[Int] =
@@ -40,45 +57,36 @@ def flush_[F[_]](ffi : ForeighFunctionInterface[F], context : DirectContext) : F
   ffi(context.flush())
 end flush_
 
-
 def drawAt[
   F[_] : Monad,
-  Window,
 ](
     ffi : ForeighFunctionInterface[F],
-    original: SkijaDraw[F, Window],
+    original: SkijaDraw[F],
     x : Float,
     y : Float
-): SkijaDraw[F, Window] =
-  ReaderT[F, SkijaDrawState[F, Window], Unit](
-    state =>
+): SkijaDraw[F] =
+  ReaderT[F, Canvas, Unit](
+    canvas =>
       moveAndBack_(
         ffi = ffi,
-        canvas = state.canvas,
+        canvas = canvas,
         x = x,
         y = y,
-        value = original.run(state)
+        value = original.run(canvas)
       )
   )
 end drawAt
 
-def drawText[F[_], Window](ffi : ForeighFunctionInterface[F], text: SkijaPlacedText) : SkijaDraw[F, Window] =
-  ReaderT[F, SkijaDrawState[F, Window], Unit](
-    state =>
+def drawText[F[_]](ffi : ForeighFunctionInterface[F], text: SkijaPlacedText) : SkijaDraw[F] =
+  ReaderT[F, Canvas, Unit](
+    canvas =>
       ffi:
-        state.canvas.drawTextBlob(text.textBlob, 0, 0, text.paint)
+        canvas.drawTextBlob(text.textBlob, 0, 0, text.paint)
   )
 end drawText
 
-def flush[
+def clear[
   F[_] : {Monad, ForeighFunctionInterface as I},
-  Window : GlfwWindowT[F, Monitor, Pixels],
-  Monitor,
-  Pixels,
-]: SkijaDraw[F, Window] =
-  ReaderT[F, SkijaDrawState[F, Window], Unit](state =>
-    I(state.context.flush())
-      *> state.window.swapBuffers
-      *> I(state.canvas.clear(0xFFFFFFFF))
-  )
-end flush
+]: SkijaDraw[F] =
+  ReaderT[F, Canvas, Unit](canvas => I(canvas.clear(0xFFFFFFFF)))
+end clear

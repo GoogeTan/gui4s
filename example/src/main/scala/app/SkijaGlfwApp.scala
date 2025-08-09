@@ -59,9 +59,12 @@ def skijaGlfwApp[
         preinit <- preInit(skijaBackend)
       yield (preinit, skijaBackend),
     drawLoop = (_, backend) =>
-      given a : backend.windowIsGlfwWindow.type = backend.windowIsGlfwWindow // TODO remove this
       runDrawLoopOnExecutionContext(
-        skijaDrawLoop[F, Long, OglGlfwWindow, HandleableEvent, PlacedWidget](backend, widgetIsDrawable),
+        skijaDrawLoop[F, PlacedWidget](
+          widgetIsDrawable, 
+          backend.windowShouldNotClose, 
+          backend.drawFrame(ffi, _)
+        ),
         drawLoopExecutionContext
       ),
     updateLoop = (_, backend) => runUpdateLoopOnExecutionContext[F, PlacedWidget, HandleableEvent](

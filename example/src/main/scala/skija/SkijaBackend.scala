@@ -8,6 +8,7 @@ import cats.effect.syntax.all.*
 import cats.effect.*
 import cats.syntax.all.*
 import cats.{Apply, Functor, Monad, MonadError, Monoid}
+import io.github.humbleui.skija.Canvas
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.geometry.{Point2d, Rect}
 import me.katze.gui4s.glfw.*
@@ -48,17 +49,16 @@ final case class SkijaBackend[
     window.shouldNotClose
   end windowShouldNotClose
 
-  def drawState[Window1 >: Window, T](using M : Monad[F])(f : SkijaDrawState[F, Window1] => F[T]) : F[T] =
+  def drawFrame[T](using M : Monad[F])(ffi : ForeighFunctionInterface[F], f : Canvas => F[T]) : F[T] =
     renderTargetCell.evalModify(
       renderTarget =>
-        f(SkijaDrawState(renderTarget.directContext, window, renderTarget.canvas))
+        f(renderTarget.canvas)
           .map(result => (renderTarget, result))
+          <* ffi(renderTarget.directContext.flush())
+          <* window.swapBuffers
+          <* glfw.pollEvents
     )
-  end drawState
-
-  def pollEvents: F[Unit] =
-    glfw.pollEvents
-  end pollEvents
+  end drawFrame
 
   def raiseEvent(event : DownEvent) : F[Unit] =
     queue.offer(event)
@@ -141,7 +141,7 @@ object SkijaBackend:
     for
       context <- skija.createDirectContext
       scale <- Resource.eval(glfw.primaryMonitorScale)
-      renderTarget <- Resource.eval(skija.createRenderTarget(context, windowSize.width, windowSize.height, scale))
+      renderTarget <- Resource.eval(skija.createRenderTarget(context, windowSize.width * scale, windowSize.height * scale))
       renderTargetCell <- Resource.eval(AtomicCell[F].of(renderTarget))
     yield renderTargetCell
   end createRenderTarget
@@ -149,10 +149,10 @@ object SkijaBackend:
   def recreateRenderTarget[F[_] : Async](
                                           skija: SkijaInit[F],
                                           cell : AtomicCell[F, SkiaRenderTarget],
-                                          size : Rect[Float]
+                                          newSize : Rect[Float]
                                         ): F[Unit] =
     cell.evalUpdate(state =>
-      skija.createRenderTarget(state.directContext, size.width, size.height, state.dpi)
+      skija.createRenderTarget(state.directContext, newSize.width, newSize.height)
     )
   end recreateRenderTarget
 
@@ -174,25 +174,19 @@ end SkijaBackend
 
 @experimental
 def skijaDrawLoop[
-  F[+_] : {Console as C, ForeighFunctionInterface, Clock},
-  Monitor,
-  Window : GlfwWindowT[F, Monitor, Float],
-  DownEvent,
+  F[+_] : {Console, ForeighFunctionInterface},
   Widget
 ](
-    backend : SkijaBackend[F, Monitor, Window, DownEvent],
-    widgetIsDrawable : Drawable[Widget, SkijaDraw[F, Window]]
+    widgetIsDrawable : Drawable[Widget, SkijaDraw[F]],
+    shouldContinue : F[Boolean],
+    drawFrame : (Canvas => F[Unit]) => F[Unit]
 )(using MonadError[F, Throwable]) : DrawLoop[F, Widget] =
   currentWidget =>
-    drawLoop(drawLoopExceptionHandler, backend.windowShouldNotClose)(
-      currentWidget.flatMap(widget =>
-        backend.drawState((widgetIsDrawable(widget) |+| flush[F, Window, Monitor, Float]).run) *> backend.pollEvents
-      )
+    drawLoop(drawLoopExceptionHandler, shouldContinue)(
+      currentWidget.flatMap(widget => drawFrame((clear[F] |+| widgetIsDrawable(widget)).run))
     ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop
 
-// TODO Почему-то ругается на эни в интерполяции строки...
-@SuppressWarnings(Array("org.wartremover.warts.Any"))
 def drawLoopExceptionHandler[F[_] : Functor](exception: Throwable)(using c : Console[F]): F[Option[ExitCode]] =
-  c.println(s"Error in draw loop: $exception").map(_ => Some(ExitCode.Error))
+  c.println[String]("Error in draw loop: " + exception.toString).map(_ => Some(ExitCode.Error))
 end drawLoopExceptionHandler

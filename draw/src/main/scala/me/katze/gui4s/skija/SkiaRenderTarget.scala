@@ -7,5 +7,4 @@ final case class SkiaRenderTarget(
                                     target: BackendRenderTarget,
                                     surface: Surface,
                                     canvas: Canvas,
-                                    dpi : Float
                                   )

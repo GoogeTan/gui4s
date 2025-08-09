@@ -3,7 +3,7 @@ package me.katze.gui4s.widget.library
 import catnip.syntax.applicative.nestedFunctorsAreFunctors
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
-import me.katze.gui4s.geometry.{Point3d, RectAtPoint2d}
+import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEvent
