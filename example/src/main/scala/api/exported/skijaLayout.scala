@@ -27,7 +27,7 @@ def skijaLayout[
   HandleableEvent,
   PlaceError,
 ](
-                  children : List[
+  children : List[
     SkijaOuterPlace[
       F,
       MeasurementUnit,
@@ -43,12 +43,12 @@ def skijaLayout[
       ]
     ]
   ],
-                  mainAxis : Axis,
-                  mainAxisPlacement : MainAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
-                  additionalAxisPlacement : AdditionalAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
-                  drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,
-                  updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
-                  isEventConsumed : Update[Boolean]
+  mainAxis : Axis,
+  mainAxisPlacement : MainAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
+  additionalAxisPlacement : AdditionalAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
+  drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,
+  updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
+  isEventConsumed : Update[Boolean]
 ) =
   placementAwareLayout[
     Update,

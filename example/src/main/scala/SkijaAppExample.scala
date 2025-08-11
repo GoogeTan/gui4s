@@ -14,15 +14,17 @@ import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import io.github.humbleui.skija.shaper.Shaper
-import io.github.humbleui.skija.{Canvas, Font, Paint, Typeface}
+import io.github.humbleui.skija.{Canvas, Font, Paint, Typeface, Path as SkijaPath}
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.geometry.{Axis, Point2d, Rect, given }
+import me.katze.gui4s.example.api.{Padding, Paddings, clipWidget, gapPaddingWidget, paddingWidget}
+import me.katze.gui4s.geometry.{Axis, Point2d, Point3d, Rect, given}
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.skija.*
+import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{Path, library}
 import scalacache.caffeine.CaffeineCache
@@ -126,6 +128,68 @@ object SkijaAppExample extends IOApp:
       def mapEvent[NewEvent](f : Event => NewEvent) : Widget[NewEvent] =
         mmapEvent.apply(value)(f)
       end mapEvent
+
+      def gapPadding(paddings: Paddings[Float]) : Widget[Event] =
+        gapPaddingWidget[
+          IO,
+          SkijaUpdateT[IO, Float, String, Event],
+          SkijaDraw[IO],
+          SkijaRecomposition[IO],
+          SkijaDownEvent[Float],
+          Float,
+          String,
+        ](
+          (widget, shift) =>
+            eventHandleDecorator_[
+              SkijaUpdateT[IO, Float, String, Event],
+              SkijaPlaceT[IO, Float, String],
+              SkijaDraw[IO],
+              SkijaRecomposition[IO],
+              SkijaDownEvent[Float],
+            ](
+              widget,
+              [T] =>
+                (update  : HandlesEvent[T, SkijaDownEvent[Float], SkijaUpdate[IO, Float, String, Event, SkijaPlace[IO, Float, String, T]]]) =>
+                  (self : T, path : Path, event : SkijaDownEvent[Float]) =>
+                    SkijaUpdate.withCoordinates(update(self, path, event))(_ + new Point3d(shift))
+            ),
+          (draw, shift) =>
+            drawAt(ffi, draw, shift.x, shift.y)
+        )(value)(paddings)
+      end gapPadding
+
+      def padding(padding: Paddings[Padding[Float]]) : Widget[Event] =
+        paddingWidget[
+          SkijaUpdateT[IO, Float, String, Event],
+          SkijaOuterPlaceT[IO, Float, String],
+          SkijaPlaceT[IO, Float, String],
+          SkijaDraw[IO],
+          SkijaRecomposition[IO],
+          SkijaDownEvent[Float],
+          Float,
+          String,
+        ](
+          widget => gapPaddings => widget.gapPadding(gapPaddings),
+          layout[Event],
+          "Infinite padding accured in a infinite size container"
+        )(value)(padding)
+      end padding
+
+      def clip(path : Rect[Float] => SkijaPath) : Widget[Event] =
+        clipWidget[
+          SkijaUpdateT[IO, Float, String, Event],
+          SkijaOuterPlaceT[IO, Float, String],
+          SkijaDraw[IO],
+          SkijaRecomposition[IO],
+          SkijaDownEvent[Float],
+          Float,
+          SkijaPath,
+        ](
+          SkijaUpdate.getCoordinates2d[IO, Float, String, Event],
+          ???,
+          clipToPath[IO](ffi, _ : SkijaPath, _ : SkijaDraw[IO])
+        )(value, path)
+      end clip
     end extension
 
     extension[Event](widget : Widget[Event])
@@ -235,12 +299,13 @@ object SkijaAppExample extends IOApp:
     end leaf
 
 
-    def layout[Event](
-                        children : List[Widget[Event]],
-                        axis : Axis,
-                        mainAxisStrategy : MainAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
-                        additionalAxisStrategy : AdditionalAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
-                      ) : Widget[Event] =
+    def layout[Event] : LinearLayout[Widget[Event], SkijaOuterPlaceT[IO, Float, String], Float, Axis] =
+      (
+        children : List[Widget[Event]],
+        axis : Axis,
+        mainAxisStrategy : MainAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
+        additionalAxisStrategy : AdditionalAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
+      ) =>
       skijaLayout(
         children,
         axis,
@@ -254,7 +319,7 @@ object SkijaAppExample extends IOApp:
 
     def app(numbers : List[Int]): Widget[ApplicationRequest] =
       layout(
-        axis = Axis.Vertical,
+        mainAxis = Axis.Vertical,
         mainAxisStrategy = MainAxisPlacement.Begin(0f),
         additionalAxisStrategy = AdditionalAxisPlacement.Center(ENErrors.withCenterStrategy),
         children = numbers.map:
@@ -274,14 +339,14 @@ object SkijaAppExample extends IOApp:
 
     def grid[Event](numbers : List[Int]) : Widget[Event] =
       layout(
-        axis = Axis.Vertical,
+        mainAxis = Axis.Vertical,
         mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
         additionalAxisStrategy = AdditionalAxisPlacement.Begin,
         children =
           numbers.map:
             lineIndex =>
               layout(
-                axis = Axis.Horizontal,
+                mainAxis = Axis.Horizontal,
                 mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
                 additionalAxisStrategy = AdditionalAxisPlacement.Begin,
                 children =

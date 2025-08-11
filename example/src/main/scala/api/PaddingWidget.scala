@@ -20,23 +20,21 @@ def gapPaddingWidget[
   HandleableEvent,
   MeasurementUnit : Numeric,
   PlaceError,
-  T
 ](
   eventHandleDecorator :
-    (widget : Widget.ValueWrapper[T, Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent], shift : Point2d[MeasurementUnit]) =>
-      Widget.ValueWrapper[T, Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent],
+    (widget : Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent], shift : Point2d[MeasurementUnit]) =>
+      Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent],
   drawDecorations : (draw : Draw, shift : Point2d[MeasurementUnit]) => Draw
-) : PaddingWidget[SkijaPlace[F, MeasurementUnit, PlaceError, Widget.ValueWrapper[T, Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
+) : PaddingWidget[SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
   initialWidget => paddings =>
     SkijaOuterPlace.withBounds(
       initialWidget,
       _.cut(paddings.horizontalLength, paddings.verticalLength)
     ).map {
       case Sized(widget, size) =>
-
         Sized(
           drawDecorator(
-            eventHandleDecorator(widget, paddings.topLeftCornerShift),
+            eventHandleDecorator(widget, paddings.topLeftCornerShift).asWrapper,
             drawDecorations(_, paddings.topLeftCornerShift)
           ),
           size + paddings.addedBoundsRect

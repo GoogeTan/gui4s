@@ -70,5 +70,6 @@ def beginEndGaps[T : Numeric](elements : NonEmptyList[Rect1dOnPoint1d[T]], space
     case Some(lastElement) =>
       (around.head, lastElement)
     case None =>
-      (Numeric[T].zero, space) // TODO может лучше вернуть option или кинуть исключение
+      // не достижимо, так как around возвращает список 2 на два элемента, чем переданный ему не пустой список
+      (Numeric[T].zero, space)
 end beginEndGaps

@@ -1,7 +1,8 @@
 package me.katze.gui4s.layout
 
-import cats.Comonad
-import me.katze.gui4s.geometry.{Axis, Rect}
+import cats.{Comonad, Eq}
+import cats.syntax.all.*
+import me.katze.gui4s.geometry.{Axis, Rect }
 
 final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementUnit]):
   def this(value : T, x : MeasurementUnit, y : MeasurementUnit) =
@@ -34,16 +35,22 @@ final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementU
   end lengthAlongAnother
 end Sized
 
-given[MeasurementUnit]: Comonad[Sized[MeasurementUnit, *]] with
-  override def coflatMap[A, B](fa: Sized[MeasurementUnit, A])(f: Sized[MeasurementUnit, A] => B): Sized[MeasurementUnit, B] =
-    fa.mapValue(_ => f(fa))
-  end coflatMap
+object Sized:
+  given sizedEq[MeasurementUnit : Eq, T : Eq] : Eq[Sized[MeasurementUnit, T]] =
+    Eq.by(x => (x.value, x.size))
+  end sizedEq
 
-  override def extract[A](x: Sized[MeasurementUnit, A]): A =
-    x.value
-  end extract
+  given[MeasurementUnit]: Comonad[Sized[MeasurementUnit, *]] with
+    override def coflatMap[A, B](fa: Sized[MeasurementUnit, A])(f: Sized[MeasurementUnit, A] => B): Sized[MeasurementUnit, B] =
+      fa.mapValue(_ => f(fa))
+    end coflatMap
 
-  override def map[A, B](fa: Sized[MeasurementUnit, A])(f: A => B): Sized[MeasurementUnit, B] =
-    fa.mapValue(f)
-  end map
-end given
+    override def extract[A](x: Sized[MeasurementUnit, A]): A =
+      x.value
+    end extract
+
+    override def map[A, B](fa: Sized[MeasurementUnit, A])(f: A => B): Sized[MeasurementUnit, B] =
+      fa.mapValue(f)
+    end map
+  end given
+end Sized  

@@ -12,6 +12,11 @@ import me.katze.gui4s.widget.merge.MergesWithOldStates
 import me.katze.gui4s.widget.recomposition.ReactsOnRecomposition
 import me.katze.gui4s.widget.state.HasInnerStates
 
+@SuppressWarnings(Array("org.wartremover.warts.Any"))
+type ValueType[W <: Widget[?, ?, ?, ?, ?]] = W match {
+  case Widget.ValueWrapper[t, _, _, _, _, _] => t
+}
+
 enum Widget[
   Update[_] : Functor,
   Place[_] : Functor,
@@ -42,6 +47,13 @@ enum Widget[
     valueReactsOnRecomposition(valueToDecorate, _, _),
     valueHasInnerState(valueToDecorate)
   )
+
+  def asWrapper : Widget.ValueWrapper[?, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
+    this match
+      case wrapper : Widget.ValueWrapper[t, Update, Place, Draw, RecompositionReaction, HandleableEvent] => wrapper
+    end match
+  end asWrapper
+end Widget
 
 extension[T, Update[_] : Functor, Place[_] : Functor, Draw, RecompositionReaction, HandleableEvent](wrapper : ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent])
   def withValue(value: T): ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =

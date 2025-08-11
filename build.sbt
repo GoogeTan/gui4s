@@ -46,7 +46,10 @@ def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.1"
 def fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.0")
 def testLibs = List(
   "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-  "org.scalacheck" %% "scalacheck" % "1.18.1" % "test"
+  "org.scalacheck" %% "scalacheck" % "1.18.1" % "test",
+  "org.typelevel" %% "cats-laws" % "2.13.0" % Test,
+  "org.typelevel" %% "discipline-core" % "1.7.0" % Test,
+  "org.typelevel" %% "discipline-scalatest" % "2.3.0" % Test
 )
 
 val geometry = (project in file("geometry"))

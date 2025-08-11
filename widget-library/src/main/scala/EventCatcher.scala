@@ -5,15 +5,16 @@ import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.{Sized, given}
-import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget
+import me.katze.gui4s.widget.{Path, library}
 import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.Widget
 
-type EventHandleDecorator[Widget, Update] = (Widget, Update => Update) => Widget
+type EventHandleDecorator[Widget, Update] = (Widget, Update) => Widget
 
 /**
  * Декорирует обновление виджета.
- * TODO проверить, как оно работает с asFree. Есть впечатление, что это сбросит эффект. Это относится ко всем декораторам. 
+ * TODO проверить, как оно работает с asFree. Есть впечатление, что это сбросит эффект. Это относится ко всем декораторам.
  */
 def eventHandleDecorator[
   T,
@@ -24,11 +25,30 @@ def eventHandleDecorator[
   HandleableEvent,
 ] : EventHandleDecorator[
   Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
-  HandlesEvent[T, HandleableEvent, Update[Place[T]]]
+  HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
 ] =
   (original, decorator) =>
     original.copy(valueHandlesEvent = decorator(original.valueHandlesEvent))
 end eventHandleDecorator
+
+/**
+ * Декорирует обновление виджета. Полиморфно по отношению к типу состояния.
+ */
+def eventHandleDecorator_[
+  Update[_] : Functor as UF,
+  Place[_] : Functor as PF,
+  Draw,
+  RecompositionReaction,
+  HandleableEvent,
+]: EventHandleDecorator[
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  [T] => HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
+] =
+  (original, decorator) =>
+    original match
+      case widget : Widget.ValueWrapper[t, Update, Place, Draw, RecompositionReaction, HandleableEvent] =>
+        eventHandleDecorator(using UF, PF)(widget, decorator[t](_))
+end eventHandleDecorator_
 
 /**
  * Ловит события, возможно, поглощая их. Если декоратор вернул true, то событие считается поглощенным.

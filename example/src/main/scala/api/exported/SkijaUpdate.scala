@@ -6,14 +6,16 @@ import update.ApplicationRequest
 import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import catnip.syntax.bi.{stateWrapsBiMonad, writerIsBiMonad}
+import cats.arrow.FunctionK
 import cats.data.{EitherT, StateT, WriterT}
 import cats.effect.ExitCode
 import cats.syntax.all.*
 import cats.{Applicative, Monad}
-import me.katze.gui4s.geometry.Point3d
+import io.github.humbleui.skija.{PathFillMode, PathOp, Path as SkijaPath}
+import me.katze.gui4s.geometry.{Point2d, Point3d}
 import me.katze.gui4s.widget.{CatchEvents, given}
 
-final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit]):
+final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit], path: SkijaPath):
   def setCoordinates(point: Point3d[MeasurementUnit]): UpdateEffectState[MeasurementUnit] =
     copy(widgetCoordinates = point)
   end setCoordinates
@@ -21,11 +23,15 @@ final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCo
   def markEventHandled : UpdateEffectState[MeasurementUnit] =
     copy(consumed = true)
   end markEventHandled
+
+  def clip(path : SkijaPath) : UpdateEffectState[MeasurementUnit] =
+    copy(path = SkijaPath.makeCombining(this.path, path, PathOp.INTERSECT))
+  end clip
 end UpdateEffectState
 
 object UpdateEffectState:
   def empty[MeasurementUnit : Numeric as N] : UpdateEffectState[MeasurementUnit] =
-    UpdateEffectState(false, Point3d(N.zero, N.zero, N.zero))
+    UpdateEffectState(false, Point3d(N.zero, N.zero, N.zero), new SkijaPath().setFillMode(PathFillMode.INVERSE_WINDING))
   end empty
 end UpdateEffectState
 
@@ -43,8 +49,12 @@ object SkijaUpdate:
     )
 
   def liftF[IO[_] : Monad, MeasurementUnit, UpdateError, Event, Value](io : IO[Value]) : SkijaUpdate[IO, MeasurementUnit, UpdateError, Event, Value] =
-    EitherT.liftF(StateT.liftF(WriterT.liftF(io)))
+    liftK(io)
   end liftF
+
+  def liftK[IO[_] : Monad, MeasrementUnit, UpdateError, Event] : FunctionK[IO, SkijaUpdateT[IO, MeasrementUnit, UpdateError, Event]] =
+    WriterT.liftK[IO, List[Event]].andThen(StateT.liftK[WriterT[IO, List[Event], *], UpdateEffectState[MeasrementUnit]].andThen(EitherT.liftK))
+  end liftK
 
   given skijaUpdateBiMonad[IO[_] : Monad, MeasurementUnit, UpdateError] : BiMonad[SkijaUpdate[IO, MeasurementUnit, UpdateError, *, *]] =
     eitherWrapsBiMonad[
@@ -66,11 +76,24 @@ object SkijaUpdate:
     EitherT.liftF(StateT.get[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit]].map(_.widgetCoordinates))
   end getCoordinates
 
+  def getCoordinates2d[IO[_] : Applicative, MeasurementUnit, UpdateError, Event] : SkijaUpdate[IO, MeasurementUnit, UpdateError, Event, Point2d[MeasurementUnit]] =
+    getCoordinates.map(_.projectToXY)
+  end getCoordinates2d
+
   def setCoordinates[IO[_] : Applicative, MeasurementUnit, UpdateError, Event](coordinates : Point3d[MeasurementUnit]) : SkijaUpdate[IO, MeasurementUnit, UpdateError, Event, Unit] =
     EitherT.liftF(
       StateT.modify(_.setCoordinates(coordinates))
     )
   end setCoordinates
+
+  /*
+  def clip[IO[_] : Applicative, MeasurementUnit, UpdateError, Event](path : SkijaPath) : SkijaUpdate[IO, MeasurementUnit, UpdateError, Event, Unit] =
+    getCoordinates2d.flatMap:
+      point2d =>
+        EitherT.liftF(
+          StateT.modify(_.clip(path.moveTo(point2d.x, point2d.y)))
+        )
+  end clip*/
 
   def withCoordinates[
     IO[_] : Monad,

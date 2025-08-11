@@ -13,17 +13,19 @@ import me.katze.gui4s.widget.merge.containerMergesWithOldStates
 import me.katze.gui4s.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
 import me.katze.gui4s.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}
 
-type LinearLayout[
+@FunctionalInterface
+trait LinearLayout[
   Widget,
   Place[_],
   MeasurementUnit,
   Axis,
-] = (
-  children               : List[Widget],
-  mainAxis               : Axis,
-  mainAxisStrategy       : MainAxisPlacement[Place, MeasurementUnit],
-  additionalAxisStrategy : AdditionalAxisPlacement[Place, MeasurementUnit],
-) => Widget
+]:
+  def apply(
+    children               : List[Widget],
+    mainAxis               : Axis,
+    mainAxisStrategy       : MainAxisPlacement[Place, MeasurementUnit],
+    additionalAxisStrategy : AdditionalAxisPlacement[Place, MeasurementUnit],
+  ) : Widget
 
 def linearLayout[
   Update[_] : Monad,

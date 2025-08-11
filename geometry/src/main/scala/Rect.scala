@@ -25,3 +25,6 @@ extension[MeasurementUnit : Numeric](value : Rect[MeasurementUnit])
     (-value) + another
   end -
 end extension
+
+object Rect:
+  given rectEq[MeasurementUnit : Eq] : Eq[Rect[MeasurementUnit]] = Eq.by(r => (r.width, r.height))
