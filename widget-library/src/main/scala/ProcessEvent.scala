@@ -7,6 +7,23 @@ import me.katze.gui4s.widget.recomposition.ReactsOnRecomposition
 import me.katze.gui4s.widget.state.HasInnerStates
 import me.katze.gui4s.widget.{Path, collectQuitCompositionReactions}
 
+def placeForTheFirstTime[
+  IO[+_] : Monad,
+  Widget,
+  Place[_],
+  Recomposition,
+](
+  pathToRoot : Path,
+  widget : Place[Widget],
+  widgetReactsToRecomposition : ReactsOnRecomposition[Widget, Recomposition],
+  runRecomposition : Recomposition => IO[Unit],
+  runPlacement: [Value] => Place[Value] => IO[Value]
+) : IO[Widget] =
+  runPlacement(widget).flatMap(newPlacedWidget =>
+    runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, Map())).as(newPlacedWidget)
+  )
+end placeForTheFirstTime
+
 // tODO rename me
 def processEvent[
   IO[+_] : Monad,

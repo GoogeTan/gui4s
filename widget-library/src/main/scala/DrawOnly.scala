@@ -17,7 +17,7 @@ def drawOnlyWidget[
 ](
     toDraw : Place[Draw], 
     emptyRecomposition : RecompositionReaction,
- ) : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+) : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
   toDraw.map(
     draw =>
       val asFree : AsFree[Draw, Place[Draw]] = (_ : Draw) => toDraw

@@ -10,5 +10,6 @@ object all:
   export bi.{*, given }
   export applicative.{*, given}
   export monad.{*, given}
+  export functionk.{*, given}
 end all
 

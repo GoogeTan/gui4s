@@ -23,7 +23,7 @@ def launchedEffect[
   Key : {Typeable as KT, Equiv}
 ](
   keyTypeError : [T] => Path => Place[T],
-  keysTypeMismatchError : RecompositionReaction,
+  keysTypeMismatchError : Any => RecompositionReaction,
 ) : LaunchedEffectWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]], Key, Path => RecompositionReaction] =
   type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]
   (name, freeChild, key, task) =>

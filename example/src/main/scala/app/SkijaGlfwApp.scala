@@ -7,11 +7,12 @@ import skija.{SkijaBackend, skijaDrawLoop}
 import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
-import catnip.syntax.all.given
+import catnip.syntax.all.{*, given}
 import cats.data.EitherT
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode, Resource}
 import cats.kernel.Monoid
+import cats.~>
 import me.katze.*
 import me.katze.gui4s.example
 import me.katze.gui4s.glfw.*
@@ -38,7 +39,7 @@ def skijaGlfwApp[
     updateLoopExecutionContext: ExecutionContext,
     drawLoopExecutionContext: ExecutionContext,
     updateErrorAsExitCode : UpdateError => F[ExitCode],
-    runEitherTError : [T] => EitherT[F, PlaceError, T] => F[T],
+    runEitherTError : EitherT[F, PlaceError, *] ~> F,
     createGlfwCallbacks : (HandleableEvent => F[Unit]) =>  skija.SkijaBackend.GlfwCallbacks[F[Unit], Float],
     settings : WindowCreationSettings[Float],
 ): F[ExitCode] =
@@ -72,10 +73,6 @@ def skijaGlfwApp[
     updateLoop = (_, backend) => runUpdateLoopOnExecutionContext[F, PlacedWidget, HandleableEvent](
       updateLoop(
         (widget, event) =>
-          given runPlacement : RunPlacement[SkijaPlaceT[F, Float, PlaceError], F] =
-            [T] => (place : SkijaPlaceT[F, Float, PlaceError][T]) =>
-              runEitherTError(SkijaPlace.run[F, Float, PlaceError](backend.windowBounds)(place))
-
           SkijaUpdate.handleApplicationRequests[F, Float, Clip, UpdateError](updateErrorAsExitCode)(
             processEvent[
               F,
@@ -90,16 +87,20 @@ def skijaGlfwApp[
               widgetHandlesEvent,
               widgetReactsOnRecomposition,
               widgetHasInnerStates,
-              runPlacement
+              [Value] => (place : SkijaPlace[F, Float, PlaceError, Value]) =>
+              runEitherTError(SkijaPlace.run[F, Float, PlaceError](backend.windowBounds)(place))
             )(widget, event)
           )
       ),
       updateLoopExecutionContext
     ),
     rootWidget = (preInit, backend) =>
-      given runPlacement : RunPlacement[SkijaPlaceT[F, Float, PlaceError], F] =
-        [T] => (place : SkijaPlaceT[F, Float, PlaceError][T]) =>
-          runEitherTError(SkijaPlace.run[F, Float, PlaceError](backend.windowBounds)(place))
-      runPlacement(widget(preInit)(using backend))
+      placeForTheFirstTime[F, PlacedWidget, SkijaPlaceT[F, Float, PlaceError], SkijaRecomposition[F]](
+        Path(Nil),
+        widget(preInit)(using backend),
+        widgetReactsOnRecomposition,
+        SkijaRecomposition.run[F],
+        SkijaPlace.run[F, Float, PlaceError](backend.windowBounds).andThen(runEitherTError).convert
+      )
   )
 end skijaGlfwApp

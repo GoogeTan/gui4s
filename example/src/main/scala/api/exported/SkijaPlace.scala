@@ -54,8 +54,11 @@ end SkijaOuterPlace
 
 object SkijaPlace:
   def run[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds[MeasurementUnit]]) : RunPlacement[SkijaPlaceT[IO, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]] =
-    [Value] => (value : SkijaOuterPlace[IO, MeasurementUnit, PlaceError, Sized[MeasurementUnit, Value]]) =>
-      SkijaOuterPlace.run(bounds)(value.map(_.value))
+    new ~>[SkijaPlaceT[IO, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]]:
+      override def apply[A](fa : SkijaPlaceT[IO, MeasurementUnit, PlaceError][A]) : EitherT[IO, PlaceError, A] =
+        SkijaOuterPlace.run(bounds)(fa.map(_.value))
+      end apply
+    end new
   end run
 
   def sizeText[IO[_] : Monad, PlaceError](

@@ -167,6 +167,10 @@ lazy val example = (project in file("example"))
     libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
       "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
+      "co.fs2" %% "fs2-core" % "3.12.0",
+      "co.fs2" %% "fs2-io" % "3.12.0",
+      "org.http4s" %% "http4s-ember-client" % "0.23.30",
+      "org.http4s" %% "http4s-core" % "0.23.30"
     ),
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
