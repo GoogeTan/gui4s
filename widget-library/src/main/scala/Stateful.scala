@@ -128,9 +128,7 @@ def stateful[
       valueHandlesEvent = statefulHandlesEvent_(widgetsAreMergeable),
       valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
-        widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
-        M.empty
-      ),
+        widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]),
       valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
     )
   )

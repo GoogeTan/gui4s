@@ -19,10 +19,10 @@ def statefulHandlesEvent[
 ](
     using Monad[Update[Event, *]]
 )(
-   stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
-   drawStateIntoWidget: Drawable[State, Place[Widget]],
-   childWidgetHandlesEvent  : HandlesEvent[Widget, HandleableEvent, Update[Event, (List[ChildEvent], Place[Widget])]],
-   widgetsAreMergable  : Mergable[Place[Widget]],
+    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
+    drawStateIntoWidget: Drawable[State, Place[Widget]],
+    childWidgetHandlesEvent  : HandlesEvent[Widget, HandleableEvent, Update[Event, (List[ChildEvent], Place[Widget])]],
+    widgetsAreMergable  : Mergable[Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
   HandleableEvent,
@@ -39,7 +39,7 @@ def statefulHandlesEvent[
         pathToParent.appendLast(self.name),
         event
       )
-      newState : Option[State] <- NonEmptyList.fromList(events).traverse(stateHandlesEvents(self.stateBehaviour, pathToParent, _))
+      newState : Option[State] <- NonEmptyList.fromList(events).traverse(stateHandlesEvents(self.stateBehaviour, pathToParent.appendLast(self.name), _))
     yield newState
       .filterNot(stateEquiality.equiv(_, self.stateBehaviour))
       .map(newState =>

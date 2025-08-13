@@ -7,12 +7,11 @@ def statefulReactsOnRecomposition[
   RecompositionReaction,
 ](
   widgetReactsOnRecomposition : ReactsOnRecomposition[Widget, RecompositionReaction],
-  noRecomposition : RecompositionReaction,
 ) : ReactsOnRecomposition[Stateful[Widget, State], RecompositionReaction] =
   (self, pathToParent, states) =>
-    states.get(self.name).map(_.childrenStates) match
-      case Some(oldState) =>
-        widgetReactsOnRecomposition(self.child, pathToParent.appendLast(self.name), oldState)
-      case None => 
-        noRecomposition
+    widgetReactsOnRecomposition(
+      self.child,
+      pathToParent.appendLast(self.name),
+      states.get(self.name).map(_.childrenStates).getOrElse(Map())
+    )
 end statefulReactsOnRecomposition

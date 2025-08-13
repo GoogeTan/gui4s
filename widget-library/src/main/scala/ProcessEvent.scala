@@ -19,7 +19,9 @@ def placeForTheFirstTime[
   runRecomposition : Recomposition => IO[Unit],
   runPlacement: [Value] => Place[Value] => IO[Value]
 ) : IO[Widget] =
+
   runPlacement(widget).flatMap(newPlacedWidget =>
+    println(newPlacedWidget)
     runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, Map())).as(newPlacedWidget)
   )
 end placeForTheFirstTime

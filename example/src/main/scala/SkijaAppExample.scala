@@ -58,6 +58,10 @@ def eventOfferingCallbacks[F, MeasurementUnit](offerEvent: SkijaDownEvent[Measur
 end eventOfferingCallbacks
 
 @experimental
+type ResourceWidget[Widget, F[_]] = [T : Typeable] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
+
+
+@experimental
 object SkijaAppExample extends IOApp:
   given ElementPlacementInInfiniteContainerAttemptError[String] = ENErrors
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
@@ -242,22 +246,22 @@ object SkijaAppExample extends IOApp:
 
     def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
       val lew : LaunchedEffectWidget[Widget[Event], Key, Path => SkijaRecomposition[IO]] = library.launchedEffect(
-        [T] => (path : Path) => SkijaOuterPlace.raiseError("Key has changed type at " + path.toString),
+        [T] => (path : Path, value : Any) => SkijaOuterPlace.raiseError("Key has changed type at " + path.toString + " value found " + value.toString),
         (valueFound : Any) => SkijaRecomposition.lift[IO, Nothing](
           IO.raiseError(Exception("Key changed the type: " + valueFound.toString))
         )
       )
       (name, child, key, task) =>
         lew(name, child, key, path =>
-          println("aaaaaaa")
           SkijaRecomposition.lift(
             supervisor.supervise(task(path))
           )
         )
 
     @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
-    given destructableIsTypeable[T : Typeable] : Typeable[(T, IO[Unit])] = {
-      case (a: T, io: IO[t]) => Some[(T, IO[Unit])]((a, io.as(()))).map(_.asInstanceOf)
+    given destructableIsTypeable[T : Typeable] : Typeable[(T, IO[Unit])] = x => x match {
+      case (a: T, io: IO[t]) =>
+        Some[(T, IO[Unit])]((a, io.as(()))).map(_.asInstanceOf[x.type & (T, IO[Unit])])
       case _ => None
     }
 
@@ -265,9 +269,11 @@ object SkijaAppExample extends IOApp:
     def catchTaskRaisedEvent[Event, Value : Typeable](value : Any, expectedPath : Path) : SkijaUpdate[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event], Boolean] =
       value match
         case SkijaDownEvent.TaskRaisedEvent(taskPath, value: Any) if expectedPath == taskPath =>
-          destructableIsTypeable.unapply(value) match
-            case Some(event) => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
-            case _ => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]]]
+          destructableIsTypeable[Value].unapply(value) match
+            case Some(event) =>
+              SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
+            case _ =>
+              false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]]]
           end match
         case _ => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]]]
       end match
@@ -283,7 +289,6 @@ object SkijaAppExample extends IOApp:
             eventHandler = (state, _, events) =>
               (state, events) match
                 case (None, NonEmptyList(event, Nil)) =>
-                  println("event came: " + event.toString)
                   Some(event).pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
                 case _ => SkijaUpdate.raiseError("Resource was allocated twice"),
             body = state =>
@@ -293,7 +298,6 @@ object SkijaAppExample extends IOApp:
                   widget(state.map(_._1)).mapEvent(Right(_))
                 )(
                   (path, _, event) =>
-                    println("event catched: " + event.toString)
                     catchTaskRaisedEvent(event, path)
                 ),
                 (),
@@ -409,9 +413,11 @@ object SkijaAppExample extends IOApp:
     end grid
 
     imageUrl(
-      "image",
-      "https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg",
+      name = "image",
+      uri = "https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg",
       text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
+    ).clip(
+      SkijaClip.Shapes.round
     )
   end main
 end SkijaAppExample

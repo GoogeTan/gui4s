@@ -53,6 +53,10 @@ enum Widget[
       case wrapper : Widget.ValueWrapper[t, Update, Place, Draw, RecompositionReaction, HandleableEvent] => wrapper
     end match
   end asWrapper
+
+  override def toString: String =
+    asWrapper.valueToDecorate.toString
+  end toString
 end Widget
 
 extension[T, Update[_] : Functor, Place[_] : Functor, Draw, RecompositionReaction, HandleableEvent](wrapper : ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent])

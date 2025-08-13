@@ -17,12 +17,11 @@ def launchedEffectReactsOnRecomposition[
         if eq.equiv(key, self.key) then
           emptyRecomposition
         else
-          self.taskOnChange(pathToParent.appendLast(self.name))
+          self.taskOnChange(pathToParent)
       case Some(valueFound : Any) =>
         keysTypeMismatchError(valueFound)
       case None =>
-        println("task started")
-        self.taskOnChange(pathToParent.appendLast(self.name))
+        self.taskOnChange(pathToParent)
     end match
 end launchedEffectReactsOnRecomposition
 
