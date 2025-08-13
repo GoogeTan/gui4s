@@ -9,37 +9,38 @@ import catnip.syntax.bi.{stateWrapsBiMonad, writerIsBiMonad}
 import cats.arrow.FunctionK
 import cats.data.{EitherT, StateT, WriterT}
 import cats.effect.ExitCode
+import cats.kernel.Monoid
 import cats.syntax.all.*
 import cats.{Applicative, Monad}
 import io.github.humbleui.skija.{PathFillMode, PathOp, Path as SkijaPath}
 import me.katze.gui4s.geometry.{Point2d, Point3d}
 import me.katze.gui4s.widget.{CatchEvents, given}
 
-final case class UpdateEffectState[MeasurementUnit](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit], path: SkijaPath):
-  def withCoordinates(point: Point3d[MeasurementUnit]): UpdateEffectState[MeasurementUnit] =
+final case class UpdateEffectState[MeasurementUnit, Clip](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit], path: Clip):
+  def withCoordinates(point: Point3d[MeasurementUnit]): UpdateEffectState[MeasurementUnit, Clip] =
     copy(widgetCoordinates = point)
   end withCoordinates
 
-  def markEventHandled : UpdateEffectState[MeasurementUnit] =
+  def markEventHandled : UpdateEffectState[MeasurementUnit, Clip] =
     copy(consumed = true)
   end markEventHandled
 
-  def cliped(path : SkijaPath) : UpdateEffectState[MeasurementUnit] =
-    copy(path = SkijaPath.makeCombining(this.path, path, PathOp.INTERSECT))
-  end cliped
+  def withClip(path : Clip)(using M : Monoid[Clip]) : UpdateEffectState[MeasurementUnit, Clip] =
+    copy(path = M.combine(this.path, path))
+  end withClip
 end UpdateEffectState
 
 object UpdateEffectState:
-  def empty[MeasurementUnit : Numeric as N] : UpdateEffectState[MeasurementUnit] =
-    UpdateEffectState(false, Point3d(N.zero, N.zero, N.zero), new SkijaPath().setFillMode(PathFillMode.INVERSE_WINDING))
+  def empty[MeasurementUnit : Numeric as N, Clip : Monoid as ClipM] : UpdateEffectState[MeasurementUnit, Clip] =
+    UpdateEffectState(false, Point3d(N.zero, N.zero, N.zero), ClipM.empty) //
   end empty
 end UpdateEffectState
 
-opaque type SkijaUpdate[IO[_], MeasurementUnit, UpdateError, Event, Value] = EitherT[StateT[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit], *], UpdateError, Value]
-type SkijaUpdateT[IO[_], MeasurementUnit, UpdateError, Event] = SkijaUpdate[IO, MeasurementUnit, UpdateError, Event, *]
+opaque type SkijaUpdate[IO[_], MeasurementUnit, Clip, UpdateError, Event, Value] = EitherT[StateT[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit, Clip], *], UpdateError, Value]
+type SkijaUpdateT[IO[_], MeasurementUnit, Clip, UpdateError, Event] = SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, *]
 
 object SkijaUpdate:
-      given[IO[_] : Monad, MeasurementUnit, Clip, UpdateError] : CatchEvents[SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, *, *]] =
+  given[IO[_] : Monad, MeasurementUnit, Clip, UpdateError] : CatchEvents[SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, *, *]] =
     liftEitherTCatchEvents[
       [A, B] =>> StateT[WriterT[IO, List[A], *], UpdateEffectState[MeasurementUnit, Clip], B],
       UpdateError
@@ -56,7 +57,7 @@ object SkijaUpdate:
     WriterT.liftK[IO, List[Event]].andThen(StateT.liftK[WriterT[IO, List[Event], *], UpdateEffectState[MeasrementUnit, Clip]].andThen(EitherT.liftK))
   end liftK
 
-      given skijaUpdateBiMonad[IO[_] : Monad, MeasurementUnit, Clip, UpdateError] : BiMonad[SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, *, *]] =
+  given skijaUpdateBiMonad[IO[_] : Monad, MeasurementUnit, Clip, UpdateError] : BiMonad[SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, *, *]] =
     eitherWrapsBiMonad[
       [A, B] =>> StateT[WriterT[IO, List[A], *], UpdateEffectState[MeasurementUnit, Clip], B],
       UpdateError
@@ -72,8 +73,26 @@ object SkijaUpdate:
     EitherT.liftF(StateT.get[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit, Clip]].map(_.consumed))
   end isEventHandled
 
+  def getState[IO[_] : Applicative, MeasurementUnit, Clip, UpdateError, Event] : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, UpdateEffectState[MeasurementUnit, Clip]] =
+    EitherT.liftF(StateT.get[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit, Clip]])
+  end getState
+
+  def modifyState[
+    IO[_] : Applicative,
+    MeasurementUnit,
+    Clip,
+    UpdateError,
+    Event
+  ](
+    f : UpdateEffectState[MeasurementUnit, Clip] => UpdateEffectState[MeasurementUnit, Clip]
+  ) : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Unit] =
+    EitherT.liftF(
+      StateT.modify(f)
+    )
+  end modifyState
+
   def getCoordinates[IO[_] : Applicative, MeasurementUnit, Clip, UpdateError, Event] : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Point3d[MeasurementUnit]] =
-    EitherT.liftF(StateT.get[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit, Clip]].map(_.widgetCoordinates))
+    getState.map(_.widgetCoordinates)
   end getCoordinates
 
   def getCoordinates2d[IO[_] : Applicative, MeasurementUnit, Clip, UpdateError, Event] : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Point2d[MeasurementUnit]] =
@@ -81,19 +100,30 @@ object SkijaUpdate:
   end getCoordinates2d
 
   def setCoordinates[IO[_] : Applicative, MeasurementUnit, Clip, UpdateError, Event](coordinates : Point3d[MeasurementUnit]) : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Unit] =
-    EitherT.liftF(
-      StateT.modify(_.setCoordinates(coordinates))
-    )
+    modifyState(_.withCoordinates(coordinates))
   end setCoordinates
 
-  /*
-  def clip[IO[_] : Applicative, MeasurementUnit, UpdateError, Event](path : SkijaPath) : SkijaUpdate[IO, MeasurementUnit, UpdateError, Event, Unit] =
-    getCoordinates2d.flatMap:
-      point2d =>
-        EitherT.liftF(
-          StateT.modify(_.clip(path.moveTo(point2d.x, point2d.y)))
-        )
-  end clip*/
+  def withClip[
+    IO[_] : Monad,
+    MeasurementUnit,
+    Clip : Monoid,
+    UpdateError,
+    Event,
+    Value
+  ](
+    path : Clip,
+    original : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Value],
+    clipAt : (Clip, Point3d[MeasurementUnit]) => Clip,
+  ) : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Value] =
+    getCoordinates.flatMap:
+      point =>
+        for
+          clip <- getState[IO, MeasurementUnit, Clip, UpdateError, Event].map(_.path)
+          _ <- modifyState[IO, MeasurementUnit, Clip, UpdateError, Event](_.withClip(clipAt(path, point)))
+          result <- original
+          _ <- modifyState[IO, MeasurementUnit, Clip, UpdateError, Event](_.withClip(clip))
+        yield result
+  end withClip
 
   def withCoordinates[
     IO[_] : Monad,
@@ -132,7 +162,7 @@ object SkijaUpdate:
   def handleApplicationRequests[
     IO[_] : Monad,
     MeasurementUnit : Numeric as N,
-    Clip,
+    Clip : Monoid,
     UpdateError,
   ](updateErrorAsExitCode : UpdateError => IO[ExitCode]) : [T] => SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, ApplicationRequest, T] => IO[Either[ExitCode, T]] =
     [T] => update =>

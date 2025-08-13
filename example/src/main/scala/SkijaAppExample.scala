@@ -12,9 +12,10 @@ import catnip.syntax.all.given
 import cats.data.*
 import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.kernel.Monoid
 import cats.syntax.all.*
 import io.github.humbleui.skija.shaper.Shaper
-import io.github.humbleui.skija.{Canvas, Font, Paint, Typeface, Path as SkijaPath}
+import io.github.humbleui.skija.{Canvas, Font, Paint, PathFillMode, PathOp, Typeface, Path as SkijaPath}
 import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.example.api.{Padding, Paddings, clipWidget, gapPaddingWidget, paddingWidget}
@@ -54,12 +55,31 @@ def eventOfferingCallbacks[F, MeasurementUnit](offerEvent: SkijaDownEvent[Measur
   )
 end eventOfferingCallbacks
 
+given pathMonoid : Monoid[SkijaPath] with
+
+  override def empty: SkijaPath =
+    new SkijaPath().setFillMode(PathFillMode.INVERSE_WINDING)
+  end empty
+
+  override def combine(x: SkijaPath, y: SkijaPath): SkijaPath =
+    SkijaPath.makeCombining(x, y, PathOp.INTERSECT)
+  end combine
+end pathMonoid
+
+def skijaPathAt(path : SkijaPath, point : Point3d[Float]) : SkijaPath =
+  pathMonoid.empty.addPath(
+    path,
+    point.x,
+    point.y
+  )
+end skijaPathAt
+
 @experimental
 object SkijaAppExample extends IOApp:
   given ElementPlacementInInfiniteContainerAttemptError[String] = ENErrors
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
 
-  private type Widget[Event] = SkijaWidget[IO, Float, String, String, Event, SkijaDownEvent[Float]]
+  private type Widget[Event] = SkijaWidget[IO, Float, SkijaPath, String, String, Event, SkijaDownEvent[Float]]
 
   type PreInit = (dispatcher : Dispatcher[IO], globalSupervisor : Supervisor[IO], shaper : Shaper, globalTextCache : Cache)
 
@@ -75,7 +95,7 @@ object SkijaAppExample extends IOApp:
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaGlfwApp[IO, String, String, SkijaDownEvent[Float], PreInit](
+    skijaGlfwApp[IO, SkijaPath, String, String, SkijaDownEvent[Float], PreInit](
       preInit = preInit,
       widget = main(_),
       updateLoopExecutionContext = this.runtime.compute,
@@ -100,13 +120,13 @@ object SkijaAppExample extends IOApp:
 
   def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
 
-    def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, String, Event, Boolean], Float, SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
+    def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, SkijaPath, String, Event, Boolean], Float, SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
       SkijaUpdate.markEventHandled,
       SkijaUpdate.getCoordinates,
     )
 
     def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
-      rememberLastEventOfTheType[Widget, SkijaUpdate[IO, Float, String, *, *], Float, Event, SkijaDownEvent[Float], Point2d[Float], Boolean](
+      rememberLastEventOfTheType[Widget, SkijaUpdate[IO, Float, SkijaPath, String, *, *], Float, Event, SkijaDownEvent[Float], Point2d[Float], Boolean](
         eventCatcherWithRect = eventCatcher,
         statefulWidget = transitiveStatefulWidget,
         mapUpdate = [A, B] => f => SkijaUpdate.mapEvents(f),
@@ -116,8 +136,8 @@ object SkijaAppExample extends IOApp:
           (path, rect, event) =>
             event match
               case SkijaDownEvent.MouseMove(newPosition) =>
-                SkijaUpdate.raiseEvents[IO, Float, String, Point2d[Float]](List(newPosition)).as(false)
-              case _ => false.pure[SkijaUpdateT[IO, Float, String, Point2d[Float]]]
+                SkijaUpdate.raiseEvents[IO, Float, SkijaPath, String, Point2d[Float]](List(newPosition)).as(false)
+              case _ => false.pure[SkijaUpdateT[IO, Float, SkijaPath, String, Point2d[Float]]]
       )
     end mouseTracker
 
@@ -132,7 +152,7 @@ object SkijaAppExample extends IOApp:
       def gapPadding(paddings: Paddings[Float]) : Widget[Event] =
         gapPaddingWidget[
           IO,
-          SkijaUpdateT[IO, Float, String, Event],
+          SkijaUpdateT[IO, Float, SkijaPath, String, Event],
           SkijaDraw[IO],
           SkijaRecomposition[IO],
           SkijaDownEvent[Float],
@@ -141,7 +161,7 @@ object SkijaAppExample extends IOApp:
         ](
           (widget, shift) =>
             eventHandleDecorator_[
-              SkijaUpdateT[IO, Float, String, Event],
+              SkijaUpdateT[IO, Float, SkijaPath, String, Event],
               SkijaPlaceT[IO, Float, String],
               SkijaDraw[IO],
               SkijaRecomposition[IO],
@@ -149,7 +169,7 @@ object SkijaAppExample extends IOApp:
             ](
               widget,
               [T] =>
-                (update  : HandlesEvent[T, SkijaDownEvent[Float], SkijaUpdate[IO, Float, String, Event, SkijaPlace[IO, Float, String, T]]]) =>
+                (update  : HandlesEvent[T, SkijaDownEvent[Float], SkijaUpdate[IO, Float, SkijaPath, String, Event, SkijaPlace[IO, Float, String, T]]]) =>
                   (self : T, path : Path, event : SkijaDownEvent[Float]) =>
                     SkijaUpdate.withCoordinates(update(self, path, event))(_ + new Point3d(shift))
             ),
@@ -160,7 +180,7 @@ object SkijaAppExample extends IOApp:
 
       def padding(padding: Paddings[Padding[Float]]) : Widget[Event] =
         paddingWidget[
-          SkijaUpdateT[IO, Float, String, Event],
+          SkijaUpdateT[IO, Float, SkijaPath, String, Event],
           SkijaOuterPlaceT[IO, Float, String],
           SkijaPlaceT[IO, Float, String],
           SkijaDraw[IO],
@@ -177,7 +197,7 @@ object SkijaAppExample extends IOApp:
 
       def clip(path : Rect[Float] => SkijaPath) : Widget[Event] =
         clipWidget[
-          SkijaUpdateT[IO, Float, String, Event],
+          SkijaUpdateT[IO, Float, SkijaPath, String, Event],
           SkijaOuterPlaceT[IO, Float, String],
           SkijaDraw[IO],
           SkijaRecomposition[IO],
@@ -185,8 +205,8 @@ object SkijaAppExample extends IOApp:
           Float,
           SkijaPath,
         ](
-          SkijaUpdate.getCoordinates2d[IO, Float, String, Event],
-          ???,
+          SkijaUpdate.getCoordinates2d[IO, Float, SkijaPath, String, Event],
+          [T] => (a, b) => SkijaUpdate.withClip[IO, Float, SkijaPath, String, Event, T](a, b, skijaPathAt(_, _)),
           clipToPath[IO](ffi, _ : SkijaPath, _ : SkijaDraw[IO])
         )(value, path)
       end clip
@@ -201,18 +221,18 @@ object SkijaAppExample extends IOApp:
           extractClickHandlerEvent
         )(widget)(
           (_, _) =>
-            SkijaUpdate.raiseEvents[IO, Float, String, Event](List(event)).as(true)
+            SkijaUpdate.raiseEvents[IO, Float, SkijaPath, String, Event](List(event)).as(true)
         )
       end onClick
     end extension
 
-    def statefulWidget: StatefulWidget[Widget, SkijaUpdate[IO, Float, String, *, *], [Value] =>> Value => SkijaRecomposition[IO]] = skijaStateful(
+    def statefulWidget: StatefulWidget[Widget, SkijaUpdate[IO, Float, SkijaPath, String, *, *], [Value] =>> Value => SkijaRecomposition[IO]] = skijaStateful(
       (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"
     )
 
-    def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, SkijaUpdate[IO, Float, String, *, *]] =
-      TransitiveStatefulWidgetFromStatefulWidget[Widget, SkijaUpdate[IO, Float, String, *, *], [Value] =>> Value => SkijaRecomposition[IO]](
-        statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, Float, String, Event](events)
+    def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, SkijaUpdate[IO, Float, SkijaPath, String, *, *]] =
+      TransitiveStatefulWidgetFromStatefulWidget[Widget, SkijaUpdate[IO, Float, SkijaPath, String, *, *], [Value] =>> Value => SkijaRecomposition[IO]](
+        statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, Float, SkijaPath, String, Event](events)
       )
 
     type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
@@ -243,14 +263,14 @@ object SkijaAppExample extends IOApp:
     }
 
     @SuppressWarnings(Array("org.wartremover.warts.Any"))
-    def catchTaskRaisedEvent[Event, Value : Typeable](value : Any, expectedPath : Path) : SkijaUpdate[IO, Float, String, Either[(Value, IO[Unit]), Event], Boolean] =
+    def catchTaskRaisedEvent[Event, Value : Typeable](value : Any, expectedPath : Path) : SkijaUpdate[IO, Float, SkijaPath, String, Either[(Value, IO[Unit]), Event], Boolean] =
       value match
         case SkijaDownEvent.TaskRaisedEvent(taskPath, value: Any) if expectedPath == taskPath =>
           destructableIsTypeable.unapply(value) match
-            case Some(event) => SkijaUpdate.raiseEvents[IO, Float, String, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
-            case _ => false.pure[SkijaUpdateT[IO, Float, String, Either[(Value, IO[Unit]), Event]]]
+            case Some(event) => SkijaUpdate.raiseEvents[IO, Float, SkijaPath, String, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
+            case _ => false.pure[SkijaUpdateT[IO, Float, SkijaPath, String, Either[(Value, IO[Unit]), Event]]]
           end match
-        case _ => false.pure[SkijaUpdateT[IO, Float, String, Either[(Value, IO[Unit]), Event]]]
+        case _ => false.pure[SkijaUpdateT[IO, Float, SkijaPath, String, Either[(Value, IO[Unit]), Event]]]
       end match
     end catchTaskRaisedEvent
 
@@ -263,7 +283,7 @@ object SkijaAppExample extends IOApp:
             initialState = None,
             eventHandler = (state, _, events) =>
               (state, events) match
-                case (None, NonEmptyList(event, Nil)) => Some(event).pure[SkijaUpdateT[IO, Float, String, Event]]
+                case (None, NonEmptyList(event, Nil)) => Some(event).pure[SkijaUpdateT[IO, Float, SkijaPath, String, Event]]
                 case _ => SkijaUpdate.raiseError("Resource was allocated twice"),
             body = state =>
               launchedEffect[Either[(Value, IO[Unit]), Event], Unit](supervisor)(
@@ -282,7 +302,7 @@ object SkijaAppExample extends IOApp:
     def leaf[Marker, Event](marker : Marker) : Widget[Event] =
       leafWidget[
         Marker,
-        SkijaUpdateT[IO, Float, String, Event],
+        SkijaUpdateT[IO, Float, SkijaPath, String, Event],
         SkijaPlaceT[IO, Float, String],
         SkijaDraw[IO],
         SkijaRecomposition[IO],
@@ -313,7 +333,7 @@ object SkijaAppExample extends IOApp:
         additionalAxisStrategy,
         (draw, meta) => drawAt[IO](summon, draw, meta.x, meta.y),
         [T] => (update, meta) => SkijaUpdate.withCoordinates(update)(_ => meta.point),
-        SkijaUpdate.isEventHandled[IO, Float, String, Event]
+        SkijaUpdate.isEventHandled[IO, Float, SkijaPath, String, Event]
       )
     end layout
 
@@ -327,7 +347,7 @@ object SkijaAppExample extends IOApp:
             statefulWidget[Int, ApplicationRequest, Unit](
               name = "line-" + lineNumber.toString,
               initialState = 0,
-              eventHandler = (state, _, _) => (state + 1).pure[SkijaUpdateT[IO, Float, String, ApplicationRequest]],
+              eventHandler = (state, _, _) => (state + 1).pure[SkijaUpdateT[IO, Float, SkijaPath, String, ApplicationRequest]],
               body = state =>
                 text(
                   "# " + lineNumber.toString + " : " + state.toString,

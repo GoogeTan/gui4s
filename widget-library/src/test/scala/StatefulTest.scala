@@ -45,7 +45,7 @@ final class StatefulTest extends AnyFlatSpec with Matchers:
   ](
     name : String,
     initialState : State,
-    eventHandler : (State, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
+    eventHandler : (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
     body : State => FreeTestWidgetUntyped[ChildEvent],
     destructor : State => RecompositionReaction
   ) : FreeTestWidget[
@@ -66,13 +66,11 @@ final class StatefulTest extends AnyFlatSpec with Matchers:
       Draw,
       RecompositionReaction, 
       HandleableEvent, 
-      Update[ParentEvent, State], 
       State, 
       ParentEvent, 
       ChildEvent
     ](
       widgetsAreMergable[Update[ChildEvent, *], Place, Id, Draw, RecompositionReaction, HandleableEvent], 
-      (reaction, _) => reaction,
       typeCheckState
     )(name, initialState, eventHandler, body, destructor)
   end statefulWidget
