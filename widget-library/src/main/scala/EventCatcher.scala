@@ -33,7 +33,7 @@ def eventHandleDecorator_[
           eventHandleDecorator_[Update, Place, Draw, RecompositionReaction, HandleableEvent](mark)(widget, decorator)
         placedWidget.copy(
           asFree = convert(placedWidget.asFree),
-          handleEvent = decorator(placedWidget.handleEvent),
+          handleEvent = (path, event) => decorator(placedWidget.handleEvent)(path, event).map(convert),
           mergeWithOldState = (path, state) => convert(placedWidget.mergeWithOldState(path, state))
         )
     )
