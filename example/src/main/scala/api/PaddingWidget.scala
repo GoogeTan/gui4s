@@ -1,6 +1,7 @@
 package me.katze.gui4s.example
 package api
 
+import catnip.syntax.additional.*
 import catnip.syntax.all.given
 import cats.Monad
 import cats.syntax.all.*
@@ -33,21 +34,33 @@ def gapPaddingWidget[
           initialWidget,
           _.cut(paddings.horizontalLength, paddings.verticalLength)
         ).map(
-        sizedWidget =>
-          sizedWidget.mapValue(
-            placedWidget =>
-              def convert(widget : SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]]) =
-                gapPaddingWidget(eventHandleDecorator, drawDecorations)(widget)(paddings)
-              placedWidget.copy(
-                asFree = convert(placedWidget.asFree),
-                draw = drawDecorations(placedWidget.draw, paddings.topLeftCornerShift),
-                handleEvent = (path, event) => placedWidget.handleEvent(path, event).map(convert),
-                mergeWithOldState = (path, state) => convert(placedWidget.mergeWithOldState(path, state))
-              )
-          )
-      ),
-      paddings.topLeftCornerShift
-    )
+          sizedWidget =>
+            sizedWidget.mapValue(
+              placedWidget =>
+                final case class GapWidget(currentWidget: Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent])
+                Widget.ValueWrapper[
+                  GapWidget,
+                  Update,
+                  SkijaPlaceT[F, MeasurementUnit, PlaceError],
+                  Draw,
+                  RecompositionReaction,
+                  HandleableEvent
+                ](
+                  valueToDecorate = GapWidget(placedWidget),
+                  valueAsFree = placed => SkijaOuterPlace.monadInstance[F, MeasurementUnit, PlaceError].map(placed.currentWidget.asFree)(freeWidget => freeWidget.mapValue(GapWidget(_))),
+                  valueIsDrawable = self => drawDecorations(self.currentWidget.draw, paddings.topLeftCornerShift),
+                  valueHandlesEvent = (self, path, event) => self.currentWidget.handleEvent(path, event).map(_.map(_.mapValue(GapWidget(_)))),
+                  valueMergesWithOldState = (self, path, states) =>
+                    self.currentWidget.mergeWithOldState(path, states).map(GapWidget(_)),
+                  valueReactsOnRecomposition = (self, path, states) =>
+                    self.currentWidget.reactOnRecomposition(path, states),
+                  valueHasInnerState =
+                    self => self.currentWidget.innerStates
+                )
+            )
+        ),
+        paddings.topLeftCornerShift
+      )
 end gapPaddingWidget
 
 def paddingLayoutVerticalStrategy[

@@ -1,5 +1,6 @@
 package me.katze.gui4s.widget.library
 
+import catnip.syntax.additional.*
 import catnip.syntax.applicative.nestedFunctorsAreFunctors
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
@@ -21,7 +22,7 @@ def eventHandleDecorator_[
   Draw,
   RecompositionReaction,
   HandleableEvent,
-](mark : String): EventHandleDecorator[
+]: EventHandleDecorator[
   Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
   WidgetHandlesEvent[HandleableEvent, Update[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]]] =>
     WidgetHandlesEvent[HandleableEvent, Update[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]]]
@@ -29,12 +30,19 @@ def eventHandleDecorator_[
   (original, decorator) =>
     original.map(
       placedWidget =>
-        def convert(widget : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]) =
-          eventHandleDecorator_[Update, Place, Draw, RecompositionReaction, HandleableEvent](mark)(widget, decorator)
-        placedWidget.copy(
-          asFree = convert(placedWidget.asFree),
-          handleEvent = (path, event) => decorator(placedWidget.handleEvent)(path, event).map(convert),
-          mergeWithOldState = (path, state) => convert(placedWidget.mergeWithOldState(path, state))
+        final case class HandleDecorator(currentWidget: Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent])
+        Widget.ValueWrapper(
+          valueToDecorate = HandleDecorator(placedWidget),
+          valueAsFree = placed => placed.currentWidget.asFree.map(HandleDecorator(_)),
+          valueIsDrawable = _.currentWidget.draw,
+          valueHandlesEvent = (self, path, event) =>
+            decorator(self.currentWidget.handleEvent)(path, event).map(_.map(HandleDecorator(_))),
+          valueMergesWithOldState = (self, path, states) =>
+            self.currentWidget.mergeWithOldState(path, states).map(HandleDecorator(_)),
+          valueReactsOnRecomposition = (self, path, states) =>
+            self.currentWidget.reactOnRecomposition(path, states),
+          valueHasInnerState =
+            self => self.currentWidget.innerStates
         )
     )
 end eventHandleDecorator_
@@ -59,25 +67,28 @@ def eventCatcherWithWidgetsRect[
   HandleableEvent
 ] =
   original => decorator =>
-    OPF.map(
-        original
-    )(
+    OPF.map(original)(
       sizedWidget =>
         sizedWidget.mapValue(
           placedWidget =>
-            def convert(widget : OuterPlace[Sized[MeasurableUnit, Widget[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent]]]) =
-              eventCatcherWithWidgetsRect[Update, OuterPlace, Draw, RecompositionReaction, HandleableEvent, MeasurableUnit](markEventHandled, coordinatesOfTheWidget)(widget)(decorator)
-            placedWidget.copy(
-              asFree = convert(placedWidget.asFree),
-              handleEvent = (path, event) =>
+            final case class EventCatcher(currentWidget: Widget[Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent])
+            Widget.ValueWrapper(
+              valueToDecorate = EventCatcher(placedWidget),
+              valueAsFree = placed => placed.currentWidget.asFree.map(_.mapValue(EventCatcher(_))),
+              valueIsDrawable = _.currentWidget.draw,
+              valueHandlesEvent = (self, path, event) =>
                 coordinatesOfTheWidget.flatMap(point3d =>
                   decorator(path, RectAtPoint2d(sizedWidget.size, point3d.projectToXY), event).ifM(
-                    markEventHandled *> convert(placedWidget.asFree).pure[Update],
-                    placedWidget.handleEvent(path, event).map(convert)
+                    markEventHandled *> self.currentWidget.asFree.map(_.mapValue(EventCatcher(_))).pure[Update],
+                    self.currentWidget.handleEvent(path, event).map(_.map(_.mapValue(EventCatcher(_))))
                   )
                 ),
-              mergeWithOldState = (path, oldState) =>
-                convert(placedWidget.mergeWithOldState(path, oldState))
+              valueMergesWithOldState = (self, path, states) =>
+                self.currentWidget.mergeWithOldState(path, states).map(_.mapValue(EventCatcher(_))),
+              valueReactsOnRecomposition = (self, path, states) =>
+                self.currentWidget.reactOnRecomposition(path, states),
+              valueHasInnerState =
+                self => self.currentWidget.innerStates
             )
         )
     )

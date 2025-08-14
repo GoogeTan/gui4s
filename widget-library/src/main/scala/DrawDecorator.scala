@@ -20,22 +20,22 @@ def freeDrawDecorator[
   PF.map(
       original
   )(
-    sizedWidget =>
-      sizedWidget.mapValue(placedWidget =>
-        def convert(widget : Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]]) =
-          freeDrawDecorator(
-            widget,
-            toDraw
-          )
-        placedWidget.copy(
-          asFree = convert(placedWidget.asFree),
-          draw = toDraw(
-            placedWidget.draw,
-            sizedWidget.size
-          ),
-          handleEvent = (path, event) => placedWidget.handleEvent(path, event).map(convert),
-          mergeWithOldState = (path, state) => convert(placedWidget.mergeWithOldState(path, state))
+    _.coflatMap {
+      case Sized(placedWidget, size) =>
+        final case class DrawDecorator(currentWidget : Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent])
+        Widget.ValueWrapper(
+          valueToDecorate = DrawDecorator(placedWidget),
+          valueAsFree = placed => placed.currentWidget.asFree.map(DrawDecorator(_)),
+          valueIsDrawable = self => toDraw(self.currentWidget.draw, size),
+          valueHandlesEvent = (self, path, event) =>
+            self.currentWidget.handleEvent(path, event).map(_.map(_.mapValue(DrawDecorator(_)))),
+          valueMergesWithOldState = (self, path, states) =>
+            self.currentWidget.mergeWithOldState(path, states).map(DrawDecorator(_)),
+          valueReactsOnRecomposition = (self, path, states) =>
+            self.currentWidget.reactOnRecomposition(path, states),
+          valueHasInnerState =
+            self => self.currentWidget.innerStates
         )
-      )
+    }
   )
 end freeDrawDecorator

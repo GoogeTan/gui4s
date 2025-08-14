@@ -59,7 +59,6 @@ end eventOfferingCallbacks
 @experimental
 type ResourceWidget[Widget, F[_]] = [T : Typeable] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
 
-
 @experimental
 object SkijaAppExample extends IOApp:
   given ElementPlacementInInfiniteContainerAttemptError[String] = ENErrors
@@ -154,7 +153,7 @@ object SkijaAppExample extends IOApp:
               SkijaDraw[IO],
               SkijaRecomposition[IO],
               SkijaDownEvent[Float],
-            ]("event shifter")(
+            ](
               widget,
               (update : WidgetHandlesEvent[SkijaDownEvent[Float], SkijaUpdate[IO, Float, SkijaClip, String, Event, Widget[Event]]]) =>
                 (path : Path, event : SkijaDownEvent[Float]) =>

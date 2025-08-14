@@ -110,8 +110,8 @@ def stateful[
     val statefulAsFree = widget.free.statefulAsFree[Place, Widget_[ChildEvent], StState](widgetAsFree)
     Widget.ValueWrapper[
       T = Stateful[Widget_[ChildEvent], StState],
-      Update = Update[ParentEvent, *],
-      Place = Place
+      Update_ = Update[ParentEvent, *],
+      Place_ = Place
     ](
       valueToDecorate = stateful,
       valueAsFree = statefulAsFree,

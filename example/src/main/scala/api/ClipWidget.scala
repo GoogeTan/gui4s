@@ -27,28 +27,31 @@ def clipWidget[
   PF.map(
     freeWidgetToClip
   )(
-    sizedWidget =>
-      sizedWidget.mapValue(
-        placedWidget =>
-          val shape = shapeFabric(sizedWidget.size)
-          def convert(widget : Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]]) =
-            clipWidget[Update, Place, Draw, RecompositionReaction, HandleableEvent, MeasurementUnit, Shape](withClip, drawModifier)(widget, shapeFabric)
-
-          println("clip created")
-          placedWidget.copy[
-            Update,
-            Place * Sized[MeasurementUnit, *],
-            Draw,
-            RecompositionReaction,
-            HandleableEvent
-          ](
-            asFree = convert(placedWidget.asFree),
-            handleEvent = (path : Path, event : HandleableEvent) =>
-                withClip[Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]]](shape, placedWidget.handleEvent(path, event)).map(convert),
-            draw = drawModifier(shape, placedWidget.draw),
-            mergeWithOldState = (path, oldState) =>
-              convert(placedWidget.mergeWithOldState(path, oldState))
-          )
-      )
+    _.coflatMap {
+      case Sized(placedWidget, size) =>
+        val shape = shapeFabric(size)
+        final case class ClipWidget(currentWidget: Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent], shape: Shape)
+        Widget.ValueWrapper[
+          ClipWidget,
+          Update,
+          Place * Sized[MeasurementUnit, *],
+          Draw,
+          RecompositionReaction,
+          HandleableEvent
+        ](
+          valueToDecorate = ClipWidget(placedWidget, shape),
+          valueAsFree = self => PF.map(self.currentWidget.asFree)(_.coflatMap { case Sized(newWidget, newSize) => ClipWidget(newWidget, shapeFabric(newSize)) }),
+          valueIsDrawable = self => drawModifier(self.shape, self.currentWidget.draw),
+          valueHandlesEvent = (self, path, event) =>
+            withClip[Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]]](self.shape, self.currentWidget.handleEvent(path, event))
+              .map(_.map(_.coflatMap { case Sized(newWidget, newSize) => ClipWidget(newWidget, shapeFabric(newSize)) })),
+          valueMergesWithOldState = (self, path, states) =>
+            PF.map(self.currentWidget.mergeWithOldState(path, states))(_.coflatMap { case Sized(newWidget, newSize) => ClipWidget(newWidget, shapeFabric(newSize)) }),
+          valueReactsOnRecomposition = (self, path, states) =>
+            self.currentWidget.reactOnRecomposition(path, states),
+          valueHasInnerState =
+            self => self.currentWidget.innerStates
+        )
+    }
   )
 end clipWidget

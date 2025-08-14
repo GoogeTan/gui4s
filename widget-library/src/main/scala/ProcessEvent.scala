@@ -45,10 +45,8 @@ def processEvent[
   event: DownEvent
 ): Update[IO[Widget]] =
     widgetHandlesEvent(placedWidget, pathToRoot, event).map(newWidget =>
-      println("widget placed on top")
       for
         newPlacedWidget <- runPlacement(newWidget)
-        _ = println("processEvent placed widget" + newPlacedWidget.toString)
         _ <- runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, widgetHasInnerState(placedWidget)))
         _ <- collectQuitCompositionReactions[Recomposition](
           widgetHasInnerState(placedWidget),

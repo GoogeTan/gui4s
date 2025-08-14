@@ -24,14 +24,9 @@ def widgetsAreMergable[
       oldWidget, newWidget
     )(
       (oldWithInnerPlace, nextWidgetToMerge) =>
-        OPM.map(
-          widgetMergesWithOldState[Place = Place](
-            nextWidgetToMerge.extract,
-            path,
-            widgetHasInnerStates[Place = Place](oldWithInnerPlace.extract)
-          )
-        )(res =>
-          println(res)
-          res
+        widgetMergesWithOldState[Place = Place](
+          nextWidgetToMerge.extract,
+          path,
+          widgetHasInnerStates[Place = Place](oldWithInnerPlace.extract)
         )
     )

@@ -22,20 +22,21 @@ def mapEvent[
   [A, B] => value => f =>
     value.map(
       placedWidget =>
-        placedWidget.copy[
-          Update[B, *],
-          Place,
-          Draw,
-          RecompositionReaction,
-          HandleableEvent
-        ](
-          handleEvent = (path, event) =>
-              mapEventInUpdate(f)(placedWidget.handleEvent(path, event)).map(
-                mapEvent(mapEventInUpdate)(_)(f)
-              ),
-          asFree = mapEvent(mapEventInUpdate)(placedWidget.asFree)(f),
-          mergeWithOldState = (path, oldState) =>
-            mapEvent(mapEventInUpdate)(placedWidget.mergeWithOldState(path, oldState))(f)
+        final case class MapEvent(currentWidget: Widget[Update[A, *], Place, Draw, RecompositionReaction, HandleableEvent])
+        Widget.ValueWrapper(
+          valueToDecorate = MapEvent(placedWidget),
+          valueAsFree = placed => placed.currentWidget.asFree.map(MapEvent(_)),
+          valueIsDrawable = _.currentWidget.draw,
+          valueHandlesEvent = (self, path, event) =>
+            mapEventInUpdate(f)(self.currentWidget.handleEvent(path, event)).map(
+              _.map(MapEvent(_))
+            ),
+          valueMergesWithOldState = (self, path, states) =>
+            self.currentWidget.mergeWithOldState(path, states).map(MapEvent(_)),
+          valueReactsOnRecomposition = (self, path, states) =>
+            self.currentWidget.reactOnRecomposition(path, states),
+          valueHasInnerState =
+            self => self.currentWidget.innerStates
         )
     )
 end mapEvent
