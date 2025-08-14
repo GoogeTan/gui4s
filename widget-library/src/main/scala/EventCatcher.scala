@@ -17,18 +17,18 @@ type EventHandleDecorator[Widget, Update] = (Widget, Update) => Widget
  * TODO проверить, как оно работает с asFree. Есть впечатление, что это сбросит эффект. Это относится ко всем декораторам.
  */
 def eventHandleDecorator[
-  T,
   Update[_] : Functor,
   Place[_] : Functor,
   Draw,
   RecompositionReaction,
   HandleableEvent,
 ] : EventHandleDecorator[
-  Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
-  HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
+  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  [T] => HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
 ] =
   (original, decorator) =>
-    original.copy(valueHandlesEvent = decorator(original.valueHandlesEvent))
+    val originalAsWrapper = original.asWrapper
+    originalAsWrapper.copy(valueHandlesEvent = decorator(originalAsWrapper.valueHandlesEvent))
 end eventHandleDecorator
 
 /**
@@ -40,14 +40,16 @@ def eventHandleDecorator_[
   Draw,
   RecompositionReaction,
   HandleableEvent,
-]: EventHandleDecorator[
-  Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+](mark : String): EventHandleDecorator[
+  Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
   [T] => HandlesEvent[T, HandleableEvent, Update[Place[T]]] => HandlesEvent[T, HandleableEvent, Update[Place[T]]]
 ] =
   (original, decorator) =>
-    original match
-      case widget : Widget.ValueWrapper[t, Update, Place, Draw, RecompositionReaction, HandleableEvent] =>
-        eventHandleDecorator(using UF, PF)(widget, decorator[t](_))
+    basicDecorator[Update, Place, Draw, RecompositionReaction, HandleableEvent](
+      mark,
+      original,
+      eventHandleDecorator(using UF, PF)(_, decorator)
+    )
 end eventHandleDecorator_
 
 /**
@@ -57,7 +59,6 @@ end eventHandleDecorator_
  * @param decorator Декоратор. Возвращает true, если событие поглощено
  */
 def eventCatcher[
-  T,
   Update[_] : Monad,
   Place[_] : Functor,
   Draw,
@@ -66,18 +67,16 @@ def eventCatcher[
 ](
   markEventHandled : Update[Unit]
 )(
-  original : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
+  original : Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
 )(
-    decorator : (Path, HandleableEvent) => Update[Boolean]
-) : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
-  eventHandleDecorator[T, Update, Place, Draw, RecompositionReaction, HandleableEvent](
-    original,
-    handler =>
-      (state, path, event) =>
+  decorator : (Path, HandleableEvent) => Update[Boolean]
+) : Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent] =
+  val originalAsWrapper = original.asWrapper
+  originalAsWrapper.copy(
+    valueHandlesEvent = (state, path, event) =>
         decorator(path, event).ifM(
-          markEventHandled
-            *> original.valueAsFree(state).pure[Update],
-          handler(state, path, event)
+          markEventHandled *> originalAsWrapper.valueAsFree(state).pure[Update],
+          originalAsWrapper.valueHandlesEvent(state, path, event)
         )
   )
 end eventCatcher
@@ -102,7 +101,9 @@ def eventCatcherWithWidgetsRect[
   HandleableEvent
 ] =
   original => decorator =>
-    original.map(
+    basicDecoratorWithRect(
+      "event handler",
+      original,
       placedWidget =>
         placedWidget.mapValue {
           case widget: Widget.ValueWrapper[valueType, Update, [Value] =>> OuterPlace[Sized[MeasurableUnit, Value]], Draw, RecompositionReaction, HandleableEvent] =>

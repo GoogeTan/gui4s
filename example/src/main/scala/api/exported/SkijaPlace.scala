@@ -20,6 +20,10 @@ type SkijaPlace[IO[_], MeasurementUnit, Error, Value] = SkijaOuterPlace[IO, Meas
 type SkijaPlaceT[IO[_], MeasurementUnit, Error] = SkijaPlace[IO, MeasurementUnit, Error, *]
 
 object SkijaOuterPlace:
+  def liftF[IO[_] : Monad, MeasurementUnit, Error, Value](value : IO[Value]) : SkijaOuterPlace[IO, MeasurementUnit, Error, Value] =
+    liftK(value)
+  end liftF
+  
   def withBounds[IO[_] : Monad, MeasurementUnit, Error, T](original : SkijaOuterPlace[IO, MeasurementUnit, Error, T], bounds : Bounds[MeasurementUnit] => Bounds[MeasurementUnit]) : SkijaOuterPlace[IO, MeasurementUnit, Error, T] =
     for
       initialBounds <- Get.stateT[EitherT[IO, Error, *], Bounds[MeasurementUnit]] // Это skijaGetBounds, но почему-то, если его вызвать, а не подставить его тело, то не найдется метод flatMap

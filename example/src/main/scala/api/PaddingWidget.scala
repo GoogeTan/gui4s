@@ -1,4 +1,5 @@
-package me.katze.gui4s.example.api
+package me.katze.gui4s.example
+package api
 
 import catnip.syntax.all.given
 import cats.Monad
@@ -8,7 +9,7 @@ import me.katze.gui4s.example.api.exported.{*, given}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.library.{LinearLayout, Widget, drawDecorator}
+import me.katze.gui4s.widget.library.{LinearLayout, Widget, basicPlaceDecorator, drawDecorator}
 
 type PaddingWidget[Widget, Padding] = Widget => Paddings[Padding] => Widget
 
@@ -27,19 +28,24 @@ def gapPaddingWidget[
   drawDecorations : (draw : Draw, shift : Point2d[MeasurementUnit]) => Draw
 ) : PaddingWidget[SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
   initialWidget => paddings =>
-    SkijaOuterPlace.withBounds(
+    basicPlaceDecorator(
+      "gap padding",
       initialWidget,
-      _.cut(paddings.horizontalLength, paddings.verticalLength)
-    ).map {
-      case Sized(widget, size) =>
-        Sized(
-          drawDecorator(
-            eventHandleDecorator(widget, paddings.topLeftCornerShift).asWrapper,
-            drawDecorations(_, paddings.topLeftCornerShift)
-          ),
-          size + paddings.addedBoundsRect
-        )
-    }
+      widgetToDecorate =>
+        SkijaOuterPlace.withBounds(
+          widgetToDecorate,
+          _.cut(paddings.horizontalLength, paddings.verticalLength)
+        ).map {
+          case Sized(widget, size) =>
+            Sized(
+              drawDecorator(
+                eventHandleDecorator(widget, paddings.topLeftCornerShift).asWrapper,
+                drawDecorations(_, paddings.topLeftCornerShift)
+              ),
+              size + paddings.addedBoundsRect
+            )
+        }
+    )
 end gapPaddingWidget
 
 def paddingLayoutVerticalStrategy[
@@ -104,3 +110,4 @@ def paddingWidget[
       paddingLayoutVerticalStrategy(paddings, infinitePaddingInInfiniteContainer),
       paddingLayoutHorizontalStrategy(paddings, infinitePaddingInInfiniteContainer)
     )
+end paddingWidget

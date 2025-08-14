@@ -26,17 +26,17 @@ given mergesWithOldStatesIsArrow[RecompositionReaction] : CommutativeArrow[[A, B
   end lift
 end mergesWithOldStatesIsArrow
 
-given mergesWithOldStatesIsStrong[F[_] : Functor, Event]: Strong[[A, B] =>> MergesWithOldStates[A, Event, F[B]]] with
-  override def dimap[A, B, C, D](fab: MergesWithOldStates[A, Event, F[B]])(f: C => A)(g: B => D): MergesWithOldStates[C, Event, F[D]] =
+given mergesWithOldStatesIsStrong[F[_] : Functor, RecompositionReaction]: Strong[[A, B] =>> MergesWithOldStates[A, RecompositionReaction, F[B]]] with
+  override def dimap[A, B, C, D](fab: MergesWithOldStates[A, RecompositionReaction, F[B]])(f: C => A)(g: B => D): MergesWithOldStates[C, RecompositionReaction, F[D]] =
     (c, path, event) => fab(f(c), path, event).map(g)
   end dimap
 
-  override def first[A, B, C](fa: MergesWithOldStates[A, Event, F[B]]): MergesWithOldStates[(A, C), Event, F[(B, C)]] =
+  override def first[A, B, C](fa: MergesWithOldStates[A, RecompositionReaction, F[B]]): MergesWithOldStates[(A, C), RecompositionReaction, F[(B, C)]] =
     (self, path, event) =>
       fa(self._1, path, event).map(b => (b, self._2))
   end first
 
-  override def second[A, B, C](fa: MergesWithOldStates[A, Event, F[B]]): MergesWithOldStates[(C, A), Event, F[(C, B)]] =
+  override def second[A, B, C](fa: MergesWithOldStates[A, RecompositionReaction, F[B]]): MergesWithOldStates[(C, A), RecompositionReaction, F[(C, B)]] =
     (self, path, event) =>
       fa(self._2, path, event).map(b => (self._1, b))
   end second

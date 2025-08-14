@@ -20,11 +20,21 @@ def mapEvent[
   [Event] =>> Place[Widget[Update[Event, *], Place, Draw, RecompositionReaction, HandleableEvent]]
 ]  =
   [A, B] => value => f =>
-    value.map {
-      case widget: Widget.ValueWrapper[t, Update[A, *], Place, Draw, RecompositionReaction, HandleableEvent] =>
-        widget.copy(
-          valueHandlesEvent =
-            mapEventHandle(widget.valueHandlesEvent)(mapEventInUpdate(f))
-        )
-    }
+    basicDecorator[
+      Update[A, *],
+      Place,
+      Draw,
+      RecompositionReaction,
+      HandleableEvent,
+    ](
+      "map event",
+      value,
+      {
+        case widget: Widget.ValueWrapper[t, Update[A, *], Place, Draw, RecompositionReaction, HandleableEvent] =>
+          widget.copy(
+            valueHandlesEvent =
+              mapEventHandle(widget.valueHandlesEvent)(mapEventInUpdate(f))
+          )
+      }
+    )
 end mapEvent

@@ -1,12 +1,18 @@
 package me.katze.gui4s.widget
 package recomposition
 
-import cats.ContravariantMonoidal
+import cats.{ContravariantMonoidal, Contravariant}
 import cats.syntax.all.*
 import cats.Monoid
 
 type ReactsOnRecomposition[-Self, Recomposition] =
   (self : Self, pathToParent : Path, states : Map[String, StateTree[Recomposition]]) => Recomposition
+
+
+given reactsOnRecompositionIsContravariant[Recomposition]: Contravariant[[Self] =>> ReactsOnRecomposition[Self, Recomposition]] with
+  override def contramap[A, B](fa: ReactsOnRecomposition[A, Recomposition])(f: B => A): ReactsOnRecomposition[B, Recomposition] =
+    (b, path, states) => fa(f(b), path, states)
+end reactsOnRecompositionIsContravariant
 
 given reactsOnRecompositionIsContravariantMonoidal[Recomposition : Monoid as RecompositionIsMonoid] : ContravariantMonoidal[[Self] =>> ReactsOnRecomposition[Self, Recomposition]] with
   override def contramap[A, B](fa: ReactsOnRecomposition[A, Recomposition])(f: B => A): ReactsOnRecomposition[B, Recomposition] =

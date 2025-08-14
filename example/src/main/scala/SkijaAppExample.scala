@@ -149,7 +149,7 @@ object SkijaAppExample extends IOApp:
           String,
         ](
           (widget, shift) =>
-            eventHandleDecorator_[
+            eventHandleDecorator[
               SkijaUpdateT[IO, Float, SkijaClip, String, Event],
               SkijaPlaceT[IO, Float, String],
               SkijaDraw[IO],
@@ -194,7 +194,6 @@ object SkijaAppExample extends IOApp:
           Float,
           SkijaClip,
         ](
-          SkijaUpdate.getCoordinates2d[IO, Float, SkijaClip, String, Event],
           [T] => (a, b) => SkijaUpdate.withClip[IO, Float, SkijaClip, String, Event, T](a, b, SkijaClip.skijaPathAt),
           SkijaClip.clipToPath[IO](ffi, _ : SkijaClip, _ : SkijaDraw[IO])
         )(value, path)
@@ -283,17 +282,21 @@ object SkijaAppExample extends IOApp:
     def resource[Event](supervisor : Supervisor[IO]) : ResourceWidget[Widget[Event], IO] =
       [Value : Typeable] => (name : String, resource : IO[(Value, IO[Unit])]) =>
         (widget : Option[Value] => Widget[Event]) =>
-          transitiveStatefulWidget[Option[(Value, IO[Unit])], Event, (Value, IO[Unit])](
+          transitiveStatefulWidget[
+            Option[(Value, IO[Unit])],
+            Event,
+            (Value, IO[Unit])
+          ](
             name = name,
             initialState = None,
-            eventHandler = (state, _, events) =>
-              (state, events) match
-                case (None, NonEmptyList(event, Nil)) =>
-                  Some(event).pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
-                case _ => SkijaUpdate.raiseError("Resource was allocated twice"),
+            eventHandler = {
+              case (None, _, NonEmptyList(event, Nil)) =>
+                Some(event).pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
+              case _ => SkijaUpdate.raiseError("Resource was allocated twice")
+            },
             body = state =>
               launchedEffect[Either[(Value, IO[Unit]), Event], Unit](supervisor)(
-                name + "_effect_launcher",
+                "effect_launcher",
                 eventCatcher(
                   widget(state.map(_._1)).mapEvent(Right(_))
                 )(
@@ -311,7 +314,7 @@ object SkijaAppExample extends IOApp:
     end resourceInit
 
     def downloadImage(uri : String): IO[Image] =
-      IO.println("image download began") *> EmberClientBuilder
+      EmberClientBuilder
         .default[IO]
         .build
         .use(
@@ -320,7 +323,7 @@ object SkijaAppExample extends IOApp:
               Uri.fromString(uri)
             ).flatMap(
               client.expect[Array[Byte]]
-            ).map(Image.makeDeferredFromEncodedBytes) <* IO.println("image downloaded")
+            ).map(Image.makeDeferredFromEncodedBytes)
         )
     end downloadImage
 
@@ -349,7 +352,6 @@ object SkijaAppExample extends IOApp:
         SkijaRecomposition.empty[IO]
       ).map(a => a)
     end leaf
-
 
     def layout[Event] : LinearLayout[Widget[Event], SkijaOuterPlaceT[IO, Float, String], Float, Axis] =
       (
@@ -418,6 +420,8 @@ object SkijaAppExample extends IOApp:
       text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
     ).clip(
       SkijaClip.Shapes.round
+    ).gapPadding(
+      Paddings(10f, 10f, 10f, 10f)
     )
   end main
 end SkijaAppExample

@@ -21,7 +21,6 @@ def placeForTheFirstTime[
 ) : IO[Widget] =
 
   runPlacement(widget).flatMap(newPlacedWidget =>
-    println(newPlacedWidget)
     runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, Map())).as(newPlacedWidget)
   )
 end placeForTheFirstTime
@@ -46,8 +45,10 @@ def processEvent[
   event: DownEvent
 ): Update[IO[Widget]] =
     widgetHandlesEvent(placedWidget, pathToRoot, event).map(newWidget =>
+      println("widget placed on top")
       for
         newPlacedWidget <- runPlacement(newWidget)
+        _ = println("processEvent placed widget" + newPlacedWidget.toString)
         _ <- runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, widgetHasInnerState(placedWidget)))
         _ <- collectQuitCompositionReactions[Recomposition](
           widgetHasInnerState(placedWidget),

@@ -10,7 +10,7 @@ import scala.language.experimental.namedTypeArguments
 
 def widgetsAreMergable[
   Update[_],
-  OuterPlace[_] : Monad,
+  OuterPlace[_] : Monad as OPM,
   InnerPlace[_] : Comonad,
   Draw,
   RecompositionReaction,
@@ -24,10 +24,14 @@ def widgetsAreMergable[
       oldWidget, newWidget
     )(
       (oldWithInnerPlace, nextWidgetToMerge) =>
-        widgetMergesWithOldState[Place = Place](
-          nextWidgetToMerge.extract,
-          path,
-          widgetHasInnerStates[Place = Place](oldWithInnerPlace.extract)
+        OPM.map(
+          widgetMergesWithOldState[Place = Place](
+            nextWidgetToMerge.extract,
+            path,
+            widgetHasInnerStates[Place = Place](oldWithInnerPlace.extract)
+          )
+        )(res =>
+          println(res)
+          res
         )
     )
-end widgetsAreMergable

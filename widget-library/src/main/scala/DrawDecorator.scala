@@ -1,13 +1,12 @@
 package me.katze.gui4s.widget.library
 
-import cats.syntax.all.*
-import cats.{Functor, Monad}
 import _root_.me.katze.gui4s.geometry.Rect
 import catnip.syntax.all.{*, given}
+import cats.syntax.all.*
+import cats.{Functor, Monad}
 import me.katze.gui4s.layout.{*, given}
 
 def freeDrawDecorator[
-  T,
   Update[_] : Monad as M,
   Place[_] : Functor,
   Draw,
@@ -15,13 +14,23 @@ def freeDrawDecorator[
   HandleableEvent,
   MeasurementUnit,
 ](
-  original : Place[Sized[MeasurementUnit, Widget.ValueWrapper[T, Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]],
+  original : Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]],
   toDraw : (Draw, Rect[MeasurementUnit]) => Draw
-) : Place[Sized[MeasurementUnit, Widget.ValueWrapper[T, Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]] =
-  original.map(
+) : Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]] =
+  basicDecoratorWithRect[
+    Update,
+    Place,
+    Sized[MeasurementUnit, *],
+    Draw,
+    RecompositionReaction,
+    HandleableEvent,
+  ](
+    "draw decorator",
+    original,
     sizedWidget =>
       sizedWidget.mapValue(
-        drawDecorator(_, toDraw(_, sizedWidget.size))
+        placedWidget =>
+          drawDecorator(placedWidget.asWrapper, toDraw(_, sizedWidget.size))
       )
   )
 end freeDrawDecorator
