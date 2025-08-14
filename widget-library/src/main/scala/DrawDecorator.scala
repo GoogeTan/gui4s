@@ -8,7 +8,7 @@ import me.katze.gui4s.layout.{*, given}
 
 def freeDrawDecorator[
   Update[_] : Monad as M,
-  Place[_] : Functor,
+  Place[_] : Functor as PF,
   Draw,
   RecompositionReaction,
   HandleableEvent,
@@ -17,37 +17,25 @@ def freeDrawDecorator[
   original : Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]],
   toDraw : (Draw, Rect[MeasurementUnit]) => Draw
 ) : Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]] =
-  basicDecoratorWithRect[
-    Update,
-    Place,
-    Sized[MeasurementUnit, *],
-    Draw,
-    RecompositionReaction,
-    HandleableEvent,
-  ](
-    "draw decorator",
-    original,
+  PF.map(
+      original
+  )(
     sizedWidget =>
-      sizedWidget.mapValue(
-        placedWidget =>
-          drawDecorator(placedWidget.asWrapper, toDraw(_, sizedWidget.size))
+      sizedWidget.mapValue(placedWidget =>
+        def convert(widget : Place[Sized[MeasurementUnit, Widget[Update, Place * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]]) =
+          freeDrawDecorator(
+            widget,
+            toDraw
+          )
+        placedWidget.copy(
+          asFree = convert(placedWidget.asFree),
+          draw = toDraw(
+            placedWidget.draw,
+            sizedWidget.size
+          ),
+          handleEvent = (path, event) => placedWidget.handleEvent(path, event).map(convert),
+          mergeWithOldState = (path, state) => convert(placedWidget.mergeWithOldState(path, state))
+        )
       )
   )
 end freeDrawDecorator
-
-def drawDecorator[
-  T,
-  Update[_] : Monad as M,
-  Place[_] : Functor,
-  Draw,
-  RecompositionReaction,
-  HandleableEvent,
-](
-  original : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent],
-  toDraw : Draw => Draw
-) : Widget.ValueWrapper[T, Update, Place, Draw, RecompositionReaction, HandleableEvent] =
-  original.copy(
-    valueIsDrawable = value => toDraw(original.valueIsDrawable(value))
-  )
-end drawDecorator
-

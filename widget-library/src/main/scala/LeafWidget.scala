@@ -21,7 +21,7 @@ def leafWidget[
    freeMarker : Place[Marker],
    emptyDraw : Draw,
    emptyRecomposition : RecompositionReaction,
- ) : Place[Widget.ValueWrapper[Marker, Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+ ) : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
   F.map(freeMarker)(
     marker =>
       val asFree : AsFree[Marker, Place[Marker]] = (_ : Any) => freeMarker

@@ -25,7 +25,6 @@ import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSe
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.skija.*
-import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.{*, given}
 import me.katze.gui4s.widget.{Path, library}
 import org.http4s.Uri
@@ -148,19 +147,18 @@ object SkijaAppExample extends IOApp:
           Float,
           String,
         ](
-          (widget, shift) =>
-            eventHandleDecorator[
+          (widget : Widget[Event], shift : Point2d[Float]) =>
+            eventHandleDecorator_[
               SkijaUpdateT[IO, Float, SkijaClip, String, Event],
               SkijaPlaceT[IO, Float, String],
               SkijaDraw[IO],
               SkijaRecomposition[IO],
               SkijaDownEvent[Float],
-            ](
+            ]("event shifter")(
               widget,
-              [T] =>
-                (update  : HandlesEvent[T, SkijaDownEvent[Float], SkijaUpdate[IO, Float, SkijaClip, String, Event, SkijaPlace[IO, Float, String, T]]]) =>
-                  (self : T, path : Path, event : SkijaDownEvent[Float]) =>
-                    SkijaUpdate.withCoordinates(update(self, path, event))(_ + new Point3d(shift))
+              (update : WidgetHandlesEvent[SkijaDownEvent[Float], SkijaUpdate[IO, Float, SkijaClip, String, Event, Widget[Event]]]) =>
+                (path : Path, event : SkijaDownEvent[Float]) =>
+                  SkijaUpdate.withCoordinates[IO, Float, SkijaClip, String, Event, Widget[Event]](update(path, event))(_ + new Point3d(shift))
             ),
           (draw, shift) =>
             drawAt(ffi, draw, shift.x, shift.y)

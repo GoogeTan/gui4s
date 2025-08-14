@@ -2,7 +2,7 @@ package me.katze.gui4s.widget
 package handle
 
 def mapEventHandle[T, HandleableEvent, UpdatedWidget, NewUpdatedWidget](
- original : HandlesEvent[T, HandleableEvent, UpdatedWidget]
+   original : HandlesEvent[T, HandleableEvent, UpdatedWidget]
 )(
   f : UpdatedWidget => NewUpdatedWidget
 ) : HandlesEvent[T, HandleableEvent, NewUpdatedWidget] =

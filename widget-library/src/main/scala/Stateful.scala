@@ -71,16 +71,7 @@ def stateful[
   render : State => Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
   destructor : State => RecompositionReaction,
 ) : Place[
-  Widget.ValueWrapper[
-    Stateful[
-      Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent],
-      StatefulBehaviour[
-        State,
-        State => Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
-        (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
-        State => RecompositionReaction
-      ],
-    ],
+  Widget[
     Update[ParentEvent, *],
     Place,
     Draw,
@@ -119,8 +110,8 @@ def stateful[
     val statefulAsFree = widget.free.statefulAsFree[Place, Widget_[ChildEvent], StState](widgetAsFree)
     Widget.ValueWrapper[
       T = Stateful[Widget_[ChildEvent], StState],
-      Update_ = Update[ParentEvent, *],
-      Place_ = Place
+      Update = Update[ParentEvent, *],
+      Place = Place
     ](
       valueToDecorate = stateful,
       valueAsFree = statefulAsFree,

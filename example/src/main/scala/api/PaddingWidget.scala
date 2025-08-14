@@ -9,7 +9,7 @@ import me.katze.gui4s.example.api.exported.{*, given}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.library.{LinearLayout, Widget, basicPlaceDecorator, drawDecorator}
+import me.katze.gui4s.widget.library.{LinearLayout, Widget}
 
 type PaddingWidget[Widget, Padding] = Widget => Paddings[Padding] => Widget
 
@@ -23,28 +23,30 @@ def gapPaddingWidget[
   PlaceError,
 ](
   eventHandleDecorator :
-    (widget : Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent], shift : Point2d[MeasurementUnit]) =>
-      Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent],
+    (widget : SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], shift : Point2d[MeasurementUnit]) =>
+      SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
   drawDecorations : (draw : Draw, shift : Point2d[MeasurementUnit]) => Draw
 ) : PaddingWidget[SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
   initialWidget => paddings =>
-    basicPlaceDecorator(
-      "gap padding",
-      initialWidget,
-      widgetToDecorate =>
-        SkijaOuterPlace.withBounds(
-          widgetToDecorate,
+    eventHandleDecorator(
+      SkijaOuterPlace.withBounds(
+          initialWidget,
           _.cut(paddings.horizontalLength, paddings.verticalLength)
-        ).map {
-          case Sized(widget, size) =>
-            Sized(
-              drawDecorator(
-                eventHandleDecorator(widget, paddings.topLeftCornerShift).asWrapper,
-                drawDecorations(_, paddings.topLeftCornerShift)
-              ),
-              size + paddings.addedBoundsRect
-            )
-        }
+        ).map(
+        sizedWidget =>
+          sizedWidget.mapValue(
+            placedWidget =>
+              def convert(widget : SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]]) =
+                gapPaddingWidget(eventHandleDecorator, drawDecorations)(widget)(paddings)
+              placedWidget.copy(
+                asFree = convert(placedWidget.asFree),
+                draw = drawDecorations(placedWidget.draw, paddings.topLeftCornerShift),
+                handleEvent = (path, event) => placedWidget.handleEvent(path, event).map(convert),
+                mergeWithOldState = (path, state) => convert(placedWidget.mergeWithOldState(path, state))
+              )
+          )
+      ),
+      paddings.topLeftCornerShift
     )
 end gapPaddingWidget
 
