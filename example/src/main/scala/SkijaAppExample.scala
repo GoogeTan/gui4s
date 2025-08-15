@@ -58,8 +58,6 @@ def eventOfferingCallbacks[F, MeasurementUnit](offerEvent: SkijaDownEvent[Measur
   )
 end eventOfferingCallbacks
 
-@experimental
-type ResourceWidget[Widget, F[_]] = [T : Typeable] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
 
 @experimental
 object SkijaAppExample extends IOApp:
@@ -109,9 +107,12 @@ object SkijaAppExample extends IOApp:
 
   def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
 
-    def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean], Sized[Float, Point3d[Float]], SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
+    def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean], Sized[Float, Point3d[Float]], SkijaDownEvent[Float]] = eventCatcherWithRect(
+      updateDecoratorWithRect,
       SkijaUpdate.markEventHandled,
       SkijaUpdate.getCoordinates,
+      widgetAsFree,
+      widgetHandlesEvent
     )
 
     def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
@@ -253,56 +254,54 @@ object SkijaAppExample extends IOApp:
             supervisor.supervise(task(path))
           )
         )
+    end launchedEffect
+
 
     @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
-    given destructableIsTypeable[T : Typeable] : Typeable[(T, IO[Unit])] = x => x match {
-      case (a: T, io: IO[t]) =>
-        Some[(T, IO[Unit])]((a, io.as(()))).map(_.asInstanceOf[x.type & (T, IO[Unit])])
+    given Typeable[IO[Unit]] = a => a match
+      case b: IO[t] => Some(b.as(()).asInstanceOf[IO[Unit] & a.type])
       case _ => None
-    }
 
-    @SuppressWarnings(Array("org.wartremover.warts.Any"))
-    def catchTaskRaisedEvent[Event, Value : Typeable](value : Any, expectedPath : Path) : SkijaUpdate[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event], Boolean] =
-      value match
-        case SkijaDownEvent.TaskRaisedEvent(taskPath, value: Any) if expectedPath == taskPath =>
-          destructableIsTypeable[Value].unapply(value) match
-            case Some(event) =>
-              SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]](List(Left(event))).as(true)
-            case _ =>
-              false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]]]
-          end match
-        case _ => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Either[(Value, IO[Unit]), Event]]]
-      end match
-    end catchTaskRaisedEvent
+    def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Event]] =
+      (name, child, key, task) =>
+        eventCatcher[
+          Event
+        ] {
+          case (path, _, SkijaDownEvent.TaskRaisedEvent(taskPath, event : Event)) if path == taskPath =>
+            SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true)
+          case (path, _, SkijaDownEvent.TaskRaisedEvent(taskPath, valueFound : Any)) if path == taskPath =>
+            SkijaUpdate.raiseError[IO, Float, SkijaClip, String, Event, Boolean]("Event type mismatch in launched event at " + path.appendLast(name) + " with value found: " + valueFound.toString)
+          case _ => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
+        } (
+            launchedEffect[Event, Key](
+              supervisor
+            )(
+              name,
+              child,
+              key,
+              path => task(path).flatMap(value => backend.raiseEvent(SkijaDownEvent.TaskRaisedEvent(path, value)))
+            )
+        )
+    end launchedEvent
 
-    // TODO refactor me
     def resource[Event](supervisor : Supervisor[IO]) : ResourceWidget[Widget[Event], IO] =
-      [Value : Typeable] => (name : String, resource : IO[(Value, IO[Unit])]) =>
-        (widget : Option[Value] => Widget[Event]) =>
-          transitiveStatefulWidget[
-            Option[(Value, IO[Unit])],
-            Event,
-            (Value, IO[Unit])
-          ](
-            name = name,
-            initialState = None,
-            eventHandler = {
-              case (None, _, NonEmptyList(event, Nil)) =>
-                Some(event).pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
-              case _ => SkijaUpdate.raiseError("Resource was allocated twice")
-            },
-            body = state =>
-              launchedEffect[Either[(Value, IO[Unit]), Event], Unit](supervisor)(
-                "effect_launcher",
-                eventCatcher(
-                  (path, _, event) => catchTaskRaisedEvent(event, path)
-                )(
-                  widget(state.map(_._1)).mapEvent(Right(_))
-                ),
+      resourceWidget[
+        Widget,
+        SkijaUpdate[IO, Float, SkijaClip, String, *, *],
+        IO,
+        Event
+      ](
+        transitiveStatefulWidget = transitiveStatefulWidget,
+        launchedEffect =
+          [TaskEvent : Typeable] => (name, child, task) =>
+              launchedEvent[Either[TaskEvent, Event], Unit](supervisor)(
+                name,
+                child.mapEvent(Right(_)),
                 (),
-                path => resource.flatMap(value => backend.raiseEvent(SkijaDownEvent.TaskRaisedEvent(path, value)))
-              )
-          )
+                _ => task.map(Left(_))
+              ),
+        doubleAllocError = [T] => (path : Path) => SkijaUpdate.raiseError("Double resource alloc at " + path.toString)
+      )
     end resource
 
     def resourceInit[Event, Value : Typeable](name : String, supervisor : Supervisor[IO], init : IO[Value]) : WithContext[Widget[Event], Option[Value]] =
@@ -367,17 +366,17 @@ object SkijaAppExample extends IOApp:
       )
     end layout
 
-    def app(numbers : List[Int]): Widget[ApplicationRequest] =
+    def clickExample[Event](numbers : List[Int]): Widget[Event] =
       layout(
         mainAxis = Axis.Vertical,
         mainAxisStrategy = MainAxisPlacement.Begin(0f),
         additionalAxisStrategy = AdditionalAxisPlacement.Center(ENErrors.withCenterStrategy),
         children = numbers.map:
           lineNumber =>
-            statefulWidget[Int, ApplicationRequest, Unit](
+            statefulWidget[Int, Event, Unit](
               name = "line-" + lineNumber.toString,
               initialState = 0,
-              eventHandler = (state, _, _) => (state + 1).pure[SkijaUpdateT[IO, Float, SkijaClip, String, ApplicationRequest]],
+              eventHandler = (state, _, _) => (state + 1).pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]],
               body = state =>
                 text(
                   "# " + lineNumber.toString + " : " + state.toString,
@@ -385,9 +384,9 @@ object SkijaAppExample extends IOApp:
                 ).onClick(())
             ),
       )
-    end app
+    end clickExample
 
-    def grid[Event](numbers : List[Int]) : Widget[Event] =
+    def gridExample[Event](numbers : List[Int]) : Widget[Event] =
       layout(
         mainAxis = Axis.Vertical,
         mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
@@ -408,17 +407,21 @@ object SkijaAppExample extends IOApp:
                       )
               )
       )
-    end grid
+    end gridExample
 
-    imageUrl(
-      name = "image",
-      uri = "https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg",
-      text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
-    ).clip(
-      SkijaClip.Shapes.round
-    ).gapPadding(
-      Paddings(10f, 10f, 10f, 10f)
-    )
+    def imageExample[Event] : Widget[Event] =
+      imageUrl(
+        name = "image",
+        uri = "https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg",
+        text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
+      ).clip(
+        SkijaClip.Shapes.round
+      ).gapPadding(
+        Paddings(10f, 10f, 10f, 10f)
+      )
+    end imageExample
+
+    imageExample
   end main
 end SkijaAppExample
 

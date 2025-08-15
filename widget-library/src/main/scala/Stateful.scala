@@ -125,8 +125,6 @@ def stateful[
   )
 end stateful
 
-type HandlesEventPlace[Place[_], T, HandlableEvent] = HandlesEvent[T, HandlableEvent, Place[T]]
-
 def statefulHandlesEvent_[
   Update[_, _] : {BiMonad as updateIsBiMonad, CatchEvents},
   Place[_] : Functor,
@@ -137,9 +135,8 @@ def statefulHandlesEvent_[
   ParentEvent,
   ChildEvent
 ](
-   widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
-): HandlesEventPlace[
-  [T] =>> Update[ParentEvent, Place[T]],
+  widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
+): HandlesEventF[
   Stateful[
     Widget[
       Update[ChildEvent, *],
@@ -160,6 +157,7 @@ def statefulHandlesEvent_[
       State => RecompositionReaction]
   ],
   HandlableEvent,
+  [T] =>> Update[ParentEvent, Place[T]],
 ] = statefulHandlesEvent(using updateIsBiMonad())(
   stateHandlesEvents = statefulStateHandlesEvents[Update = Update[ParentEvent, *]],
   drawStateIntoWidget = statefulStateDrawsIntoWidget,

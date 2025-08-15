@@ -4,42 +4,37 @@ package decorator
 import decorator.Decorator
 
 import catnip.syntax.additional.*
-import catnip.syntax.applicative.nestedFunctorsAreFunctors
 import cats.syntax.all.*
-import cats.{Comonad, Functor, Monad}
-import me.katze.gui4s.geometry.*
+import cats.{Comonad, Monad}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.library.Widget
+import me.katze.gui4s.widget.free.AsFreeF
+import me.katze.gui4s.widget.handle.HandlesEventF
 import me.katze.gui4s.widget.{Path, library}
 
 type EventCatcherWithRect[Widget, Update, Rect, HandlableEvent] =
   ((Path, Rect, HandlableEvent) => Update) => Decorator[Widget]
 
-def eventCatcherWithWidgetsRect[
+def eventCatcherWithRect[
+  Widget,
   Update[_] : Monad,
-  OuterPlace[_] : Functor as OPF,
+  Place[_],
   InnerPlace[_] : Comonad,
-  Draw,
-  RecompositionReaction,
   HandleableEvent,
-  CoordinatesOfTheWidget,
+  CoordinatesOfTheWidget
 ](
+  updateDecorator: UpdateDecorator[Update, Place, InnerPlace[Widget], HandleableEvent],
   markEventHandled : Update[Unit],
-  coordinatesOfTheWidget : Update[CoordinatesOfTheWidget]
-) : EventCatcherWithRect[
-  OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]],
-  Update[Boolean],
-  InnerPlace[CoordinatesOfTheWidget],
-  HandleableEvent
-] =
+  coordinatesOfTheWidget : Update[CoordinatesOfTheWidget],
+  widgetAsFree : AsFreeF[Widget, Place * InnerPlace],
+  widgetHandlesEvent : HandlesEventF[Widget, HandleableEvent, Update * Place * InnerPlace]
+) : EventCatcherWithRect[Place[InnerPlace[Widget]], Update[Boolean], InnerPlace[CoordinatesOfTheWidget], HandleableEvent] =
   decorator =>
-    updateDecoratorWithRect(
+    updateDecorator(
       (self, path, event) =>
         coordinatesOfTheWidget.flatMap(point3d =>
           decorator(path, self.as(point3d), event).ifM(
-            markEventHandled *> self.extract.asFree.pure[Update],
-            self.extract.handleEvent(path, event)
+            markEventHandled *> widgetAsFree(self.extract).pure[Update],
+            widgetHandlesEvent(self.extract, path, event)
           )
-        ),
+        )
     )
-end eventCatcherWithWidgetsRect

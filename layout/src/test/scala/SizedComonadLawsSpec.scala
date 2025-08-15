@@ -1,15 +1,14 @@
 // scala
 package me.katze.gui4s.layout
 
+import cats.instances.all.given
 import cats.kernel.Eq
 import cats.laws.discipline.ComonadTests
-import org.scalatest.funsuite.AnyFunSuiteLike
-import org.typelevel.discipline.scalatest.FunSuiteDiscipline
-import org.scalacheck.{Arbitrary, Cogen, Gen}
 import me.katze.gui4s.geometry.Rect
-import cats.instances.all.given
-import org.scalatest.prop.Configuration.PropertyCheckConfiguration
-import org.scalatestplus.scalacheck.{Checkers, ScalaCheckPropertyChecks}
+import org.scalacheck.{Arbitrary, Cogen}
+import org.scalatest.funsuite.AnyFunSuiteLike
+import org.scalatestplus.scalacheck.Checkers
+import org.typelevel.discipline.scalatest.FunSuiteDiscipline
 
 
 final class SizedComonadLawsSpec extends AnyFunSuiteLike with FunSuiteDiscipline with Checkers {

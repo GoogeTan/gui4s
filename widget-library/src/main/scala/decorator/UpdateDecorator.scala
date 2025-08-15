@@ -4,10 +4,13 @@ package decorator
 import decorator.Decorator
 
 import catnip.syntax.all.{*, given}
-import cats.{Comonad, Functor}
+import cats.{Comonad, Functor, Id}
 import cats.syntax.all.*
 import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget.handle.HandlesEventF
 
+
+type UpdateDecorator[Update[_], Place[_], Widget, HandleableEvent] = HandlesEventF[Widget, HandleableEvent, Update * Place] => Decorator[Place[Widget]]
 /**
  * Декорирует обновление виджета.
  */
@@ -20,19 +23,19 @@ def updateDecorator[
 ](
   decorator : Decorator[WidgetHandlesEvent[HandleableEvent, Update[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]]]]
 ): Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]] =
-  _.map(
-    placedWidget =>
-      Widget.ValueWrapper(
-        valueToDecorate = placedWidget,
-        valueAsFree = widgetAsFree,
-        valueIsDrawable = widgetIsDrawable,
-        valueHandlesEvent = (self, path, event) => decorator(self.handleEvent)(path, event),
-        valueMergesWithOldState = widgetMergesWithOldState,
-        valueReactsOnRecomposition = widgetReactsOnRecomposition,
-        valueHasInnerState = widgetHasInnerStates
-      )
+  updateDecoratorWithRect[
+    Update,
+    Place,
+    [Value] =>> Value,
+    Draw,
+    RecompositionReaction,
+    HandleableEvent
+  ](
+    (self : Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent], path : Path, event : HandleableEvent) =>
+      decorator(self.handleEvent(_, _))(path, event)
   )
 end updateDecorator
+
 
 def updateDecoratorWithRect[
   Update[_] : Functor as UF,
@@ -41,19 +44,18 @@ def updateDecoratorWithRect[
   Draw,
   RecompositionReaction,
   HandleableEvent,
-](
-    decorator : (
-      InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]],
-      Path,
-      HandleableEvent
-    ) => Update[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]]
-): Decorator[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
-  PF.map(_)(_.coflatMap(
+] : UpdateDecorator[
+  Update,
+  Place,
+  InnerPlace[Widget[Update, [Value] =>> Place[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]],
+  HandleableEvent
+] =
+  decorator => original => PF.map(original)(_.coflatMap(
       sizedWidget =>
         Widget.ValueWrapper[
-          InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]],
+          InnerPlace[Widget[Update, [Value] =>> Place[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]],
           Update,
-          Place * InnerPlace,
+          [Value] =>> Place[InnerPlace[Value]],
           Draw,
           RecompositionReaction,
           HandleableEvent
@@ -61,7 +63,7 @@ def updateDecoratorWithRect[
         valueToDecorate = sizedWidget,
         valueAsFree = self => PF.map(self.extract.asFree)(_.coflatten),
         valueIsDrawable = _.extract.draw,
-        valueHandlesEvent = (self, path, event) => decorator(self, path, event).map(PF.map(_)(_.coflatten)),
+        valueHandlesEvent = (self, path, event) => UF.map(decorator(self, path, event))(PF.map(_)(_.coflatten)),
         valueMergesWithOldState = (self, path, event) => PF.map(self.extract.mergeWithOldState(path, event))(_.coflatten),
         valueReactsOnRecomposition = _.extract.reactOnRecomposition(_, _),
         valueHasInnerState = _.extract.innerStates
