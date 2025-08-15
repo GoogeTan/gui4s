@@ -14,6 +14,7 @@ import me.katze.gui4s.widget.{Path, library}
 type EventCatcherWithRect[Widget, Update, Rect, HandlableEvent] =
   ((Path, Rect, HandlableEvent) => Update) => Decorator[Widget]
 
+// TODO убрать координаты виджета
 def eventCatcherWithRect[
   Widget,
   Update[_] : Monad,

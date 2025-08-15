@@ -256,32 +256,32 @@ object SkijaAppExample extends IOApp:
         )
     end launchedEffect
 
-
     @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
     given Typeable[IO[Unit]] = a => a match
       case b: IO[t] => Some(b.as(()).asInstanceOf[IO[Unit] & a.type])
       case _ => None
 
-    def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Event]] =
-      (name, child, key, task) =>
-        eventCatcher[
-          Event
-        ] {
-          case (path, _, SkijaDownEvent.TaskRaisedEvent(taskPath, event : Event)) if path == taskPath =>
+    def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, IO[Event]] =
+      library.launchedEvent[
+        IO,
+        Widget[Event],
+        Key,
+        SkijaUpdate[IO, Float, SkijaClip, String, *, *],
+        Sized[Float, Point3d[Float]],
+        SkijaDownEvent[Float],
+        Event
+      ](
+        launchedEffectWidget = launchedEffect(supervisor),
+        eventCatcher = eventCatcher,
+        pushEvent = (path, event) =>  backend.raiseEvent(SkijaDownEvent.TaskRaisedEvent(path, event)),
+        catchEvent = {
+          case (path, SkijaDownEvent.TaskRaisedEvent(taskPath, event : Event)) if path == taskPath =>
             SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true)
-          case (path, _, SkijaDownEvent.TaskRaisedEvent(taskPath, valueFound : Any)) if path == taskPath =>
-            SkijaUpdate.raiseError[IO, Float, SkijaClip, String, Event, Boolean]("Event type mismatch in launched event at " + path.appendLast(name) + " with value found: " + valueFound.toString)
-          case _ => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
-        } (
-            launchedEffect[Event, Key](
-              supervisor
-            )(
-              name,
-              child,
-              key,
-              path => task(path).flatMap(value => backend.raiseEvent(SkijaDownEvent.TaskRaisedEvent(path, value)))
-            )
-        )
+          case (path, SkijaDownEvent.TaskRaisedEvent(taskPath, valueFound : Any)) if path == taskPath =>
+            SkijaUpdate.raiseError[IO, Float, SkijaClip, String, Event, Boolean]("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString)
+          case (_, _) => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
+        }
+      )
     end launchedEvent
 
     def resource[Event](supervisor : Supervisor[IO]) : ResourceWidget[Widget[Event], IO] =
@@ -298,7 +298,7 @@ object SkijaAppExample extends IOApp:
                 name,
                 child.mapEvent(Right(_)),
                 (),
-                _ => task.map(Left(_))
+                task.map(Left(_))
               ),
         doubleAllocError = [T] => (path : Path) => SkijaUpdate.raiseError("Double resource alloc at " + path.toString)
       )
