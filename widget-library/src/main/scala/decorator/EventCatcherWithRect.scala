@@ -14,28 +14,24 @@ import me.katze.gui4s.widget.{Path, library}
 type EventCatcherWithRect[Widget, Update, Rect, HandlableEvent] =
   ((Path, Rect, HandlableEvent) => Update) => Decorator[Widget]
 
-// TODO убрать координаты виджета
 def eventCatcherWithRect[
-  Widget,
+  PlaceWidget,
   Update[_] : Monad,
   Place[_],
   InnerPlace[_] : Comonad,
   HandleableEvent,
-  CoordinatesOfTheWidget
 ](
-  updateDecorator: UpdateDecorator[Update, Place, InnerPlace[Widget], HandleableEvent],
+  updateDecorator: UpdateDecorator[Update, Place, InnerPlace[PlaceWidget], HandleableEvent],
   markEventHandled : Update[Unit],
-  coordinatesOfTheWidget : Update[CoordinatesOfTheWidget],
-  widgetAsFree : AsFreeF[Widget, Place * InnerPlace],
-  widgetHandlesEvent : HandlesEventF[Widget, HandleableEvent, Update * Place * InnerPlace]
-) : EventCatcherWithRect[Place[InnerPlace[Widget]], Update[Boolean], InnerPlace[CoordinatesOfTheWidget], HandleableEvent] =
+  widgetAsFree : AsFreeF[PlaceWidget, Place * InnerPlace],
+  widgetHandlesEvent : HandlesEventF[PlaceWidget, HandleableEvent, Update * Place * InnerPlace]
+) : EventCatcherWithRect[Place[InnerPlace[PlaceWidget]], Update[Boolean], InnerPlace[PlaceWidget], HandleableEvent] =
   decorator =>
     updateDecorator(
       (self, path, event) =>
-        coordinatesOfTheWidget.flatMap(point3d =>
-          decorator(path, self.as(point3d), event).ifM(
-            markEventHandled *> widgetAsFree(self.extract).pure[Update],
-            widgetHandlesEvent(self.extract, path, event)
-          )
+        decorator(path, self, event).ifM(
+          markEventHandled *> widgetAsFree(self.extract).pure[Update],
+          widgetHandlesEvent(self.extract, path, event)
         )
     )
+end eventCatcherWithRect

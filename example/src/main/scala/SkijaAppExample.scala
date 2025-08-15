@@ -2,7 +2,8 @@ package me.katze.gui4s.example
 
 import api.*
 import api.effects.{*, given}
-import app.{SkijaWidget, skijaGlfwApp}
+import api.widget.{skijaLayout, skijaStateful, skijaText}
+import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwApp}
 import place.*
 import skija.SkijaBackend
 import update.ApplicationRequest
@@ -19,15 +20,14 @@ import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s
 import me.katze.gui4s.example
-import me.katze.gui4s.example.api.widget.{skijaLayout, skijaStateful, skijaText}
-import me.katze.gui4s.geometry.{Axis, Point2d, Point3d, Rect, RectAtPoint2d, given}
+import me.katze.gui4s.geometry.*
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.library.decorator.*
-import me.katze.gui4s.widget.library.{decorator, *, given}
+import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.{Path, library}
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
@@ -64,6 +64,7 @@ object SkijaAppExample extends IOApp:
   given ElementPlacementInInfiniteContainerAttemptError[String] = ENErrors
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
 
+  private type PlacedWidget[Event] = SkijaPlacedWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
   private type Widget[Event] = SkijaWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
 
   type PreInit = (dispatcher : Dispatcher[IO], globalSupervisor : Supervisor[IO], shaper : Shaper, globalTextCache : Cache)
@@ -107,29 +108,17 @@ object SkijaAppExample extends IOApp:
 
   def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
 
-    def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean], Sized[Float, Point3d[Float]], SkijaDownEvent[Float]] = eventCatcherWithRect(
+    def eventCatcher[Event]: EventCatcherWithRect[
+      Widget[Event],
+      SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean],
+      Sized[Float, PlacedWidget[Event]],
+      SkijaDownEvent[Float]
+    ] = eventCatcherWithRect(
       updateDecoratorWithRect,
       SkijaUpdate.markEventHandled,
-      SkijaUpdate.getCoordinates,
       widgetAsFree,
       widgetHandlesEvent
     )
-
-    def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
-      rememberLastEventOfTheType[Widget, SkijaUpdate[IO, Float, SkijaClip, String, *, *], Sized[Float, Point3d[Float]], Event, SkijaDownEvent[Float], Point2d[Float], Boolean](
-        eventCatcherWithRect = eventCatcher,
-        statefulWidget = transitiveStatefulWidget,
-        mapUpdate = [A, B] => f => SkijaUpdate.mapEvents(f),
-        mapEvent = mmapEvent,
-        name = name,
-        catchEvent =
-          (path, rect, event) =>
-            event match
-              case SkijaDownEvent.MouseMove(newPosition) =>
-                SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Point2d[Float]](List(newPosition)).as(false)
-              case _ => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Point2d[Float]]]
-      )
-    end mouseTracker
 
     def mmapEvent : MapEvent[Widget] =
       decorator.mapEvent([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))
@@ -214,7 +203,10 @@ object SkijaAppExample extends IOApp:
           approprieteEvent = extractMouseClickEvent,
           onClick = (_, _) => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true),
           isIn = point => shape =>
-            RectAtPoint2d(shape.size, shape.value.projectToXY).containsPoint(point)
+            SkijaUpdate.getCoordinates2d[IO, Float, SkijaClip, String, Event].map(
+              coordinatesOfTopLeftCornet =>
+                RectAtPoint2d(shape.size, coordinatesOfTopLeftCornet).containsPoint(point)
+            )
         )(widget)
       end onClick
     end extension
@@ -228,10 +220,7 @@ object SkijaAppExample extends IOApp:
         statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](events)
       )
 
-    type TextWidget[Widget[_]] = [Event] => (String, SkijaTextStyle) => Widget[Event]
-
-    def text : TextWidget[Widget] =
-      [Event] => (text: String, style: SkijaTextStyle) =>
+    def text[Event](text: String, style: SkijaTextStyle) : Widget[Event] =
         skijaText[
           IO,
           SkijaUpdateT[IO, Float, SkijaClip, String, Event],
@@ -267,7 +256,7 @@ object SkijaAppExample extends IOApp:
         Widget[Event],
         Key,
         SkijaUpdate[IO, Float, SkijaClip, String, *, *],
-        Sized[Float, Point3d[Float]],
+        Sized[Float, PlacedWidget[Event]],
         SkijaDownEvent[Float],
         Event
       ](
@@ -421,7 +410,7 @@ object SkijaAppExample extends IOApp:
       )
     end imageExample
 
-    imageExample
+    clickExample((0 until 10).toList)
   end main
 end SkijaAppExample
 
