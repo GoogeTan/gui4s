@@ -11,7 +11,7 @@ import me.katze.gui4s.widget.{Path, library}
 import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.Widget
 
-type EventHandleDecorator[Widget, Update] = (Widget, Update) => Widget
+type EventHandleDecorator[Widget, Update] = Update => Decorator[Widget]
 
 /**
  * Декорирует обновление виджета. Полиморфно по отношению к типу состояния.
@@ -27,7 +27,7 @@ def eventHandleDecorator_[
   WidgetHandlesEvent[HandleableEvent, Update[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]]] =>
     WidgetHandlesEvent[HandleableEvent, Update[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]]]
 ] =
-  (original, decorator) =>
+  decorator => original =>
     original.map(
       placedWidget =>
         final case class HandleDecorator(currentWidget: Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent])

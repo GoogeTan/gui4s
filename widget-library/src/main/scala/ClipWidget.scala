@@ -1,12 +1,10 @@
-package me.katze.gui4s.example
-package api
+package me.katze.gui4s.widget.library
 
 import catnip.syntax.all.{*, given}
-import cats.{Functor, Monad}
 import cats.syntax.all.*
+import cats.{Functor, Monad}
 import me.katze.gui4s.geometry.Rect
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.library.Widget
 
 def clipWidget[

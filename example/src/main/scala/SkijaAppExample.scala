@@ -139,29 +139,21 @@ object SkijaAppExample extends IOApp:
       def gapPadding(paddings: Paddings[Float]) : Widget[Event] =
         gapPaddingWidget[
           SkijaUpdateT[IO, Float, SkijaClip, String, Event],
-          SkijaPlaceT[IO, Float, String],
+          SkijaOuterPlaceT[IO, Float, String],
+          Sized[Float, *],
           SkijaDraw[IO],
           SkijaRecomposition[IO],
           SkijaDownEvent[Float],
-          Float,
+          Paddings[Float],
         ](
-          (widget : Widget[Event], shift : Point2d[Float]) =>
-            eventHandleDecorator_[
-              SkijaUpdateT[IO, Float, SkijaClip, String, Event],
-              SkijaPlaceT[IO, Float, String],
-              SkijaDraw[IO],
-              SkijaRecomposition[IO],
-              SkijaDownEvent[Float],
-            ](
-              widget,
+          (paddings : Paddings[Float]) =>
+            [T] => (place : SkijaPlace[IO, Float, String, T]) => SkijaOuterPlace.withBounds[IO, Float, String, Sized[Float, T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength)),
+          (paddings : Paddings[Float]) =>
               (update : WidgetHandlesEvent[SkijaDownEvent[Float], SkijaUpdate[IO, Float, SkijaClip, String, Event, Widget[Event]]]) =>
                 (path : Path, event : SkijaDownEvent[Float]) =>
-                  SkijaUpdate.withCoordinates[IO, Float, SkijaClip, String, Event, Widget[Event]](update(path, event))(_ + new Point3d(shift))
-            ),
-          (draw, shift) =>
-            drawAt(ffi, draw, shift.x, shift.y),
-          [T] => (place, padding) => SkijaOuterPlace.withBounds[IO, Float, String, Sized[Float, T]](place, _.cut(padding.horizontalLength, padding.verticalLength))
-        )(value)(paddings)
+                  SkijaUpdate.withCoordinates[IO, Float, SkijaClip, String, Event, Widget[Event]](update(path, event))(_ + new Point3d(paddings.topLeftCornerShift)),
+          (paddings : Paddings[Float]) => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),
+        )(paddings)(value)
       end gapPadding
 
       def padding(padding: Paddings[Padding[Float]]) : Widget[Event] =
@@ -175,10 +167,10 @@ object SkijaAppExample extends IOApp:
           Float,
           String,
         ](
-          widget => gapPaddings => widget.gapPadding(gapPaddings),
+          gapPaddings => widget => widget.gapPadding(gapPaddings),
           layout[Event],
           "Infinite padding accured in a infinite size container"
-        )(value)(padding)
+        )(padding)(value)
       end padding
 
       def clip(path : Rect[Float] => SkijaClip) : Widget[Event] =

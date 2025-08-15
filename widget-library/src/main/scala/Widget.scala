@@ -29,7 +29,7 @@ enum Widget[
 ):
   case ValueWrapper[
     T, Update_[_] : Functor, Place_[_] : Functor, Draw_, RecompositionReaction_, HandleableEvent_
-  ](
+  ] private [library](// TODO remove private. Просто хочется удостовериться, что все корневые виджетьы создаются здесь
       valueToDecorate: T,
       valueAsFree: AsFree[T, Place_[T]],
       valueIsDrawable: Drawable[T, Draw_],

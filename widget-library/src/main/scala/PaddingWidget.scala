@@ -4,58 +4,49 @@ import catnip.syntax.additional.*
 import catnip.syntax.all.given
 import catnip.syntax.monad.MonadErrorT
 import cats.syntax.all.*
-import cats.{Functor, Monad}
+import cats.{Comonad, Functor}
 import me.katze.gui4s.geometry.*
+import me.katze.gui4s.layout.given
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
-import me.katze.gui4s.layout.{*, given}
+import me.katze.gui4s.widget.library.Decorator.given
 import me.katze.gui4s.widget.library.{LinearLayout, Widget}
 
-type PaddingWidget[Widget, Padding] = Widget => Paddings[Padding] => Widget
+type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
 def gapPaddingWidget[
-  Update[_] : Monad,
+  Update[_] : Functor,
   Place[_] : Functor,
+  InnerPlace[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
-  MeasurementUnit : Numeric,
+  Padding,
 ](
-  eventHandleDecorator :
-    (widget : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]], shift : Point2d[MeasurementUnit]) =>
-      Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
-  drawDecorations : (draw : Draw, shift : Point2d[MeasurementUnit]) => Draw,
-  placementShift : [T] => (Place[T], Paddings[MeasurementUnit]) => Place[T]
-) : PaddingWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
-  initialWidget => paddings =>
-    eventHandleDecorator(
-      placementShift(
-        initialWidget,
-        paddings
-      ).map(
-        placedWidget =>
-          final case class GapWidget(currentWidget: Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent])
-          Widget.ValueWrapper[
-            GapWidget,
-            Update,
-            Place,
-            Draw,
-            RecompositionReaction,
-            HandleableEvent
-          ](
-            valueToDecorate = GapWidget(placedWidget),
-            valueAsFree = placed => placed.currentWidget.asFree.map(GapWidget(_)),
-            valueIsDrawable = self => drawDecorations(self.currentWidget.draw, paddings.topLeftCornerShift),
-            valueHandlesEvent = (self, path, event) => self.currentWidget.handleEvent(path, event).map(_.map(GapWidget(_))),
-            valueMergesWithOldState = (self, path, states) =>
-              self.currentWidget.mergeWithOldState(path, states).map(GapWidget(_)),
-            valueReactsOnRecomposition = (self, path, states) =>
-              self.currentWidget.reactOnRecomposition(path, states),
-            valueHasInnerState =
-              self => self.currentWidget.innerStates
-          )
-        ),
-        paddings.topLeftCornerShift
-      )
+  placementDecoration : Padding => [T] => Place[InnerPlace[T]] => Place[InnerPlace[T]],
+  updateDecorations : Padding => Decorator[WidgetHandlesEvent[HandleableEvent, Update[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]]]],
+  drawDecoration : Padding => InnerPlace[Draw] => Draw
+): PaddingWidget[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
+  gapPaddingWidget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent, Padding](
+    paddings => placementDecorator[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent](placementDecoration(paddings)),
+    paddings => eventHandleDecorator_[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent](updateDecorations(paddings)),
+    paddings => drawDecorator[Update, Place, InnerPlace, Draw, RecompositionReaction, HandleableEvent](drawDecoration(paddings))
+  )
+end gapPaddingWidget
+
+def gapPaddingWidget[
+  Update[_],
+  Place[_],
+  Draw,
+  RecompositionReaction,
+  HandleableEvent,
+  Padding,
+](
+  placementDecorator   : Padding => Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
+  eventHandleDecorator : Padding => Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
+  drawDecorator        : Padding => Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]],
+) : PaddingWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]], Padding] =
+  paddings =>
+    placementDecorator(paddings) |+| eventHandleDecorator(paddings) |+| drawDecorator(paddings)
 end gapPaddingWidget
 
 def paddingLayoutVerticalStrategy[
@@ -98,7 +89,7 @@ def paddingWidget[
 ](
   innerGaps : PaddingWidget[
     Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
-    MeasurementUnit
+    Paddings[MeasurementUnit]
   ],
   layout : LinearLayout[
     Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
@@ -109,12 +100,12 @@ def paddingWidget[
   infinitePaddingInInfiniteContainer : PlaceError
 ) : PaddingWidget[
   Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
-  Padding[MeasurementUnit]
+  Paddings[Padding[MeasurementUnit]]
 ] =
-  widget => paddings =>
+  paddings => widget =>
     layout(
       List(
-        innerGaps(widget)(paddings.map(_.gapOrZero))
+        innerGaps(paddings.map(_.gapOrZero))(widget)
       ),
       Axis.Vertical,
       paddingLayoutVerticalStrategy(paddings, infinitePaddingInInfiniteContainer),
