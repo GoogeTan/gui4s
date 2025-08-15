@@ -9,6 +9,8 @@ import cats.{Applicative, ApplicativeError, Functor}
 import scala.Tuple.:*
 
 object applicative:
+  type ApplicativeErrorT[T] = [F[_]] =>> ApplicativeError[F, T]
+  
   given applicativesAreMonoids[F[_] : Applicative as A] : Monoid[F[Unit]] with
     override def empty: F[Unit] =
       A.pure(())

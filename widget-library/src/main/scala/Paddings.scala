@@ -1,7 +1,7 @@
-package me.katze.gui4s.example
-package api
+package me.katze.gui4s.widget.library
 
 import me.katze.gui4s.geometry.{Point2d, Rect}
+
 import scala.math.Numeric.Implicits.*
 
 final case class Paddings[Padding](left : Padding, top : Padding, right : Padding, bottom : Padding):

@@ -138,13 +138,12 @@ object SkijaAppExample extends IOApp:
 
       def gapPadding(paddings: Paddings[Float]) : Widget[Event] =
         gapPaddingWidget[
-          IO,
           SkijaUpdateT[IO, Float, SkijaClip, String, Event],
+          SkijaPlaceT[IO, Float, String],
           SkijaDraw[IO],
           SkijaRecomposition[IO],
           SkijaDownEvent[Float],
           Float,
-          String,
         ](
           (widget : Widget[Event], shift : Point2d[Float]) =>
             eventHandleDecorator_[
@@ -160,7 +159,8 @@ object SkijaAppExample extends IOApp:
                   SkijaUpdate.withCoordinates[IO, Float, SkijaClip, String, Event, Widget[Event]](update(path, event))(_ + new Point3d(shift))
             ),
           (draw, shift) =>
-            drawAt(ffi, draw, shift.x, shift.y)
+            drawAt(ffi, draw, shift.x, shift.y),
+          [T] => (place, padding) => SkijaOuterPlace.withBounds[IO, Float, String, Sized[Float, T]](place, _.cut(padding.horizontalLength, padding.verticalLength))
         )(value)(paddings)
       end gapPadding
 

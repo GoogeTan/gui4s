@@ -2,11 +2,12 @@ package me.katze.gui4s.example
 
 import update.*
 
+import catnip.syntax.monad.MonadErrorT
 import cats.effect.std.Queue
 import cats.effect.syntax.all.*
 import cats.effect.{Async, Concurrent, ExitCode, Ref}
 import cats.syntax.all.given
-import cats.{Monad, MonadError, ApplicativeError}
+import cats.{ApplicativeError, Monad, MonadError}
 
 import scala.concurrent.ExecutionContext
 
@@ -27,12 +28,6 @@ type UpdateLoop[F[_], Widget, DownEvent] = (Widget, Widget => F[Unit], F[DownEve
 def runUpdateLoopOnExecutionContext[F[_]: Async, Widget, HandleableEvent](loop : UpdateLoop[F, Widget, HandleableEvent], context : ExecutionContext) : UpdateLoop[F, Widget, HandleableEvent] =
   (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
 end runUpdateLoopOnExecutionContext
-
-/**
- * Каррированная версия MonadError.
- */
-type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
-type ApplicativeErrorT[T] = [F[_]] =>> ApplicativeError[F, T]
 
 /**
  * Запускает в отдельных потоках обновление виджета и его отрисовку.

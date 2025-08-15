@@ -1,12 +1,10 @@
-package me.katze.gui4s.example
-package api
+package me.katze.gui4s.widget.library
 
 import catnip.syntax.additional.*
 import catnip.syntax.all.given
-import cats.Monad
+import catnip.syntax.monad.MonadErrorT
 import cats.syntax.all.*
-import me.katze.gui4s.example.MonadErrorT
-import me.katze.gui4s.example.api.exported.{*, given}
+import cats.{Functor, Monad}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.layout.{*, given}
@@ -15,49 +13,46 @@ import me.katze.gui4s.widget.library.{LinearLayout, Widget}
 type PaddingWidget[Widget, Padding] = Widget => Paddings[Padding] => Widget
 
 def gapPaddingWidget[
-  F[_] : Monad,
   Update[_] : Monad,
+  Place[_] : Functor,
   Draw,
   RecompositionReaction,
   HandleableEvent,
   MeasurementUnit : Numeric,
-  PlaceError,
 ](
   eventHandleDecorator :
-    (widget : SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], shift : Point2d[MeasurementUnit]) =>
-      SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
-  drawDecorations : (draw : Draw, shift : Point2d[MeasurementUnit]) => Draw
-) : PaddingWidget[SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
+    (widget : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]], shift : Point2d[MeasurementUnit]) =>
+      Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
+  drawDecorations : (draw : Draw, shift : Point2d[MeasurementUnit]) => Draw,
+  placementShift : [T] => (Place[T], Paddings[MeasurementUnit]) => Place[T]
+) : PaddingWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]], MeasurementUnit] =
   initialWidget => paddings =>
     eventHandleDecorator(
-      SkijaOuterPlace.withBounds(
-          initialWidget,
-          _.cut(paddings.horizontalLength, paddings.verticalLength)
-        ).map(
-          sizedWidget =>
-            sizedWidget.mapValue(
-              placedWidget =>
-                final case class GapWidget(currentWidget: Widget[Update, SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent])
-                Widget.ValueWrapper[
-                  GapWidget,
-                  Update,
-                  SkijaPlaceT[F, MeasurementUnit, PlaceError],
-                  Draw,
-                  RecompositionReaction,
-                  HandleableEvent
-                ](
-                  valueToDecorate = GapWidget(placedWidget),
-                  valueAsFree = placed => SkijaOuterPlace.monadInstance[F, MeasurementUnit, PlaceError].map(placed.currentWidget.asFree)(freeWidget => freeWidget.mapValue(GapWidget(_))),
-                  valueIsDrawable = self => drawDecorations(self.currentWidget.draw, paddings.topLeftCornerShift),
-                  valueHandlesEvent = (self, path, event) => self.currentWidget.handleEvent(path, event).map(_.map(_.mapValue(GapWidget(_)))),
-                  valueMergesWithOldState = (self, path, states) =>
-                    self.currentWidget.mergeWithOldState(path, states).map(GapWidget(_)),
-                  valueReactsOnRecomposition = (self, path, states) =>
-                    self.currentWidget.reactOnRecomposition(path, states),
-                  valueHasInnerState =
-                    self => self.currentWidget.innerStates
-                )
-            )
+      placementShift(
+        initialWidget,
+        paddings
+      ).map(
+        placedWidget =>
+          final case class GapWidget(currentWidget: Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent])
+          Widget.ValueWrapper[
+            GapWidget,
+            Update,
+            Place,
+            Draw,
+            RecompositionReaction,
+            HandleableEvent
+          ](
+            valueToDecorate = GapWidget(placedWidget),
+            valueAsFree = placed => placed.currentWidget.asFree.map(GapWidget(_)),
+            valueIsDrawable = self => drawDecorations(self.currentWidget.draw, paddings.topLeftCornerShift),
+            valueHandlesEvent = (self, path, event) => self.currentWidget.handleEvent(path, event).map(_.map(GapWidget(_))),
+            valueMergesWithOldState = (self, path, states) =>
+              self.currentWidget.mergeWithOldState(path, states).map(GapWidget(_)),
+            valueReactsOnRecomposition = (self, path, states) =>
+              self.currentWidget.reactOnRecomposition(path, states),
+            valueHasInnerState =
+              self => self.currentWidget.innerStates
+          )
         ),
         paddings.topLeftCornerShift
       )
