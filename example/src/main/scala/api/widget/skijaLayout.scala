@@ -1,16 +1,16 @@
 package me.katze.gui4s.example
-package api.exported
+package api.widget
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.Monad
 import cats.syntax.all.*
 import me.katze.gui4s.example.{*, given}
-import api.exported.given
-import api.{LayoutPlacementMeta, given}
+import api.effects.{SkijaOuterPlace, SkijaOuterPlaceT, given}
+import api.given
 
 import cats.kernel.Monoid
-import me.katze.gui4s.geometry.Axis
+import me.katze.gui4s.geometry.{Axis, Point3d}
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement, rowColumnLayoutPlacement}
 import me.katze.gui4s.layout.{*, given}
@@ -46,8 +46,8 @@ def skijaLayout[
   mainAxis : Axis,
   mainAxisPlacement : MainAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
   additionalAxisPlacement : AdditionalAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
-  drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,
-  updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
+  drawAt : (Draw, Point3d[MeasurementUnit]) => Draw,
+  updateAt : [T] => (Update[T], Point3d[MeasurementUnit]) => Update[T],
   isEventConsumed : Update[Boolean]
 ) =
   placementAwareLayout[
@@ -84,17 +84,18 @@ def placementAwareLayout[
   additionalAxisPlacement : AdditionalAxisPlacement[OuterPlace, MeasurementUnit],
   getBounds : OuterPlace[Bounds[MeasurementUnit]],
   setBounds : Bounds[MeasurementUnit] => OuterPlace[Unit],
-  drawAt : (Draw, LayoutPlacementMeta[MeasurementUnit]) => Draw,
-  updateAt : [T] => (Update[T], LayoutPlacementMeta[MeasurementUnit]) => Update[T],
+  drawAt : (Draw, Point3d[MeasurementUnit]) => Draw,
+  updateAt : [T] => (Update[T], Point3d[MeasurementUnit]) => Update[T],
   isEventConsumed : Update[Boolean]
 ) : OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]] =
+  given orderByZ : Ordering[Point3d[MeasurementUnit]] = Ordering.by(_.z)
   linearLayout[
     Update,
     OuterPlace * Sized[MeasurementUnit, *],
     Draw,
     RecompositionReaction,
     HandleableEvent,
-    LayoutPlacementMeta[MeasurementUnit]
+    Point3d[MeasurementUnit]
   ](
     children = children,
     layout = children => rowColumnLayoutPlacement(
@@ -111,10 +112,10 @@ def placementAwareLayout[
   )
 end placementAwareLayout
 
-def placedChildrenAsChildrenWithMetadata[MeasurementUnit, T](lst: List[Placed[MeasurementUnit, T]]): List[(T, LayoutPlacementMeta[MeasurementUnit])] =
+def placedChildrenAsChildrenWithMetadata[MeasurementUnit, T](lst: List[Placed[MeasurementUnit, T]]): List[(T, Point3d[MeasurementUnit])] =
   lst.map(placedElementAsLayoutMetadata)
 end placedChildrenAsChildrenWithMetadata
 
-def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[MeasurementUnit, T]) : (T, LayoutPlacementMeta[MeasurementUnit]) =
-  (placed.value, new LayoutPlacementMeta(placed))
+def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[MeasurementUnit, T]) : (T, Point3d[MeasurementUnit]) =
+  (placed.value, placed.coordinate)
 end placedElementAsLayoutMetadata

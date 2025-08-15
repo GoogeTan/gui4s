@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package app
 
-import api.exported.{*, given}
+import api.effects.{*, given}
 import place.RunPlacement
 import skija.{SkijaBackend, skijaDrawLoop}
 import update.ApplicationRequest

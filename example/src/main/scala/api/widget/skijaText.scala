@@ -1,34 +1,31 @@
 package me.katze.gui4s.example
-package api.exported
+package api.widget
+
+import api.effects.{SkijaPlace, SkijaPlaceT}
+import api.widget.SizeText
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.given
-import cats.{Monad, Monoid}
-import cats.syntax.all.*
+import cats.{Functor, Monad, Monoid}
 import me.*
-import me.katze.gui4s.glfw.{GlfwWindow, OglGlfwWindow}
-import me.katze.gui4s.layout.given
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
 import me.katze.gui4s.widget.library.Widget
-
-import scala.language.experimental.namedTypeArguments
 
 def skijaText[
   IO[_] : Monad,
   Update[_] : Monad,
+  Place[_] : Functor,
   RecompositionReaction : Monoid as RRM,
   HandlableEvent,
-  PlaceError,
-  MeasurementUnit,
 ](
   ffi : ForeighFunctionInterface[IO],
-  textSizer : SizeText[SkijaPlaceT[IO, MeasurementUnit, PlaceError]],
+  textSizer : SizeText[Place],
   text : String,
   style : SkijaTextStyle,
-) : SkijaPlace[IO, MeasurementUnit, PlaceError, Widget[Update, SkijaPlaceT[IO, MeasurementUnit, PlaceError], SkijaDraw[IO], RecompositionReaction, HandlableEvent]] =
+) : Place[Widget[Update, Place, SkijaDraw[IO], RecompositionReaction, HandlableEvent]] =
   me.katze.gui4s.widget.library.text[
     Update,
-    SkijaPlaceT[IO, MeasurementUnit, PlaceError],
+    Place,
     SkijaDraw[IO],
     RecompositionReaction,
     HandlableEvent,

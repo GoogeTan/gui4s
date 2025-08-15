@@ -1,5 +1,5 @@
 package me.katze.gui4s.example
-package api.exported
+package api.effects
 
 import place.{RunPlacement, runPlaceStateT}
 
@@ -9,6 +9,7 @@ import _root_.cats.data.{EitherT, StateT}
 import _root_.cats.syntax.all.*
 import _root_.cats.{FlatMap, Monad, MonadError, ~>}
 import io.github.humbleui.skija.shaper.Shaper
+import me.katze.gui4s.example.api.widget.{SizeText, sizeTextFFI}
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.bound.{Bounds, GetBounds, SetBounds}
 import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle}

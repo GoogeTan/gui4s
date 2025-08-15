@@ -3,7 +3,7 @@ package app
 
 import catnip.syntax.all.given
 import me.*
-import me.katze.gui4s.example.api.exported.{SkijaPlace, SkijaPlaceT, SkijaRecomposition, SkijaUpdateT}
+import me.katze.gui4s.example.api.effects.{SkijaPlace, SkijaPlaceT, SkijaRecomposition, SkijaUpdateT}
 import me.katze.gui4s.glfw.{GlfwWindow, OglGlfwWindow}
 import me.katze.gui4s.skija.{*, given}
 import me.katze.gui4s.widget.library.Widget

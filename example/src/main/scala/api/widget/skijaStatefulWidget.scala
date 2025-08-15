@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
-package api.exported
+package api.widget
 
-import api.exported.{*, given}
+import api.effects.{*, given}
 
 import catnip.BiMonad
 import catnip.syntax.all.{*, given}

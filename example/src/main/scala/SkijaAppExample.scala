@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 
 import api.*
-import api.exported.{ *, given}
+import api.effects.{*, given}
 import app.{SkijaWidget, skijaGlfwApp}
 import place.*
 import skija.SkijaBackend
@@ -19,6 +19,7 @@ import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s
 import me.katze.gui4s.example
+import me.katze.gui4s.example.api.widget.{skijaLayout, skijaStateful, skijaText}
 import me.katze.gui4s.geometry.{Axis, Point2d, Point3d, Rect, given}
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
@@ -229,7 +230,13 @@ object SkijaAppExample extends IOApp:
 
     def text : TextWidget[Widget] =
       [Event] => (text: String, style: SkijaTextStyle) =>
-        skijaText(ffi, SkijaPlace.sizeText(ffi, preInit.shaper, preInit.globalTextCache), text, style)
+        skijaText[
+          IO,
+          SkijaUpdateT[IO, Float, SkijaClip, String, Event],
+          SkijaPlaceT[IO, Float, String],
+          SkijaRecomposition[IO],
+          SkijaDownEvent[Float],
+        ](ffi, SkijaPlace.sizeText(ffi, preInit.shaper, preInit.globalTextCache), text, style)
     end text
 
     def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
@@ -354,8 +361,8 @@ object SkijaAppExample extends IOApp:
         axis,
         mainAxisStrategy,
         additionalAxisStrategy,
-        (draw, meta) => drawAt[IO](summon, draw, meta.x, meta.y),
-        [T] => (update, meta) => SkijaUpdate.withCoordinates(update)(_ => meta.point),
+        (draw, point) => drawAt[IO](summon, draw, point.x, point.y),
+        [T] => (update, point) => SkijaUpdate.withCoordinates(update)(_ => point),
         SkijaUpdate.isEventHandled[IO, Float, SkijaClip, String, Event]
       )
     end layout

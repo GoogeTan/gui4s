@@ -1,5 +1,5 @@
 package me.katze.gui4s.example
-package api.exported
+package api.effects
 
 import catnip.ForeighFunctionInterface
 import cats.Monad

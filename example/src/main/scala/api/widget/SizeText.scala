@@ -1,5 +1,5 @@
 package me.katze.gui4s.example
-package api.exported
+package api.widget
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
