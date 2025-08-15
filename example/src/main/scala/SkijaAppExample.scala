@@ -179,15 +179,16 @@ object SkijaAppExample extends IOApp:
         clipWidget[
           SkijaUpdateT[IO, Float, SkijaClip, String, Event],
           SkijaOuterPlaceT[IO, Float, String],
+          Sized[Float, *],
           SkijaDraw[IO],
           SkijaRecomposition[IO],
           SkijaDownEvent[Float],
-          Float,
           SkijaClip,
         ](
           [T] => (a, b) => SkijaUpdate.withClip[IO, Float, SkijaClip, String, Event, T](a, b, SkijaClip.skijaPathAt),
-          SkijaClip.clipToPath[IO](ffi, _ : SkijaClip, _ : SkijaDraw[IO])
-        )(value, path)
+          SkijaClip.clipToPath[IO](ffi, _ : SkijaClip, _ : SkijaDraw[IO]),
+          sized => path(sized.size)
+        )(value)
       end clip
     end extension
 
