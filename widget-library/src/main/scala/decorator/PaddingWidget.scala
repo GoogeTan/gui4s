@@ -1,4 +1,4 @@
-package me.katze.gui4s.widget.library
+package me.katze.gui4s.widget.library.decorator
 
 import catnip.syntax.additional.*
 import catnip.syntax.all.given
@@ -8,8 +8,9 @@ import cats.{Comonad, Functor}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.given
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
-import me.katze.gui4s.widget.library.Decorator.given
-import me.katze.gui4s.widget.library.{LinearLayout, Widget}
+import me.katze.gui4s.widget.library.decorator.Decorator
+import me.katze.gui4s.widget.library.decorator.Decorator.given
+import me.katze.gui4s.widget.library.{LinearLayout, Widget, WidgetHandlesEvent}
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
@@ -28,7 +29,7 @@ def gapPaddingWidget[
 ): PaddingWidget[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
   gapPaddingWidget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent, Padding](
     paddings => placementDecorator[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent](placementDecoration(paddings)),
-    paddings => eventHandleDecorator_[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent](updateDecorations(paddings)),
+    paddings => eventHandleDecorator[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent](updateDecorations(paddings)),
     paddings => drawDecorator[Update, Place, InnerPlace, Draw, RecompositionReaction, HandleableEvent](drawDecoration(paddings))
   )
 end gapPaddingWidget

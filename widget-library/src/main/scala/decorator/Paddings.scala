@@ -1,4 +1,4 @@
-package me.katze.gui4s.widget.library
+package me.katze.gui4s.widget.library.decorator
 
 import me.katze.gui4s.geometry.{Point2d, Rect}
 

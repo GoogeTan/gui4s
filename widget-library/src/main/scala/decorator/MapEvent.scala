@@ -1,9 +1,10 @@
 package me.katze.gui4s.widget.library
+package decorator
 
 import catnip.BiMonad
+import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
 import cats.{Bifunctor, Bimonad, Functor}
-import catnip.syntax.all.{*, given}
 import me.katze.gui4s.widget.handle.mapEventHandle
 
 type MapEvent[Widget[_]] = [A, B] => (value : Widget[A]) => (f : A => B) => Widget[B]

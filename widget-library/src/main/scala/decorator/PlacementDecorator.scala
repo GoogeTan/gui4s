@@ -1,7 +1,10 @@
 package me.katze.gui4s.widget.library
+package decorator
 
-import cats.{Functor, Monad}
+import decorator.Decorator
+
 import cats.syntax.all.*
+import cats.{Functor, Monad}
 
 def placementDecorator[
   Update[_] : Functor,

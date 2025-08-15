@@ -1,4 +1,5 @@
 package me.katze.gui4s.widget.library
+package decorator
 
 import cats.kernel.Monoid
 

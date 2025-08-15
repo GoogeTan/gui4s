@@ -1,4 +1,7 @@
 package me.katze.gui4s.widget.library
+package decorator
+
+import decorator.Decorator
 
 import catnip.syntax.all.{*, given}
 import cats.syntax.all.*

@@ -26,7 +26,8 @@ import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSe
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
 import me.katze.gui4s.skija.*
-import me.katze.gui4s.widget.library.{*, given}
+import me.katze.gui4s.widget.library.decorator.*
+import me.katze.gui4s.widget.library.{decorator, *, given}
 import me.katze.gui4s.widget.{Path, library}
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
@@ -130,7 +131,7 @@ object SkijaAppExample extends IOApp:
     end mouseTracker
 
     def mmapEvent : MapEvent[Widget] =
-      library.mapEvent([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))
+      decorator.mapEvent([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))
 
     extension[Event](value : Widget[Event])
       def mapEvent[NewEvent](f : Event => NewEvent) : Widget[NewEvent] =
@@ -205,15 +206,12 @@ object SkijaAppExample extends IOApp:
 
     extension[Event](widget : Widget[Event])
       def onClick(event : Event) : Widget[Event] =
-        makeClickHandler(
+        clickCatcher(
           eventCatcherWithRect = eventCatcher,
           currentMousePosition = SkijaUpdate.liftF(backend.mousePosition),
-        )(
-          extractClickHandlerEvent
-        )(widget)(
-          (_, _) =>
-            SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true)
-        )
+          approprieteEvent = extractMouseClickEvent,
+          onClick = (_, _) => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true)
+        )(widget)
       end onClick
     end extension
 
@@ -294,10 +292,9 @@ object SkijaAppExample extends IOApp:
               launchedEffect[Either[(Value, IO[Unit]), Event], Unit](supervisor)(
                 "effect_launcher",
                 eventCatcher(
-                  widget(state.map(_._1)).mapEvent(Right(_))
+                  (path, _, event) => catchTaskRaisedEvent(event, path)
                 )(
-                  (path, _, event) =>
-                    catchTaskRaisedEvent(event, path)
+                  widget(state.map(_._1)).mapEvent(Right(_))
                 ),
                 (),
                 path => resource.flatMap(value => backend.raiseEvent(SkijaDownEvent.TaskRaisedEvent(path, value)))
@@ -423,9 +420,9 @@ object SkijaAppExample extends IOApp:
 end SkijaAppExample
 
 @experimental
-def extractClickHandlerEvent[MeasurementUnit](downEvent : SkijaDownEvent[MeasurementUnit]) : Option[Unit] =
+def extractMouseClickEvent[MeasurementUnit](downEvent : SkijaDownEvent[MeasurementUnit]) : Option[Unit] =
   downEvent match
     case SkijaDownEvent.MouseClick(_, action, _) if action == Press =>
       Some(()) // TODO ClickHandlerDownEvent(button, action, mods))
     case _ => None
-end extractClickHandlerEvent
+end extractMouseClickEvent

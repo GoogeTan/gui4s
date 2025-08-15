@@ -1,4 +1,7 @@
 package me.katze.gui4s.widget.library
+package decorator
+
+import decorator.Decorator
 
 import catnip.syntax.additional.*
 import catnip.syntax.applicative.nestedFunctorsAreFunctors
@@ -7,16 +10,16 @@ import cats.{Functor, Monad, Monoid}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.{Sized, given}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.{Path, library}
 import me.katze.gui4s.widget.handle.HandlesEvent
 import me.katze.gui4s.widget.library.Widget
+import me.katze.gui4s.widget.{Path, library}
 
 type EventHandleDecorator[Widget, Update] = Update => Decorator[Widget]
 
 /**
- * Декорирует обновление виджета. Полиморфно по отношению к типу состояния.
+ * Декорирует обновление виджета.
  */
-def eventHandleDecorator_[
+def eventHandleDecorator[
   Update[_] : Functor as UF,
   Place[_] : Functor as PF,
   Draw,
@@ -45,10 +48,10 @@ def eventHandleDecorator_[
             self => self.currentWidget.innerStates
         )
     )
-end eventHandleDecorator_
+end eventHandleDecorator
 
 type EventCatcherWithRect[Widget, Update, MeasurableUnit, HandlableEvent] =
-  Widget => ((Path, RectAtPoint2d[MeasurableUnit], HandlableEvent) => Update) => Widget
+  ((Path, RectAtPoint2d[MeasurableUnit], HandlableEvent) => Update) => Decorator[Widget]
 
 def eventCatcherWithWidgetsRect[
   Update[_] : Monad,
@@ -66,7 +69,7 @@ def eventCatcherWithWidgetsRect[
   MeasurableUnit,
   HandleableEvent
 ] =
-  original => decorator =>
+  decorator => original =>
     OPF.map(original)(
       sizedWidget =>
         sizedWidget.mapValue(

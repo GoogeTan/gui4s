@@ -1,4 +1,4 @@
-package me.katze.gui4s.widget.library
+package me.katze.gui4s.widget.library.decorator
 
 // TODO Это по смыслу буквально то же самое, что и AxisBounds. Можно попытаться унифицировать.
 enum Padding[+MeasurementUnit]:

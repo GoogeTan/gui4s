@@ -7,6 +7,7 @@ import cats.data.NonEmptyList
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEventF
+import me.katze.gui4s.widget.library.decorator.{EventCatcherWithRect, MapEvent, mapEvent}
 
 import scala.language.experimental.namedTypeArguments
 import scala.reflect.Typeable
@@ -47,10 +48,12 @@ def eventMemory[
       body =
         memories =>
             eventCatcherWithRect(
+              (path, rect, handlableEvent) => mapUpdate[MemorableEvent, Either[MemorableEvent, Event]](Left(_))(catchEvent(path, rect, handlableEvent))
+            )(
               mapEvent.apply(
                 widget(memories)
               )(Right(_))
-            )((path, rect, handlableEvent) => mapUpdate[MemorableEvent, Either[MemorableEvent, Event]](Left(_))(catchEvent(path, rect, handlableEvent)))
+            )
     )
 end eventMemory
 
