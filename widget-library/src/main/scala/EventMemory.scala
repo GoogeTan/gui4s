@@ -24,21 +24,21 @@ end given
 def eventMemory[
   Widget[_], 
   Update[_, _],
-  MeasurementUnit,
+  Rect,
   Event,
   HandlableEvent, 
   Memories : Typeable,
   MemorableEvent,
   T
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], MeasurementUnit, HandlableEvent],
+  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], Rect, HandlableEvent],
   statefulWidget: TransitiveStatefulWidget[Widget, Update],
   mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,
   initialMemories : Memories,
   handleEvent : HandlesEventF[Memories, NonEmptyList[MemorableEvent], Update[Event, *]],
-  catchEvent : (Path, RectAtPoint2d[MeasurementUnit], HandlableEvent) => Update[MemorableEvent, T]
+  catchEvent : (Path, Rect, HandlableEvent) => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Memories] =
   widget =>
     statefulWidget[Memories, Event, MemorableEvent](
@@ -60,18 +60,18 @@ end eventMemory
 def rememberLastEventOfTheType[
   Widget[_],
   Update[_, _] : BiMonad as UBM,
-  MeasurementUnit,
+  Rect,
   Event,
   HandlableEvent,
   MemorableEvent : Typeable,
   T
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], MeasurementUnit, HandlableEvent],
+  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], Rect, HandlableEvent],
   statefulWidget: TransitiveStatefulWidget[Widget, Update],
   mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,
-  catchEvent : (Path, RectAtPoint2d[MeasurementUnit], HandlableEvent) => Update[MemorableEvent, T]
+  catchEvent : (Path, Rect, HandlableEvent) => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Option[MemorableEvent]] =
   eventMemory[Memories = Option[MemorableEvent], MemorableEvent = MemorableEvent](
     eventCatcherWithRect,

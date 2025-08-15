@@ -20,7 +20,7 @@ import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.example.api.widget.{skijaLayout, skijaStateful, skijaText}
-import me.katze.gui4s.geometry.{Axis, Point2d, Point3d, Rect, given}
+import me.katze.gui4s.geometry.{Axis, Point2d, Point3d, Rect, RectAtPoint2d, given}
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.Sized
@@ -109,13 +109,13 @@ object SkijaAppExample extends IOApp:
 
   def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
 
-    def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean], Float, SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
+    def eventCatcher[Event]: EventCatcherWithRect[Widget[Event], SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean], Sized[Float, Point3d[Float]], SkijaDownEvent[Float]] = eventCatcherWithWidgetsRect(
       SkijaUpdate.markEventHandled,
       SkijaUpdate.getCoordinates,
     )
 
     def mouseTracker[Event](name : String) : WithContext[Widget[Event], Option[Point2d[Float]]] =
-      rememberLastEventOfTheType[Widget, SkijaUpdate[IO, Float, SkijaClip, String, *, *], Float, Event, SkijaDownEvent[Float], Point2d[Float], Boolean](
+      rememberLastEventOfTheType[Widget, SkijaUpdate[IO, Float, SkijaClip, String, *, *], Sized[Float, Point3d[Float]], Event, SkijaDownEvent[Float], Point2d[Float], Boolean](
         eventCatcherWithRect = eventCatcher,
         statefulWidget = transitiveStatefulWidget,
         mapUpdate = [A, B] => f => SkijaUpdate.mapEvents(f),
@@ -211,7 +211,9 @@ object SkijaAppExample extends IOApp:
           eventCatcherWithRect = eventCatcher,
           currentMousePosition = SkijaUpdate.liftF(backend.mousePosition),
           approprieteEvent = extractMouseClickEvent,
-          onClick = (_, _) => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true)
+          onClick = (_, _) => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true),
+          isIn = point => shape =>
+            RectAtPoint2d(shape.size, shape.value.projectToXY).containsPoint(point)
         )(widget)
       end onClick
     end extension

@@ -12,20 +12,22 @@ def clickCatcher[
   Widget,
   Update[_] : Monad,
   HandleableEvent,
-  MeasurementUnit : Numeric,
-  MouseClick
+  MouseClick,
+  Point,
+  Shape
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], MeasurementUnit, HandleableEvent],
-  currentMousePosition : Update[Point2d[MeasurementUnit]],
+  eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], Shape, HandleableEvent],
+  currentMousePosition : Update[Point],
   approprieteEvent: HandleableEvent => Option[MouseClick],
-  onClick : (Path, MouseClick) => Update[Boolean]
+  onClick : (Path, MouseClick) => Update[Boolean],
+  isIn : Point => Shape => Boolean
 ) : Decorator[Widget] =
   eventCatcherWithRect:
     (path, widgetBoundingBox, event) =>
       currentMousePosition.flatMap:
         mousePosition =>
           approprieteEvent(event) match
-            case Some(click) if widgetBoundingBox.containsPoint(mousePosition) =>
+            case Some(click) if isIn(mousePosition)(widgetBoundingBox) =>
               onClick(path, click)
             case _ =>
               false.pure[Update]
