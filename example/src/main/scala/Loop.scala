@@ -41,7 +41,7 @@ def applicationLoop[
     widgetCell   : Ref[F, Widget],
     drawLoop     : DrawLoop[F, Widget],
     updateLoop   : UpdateLoop[F, Widget, DownEvent]
-): F[ApplicationControl[F, DownEvent]] =
+): F[ExitCode] =
   for
     initialWidget <- widgetCell.get
     fork <- 
@@ -52,11 +52,8 @@ def applicationLoop[
         )
         .map(_.fold(identity, identity))
         .start
-  yield ApplicationControl(
-    fork.cancel,
-    fork.joinWithNever,
-    eventBus.offer
-  )
+    code <- fork.joinWithNever  
+  yield code 
 end applicationLoop
 
 type DrawLoopExceptionHandler[F[_], Error] = Error => F[Option[ExitCode]]

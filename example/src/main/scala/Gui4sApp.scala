@@ -54,7 +54,7 @@ def runApplicationLoops[
           widgetCell,
           drawLoop,
           updateLoop,
-        ).flatMap(_.join)
+        )
       yield code
     )
   yield code
