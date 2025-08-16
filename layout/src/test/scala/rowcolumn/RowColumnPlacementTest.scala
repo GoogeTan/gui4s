@@ -39,10 +39,10 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
     end runPlace
 
     def rowColumnPlace[Widget](
-        mainAxis : Axis,
-        children : List[Place[Sized[MeasurementUnit, Widget]]],
-        mainAxisStrategy : MainAxisPlacement[Place, List, MeasurementUnit],
-        additionlAxisStrategy : AdditionalAxisPlacement[Place, MeasurementUnit]
+                                mainAxis : Axis,
+                                children : List[Place[Sized[MeasurementUnit, Widget]]],
+                                mainAxisStrategy : ManyElementsPlacementStrategy[Place, List, MeasurementUnit],
+                                additionlAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit]
     ): Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, Widget]]]] =
         rowColumnLayoutPlacement[Place, List, Widget, MeasurementUnit](
             Place.getBounds,
@@ -60,8 +60,8 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Vertical,
                 children,
-                MainAxisPlacement.Begin(0f),
-                AdditionalAxisPlacement.Begin
+                ManyElementsPlacementStrategy.Begin(0f),
+                OneElementPlacementStrategy.Begin,
             ),
             new Bounds(None, None)
         ) should be(Right(Sized(List(), Rect(0f, 0f))))
@@ -80,8 +80,8 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Horizontal,
                 innerChildren,
-                MainAxisPlacement.SpaceBetween(PlacementError.BadStrategyForInfiniteSizeContainer),
-                AdditionalAxisPlacement.Begin
+                ManyElementsPlacementStrategy.SpaceBetween(PlacementError.BadStrategyForInfiniteSizeContainer),
+                OneElementPlacementStrategy.Begin
             )
         )
 
@@ -104,8 +104,8 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Vertical,
                 children,
-                MainAxisPlacement.SpaceBetween(PlacementError.BadStrategyForInfiniteSizeContainer),
-                AdditionalAxisPlacement.Begin
+                ManyElementsPlacementStrategy.SpaceBetween(PlacementError.BadStrategyForInfiniteSizeContainer),
+                OneElementPlacementStrategy.Begin
             ),
             new Bounds(bounds)
         ) should be(

@@ -7,7 +7,7 @@ import cats.syntax.all.*
 import cats.{Comonad, Functor, Id}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.given
-import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
+import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy}
 import me.katze.gui4s.widget.library.decorator.Decorator
 import me.katze.gui4s.widget.library.decorator.Decorator.given
 import me.katze.gui4s.widget.library.{LinearLayout, Widget, WidgetHandlesEvent}
@@ -57,11 +57,11 @@ def paddingLayoutVerticalStrategy[
 ](
   paddings: Paddings[Padding[MeasurementUnit]],
   error : Error
-) : MainAxisPlacement[Place, Id, MeasurementUnit] =
+) : ManyElementsPlacementStrategy[Place, Id, MeasurementUnit] =
   (paddings.top, paddings.bottom) match
-    case (Padding.Gap(_), _)            => MainAxisPlacement.Begin(MUF.zero)
-    case (Padding.Fill, Padding.Gap(_)) => MainAxisPlacement.End(MUF.zero, error)
-    case (Padding.Fill, Padding.Fill)   => MainAxisPlacement.Center(MUF.zero, error)
+    case (Padding.Gap(_), _)            => ManyElementsPlacementStrategy.Begin(MUF.zero)
+    case (Padding.Fill, Padding.Gap(_)) => ManyElementsPlacementStrategy.End(MUF.zero, error)
+    case (Padding.Fill, Padding.Fill)   => ManyElementsPlacementStrategy.Center(MUF.zero, error)
 end paddingLayoutVerticalStrategy
 
 def paddingLayoutHorizontalStrategy[
@@ -71,11 +71,11 @@ def paddingLayoutHorizontalStrategy[
 ](
     paddings: Paddings[Padding[MeasurementUnit]],
     error: Error
-): AdditionalAxisPlacement[Place, MeasurementUnit] =
+): OneElementPlacementStrategy[Place, MeasurementUnit] =
   (paddings.left, paddings.right) match
-    case (Padding.Gap(_), _) => AdditionalAxisPlacement.Begin
-    case (Padding.Fill, Padding.Gap(_)) => AdditionalAxisPlacement.End(error)
-    case (Padding.Fill, Padding.Fill) => AdditionalAxisPlacement.Center(error)
+    case (Padding.Gap(_), _) => OneElementPlacementStrategy.Begin
+    case (Padding.Fill, Padding.Gap(_)) => OneElementPlacementStrategy.End(error)
+    case (Padding.Fill, Padding.Fill) => OneElementPlacementStrategy.Center(error)
 end paddingLayoutHorizontalStrategy
 
 def paddingWidget[

@@ -13,10 +13,10 @@ import cats.kernel.Monoid
 import me.katze.gui4s.example.app.{SkijaPlacedWidget, SkijaWidget}
 import me.katze.gui4s.geometry.{Axis, Point3d}
 import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement, rowColumnLayoutPlacement}
+import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy, rowColumnLayoutPlacement}
 import me.katze.gui4s.layout.{*, given}
 import me.katze.gui4s.skija.drawAt
-import me.katze.gui4s.widget.library.{ContainerWidget, Widget, container, *}
+import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.handle.Layout
 
 import scala.language.experimental.namedTypeArguments

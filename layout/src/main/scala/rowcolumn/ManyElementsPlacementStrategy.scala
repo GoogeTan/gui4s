@@ -7,15 +7,15 @@ import cats.syntax.all.*
 import me.katze.gui4s.layout.bound.*
 import me.katze.gui4s.layout.linear.* 
 
-type MainAxisPlacement[Place[_], Container[_], MeasurementUnit] = 
+type ManyElementsPlacementStrategy[Place[_], Container[_], MeasurementUnit] =
     (Container[MeasurementUnit], AxisBounds[MeasurementUnit]) => Place[(coordinateOfEnd : MeasurementUnit, children : Container[MeasurementUnit])]
 
-object MainAxisPlacement:
+object ManyElementsPlacementStrategy:
     def Begin[
         Place[_] : Applicative, 
         Container[_] : Traverse,
         MeasurementUnit : Numeric
-    ](gap : MeasurementUnit) : MainAxisPlacement[Place, Container, MeasurementUnit] =
+    ](gap : MeasurementUnit) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, _) =>
             val placedChildren = placeBeginManyWithGap(children, gap)
             val size = placedChildren.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(Numeric[MeasurementUnit].zero)
@@ -32,7 +32,7 @@ object MainAxisPlacement:
         errorWhenInfiniteSpace : Error
     )(
         using MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
+    ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
             bounds
                 .maximumLimit
@@ -50,7 +50,7 @@ object MainAxisPlacement:
         errorWhenInfiniteSpace : Error
     )(
         using MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
+    ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
             bounds
                 .maximumLimit
@@ -67,7 +67,7 @@ object MainAxisPlacement:
         errorWhenInfiniteSpace : Error
     )(
         using MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
+    ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
         bounds
             .maximumLimit
@@ -84,11 +84,11 @@ object MainAxisPlacement:
         errorWhenInfiniteSpace : Error
     )(
         using MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
+    ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
         bounds
             .maximumLimit
             .map(maxSpace => (maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)))
             .getOrRaiseError(errorWhenInfiniteSpace)
     end SpaceBetween
-end MainAxisPlacement
+end ManyElementsPlacementStrategy

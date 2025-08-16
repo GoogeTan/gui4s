@@ -6,7 +6,7 @@ import cats.syntax.all.*
 import me.katze.gui4s.geometry.{Axis, Point3d}
 import me.katze.gui4s.layout.{Placed, Sized}
 import me.katze.gui4s.layout.bound.{GetBounds, SetBounds}
-import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement, rowColumnLayoutPlacement}
+import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy, rowColumnLayoutPlacement}
 
 import scala.annotation.experimental
 
@@ -19,10 +19,10 @@ trait LinearLayout[
   Axis,
 ]:
   def apply(
-              children               : Container[Widget],
-              mainAxis               : Axis,
-              mainAxisStrategy       : MainAxisPlacement[Place, Container, MeasurementUnit],
-              additionalAxisStrategy : AdditionalAxisPlacement[Place, MeasurementUnit],
+             children               : Container[Widget],
+             mainAxis               : Axis,
+             mainAxisStrategy       : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
+             additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit],
             ) : Widget
 end LinearLayout
 

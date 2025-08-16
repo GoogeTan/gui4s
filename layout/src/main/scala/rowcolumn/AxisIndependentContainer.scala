@@ -74,6 +74,7 @@ def measureItemsDirty[Measure[_] : Monad, Container[_] : Traverse, Item](updateB
   )
 end measureItemsDirty
 
+// TODO отрефакторить это. И сделать норм имена
 def rowColumnPlace[
   Place[_] : Applicative,
   Container[_] : {Traverse, Applicative as A},
@@ -82,19 +83,21 @@ def rowColumnPlace[
 ](
   elements           : Container[Sized[MeasurementUnit, T]],
   bounds             : AxisDependentBounds[MeasurementUnit],
-  mainAxisPlace      : MainAxisPlacement[Place, Container, MeasurementUnit],
-  additionalAxisPlace: AdditionalAxisPlacement[Place, MeasurementUnit],
-  zLevel : MeasurementUnit,
+  mainAxisPlace      : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
+  additionalAxisPlace: OneElementPlacementStrategy[Place, MeasurementUnit],
+  zAxisPlace : OneElementPlacementStrategy[Place, MeasurementUnit],
   zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
 ): Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, T]]]] =
-  Applicative[Place].map2(
+  Applicative[Place].map3(
     mainAxisPlace(A.map(elements)(_.lengthAlong(bounds.mainAxis)), bounds.boundsAlongMainAxis),
-    elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(bounds.mainAxis), bounds.boundsalongCrossAxis))
+    elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(bounds.mainAxis), bounds.boundsalongCrossAxis)),
+    elements.traverse(element => zAxisPlace(element.lengthAlongAnother(bounds.mainAxis), bounds.boundsalongCrossAxis)),
   ) {
-    case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), additionalAxisElementsPlaced) =>
+    case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), additionalAxisElementsPlaced, zAxisPlaced) =>
       val additionalAxisElementsCoordinates = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheBeginning)
+      val zAxisElementsCoordinates = A.map(zAxisPlaced)(_.coordinateOfTheBeginning)
       val additionalAxisCoordinateOfEnd = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero)
-      val coordinatesCombined = A.map(combineCoordinates(bounds.mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zip[MeasurementUnit, MeasurementUnit]))(new Point3d(_, zLevel))
+      val coordinatesCombined = combineCoordinates(bounds.mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zAxisElementsCoordinates, zip)
       Sized(
         A.map(zip(elements, coordinatesCombined))((element, coordinates) => new Placed(element, coordinates)),
         new Rect(
@@ -110,15 +113,16 @@ def combineCoordinates[Container[_] : Applicative as A, MeasurementUnit](
                                                                           axis : Axis,
                                                                           mainAxis : Container[MeasurementUnit],
                                                                           additionalAxis : Container[MeasurementUnit],
-                                                                          zip : (Container[MeasurementUnit], Container[MeasurementUnit]) => Container[(MeasurementUnit, MeasurementUnit)]
-                                                                        ) : Container[Point2d[MeasurementUnit]] =
+                                                                          zAxis : Container[MeasurementUnit],
+                                                                          zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+                                                                        ) : Container[Point3d[MeasurementUnit]] =
   if axis == Axis.Vertical then
     A.map(
-        zip(additionalAxis, mainAxis)
-    )((x, y) => Point2d(x, y))
+        zip(zip(additionalAxis, mainAxis), zAxis)
+    )((xy, z) => Point3d(xy._1, xy._2, z))
   else
     A.map(
-      zip(mainAxis, additionalAxis)
-    )((x, y) => Point2d(x, y))
+      zip(zip(mainAxis, additionalAxis), zAxis)
+    )((xy, z) => Point3d(xy._1, xy._2, z))
   end if
 end combineCoordinates

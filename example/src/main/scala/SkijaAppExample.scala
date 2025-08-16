@@ -24,7 +24,7 @@ import me.katze.gui4s.geometry.*
 import me.katze.gui4s.glfw.KeyAction.Press
 import me.katze.gui4s.glfw.{KeyAction, KeyModes, OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.Sized
-import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
+import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy}
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.library.decorator.*
 import me.katze.gui4s.widget.library.*
@@ -354,8 +354,8 @@ object SkijaAppExample extends IOApp:
     def clickExample[Event](numbers : List[Int]): Widget[Event] =
       listLayout(
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = MainAxisPlacement.Begin(0f),
-        additionalAxisStrategy = AdditionalAxisPlacement.Center(ENErrors.withCenterStrategy),
+        mainAxisStrategy = ManyElementsPlacementStrategy.Begin(0f),
+        additionalAxisStrategy = OneElementPlacementStrategy.Center(ENErrors.withCenterStrategy),
         children = numbers.map:
           lineNumber =>
             statefulWidget[Int, Event, Unit](
@@ -374,15 +374,15 @@ object SkijaAppExample extends IOApp:
     def gridExample[Event](numbers : List[Int]) : Widget[Event] =
       listLayout[Event](
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = MainAxisPlacement.SpaceBetween[SkijaOuterPlaceT[IO, Float, String], List, Float, String](ENErrors.withSpaceBetweenStrategy),
-        additionalAxisStrategy = AdditionalAxisPlacement.Begin[SkijaOuterPlaceT[IO, Float, String], Float],
+        mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
+        additionalAxisStrategy = OneElementPlacementStrategy.Begin,
         children =
           numbers.map:
             lineIndex =>
               listLayout[Event](
                 mainAxis = Axis.Horizontal,
-                mainAxisStrategy = MainAxisPlacement.SpaceBetween[SkijaOuterPlaceT[IO, Float, String], List, Float, String](ENErrors.withSpaceBetweenStrategy),
-                additionalAxisStrategy = AdditionalAxisPlacement.Begin[SkijaOuterPlaceT[IO, Float, String], Float],
+                mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
+                additionalAxisStrategy = OneElementPlacementStrategy.Begin,
                 children =
                   numbers.map:
                     lineJindex =>

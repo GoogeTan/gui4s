@@ -6,11 +6,14 @@ import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.bound.*
 import catnip.syntax.all.* 
 
-// TODO Это буквалньо MainAxisPlacement с Container = Id. Надо подумать над этим фактом.
-type AdditionalAxisPlacement[Place[_], MeasurementUnit] = (itemLength : MeasurementUnit, bounds : AxisBounds[MeasurementUnit]) => Place[Rect1dOnPoint1d[MeasurementUnit]]
+type OneElementPlacementStrategy[Place[_], MeasurementUnit] = (itemLength : MeasurementUnit, bounds : AxisBounds[MeasurementUnit]) => Place[Rect1dOnPoint1d[MeasurementUnit]]
 
-object AdditionalAxisPlacement:
-    def Begin[Place[_] : Applicative, MeasurementUnit : Numeric] : AdditionalAxisPlacement[Place, MeasurementUnit] =
+object OneElementPlacementStrategy:
+    def Const[Place[_] : Applicative, MeasurementUnit](whereToPlace : MeasurementUnit) : OneElementPlacementStrategy[Place, MeasurementUnit] =
+        (itemLength, _) => Rect1dOnPoint1d(itemLength, whereToPlace).pure[Place]
+    end Const
+
+    def Begin[Place[_] : Applicative, MeasurementUnit : Numeric] : OneElementPlacementStrategy[Place, MeasurementUnit] =
         (itemLength, _) =>
             Rect1dOnPoint1d(
                 coordinateOfTheBeginning = placeBegin[MeasurementUnit],
@@ -26,7 +29,7 @@ object AdditionalAxisPlacement:
         errorWhenInfiniteSpace : Error
     )(
         using MonadError[Place, Error]
-    ) : AdditionalAxisPlacement[Place, MeasurementUnit] =
+    ) : OneElementPlacementStrategy[Place, MeasurementUnit] =
         (itemLength, bounds) =>
             bounds
                 .maximumLimit
@@ -47,7 +50,7 @@ object AdditionalAxisPlacement:
         errorWhenInfiniteSpace : Error
     )(
         using MonadError[Place, Error]
-    ) : AdditionalAxisPlacement[Place, MeasurementUnit] =
+    ) : OneElementPlacementStrategy[Place, MeasurementUnit] =
         (itemLength, bounds) =>
             bounds
                 .maximumLimit
@@ -60,4 +63,4 @@ object AdditionalAxisPlacement:
                 )
                 .getOrRaiseError(errorWhenInfiniteSpace)
     end End
-end AdditionalAxisPlacement
+end OneElementPlacementStrategy

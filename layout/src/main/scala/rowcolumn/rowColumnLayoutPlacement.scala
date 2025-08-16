@@ -25,8 +25,8 @@ def rowColumnLayoutPlacement[
   setBounds: SetBounds[Place, MeasurementUnit],
   mainAxis : Axis,
   children : Container[Place[Sized[MeasurementUnit, Widget]]],
-  mainAxisPlacement : MainAxisPlacement[Place, Container, MeasurementUnit], 
-  additionalAxisPlacement : AdditionalAxisPlacement[Place, MeasurementUnit],
+  mainAxisPlacement : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
+  additionalAxisPlacement : OneElementPlacementStrategy[Place, MeasurementUnit],
   zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
 ) : Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, Widget]]]] =
   Monad[Place].flatMap2(
@@ -48,7 +48,7 @@ def rowColumnLayoutPlacement[
       bounds = AxisDependentBounds.fromBounds(bounds, mainAxis),
       mainAxisPlace = mainAxisPlacement,
       additionalAxisPlace = additionalAxisPlacement,
-      zLevel = Numeric[MeasurementUnit].zero,
+      zAxisPlace = OneElementPlacementStrategy.Const(Numeric[MeasurementUnit].zero),
       zip = zip
     )
   )
