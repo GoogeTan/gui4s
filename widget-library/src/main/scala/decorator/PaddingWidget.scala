@@ -4,7 +4,7 @@ import catnip.syntax.additional.*
 import catnip.syntax.all.given
 import catnip.syntax.monad.MonadErrorT
 import cats.syntax.all.*
-import cats.{Comonad, Functor}
+import cats.{Comonad, Functor, Id}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.given
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement}
@@ -57,7 +57,7 @@ def paddingLayoutVerticalStrategy[
 ](
   paddings: Paddings[Padding[MeasurementUnit]],
   error : Error
-) : MainAxisPlacement[Place, MeasurementUnit] =
+) : MainAxisPlacement[Place, Id, MeasurementUnit] =
   (paddings.top, paddings.bottom) match
     case (Padding.Gap(_), _)            => MainAxisPlacement.Begin(MUF.zero)
     case (Padding.Fill, Padding.Gap(_)) => MainAxisPlacement.End(MUF.zero, error)
@@ -95,6 +95,7 @@ def paddingWidget[
   layout : LinearLayout[
     Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
     OuterPlace,
+    Id,
     MeasurementUnit,
     Axis
   ],
@@ -104,10 +105,8 @@ def paddingWidget[
   Paddings[Padding[MeasurementUnit]]
 ] =
   paddings => widget =>
-    layout(
-      List(
-        innerGaps(paddings.map(_.gapOrZero))(widget)
-      ),
+    layout(       
+      innerGaps(paddings.map(_.gapOrZero))(widget),
       Axis.Vertical,
       paddingLayoutVerticalStrategy(paddings, infinitePaddingInInfiniteContainer),
       paddingLayoutHorizontalStrategy(paddings, infinitePaddingInInfiniteContainer)

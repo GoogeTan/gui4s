@@ -8,15 +8,16 @@ import cats.syntax.all.*
 
 def containerMergesWithOldStates[
   Place[_] : Functor,
+  C[_] : Functor,
   Widget,
   RecompositionAction,
   Meta
 ](
    initial : MergesWithOldStates[Widget, RecompositionAction, Place[Widget]],
 ) : MergesWithOldStates[
-  Container[(Widget, Meta), Layout[Place, Widget, Meta]],
+  Container[C[(Widget, Meta)], Layout[Place, C, Widget, Meta]],
   RecompositionAction,
-  Place[Container[(Widget, Meta), Layout[Place, Widget, Meta]]]
+  Place[Container[C[(Widget, Meta)], Layout[Place, C, Widget, Meta]]]
 ] =
   (self, path, oldStates) =>
       self.layout(

@@ -7,7 +7,7 @@ class SpaceAroundTest extends AnyFlatSpec:
   "placeSpaceAround" should "cover all the space except begin-end gaps" in:
     val widgets = List[Float](2, 2, 2)
     val freeSpace = minimalRequiredSpace(widgets) + 6f
-    val spaceAround = spaceBetween[Float]((0f :: widgets) :+ 0f, freeSpace)
+    val spaceAround = spaceBetween[List, Float]((0f :: widgets) :+ 0f, freeSpace)
     assertResult(
       Rect1dOnPoint1d.fromStartAndEnd(spaceAround, freeSpace - spaceAround)
     )(

@@ -3,24 +3,27 @@ package handle
 
 import free.AsFree
 
-import catnip.syntax.list.orderedListProcessing
+import catnip.syntax.additional.*
+import catnip.syntax.list.{orderedListProcessing, traverseUntil}
+import cats.data.StateT
 import cats.syntax.all.*
-import cats.{Functor, Monad}
+import cats.{Applicative, Functor, Monad, Order, SemigroupK, Traverse}
 
-type Layout[Place[_], Widget, Meta] = List[Place[Widget]] => Place[List[(Widget, Meta)]]
+type Layout[Place[_], Container[_], Widget, Meta] = Container[Place[Widget]] => Place[Container[(Widget, Meta)]]
 
 def containerHandlesEvent[
   Update[_] : Monad,
   Place[_] : Functor,
+  C[_],
   Widget,
   HandlableEvent,
   Meta
 ](
-  childrenHandleEvent : HandlesEvent[List[(Widget, Meta)], HandlableEvent, Update[List[Place[Widget]]]],
-) : HandlesEvent[
-  Container[(Widget, Meta), Layout[Place, Widget, Meta]],
+    childrenHandleEvent : HandlesEvent[C[(Widget, Meta)], HandlableEvent, Update[C[Place[Widget]]]],
+) : HandlesEventF[
+  Container[C[(Widget, Meta)], Layout[Place, C, Widget, Meta]],
   HandlableEvent,
-  Update[Place[Container[(Widget, Meta), Layout[Place, Widget, Meta]]]]
+  Update * Place
 ] =
   (self, pathToParent, event) =>
     childrenHandleEvent(self.children, pathToParent, event)
@@ -31,37 +34,36 @@ def containerHandlesEvent[
 end containerHandlesEvent
 
 def childrenHandleEvent[
-  Update[_] : Monad,
+  C[_] : Traverse,
+  Update[_] : Monad as UM,
   Place[_] : Functor,
   Widget,
   HandlableEvent,
-  Meta : Ordering as MetaOrdering,
+  Meta : Order,
 ](
     widgetHandlesEvent : HandlesEvent[Widget, HandlableEvent, Update[Place[Widget]]],
     widgetAsFree : AsFree[Widget, Place[Widget]],
     isEventConsumed : Update[Boolean],
     adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
-) : HandlesEvent[List[(Widget, Meta)], HandlableEvent, Update[List[Place[Widget]]]] =
-  def updateChildrenOrdered(children : List[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
-    given Ordering[(Widget, Meta)] = MetaOrdering.contramap(_._2)
-    orderedListProcessing(children)(
+    updateListOrdered : [A : Order, B] => (list: C[A]) => (f: C[A] => Update[C[B]]) => Update[C[B]]
+) : HandlesEvent[C[(Widget, Meta)], HandlableEvent, Update[C[Place[Widget]]]] =
+  def updateChildren(children: C[(Widget, Meta)], pathToParent: Path, event: HandlableEvent): Update[C[Place[Widget]]] =
+    traverseUntil(
+      original = children,
+      main = (currentChild, currentMeta) => UM.product(
+        isEventConsumed,
+        adjustUpdateToMeta(widgetHandlesEvent(currentChild, pathToParent, event), currentMeta)
+      ),
+      afterAll = (currentChild, _) => widgetAsFree(currentChild).pure[Update]
+    )
+  end updateChildren
+
+  def updateChildrenOrdered(children : C[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[C[Place[Widget]]] =
+    given Order[(Widget, Meta)] = Order.by(_._2)
+    updateListOrdered(children)(
       orderedChildren => updateChildren(orderedChildren, pathToParent, event)
     )
   end updateChildrenOrdered
 
-  def updateChildren(children : List[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[List[Place[Widget]]] =
-    children match
-      case (currentChild, currentMeta) :: remainingChildren =>
-        for
-          widget <- adjustUpdateToMeta(widgetHandlesEvent(currentChild, pathToParent, event), currentMeta)
-          shouldNotContinue <- isEventConsumed
-          remaining <-
-            if shouldNotContinue then
-              remainingChildren.map(_._1).map(widgetAsFree).pure[Update]
-            else
-              updateChildren(remainingChildren, pathToParent, event)
-        yield widget :: remaining
-      case Nil => 
-        Nil.pure[Update]
   updateChildrenOrdered
 end childrenHandleEvent

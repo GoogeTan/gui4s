@@ -4,8 +4,8 @@ package rowcolumn
 import bound.*
 
 import cats.*
+import cats.data.NonEmptyList
 import cats.syntax.all.*
-
 import me.katze.gui4s.geometry.*
 
 import scala.language.experimental.namedTypeArguments
@@ -26,15 +26,16 @@ def sizeItems[MeasurementUnit : Numeric, T](items : List[Placed[MeasurementUnit,
 end sizeItems
 
 def measureItems[
-  Place[_] : Monad, 
+  Place[_] : Monad,
+  Container[_] : Traverse,
   MeasurementUnit : Numeric, 
   Item
 ](
-  items : List[Place[Sized[MeasurementUnit, Item]]],
+  items : Container[Place[Sized[MeasurementUnit, Item]]],
   mainAxis : Axis,
   getBounds : Place[Bounds[MeasurementUnit]],
   setBounds : Bounds[MeasurementUnit] => Place[Unit],
-) : Place[List[Sized[MeasurementUnit, Item]]] =
+) : Place[Container[Sized[MeasurementUnit, Item]]] =
     measureItemsKeepingBoundsSame(
       items,
       updateBoundsWithSizedItem[Place, MeasurementUnit, Item](f => getBounds.map(f) >>= setBounds)(_, mainAxis),
@@ -45,14 +46,15 @@ end measureItems
 
 def measureItemsKeepingBoundsSame[
   Measure[_] : Monad,
+  Container[_] : Traverse,
   MeasurementUnit,
   Item
 ](
-  items : List[Measure[Item]],
+  items : Container[Measure[Item]],
   updateBounds : Item => Measure[Unit],
   getBounds : Measure[Bounds[MeasurementUnit]],
   setBounds : Bounds[MeasurementUnit] => Measure[Unit],
-) : Measure[List[Item]] =
+) : Measure[Container[Item]] =
   for
     initial <- getBounds
     measuredItems <- measureItemsDirty(
@@ -63,38 +65,38 @@ def measureItemsKeepingBoundsSame[
   yield measuredItems
 end measureItemsKeepingBoundsSame
 
-def measureItemsDirty[Measure[_] : Monad, Item](updateBounds : Item => Measure[Unit], items : List[Measure[Item]]) : Measure[List[Item]] =
-  items.foldM(Nil):
-    (processedElements, current) =>
-        for
-          currentItem <- current
-          _ <- updateBounds(currentItem)
-        yield processedElements :+ currentItem
+def measureItemsDirty[Measure[_] : Monad, Container[_] : Traverse, Item](updateBounds : Item => Measure[Unit], items : Container[Measure[Item]]) : Measure[Container[Item]] =
+  items.traverse(current =>
+    for
+      currentItem <- current
+      _ <- updateBounds(currentItem)
+    yield  currentItem
+  )
 end measureItemsDirty
 
 def rowColumnPlace[
   Place[_] : Applicative,
+  Container[_] : {Traverse, Applicative as A},
   MeasurementUnit : Numeric as measurementUnitsAreNumbers,
   T
 ](
-  elements           : List[Sized[MeasurementUnit, T]],
+  elements           : Container[Sized[MeasurementUnit, T]],
   bounds             : AxisDependentBounds[MeasurementUnit],
-  mainAxisPlace      : MainAxisPlacement[Place, MeasurementUnit],
+  mainAxisPlace      : MainAxisPlacement[Place, Container, MeasurementUnit],
   additionalAxisPlace: AdditionalAxisPlacement[Place, MeasurementUnit],
   zLevel : MeasurementUnit,
-): Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, T]]]] =
+  zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+): Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, T]]]] =
   Applicative[Place].map2(
-    mainAxisPlace(elements.map(_.lengthAlong(bounds.mainAxis)), bounds.boundsAlongMainAxis),
+    mainAxisPlace(A.map(elements)(_.lengthAlong(bounds.mainAxis)), bounds.boundsAlongMainAxis),
     elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(bounds.mainAxis), bounds.boundsalongCrossAxis))
   ) {
     case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), additionalAxisElementsPlaced) =>
-      val additionalAxisElementsCoordinates = additionalAxisElementsPlaced.map(_.coordinateOfTheBeginning)
-      val additionalAxisCoordinateOfEnd = additionalAxisElementsPlaced.map(_.coordinateOfTheEnd).maxOption.getOrElse(measurementUnitsAreNumbers.zero)
-      val coordinatesCombined = combineCoordinates(bounds.mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zLevel)
+      val additionalAxisElementsCoordinates = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheBeginning)
+      val additionalAxisCoordinateOfEnd = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero)
+      val coordinatesCombined = A.map(combineCoordinates(bounds.mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zip[MeasurementUnit, MeasurementUnit]))(new Point3d(_, zLevel))
       Sized(
-        elements
-          .zip(coordinatesCombined)
-          .map(new Placed(_, _)),
+        A.map(zip(elements, coordinatesCombined))((element, coordinates) => new Placed(element, coordinates)),
         new Rect(
           bounds.mainAxis,
           mainAxisCoordinateOfEnd,
@@ -104,10 +106,19 @@ def rowColumnPlace[
   }
 end rowColumnPlace
 
-def combineCoordinates[MeasurementUnit](axis : Axis, mainAxis : List[MeasurementUnit], additionalAxis : List[MeasurementUnit], zLevel : MeasurementUnit) : List[Point3d[MeasurementUnit]] =
+def combineCoordinates[Container[_] : Applicative as A, MeasurementUnit](
+                                                                          axis : Axis,
+                                                                          mainAxis : Container[MeasurementUnit],
+                                                                          additionalAxis : Container[MeasurementUnit],
+                                                                          zip : (Container[MeasurementUnit], Container[MeasurementUnit]) => Container[(MeasurementUnit, MeasurementUnit)]
+                                                                        ) : Container[Point2d[MeasurementUnit]] =
   if axis == Axis.Vertical then
-    additionalAxis.zip(mainAxis).map((x, y) => Point3d(x, y, zLevel))
+    A.map(
+        zip(additionalAxis, mainAxis)
+    )((x, y) => Point2d(x, y))
   else
-    mainAxis.zip(additionalAxis).map((x, y) => Point3d(x, y, zLevel))
+    A.map(
+      zip(mainAxis, additionalAxis)
+    )((x, y) => Point2d(x, y))
   end if
 end combineCoordinates

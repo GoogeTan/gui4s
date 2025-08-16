@@ -6,6 +6,7 @@ import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.bound.*
 import catnip.syntax.all.* 
 
+// TODO Это буквалньо MainAxisPlacement с Container = Id. Надо подумать над этим фактом.
 type AdditionalAxisPlacement[Place[_], MeasurementUnit] = (itemLength : MeasurementUnit, bounds : AxisBounds[MeasurementUnit]) => Place[Rect1dOnPoint1d[MeasurementUnit]]
 
 object AdditionalAxisPlacement:

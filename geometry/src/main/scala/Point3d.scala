@@ -1,8 +1,13 @@
 package me.katze.gui4s.geometry
 
+@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
 final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementUnit, z : MeasurementUnit):
   def this(point2d : Point2d[MeasurementUnit])(using N : Numeric[MeasurementUnit]) =
     this(point2d.x, point2d.y, N.zero)
+  end this
+
+  def this(point2d: Point2d[MeasurementUnit], z : MeasurementUnit) =
+    this(point2d.x, point2d.y, z)
   end this
 
   def projectToXY[T >: MeasurementUnit] : Point2d[T] =

@@ -41,16 +41,17 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
     def rowColumnPlace[Widget](
         mainAxis : Axis,
         children : List[Place[Sized[MeasurementUnit, Widget]]],
-        mainAxisStrategy : MainAxisPlacement[Place, MeasurementUnit],
+        mainAxisStrategy : MainAxisPlacement[Place, List, MeasurementUnit],
         additionlAxisStrategy : AdditionalAxisPlacement[Place, MeasurementUnit]
     ): Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, Widget]]]] =
-        rowColumnLayoutPlacement[Place, Widget, MeasurementUnit](
+        rowColumnLayoutPlacement[Place, List, Widget, MeasurementUnit](
             Place.getBounds,
             Place.setBounds,
             mainAxis,
             children,
             mainAxisStrategy,
-            additionlAxisStrategy
+            additionlAxisStrategy,
+            [A, B] => (a, b) => a.zip(b)
         )
 
     "rowColumnPlace" should "be zero size without any children" in:
@@ -117,6 +118,4 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
                 )
             )
         )
-
-
 end RowColumnPlacementTest

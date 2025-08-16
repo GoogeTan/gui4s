@@ -17,19 +17,22 @@ import scala.math.Fractional.Implicits.*
 @experimental
 def rowColumnLayoutPlacement[
   Place[_] : Monad,
+  Container[_] : {Applicative, Traverse},
   Widget,
   MeasurementUnit : Numeric,
 ](
   getBounds: GetBounds[Place, MeasurementUnit],
   setBounds: SetBounds[Place, MeasurementUnit],
   mainAxis : Axis,
-  children : List[Place[Sized[MeasurementUnit, Widget]]],
-  mainAxisPlacement : MainAxisPlacement[Place, MeasurementUnit], 
-  additionalAxisPlacement : AdditionalAxisPlacement[Place, MeasurementUnit] 
-) : Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, Widget]]]] =
+  children : Container[Place[Sized[MeasurementUnit, Widget]]],
+  mainAxisPlacement : MainAxisPlacement[Place, Container, MeasurementUnit], 
+  additionalAxisPlacement : AdditionalAxisPlacement[Place, MeasurementUnit],
+  zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+) : Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, Widget]]]] =
   Monad[Place].flatMap2(
     measureItems[
       Place,
+      Container,
       MeasurementUnit,
       Widget,
     ](
@@ -40,12 +43,13 @@ def rowColumnLayoutPlacement[
     ),
     getBounds
   )((sizedItems, bounds) =>
-    rowColumnPlace[Place, MeasurementUnit, Widget](
+    rowColumnPlace[Place, Container, MeasurementUnit, Widget](
       elements = sizedItems,
       bounds = AxisDependentBounds.fromBounds(bounds, mainAxis),
       mainAxisPlace = mainAxisPlacement,
       additionalAxisPlace = additionalAxisPlacement,
-      zLevel = Numeric[MeasurementUnit].zero
+      zLevel = Numeric[MeasurementUnit].zero,
+      zip = zip
     )
   )
 end rowColumnLayoutPlacement

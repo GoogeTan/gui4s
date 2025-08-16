@@ -3,119 +3,75 @@ package api.widget
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
-import cats.Monad
+import cats.{Applicative, Monad, Order, SemigroupK, Traverse}
 import cats.syntax.all.*
 import me.katze.gui4s.example.{*, given}
-import api.effects.{SkijaOuterPlace, SkijaOuterPlaceT, given}
+import api.effects.{*, given}
 import api.given
 
 import cats.kernel.Monoid
+import me.katze.gui4s.example.app.{SkijaPlacedWidget, SkijaWidget}
 import me.katze.gui4s.geometry.{Axis, Point3d}
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.layout.rowcolumn.{AdditionalAxisPlacement, MainAxisPlacement, rowColumnLayoutPlacement}
 import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.widget.library.{Widget, linearLayout}
+import me.katze.gui4s.skija.drawAt
+import me.katze.gui4s.widget.library.{ContainerWidget, Widget, container, *}
+import me.katze.gui4s.widget.handle.Layout
 
 import scala.language.experimental.namedTypeArguments
 
 def skijaLayout[
   F[+_] : {Monad, ForeighFunctionInterface as ffi},
-  Update[_] : Monad,
-  Draw : Monoid,
+  PlacedWidget,
   MeasurementUnit : Fractional,
-  RecompositionReaction : Monoid,
-  HandleableEvent,
   PlaceError,
+  Container[_] : {Applicative, Traverse}
 ](
-  children : List[
-    SkijaOuterPlace[
-      F,
-      MeasurementUnit,
-      PlaceError,
-      Sized[MeasurementUnit,
-        Widget[
-          Update,
-          [Value] =>> SkijaOuterPlace[F, MeasurementUnit, PlaceError, Sized[MeasurementUnit, Value]],
-          Draw,
-          RecompositionReaction,
-          HandleableEvent
-        ]
-      ]
-    ]
-  ],
-  mainAxis : Axis,
-  mainAxisPlacement : MainAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
-  additionalAxisPlacement : AdditionalAxisPlacement[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], MeasurementUnit],
-  drawAt : (Draw, Point3d[MeasurementUnit]) => Draw,
-  updateAt : [T] => (Update[T], Point3d[MeasurementUnit]) => Update[T],
-  isEventConsumed : Update[Boolean]
-) =
-  placementAwareLayout[
-    Update,
+  container : ContainerWidget[PlacedWidget, Container, SkijaPlaceT[F, MeasurementUnit, PlaceError], Point3d[MeasurementUnit]],
+  zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+) : LinearLayout[
+  SkijaPlace[F, MeasurementUnit, PlaceError, PlacedWidget],
+  SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
+  Container,
+  MeasurementUnit,
+  Axis
+] =
+  linearLayout[
+    PlacedWidget,
     SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
-    Draw,
+    Container,
     MeasurementUnit,
-    RecompositionReaction,
-    HandleableEvent
   ](
-    children,
-    mainAxis,
-    mainAxisPlacement,
-    additionalAxisPlacement,
-    SkijaOuterPlace.getBounds,
-    SkijaOuterPlace.setBounds,
-    drawAt,
-    updateAt,
-    isEventConsumed
+    container = container,
+    getBounds = SkijaOuterPlace.getBounds,
+    setBounds = SkijaOuterPlace.setBounds,
+    zip = zip
   )
 end skijaLayout
 
-def placementAwareLayout[
-  Update[_] : Monad,
-  OuterPlace[_] : Monad,
-  Draw : Monoid,
-  MeasurementUnit : Numeric,
-  RecompositionReaction : Monoid,
-  HandleableEvent
+def skijaContainer[
+  F[_] : Monad,
+  Clip,
+  UpdateError,
+  PlaceError,
+  Event,
+  DownEvent,
+  Container[_] : {Traverse}
 ](
-  children : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]]],
-  mainAxis : Axis,
-  mainAxisPlacement : MainAxisPlacement[OuterPlace, MeasurementUnit],
-  additionalAxisPlacement : AdditionalAxisPlacement[OuterPlace, MeasurementUnit],
-  getBounds : OuterPlace[Bounds[MeasurementUnit]],
-  setBounds : Bounds[MeasurementUnit] => OuterPlace[Unit],
-  drawAt : (Draw, Point3d[MeasurementUnit]) => Draw,
-  updateAt : [T] => (Update[T], Point3d[MeasurementUnit]) => Update[T],
-  isEventConsumed : Update[Boolean]
-) : OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * Sized[MeasurementUnit, *], Draw, RecompositionReaction, HandleableEvent]]] =
-  given orderByZ : Ordering[Point3d[MeasurementUnit]] = Ordering.by(_.z)
-  linearLayout[
-    Update,
-    OuterPlace * Sized[MeasurementUnit, *],
-    Draw,
-    RecompositionReaction,
-    HandleableEvent,
-    Point3d[MeasurementUnit]
-  ](
-    children = children,
-    layout = children => rowColumnLayoutPlacement(
-      getBounds,
-      setBounds,
-      mainAxis,
-      children,
-      mainAxisPlacement,
-      additionalAxisPlacement
-    ).map(_.mapValue(placedChildrenAsChildrenWithMetadata)),
-    adjustDrawToMeta = drawAt,
-    adjustUpdateToMeta = updateAt,
-    isEventConsumed = isEventConsumed
+  ffi : ForeighFunctionInterface[F],
+  updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => SkijaUpdate[F, Float, Clip, UpdateError, Event, Container[B]]) => SkijaUpdate[F, Float, Clip, UpdateError, Event, Container[B]]
+) : ContainerWidget[
+  SkijaPlacedWidget[F, Float, Clip, UpdateError, PlaceError, Event, DownEvent],
+  Container,
+  SkijaPlaceT[F, Float, PlaceError],
+  Point3d[Float]
+] =
+  given Order[Point3d[Float]] = Order.by(_.z)
+  container(
+    (draw, meta) => drawAt(ffi, draw, meta.x, meta.y),
+    [T] => (update, point) => SkijaUpdate.withCoordinates(update)(_ + point),
+    SkijaUpdate.isEventHandled[F, Float, Clip, UpdateError, Event],
+    updateListOrdered
   )
-end placementAwareLayout
-
-def placedChildrenAsChildrenWithMetadata[MeasurementUnit, T](lst: List[Placed[MeasurementUnit, T]]): List[(T, Point3d[MeasurementUnit])] =
-  lst.map(placedElementAsLayoutMetadata)
-end placedChildrenAsChildrenWithMetadata
-
-def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[MeasurementUnit, T]) : (T, Point3d[MeasurementUnit]) =
-  (placed.value, placed.coordinate)
-end placedElementAsLayoutMetadata
+end skijaContainer

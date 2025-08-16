@@ -1,57 +1,34 @@
 package me.katze.gui4s.layout
 package linear
 
+import cats.{Foldable, Traverse}
 import cats.data.NonEmptyList
+import cats.syntax.all.*
 
 import scala.annotation.tailrec
 import scala.math.Numeric.Implicits.*
 
-def placeBegin[T : Numeric] : T = Numeric[T].zero
+def placeBegin[MeasurementUnit : Numeric] : MeasurementUnit = Numeric[MeasurementUnit].zero
 
-def placeBeginMany[T : Numeric](sizes : List[T]) : List[Rect1dOnPoint1d[T]] =
-  placeBeginTailrecHelper(sizes, Numeric[T].zero, Nil)
+def placeBeginMany[Container[_] : Traverse, MeasurementUnit : Numeric](sizes : Container[MeasurementUnit]) : Container[Rect1dOnPoint1d[MeasurementUnit]] =
+  placeBeginTailrecHelper(sizes, Numeric[MeasurementUnit].zero)
 end placeBeginMany
 
-def placeBeginManyWithGap[MeasurementUnit : Numeric](sizes : List[MeasurementUnit], gap : MeasurementUnit) : List[Rect1dOnPoint1d[MeasurementUnit]] =
+def placeBeginManyWithGap[Container[_] : Traverse, MeasurementUnit : Numeric](sizes : Container[MeasurementUnit], gap : MeasurementUnit) : Container[Rect1dOnPoint1d[MeasurementUnit]] =
   placeBeginMany(sizes.map(_ + gap)).map(_.addLength(-gap))
 end placeBeginManyWithGap
 
-@tailrec
 def placeBeginTailrecHelper[
+  Container[_] : Traverse,
   MeasurementUnit: Numeric
 ](
-  itemLengths: NonEmptyList[MeasurementUnit],
-  placeStartingFrom: MeasurementUnit,
-  alreadyPlacedItemsInReverseOrder: List[Rect1dOnPoint1d[MeasurementUnit]]
-): NonEmptyList[Rect1dOnPoint1d[MeasurementUnit]] =
-  itemLengths match
-    case NonEmptyList(size, nextItemToPlace :: itemsLeftToPlace) =>
-      placeBeginTailrecHelper(
-        itemLengths = NonEmptyList(nextItemToPlace, itemsLeftToPlace),
-        placeStartingFrom = placeStartingFrom + size,
-        alreadyPlacedItemsInReverseOrder = Rect1dOnPoint1d(size, placeStartingFrom) :: alreadyPlacedItemsInReverseOrder
-      )
-    case NonEmptyList(size, Nil) =>
-      NonEmptyList(Rect1dOnPoint1d(size, placeStartingFrom), alreadyPlacedItemsInReverseOrder).reverse
-  end match
-end placeBeginTailrecHelper
-
-@tailrec
-def placeBeginTailrecHelper[
-  MeasurementUnit: Numeric
-](
-  itemLengths: List[MeasurementUnit],
-  placeStartingFrom: MeasurementUnit,
-  alreadyPlacedItemsInReverseOrder: List[Rect1dOnPoint1d[MeasurementUnit]]
-): List[Rect1dOnPoint1d[MeasurementUnit]] =
-  itemLengths match
-    case size :: itemsLeftToPlace =>
-      placeBeginTailrecHelper(
-        itemLengths = itemsLeftToPlace,
-        placeStartingFrom = placeStartingFrom + size,
-        alreadyPlacedItemsInReverseOrder = Rect1dOnPoint1d(size, placeStartingFrom) :: alreadyPlacedItemsInReverseOrder
-      )
-    case Nil =>
-      alreadyPlacedItemsInReverseOrder.reverse
-  end match
+  itemLengths: Container[MeasurementUnit],
+  placeStartingFrom: MeasurementUnit
+): Container[Rect1dOnPoint1d[MeasurementUnit]] =
+  itemLengths.mapAccumulate(placeStartingFrom)((currentStart, currentItem) =>
+    (
+      currentStart + currentItem,
+      Rect1dOnPoint1d(currentItem, currentStart)
+    )
+  )._2
 end placeBeginTailrecHelper

@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 
 import api.*
 import api.effects.{*, given}
-import api.widget.{skijaLayout, skijaStateful, skijaText}
+import api.widget.{skijaContainer, skijaLayout, skijaStateful, skijaText}
 import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwApp}
 import place.*
 import skija.SkijaBackend
@@ -160,7 +160,7 @@ object SkijaAppExample extends IOApp:
           String,
         ](
           gapPaddings => widget => widget.gapPadding(gapPaddings),
-          layout[Event],
+          layout[Id, Event]([A, B] => v => f => f(v), [A, B] => (a, b) => (a, b)),
           "Infinite padding accured in a infinite size container"
         )(padding)(value)
       end padding
@@ -337,26 +337,22 @@ object SkijaAppExample extends IOApp:
       ).map(a => a)
     end leaf
 
-    def layout[Event] : LinearLayout[Widget[Event], SkijaOuterPlaceT[IO, Float, String], Float, Axis] =
-      (
-        children : List[Widget[Event]],
-        axis : Axis,
-        mainAxisStrategy : MainAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
-        additionalAxisStrategy : AdditionalAxisPlacement[SkijaOuterPlaceT[IO, Float, String], Float],
-      ) =>
-      skijaLayout(
-        children,
-        axis,
-        mainAxisStrategy,
-        additionalAxisStrategy,
-        (draw, point) => drawAt[IO](summon, draw, point.x, point.y),
-        [T] => (update, point) => SkijaUpdate.withCoordinates(update)(_ => point),
-        SkijaUpdate.isEventHandled[IO, Float, SkijaClip, String, Event]
-      )
+    def layout[Container[_] : {Applicative, Traverse}, Event](
+                                                                updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => SkijaUpdate[IO, Float, SkijaClip, String, Event, Container[B]]) => SkijaUpdate[IO, Float, SkijaClip, String, Event, Container[B]],
+                                                                zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+                                                              ) : LinearLayout[Widget[Event], SkijaOuterPlaceT[IO, Float, String], Container, Float, Axis] =
+        skijaLayout(skijaContainer(ffi, updateListOrdered), zip)
     end layout
 
+    def listLayout[Event]  : LinearLayout[Widget[Event], SkijaOuterPlaceT[IO, Float, String], List, Float, Axis] =
+      layout[List, Event](
+        [A : Order, B] => v => f =>
+          orderedListProcessing(v)(f),
+        [A, B] => (a, b) => a.zip(b)
+      )
+
     def clickExample[Event](numbers : List[Int]): Widget[Event] =
-      layout(
+      listLayout(
         mainAxis = Axis.Vertical,
         mainAxisStrategy = MainAxisPlacement.Begin(0f),
         additionalAxisStrategy = AdditionalAxisPlacement.Center(ENErrors.withCenterStrategy),
@@ -376,17 +372,17 @@ object SkijaAppExample extends IOApp:
     end clickExample
 
     def gridExample[Event](numbers : List[Int]) : Widget[Event] =
-      layout(
+      listLayout[Event](
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
-        additionalAxisStrategy = AdditionalAxisPlacement.Begin,
+        mainAxisStrategy = MainAxisPlacement.SpaceBetween[SkijaOuterPlaceT[IO, Float, String], List, Float, String](ENErrors.withSpaceBetweenStrategy),
+        additionalAxisStrategy = AdditionalAxisPlacement.Begin[SkijaOuterPlaceT[IO, Float, String], Float],
         children =
           numbers.map:
             lineIndex =>
-              layout(
+              listLayout[Event](
                 mainAxis = Axis.Horizontal,
-                mainAxisStrategy = MainAxisPlacement.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
-                additionalAxisStrategy = AdditionalAxisPlacement.Begin,
+                mainAxisStrategy = MainAxisPlacement.SpaceBetween[SkijaOuterPlaceT[IO, Float, String], List, Float, String](ENErrors.withSpaceBetweenStrategy),
+                additionalAxisStrategy = AdditionalAxisPlacement.Begin[SkijaOuterPlaceT[IO, Float, String], Float],
                 children =
                   numbers.map:
                     lineJindex =>
@@ -410,7 +406,7 @@ object SkijaAppExample extends IOApp:
       )
     end imageExample
 
-    clickExample((0 until 10).toList)
+    gridExample((0 until 10).toList)
   end main
 end SkijaAppExample
 

@@ -7,27 +7,32 @@ import cats.syntax.all.*
 import me.katze.gui4s.layout.bound.*
 import me.katze.gui4s.layout.linear.* 
 
-type MainAxisPlacement[Place[_], MeasurementUnit] = 
-    (List[MeasurementUnit], AxisBounds[MeasurementUnit]) => Place[(coordinateOfEnd : MeasurementUnit, children : List[MeasurementUnit])]
+type MainAxisPlacement[Place[_], Container[_], MeasurementUnit] = 
+    (Container[MeasurementUnit], AxisBounds[MeasurementUnit]) => Place[(coordinateOfEnd : MeasurementUnit, children : Container[MeasurementUnit])]
 
 object MainAxisPlacement:
-    def Begin[Place[_] : Applicative, MeasurementUnit : Numeric](gap : MeasurementUnit) : MainAxisPlacement[Place, MeasurementUnit] =
+    def Begin[
+        Place[_] : Applicative, 
+        Container[_] : Traverse,
+        MeasurementUnit : Numeric
+    ](gap : MeasurementUnit) : MainAxisPlacement[Place, Container, MeasurementUnit] =
         (children, _) =>
             val placedChildren = placeBeginManyWithGap(children, gap)
-            val size = placedChildren.map(_.coordinateOfTheEnd).maxOption.getOrElse(Numeric[MeasurementUnit].zero)
+            val size = placedChildren.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(Numeric[MeasurementUnit].zero)
             (size, placedChildren.map(_.coordinateOfTheBeginning)).pure[Place]
     end Begin
 
     def Center[
         Place[_] : Applicative,
+        Container[_] : Traverse,
         MeasurementUnit : Fractional as MUF,
         Error
     ](
         gap : MeasurementUnit,
         errorWhenInfiniteSpace : Error
     )(
-        using ME:  MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, MeasurementUnit] =
+        using MonadError[Place, Error]
+    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
         (children, bounds) =>
             bounds
                 .maximumLimit
@@ -37,47 +42,49 @@ object MainAxisPlacement:
 
     def End[
         Place[_] : Applicative,
+        Container[_] : Traverse,
         MeasurementUnit : Numeric,
         Error
     ](
         gap : MeasurementUnit,
         errorWhenInfiniteSpace : Error
     )(
-        using ME:  MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, MeasurementUnit] =
+        using MonadError[Place, Error]
+    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
         (children, bounds) =>
-        bounds
-            .maximumLimit
-            .map(maxSpace => (maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)))
-            .getOrRaiseError(errorWhenInfiniteSpace)
+            bounds
+                .maximumLimit
+                .map(maxSpace => (maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)))
+                .getOrRaiseError(errorWhenInfiniteSpace)
     end End
-
 
     def SpaceAround[
         Place[_] : Applicative,
+        Container[_] : {Traverse, Applicative as A, SemigroupK},
         MeasurementUnit : Fractional,
         Error
     ](
         errorWhenInfiniteSpace : Error
     )(
-        using ME:  MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, MeasurementUnit] =
+        using MonadError[Place, Error]
+    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
         (children, bounds) =>
         bounds
             .maximumLimit
-            .map(maxSpace => (maxSpace, placeSpaceAround(children, maxSpace).map(_.coordinateOfTheBeginning)))
+            .map(maxSpace => (maxSpace, A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning)))
             .getOrRaiseError(errorWhenInfiniteSpace)
     end SpaceAround
 
     def SpaceBetween[
         Place[_] : Applicative,
+        Container[_] : Traverse,
         MeasurementUnit : Fractional,
         Error
     ](
         errorWhenInfiniteSpace : Error
     )(
-        using ME:  MonadError[Place, Error]
-    ) : MainAxisPlacement[Place, MeasurementUnit] =
+        using MonadError[Place, Error]
+    ) : MainAxisPlacement[Place, Container, MeasurementUnit] =
         (children, bounds) =>
         bounds
             .maximumLimit
