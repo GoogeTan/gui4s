@@ -81,26 +81,25 @@ def rowColumnPlace[
   T
 ](
   elements           : Container[Sized[MeasurementUnit, T]],
-  bounds             : AxisDependentBounds[MeasurementUnit],
+  mainAxis : Axis,
+  bounds : Bounds[MeasurementUnit],
   mainAxisPlace      : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
   additionalAxisPlace: OneElementPlacementStrategy[Place, MeasurementUnit],
-  zAxisPlace : OneElementPlacementStrategy[Place, MeasurementUnit],
+  zLevel : MeasurementUnit,
   zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
 ): Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, T]]]] =
-  Applicative[Place].map3(
-    mainAxisPlace(A.map(elements)(_.lengthAlong(bounds.mainAxis)), bounds.boundsAlongMainAxis),
-    elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(bounds.mainAxis), bounds.boundsalongCrossAxis)),
-    elements.traverse(element => zAxisPlace(element.lengthAlongAnother(bounds.mainAxis), bounds.boundsalongCrossAxis)),
+  Applicative[Place].map2(
+    mainAxisPlace(A.map(elements)(_.lengthAlong(mainAxis)), bounds.along(mainAxis)),
+    elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(mainAxis), bounds.along(mainAxis.another))),
   ) {
-    case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), additionalAxisElementsPlaced, zAxisPlaced) =>
+    case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), additionalAxisElementsPlaced) =>
       val additionalAxisElementsCoordinates = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheBeginning)
-      val zAxisElementsCoordinates = A.map(zAxisPlaced)(_.coordinateOfTheBeginning)
       val additionalAxisCoordinateOfEnd = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero)
-      val coordinatesCombined = combineCoordinates(bounds.mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zAxisElementsCoordinates, zip)
+      val coordinatesCombined = combineCoordinates(mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, A.map(elements)(_ => zLevel), zip)
       Sized(
         A.map(zip(elements, coordinatesCombined))((element, coordinates) => new Placed(element, coordinates)),
         new Rect(
-          bounds.mainAxis,
+          mainAxis,
           mainAxisCoordinateOfEnd,
           additionalAxisCoordinateOfEnd
         )

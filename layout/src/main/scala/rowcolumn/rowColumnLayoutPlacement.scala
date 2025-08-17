@@ -1,7 +1,7 @@
 package me.katze.gui4s.layout
 package rowcolumn
 
-import bound.{AxisDependentBounds, GetBounds, SetBounds}
+import bound.{GetBounds, SetBounds}
 import rowcolumn.measureItems
 
 import cats.*
@@ -38,10 +38,11 @@ def rowColumnLayoutPlacement[
   )((sizedItems, bounds) =>
     rowColumnPlace[Place, Container, MeasurementUnit, Widget](
       elements = sizedItems,
-      bounds = AxisDependentBounds.fromBounds(bounds, mainAxis),
+      mainAxis = mainAxis,
+      bounds = bounds,
       mainAxisPlace = mainAxisPlacement,
       additionalAxisPlace = additionalAxisPlacement,
-      zAxisPlace = OneElementPlacementStrategy.Const(Numeric[MeasurementUnit].zero),
+      zLevel = Numeric[MeasurementUnit].zero,
       zip = zip
     )
   )
