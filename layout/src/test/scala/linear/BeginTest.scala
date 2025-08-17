@@ -5,6 +5,7 @@ import org.scalatest.flatspec.*
 import org.scalatest.*
 
 import scala.collection.immutable.List
+import me.katze.gui4s.geometry.*
 
 class BeginTest extends AnyFlatSpec:
   "placeBegin" should "always return 0" in:

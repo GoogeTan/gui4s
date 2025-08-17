@@ -20,6 +20,7 @@ import me.katze.gui4s.widget.library.*
 
 import scala.concurrent.ExecutionContext
 
+// TODO обобщить это
 def skijaGlfwApp[
   F[+_] : {Async as FAsync, Console, ForeighFunctionInterface as ffi},
   Clip : Monoid,

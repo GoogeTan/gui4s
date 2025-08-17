@@ -1,0 +1,20 @@
+package me.katze.gui4s.geometry
+
+final case class InfinityOr[+MeasurementUnit](val value: Option[MeasurementUnit]):
+  def this(value : MeasurementUnit) =
+    this(Some(value))
+  end this
+  
+  def isZero(using N : Numeric[? >: MeasurementUnit]) : Boolean = value.contains(N.zero)
+
+  def minus[T >: MeasurementUnit](amount : T)(using N: Numeric[T]) : InfinityOr[T] =
+    value match
+      case Some(value) =>
+        if N.compare(value, amount) == 1 then
+          InfinityOr(Option(N.zero))
+        else
+          InfinityOr(Option(N.minus(value, amount)))
+      case None => this
+    end match
+  end minus
+end InfinityOr

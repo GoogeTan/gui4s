@@ -3,12 +3,12 @@ package bound
 
 import me.katze
 import me.katze.gui4s
-import me.katze.gui4s.geometry.{Axis, Rect}
+import me.katze.gui4s.geometry.{Axis, InfinityOr, Rect}
 import me.katze.gui4s.{geometry, layout}
 
-final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUnit], vertical : AxisBounds[MeasurementUnit]):
+final case class Bounds[+MeasurementUnit](horizontal : InfinityOr[MeasurementUnit], vertical : InfinityOr[MeasurementUnit]):
   def this(width : MeasurementUnit, height : MeasurementUnit)(using Numeric[MeasurementUnit]) =
-    this(new AxisBounds(width), new AxisBounds(height))
+    this(new InfinityOr(width), new InfinityOr(height))
   end this
 
   def this(rect : Rect[MeasurementUnit])(using Numeric[MeasurementUnit]) =
@@ -16,29 +16,29 @@ final case class Bounds[+MeasurementUnit](horizontal : AxisBounds[MeasurementUni
   end this
 
   def this(width : Option[MeasurementUnit], height : Option[MeasurementUnit])(using Numeric[MeasurementUnit]) =
-    this(AxisBounds(width), AxisBounds(height))
+    this(InfinityOr(width), InfinityOr(height))
   end this
 
   def cutAlong[T >: MeasurementUnit](axis: Axis, amount : T)(using Numeric[T]) : Bounds[T] =
     axis match
       case Axis.Vertical => 
         copy(
-          vertical = vertical.cut(amount)
+          vertical = vertical.minus(amount)
         )
       case Axis.Horizontal =>
         copy(
-          horizontal = horizontal.cut(amount)
+          horizontal = horizontal.minus(amount)
         )
     end match
   end cutAlong
   
   def cut[T >: MeasurementUnit](horizontal : T, vertical : T)(using Numeric[T]) : Bounds[T] =
     Bounds(
-      this.horizontal.cut(horizontal),
-      this.vertical.cut(vertical)
+      this.horizontal.minus(horizontal),
+      this.vertical.minus(vertical)
     )
   
-  def along(axis : Axis) : AxisBounds[MeasurementUnit] =
+  def along(axis : Axis) : InfinityOr[MeasurementUnit] =
     axis match
       case Axis.Vertical => horizontal
       case geometry.Axis.Horizontal => vertical

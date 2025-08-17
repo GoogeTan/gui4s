@@ -5,6 +5,7 @@ import scala.math.Numeric.Implicits.infixNumericOps
 
 import cats.{Foldable, Traverse}
 import cats.syntax.all.*
+import me.katze.gui4s.geometry.*
 
 def placeEnd[MeasurementUnit : Numeric](size : MeasurementUnit, space : MeasurementUnit) : MeasurementUnit = space - size
 

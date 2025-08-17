@@ -1,9 +1,9 @@
 package me.katze.gui4s.layout
 package bound
 
-import me.katze.gui4s.geometry.Axis
+import me.katze.gui4s.geometry.{Axis, InfinityOr}
 
-final case class AxisDependentBounds[+T](boundsAlongMainAxis : AxisBounds[T], boundsalongCrossAxis : AxisBounds[T], mainAxis : Axis):
+final case class AxisDependentBounds[+T](boundsAlongMainAxis : InfinityOr[T], boundsalongCrossAxis : InfinityOr[T], mainAxis : Axis):
   val bounds : Bounds[T] =
     mainAxis match
       case Axis.Vertical => Bounds(boundsalongCrossAxis, boundsAlongMainAxis)

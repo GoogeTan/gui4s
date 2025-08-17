@@ -1,6 +1,7 @@
 package me.katze.gui4s.example
 package place
 
+// TODO Переименовать поля
 final case class ContainerPlacementError[Error](
   withSpaceBetweenStrategy : Error,
   withSpaceAroundStrategy : Error,

@@ -5,6 +5,7 @@ import cats.{Foldable, Traverse}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import scala.math.Fractional.Implicits.*
+import me.katze.gui4s.geometry.*
 
 def placeCenter[T : Fractional](size : T, space : T) : T = (space - size) / Numeric[T].fromInt(2)
 

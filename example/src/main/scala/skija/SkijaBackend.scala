@@ -1,25 +1,21 @@
 package me.katze.gui4s.example
 package skija
 
+import loop.{DrawLoop, drawLoop}
+
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
-import cats.effect.std.{AtomicCell, Console, Dispatcher, QueueSink, Supervisor}
-import cats.effect.syntax.all.*
 import cats.effect.*
+import cats.effect.std.{AtomicCell, Console, Dispatcher, QueueSink}
 import cats.syntax.all.*
 import cats.{Apply, Functor, Monad, MonadError, Monoid}
 import io.github.humbleui.skija.Canvas
-import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.example.loop.{DrawLoop, drawLoop}
 import me.katze.gui4s.geometry.{Point2d, Rect}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.glfw.GlfwWindow.*
-import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.draw.Drawable
-import scalacache.Cache
-import scalacache.caffeine.CaffeineCache
 
 final case class SkijaBackend[
   F[_],

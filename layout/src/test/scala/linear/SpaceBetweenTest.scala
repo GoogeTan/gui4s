@@ -2,6 +2,7 @@ package me.katze.gui4s.layout
 package linear
 
 import org.scalatest.flatspec.AnyFlatSpec
+import me.katze.gui4s.geometry.*
 
 class SpaceBetweenTest extends AnyFlatSpec:
   "Space between" should "cover all the space" in:

@@ -29,12 +29,12 @@ def sizeTextFFI[
       bounds =>
         liftF(
           cache(
-            (text, options, bounds.horizontal.maximumLimit),
+            (text, options, bounds.horizontal.value),
             placeText(ffi = ffi,
               shaper = shaper,
               text = text,
               style = options,
-              maxWidth = bounds.horizontal.maximumLimit
+              maxWidth = bounds.horizontal.value
             ).map(placedText => new Sized(placedText.text, placedText.width, placedText.height))
           )
         )

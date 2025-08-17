@@ -4,6 +4,7 @@ package linear
 import cats.data.NonEmptyList
 
 import scala.math.Numeric.Implicits.*
+import me.katze.gui4s.geometry.*
 
 /**
  * Считает расстояние между элементами. Предполагается, что они расположены в порядке отдаления от начала координат в положительную строну.

@@ -4,6 +4,7 @@ package linear
 import cats.data.NonEmptyList
 import cats.{Applicative, SemigroupK, Traverse}
 import cats.syntax.all.*
+import me.katze.gui4s.geometry.*
 
 import scala.math.Fractional.Implicits.*
 

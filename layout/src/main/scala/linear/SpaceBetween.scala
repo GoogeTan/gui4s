@@ -4,6 +4,7 @@ package linear
 import scala.math.Fractional.Implicits.*
 import cats.{Foldable, Traverse}
 import cats.syntax.all.*
+import me.katze.gui4s.geometry.*
 
 def placeSpaceBetween[Container[_] : Traverse, MeasurementUnit: Fractional](sizes: Container[MeasurementUnit], space: MeasurementUnit): Container[Rect1dOnPoint1d[MeasurementUnit]] =
   val gap = spaceBetween(sizes, space)

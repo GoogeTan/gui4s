@@ -7,6 +7,7 @@ import cats.syntax.all.*
 
 import scala.annotation.tailrec
 import scala.math.Numeric.Implicits.*
+import me.katze.gui4s.geometry.*
 
 def placeBegin[MeasurementUnit : Numeric] : MeasurementUnit = Numeric[MeasurementUnit].zero
 

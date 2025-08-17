@@ -7,6 +7,7 @@ import cats.*
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import me.katze.gui4s.geometry.*
+import me.katze.gui4s.geometry.*
 
 def updateBoundsWithSizedItem[Place[_], MeasurementUnit : Numeric, T](
                                                                         updateBounds : (Bounds[MeasurementUnit] => Bounds[MeasurementUnit]) => Place[Unit]

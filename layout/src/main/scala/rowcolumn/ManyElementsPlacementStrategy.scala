@@ -4,11 +4,12 @@ package layout.rowcolumn
 import catnip.syntax.all.*
 import cats.*
 import cats.syntax.all.*
+import me.katze.gui4s.geometry.InfinityOr
 import me.katze.gui4s.layout.bound.*
 import me.katze.gui4s.layout.linear.* 
 
 type ManyElementsPlacementStrategy[Place[_], Container[_], MeasurementUnit] =
-    (Container[MeasurementUnit], AxisBounds[MeasurementUnit]) => Place[(coordinateOfEnd : MeasurementUnit, children : Container[MeasurementUnit])]
+    (Container[MeasurementUnit], InfinityOr[MeasurementUnit]) => Place[(coordinateOfEnd : MeasurementUnit, children : Container[MeasurementUnit])]
 
 object ManyElementsPlacementStrategy:
     def Begin[
@@ -35,7 +36,7 @@ object ManyElementsPlacementStrategy:
     ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
             bounds
-                .maximumLimit
+                .value
                 .map(space => (space, placeCenterManyWithGap(children, space, gap).map(_.coordinateOfTheBeginning)))
                 .getOrRaiseError(errorWhenInfiniteSpace)
     end Center
@@ -53,7 +54,7 @@ object ManyElementsPlacementStrategy:
     ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
             bounds
-                .maximumLimit
+                .value
                 .map(maxSpace => (maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)))
                 .getOrRaiseError(errorWhenInfiniteSpace)
     end End
@@ -70,7 +71,7 @@ object ManyElementsPlacementStrategy:
     ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
         bounds
-            .maximumLimit
+            .value
             .map(maxSpace => (maxSpace, A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning)))
             .getOrRaiseError(errorWhenInfiniteSpace)
     end SpaceAround
@@ -87,7 +88,7 @@ object ManyElementsPlacementStrategy:
     ) : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit] =
         (children, bounds) =>
         bounds
-            .maximumLimit
+            .value
             .map(maxSpace => (maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)))
             .getOrRaiseError(errorWhenInfiniteSpace)
     end SpaceBetween

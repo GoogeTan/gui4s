@@ -4,9 +4,11 @@ import cats.*
 import cats.syntax.all.*
 import me.katze.gui4s.layout.linear.*
 import me.katze.gui4s.layout.bound.*
-import catnip.syntax.all.* 
+import catnip.syntax.all.*
+import me.katze.gui4s.geometry.InfinityOr
+import me.katze.gui4s.geometry.*
 
-type OneElementPlacementStrategy[Place[_], MeasurementUnit] = (itemLength : MeasurementUnit, bounds : AxisBounds[MeasurementUnit]) => Place[Rect1dOnPoint1d[MeasurementUnit]]
+type OneElementPlacementStrategy[Place[_], MeasurementUnit] = (itemLength : MeasurementUnit, bounds : InfinityOr[MeasurementUnit]) => Place[Rect1dOnPoint1d[MeasurementUnit]]
 
 object OneElementPlacementStrategy:
     def Const[Place[_] : Applicative, MeasurementUnit](whereToPlace : MeasurementUnit) : OneElementPlacementStrategy[Place, MeasurementUnit] =
@@ -32,7 +34,7 @@ object OneElementPlacementStrategy:
     ) : OneElementPlacementStrategy[Place, MeasurementUnit] =
         (itemLength, bounds) =>
             bounds
-                .maximumLimit
+              .value 
                 .map(space =>
                     Rect1dOnPoint1d(
                         length = itemLength,
@@ -53,7 +55,7 @@ object OneElementPlacementStrategy:
     ) : OneElementPlacementStrategy[Place, MeasurementUnit] =
         (itemLength, bounds) =>
             bounds
-                .maximumLimit
+              .value
                 .map(
                     space =>
                         Rect1dOnPoint1d(

@@ -1,5 +1,4 @@
-package me.katze.gui4s.layout
-package linear
+package me.katze.gui4s.geometry
 
 import scala.math.Numeric.Implicits.*
 
