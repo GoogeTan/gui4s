@@ -41,7 +41,7 @@ def rowColumnLayoutPlacement[
       mainAxis = mainAxis,
       bounds = bounds,
       mainAxisPlace = mainAxisPlacement,
-      additionalAxisPlace = additionalAxisPlacement,
+      crossAxisPlace = additionalAxisPlacement,
       zLevel = Numeric[MeasurementUnit].zero,
       zip = zip
     )

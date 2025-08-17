@@ -81,21 +81,21 @@ def rowColumnPlace[
   T
 ](
   elements           : Container[Sized[MeasurementUnit, T]],
-  mainAxis : Axis,
-  bounds : Bounds[MeasurementUnit],
+  mainAxis           : Axis,
+  bounds             : Bounds[MeasurementUnit],
   mainAxisPlace      : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
-  additionalAxisPlace: OneElementPlacementStrategy[Place, MeasurementUnit],
-  zLevel : MeasurementUnit,
-  zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+  crossAxisPlace     : OneElementPlacementStrategy[Place, MeasurementUnit],
+  zLevel             : MeasurementUnit,
+  zip                : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
 ): Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, T]]]] =
   Applicative[Place].map2(
     mainAxisPlace(A.map(elements)(_.lengthAlong(mainAxis)), bounds.along(mainAxis)),
-    elements.traverse(element => additionalAxisPlace(element.lengthAlongAnother(mainAxis), bounds.along(mainAxis.another))),
+    elements.traverse(element => crossAxisPlace(element.lengthAlongAnother(mainAxis), bounds.along(mainAxis.another))),
   ) {
     case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), additionalAxisElementsPlaced) =>
       val additionalAxisElementsCoordinates = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheBeginning)
       val additionalAxisCoordinateOfEnd = A.map(additionalAxisElementsPlaced)(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero)
-      val coordinatesCombined = combineCoordinates(mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, A.map(elements)(_ => zLevel), zip)
+      val coordinatesCombined = combineCoordinates(mainAxis, mainAxisElementsCoordinates, additionalAxisElementsCoordinates, zLevel, zip)
       Sized(
         A.map(zip(elements, coordinatesCombined))((element, coordinates) => new Placed(element, coordinates)),
         new Rect(
@@ -111,16 +111,12 @@ def combineCoordinates[Container[_] : Applicative as A, MeasurementUnit](
                                                                           axis : Axis,
                                                                           mainAxis : Container[MeasurementUnit],
                                                                           additionalAxis : Container[MeasurementUnit],
-                                                                          zAxis : Container[MeasurementUnit],
+                                                                          zLevel : MeasurementUnit,
                                                                           zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
                                                                         ) : Container[Point3d[MeasurementUnit]] =
   if axis == Axis.Vertical then
-    A.map(
-        zip(zip(additionalAxis, mainAxis), zAxis)
-    )((xy, z) => Point3d(xy._1, xy._2, z))
+    zip(additionalAxis, mainAxis).map((x, y) => Point3d(x, y, zLevel))
   else
-    A.map(
-      zip(zip(mainAxis, additionalAxis), zAxis)
-    )((xy, z) => Point3d(xy._1, xy._2, z))
+    zip(additionalAxis, mainAxis).map((y, x) => Point3d(x, y, zLevel))
   end if
 end combineCoordinates
