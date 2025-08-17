@@ -1,19 +1,17 @@
 package me.katze.gui4s.example
 package api.effects
 
+import api.widget.{SizeText, TextCache, sizeTextFFI}
 import place.{RunPlacement, runPlaceStateT}
 
-import catnip.*
-import catnip.syntax.additional.*
 import _root_.cats.data.{EitherT, StateT}
 import _root_.cats.syntax.all.*
 import _root_.cats.{FlatMap, Monad, MonadError, ~>}
+import catnip.*
+import catnip.syntax.additional.*
 import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.example.api.widget.{SizeText, sizeTextFFI}
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.bound.{Bounds, GetBounds, SetBounds}
-import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle}
-import scalacache.Cache
 
 opaque type SkijaOuterPlace[IO[_], MeasurementUnit, Error, Value] = StateT[EitherT[IO, Error, *], Bounds[MeasurementUnit], Value]
 type SkijaOuterPlaceT[IO[_], MeasurementUnit, Error] = SkijaOuterPlace[IO, MeasurementUnit, Error, *]
@@ -66,8 +64,6 @@ object SkijaPlace:
     end new
   end run
   
-  type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
-
   def sizeText[IO[_] : Monad, PlaceError](
                                             ffi : ForeighFunctionInterface[IO],
                                             shaper : Shaper,

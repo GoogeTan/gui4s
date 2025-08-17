@@ -9,7 +9,6 @@ import catnip.syntax.all.given
 import cats.{Functor, Monad, Monoid}
 import io.github.humbleui.skija.shaper.Shaper
 import me.*
-import me.katze.gui4s.example.api.effects.SkijaPlace.TextCache
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
 import me.katze.gui4s.widget.library.Widget
 

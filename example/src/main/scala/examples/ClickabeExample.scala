@@ -2,11 +2,10 @@ package me.katze.gui4s.example
 package examples
 
 import api.*
-import api.effects.SkijaDownEvent.{catchExternalEvent, eventOfferingCallbacks, extractMouseClickEvent}
-import api.effects.SkijaPlace.TextCache
+import api.effects.SkijaDownEvent.{eventOfferingCallbacks, extractMouseClickEvent}
 import api.effects.{*, given}
 import api.widget.*
-import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwApp, skijaGlfwCatsApp}
+import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwCatsApp}
 import place.*
 import skija.SkijaBackend
 import update.ApplicationRequest
@@ -15,8 +14,6 @@ import catnip.ForeighFunctionInterface
 import catnip.cats.effect.SyncForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.*
-import cats.data.*
-import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import io.github.humbleui.skija.*
@@ -28,12 +25,10 @@ import me.katze.gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 import me.katze.gui4s.skija.*
+import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.library.decorator.*
-import me.katze.gui4s.widget.{Path, library}
 import scalacache.caffeine.CaffeineCache
-
-import scala.reflect.Typeable
 
 object ClickabeExample extends IOApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
@@ -46,7 +41,7 @@ object ClickabeExample extends IOApp:
   def preInit(backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Resource[IO, PreInit] =
     for
       shaper <- backend.skija.createShaper
-      cache : TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]])
+      cache : TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(scalacacheCache)
     yield (shaper, cache)
   end preInit
 
@@ -109,16 +104,16 @@ object ClickabeExample extends IOApp:
     def text[Event] : TextWidget[Widget[Event]] =
         skijaText(ffi, preInit.shaper, preInit.globalTextCache)
     end text
-    
+
     def linearLayout[Event] : LinearContainer[Widget[Event], SkijaOuterPlaceT[IO, Float, String], List, Float, Axis] =
       skijaLinearContainer(
         skijaContainer(ffi,
           [A : Order, B] => v => f => orderedListProcessing(v)(f)
-        ), 
+        ),
         [A, B] => (a, b) => a.zip(b)
       )
     end linearLayout
-    
+
     def clickExample[Event](numbers : List[Int]): Widget[Event] =
       linearLayout(
         mainAxis = Axis.Vertical,

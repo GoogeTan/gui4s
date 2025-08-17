@@ -9,9 +9,10 @@ import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
-import scalacache.Cache
 
 type SizeText[Place[_]] = (text: String, options: SkijaTextStyle) => Place[SkijaPlacedText]
+type Cache[IO[_], K, V] = (K, IO[V]) => IO[V]
+type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
 
 def sizeTextFFI[
   IO[_] : Functor, 
@@ -20,16 +21,15 @@ def sizeTextFFI[
   getBounds : Place[Bounds[Float]],
   ffi : ForeighFunctionInterface[IO],
   shaper: Shaper,
-  cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]],
-  f : IO ~> Place 
+  cache : TextCache[IO],
+  liftF : IO ~> Place
 ) : SizeText[Place * Sized[Float, *]] =
   (text: String, options: SkijaTextStyle) =>
     getBounds.flatMap:
       bounds =>
-        f(
-          cache.cachingF(
-            (text, options, bounds.horizontal.maximumLimit)
-          )(None)(
+        liftF(
+          cache(
+            (text, options, bounds.horizontal.maximumLimit),
             placeText(ffi = ffi,
               shaper = shaper,
               text = text,
@@ -39,3 +39,8 @@ def sizeTextFFI[
           )
         )
 end sizeTextFFI
+
+def scalacacheCache[IO[_], K, V](cache :  scalacache.Cache[IO, K, V]) : Cache[IO, K, V] =
+  (k, V) =>
+    cache.cachingF(k)(None)(V)
+end scalacacheCache
