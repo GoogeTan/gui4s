@@ -13,7 +13,6 @@ import me.katze.gui4s.widget.handle.HandlesEventF
 import me.katze.gui4s.widget.library.{StatefulWidget, Widget, widgetsAreMergable}
 import me.katze.gui4s.widget.{CatchEvents, Path, StatefulState, library}
 
-import scala.language.experimental.namedTypeArguments
 import scala.reflect.Typeable
 
 def skijaStateful[

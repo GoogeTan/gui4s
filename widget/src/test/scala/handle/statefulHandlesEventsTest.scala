@@ -48,7 +48,6 @@ final class statefulHandlesEventsTest extends AnyFlatSpec with Matchers:
       Any,
       Int,
       Unit,
-      Unit,
       Unit
     ](
       panicingHandlesEvent,
@@ -63,7 +62,6 @@ final class statefulHandlesEventsTest extends AnyFlatSpec with Matchers:
       Place,
       Any,
       Int,
-      Unit,
       Unit,
       Unit
     ](

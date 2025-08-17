@@ -65,11 +65,13 @@ object SkijaPlace:
       end apply
     end new
   end run
+  
+  type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
 
   def sizeText[IO[_] : Monad, PlaceError](
                                             ffi : ForeighFunctionInterface[IO],
                                             shaper : Shaper,
-                                            cache : Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+                                            cache : TextCache[IO] 
                                           ) : SizeText[SkijaPlace[IO, Float, PlaceError, *]] =
     sizeTextFFI[IO, SkijaOuterPlaceT[IO, Float, PlaceError]](
       SkijaOuterPlace.getBounds,

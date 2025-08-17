@@ -1,20 +1,13 @@
 package me.katze.gui4s.layout
 package rowcolumn
 
+import bound.{AxisDependentBounds, GetBounds, SetBounds}
+import rowcolumn.measureItems
+
 import cats.*
-import cats.syntax.all.*
-import catnip.syntax.all.*
 import me.katze.gui4s.geometry.Axis
-import me.katze.gui4s.layout.linear.*
-import me.katze.gui4s.layout.bound.{AxisBounds, AxisDependentBounds, GetBounds, SetBounds}
-import me.katze.gui4s.layout.rowcolumn.{measureItems, sizeItems}
 import me.katze.gui4s.layout.{*, given}
 
-import scala.annotation.experimental
-import scala.math.Numeric.Implicits.*
-import scala.math.Fractional.Implicits.*
-
-@experimental
 def rowColumnLayoutPlacement[
   Place[_] : Monad,
   Container[_] : {Applicative, Traverse},

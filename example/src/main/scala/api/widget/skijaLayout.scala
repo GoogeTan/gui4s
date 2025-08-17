@@ -2,44 +2,36 @@ package me.katze.gui4s.example
 package api.widget
 
 import catnip.ForeighFunctionInterface
-import catnip.syntax.all.{*, given}
-import cats.{Applicative, Monad, Order, SemigroupK, Traverse}
-import cats.syntax.all.*
+import catnip.syntax.all.given
+import cats.{Applicative, Monad, Order, Traverse}
 import me.katze.gui4s.example.{*, given}
 import api.effects.{*, given}
-import api.given
 
 import cats.kernel.Monoid
-import me.katze.gui4s.example.app.{SkijaPlacedWidget, SkijaWidget}
 import me.katze.gui4s.geometry.{Axis, Point3d}
-import me.katze.gui4s.layout.bound.Bounds
-import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy, rowColumnLayoutPlacement}
-import me.katze.gui4s.layout.{*, given}
-import me.katze.gui4s.skija.drawAt
+import me.katze.gui4s.layout.given
+import me.katze.gui4s.skija.{SkijaDraw, drawAt}
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.handle.Layout
 
-import scala.language.experimental.namedTypeArguments
-
-def skijaLayout[
-  F[+_] : {Monad, ForeighFunctionInterface as ffi},
+def skijaLinearContainer[
+  IO[_] : {Monad},
   PlacedWidget,
   MeasurementUnit : Fractional,
   PlaceError,
   Container[_] : {Applicative, Traverse}
 ](
-  container : ContainerWidget[PlacedWidget, Container, SkijaPlaceT[F, MeasurementUnit, PlaceError], Point3d[MeasurementUnit]],
+  container : ContainerWidget[PlacedWidget, Container, SkijaPlaceT[IO, MeasurementUnit, PlaceError], Point3d[MeasurementUnit]],
   zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
-) : LinearLayout[
-  SkijaPlace[F, MeasurementUnit, PlaceError, PlacedWidget],
-  SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
+) : LinearContainer[
+  SkijaPlace[IO, MeasurementUnit, PlaceError, PlacedWidget],
+  SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError],
   Container,
   MeasurementUnit,
   Axis
 ] =
-  linearLayout[
+  linearContainer[
     PlacedWidget,
-    SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
+    SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError],
     Container,
     MeasurementUnit,
   ](
@@ -48,30 +40,37 @@ def skijaLayout[
     setBounds = SkijaOuterPlace.setBounds,
     zip = zip
   )
-end skijaLayout
+end skijaLinearContainer
 
 def skijaContainer[
-  F[_] : Monad,
+  IO[_] : Monad,
   Clip,
   UpdateError,
   PlaceError,
   Event,
   DownEvent,
+  RecompositionReaction : Monoid,
   Container[_] : {Traverse}
 ](
-  ffi : ForeighFunctionInterface[F],
-  updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => SkijaUpdate[F, Float, Clip, UpdateError, Event, Container[B]]) => SkijaUpdate[F, Float, Clip, UpdateError, Event, Container[B]]
+  ffi : ForeighFunctionInterface[IO],
+  updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => SkijaUpdate[IO, Float, Clip, UpdateError, Event, Container[B]]) => SkijaUpdate[IO, Float, Clip, UpdateError, Event, Container[B]]
 ) : ContainerWidget[
-  SkijaPlacedWidget[F, Float, Clip, UpdateError, PlaceError, Event, DownEvent],
+  Widget[
+        SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
+        SkijaPlaceT[IO, Float, PlaceError],
+        SkijaDraw[IO],
+        RecompositionReaction,
+        DownEvent,
+  ],
   Container,
-  SkijaPlaceT[F, Float, PlaceError],
+  SkijaPlaceT[IO, Float, PlaceError],
   Point3d[Float]
 ] =
   given Order[Point3d[Float]] = Order.by(_.z)
   container(
     (draw, meta) => drawAt(ffi, draw, meta.x, meta.y),
     [T] => (update, point) => SkijaUpdate.withCoordinates(update)(_ + point),
-    SkijaUpdate.isEventHandled[F, Float, Clip, UpdateError, Event],
+    SkijaUpdate.isEventHandled[IO, Float, Clip, UpdateError, Event],
     updateListOrdered
   )
 end skijaContainer

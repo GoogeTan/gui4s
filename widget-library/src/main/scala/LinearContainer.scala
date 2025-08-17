@@ -1,17 +1,15 @@
 package me.katze.gui4s.widget.library
 
 import catnip.syntax.additional.*
-import cats.{Applicative, Functor, Monad, Traverse}
 import cats.syntax.all.*
+import cats.{Applicative, Monad, Traverse}
 import me.katze.gui4s.geometry.{Axis, Point3d}
-import me.katze.gui4s.layout.{Placed, Sized}
 import me.katze.gui4s.layout.bound.{GetBounds, SetBounds}
-import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy, rowColumnLayoutPlacement}
-
-import scala.annotation.experimental
+import me.katze.gui4s.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy, rowColumnLayoutPlacement}
+import me.katze.gui4s.layout.{Placed, Sized}
 
 @FunctionalInterface
-trait LinearLayout[
+trait LinearContainer[
   Widget,
   Place[_],
   Container[_],
@@ -19,15 +17,14 @@ trait LinearLayout[
   Axis,
 ]:
   def apply(
-             children               : Container[Widget],
-             mainAxis               : Axis,
-             mainAxisStrategy       : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
-             additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit],
+              children               : Container[Widget],
+              mainAxis               : Axis,
+              mainAxisStrategy       : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
+              additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit],
             ) : Widget
-end LinearLayout
+end LinearContainer
 
-@experimental
-def linearLayout[
+def linearContainer[
   PlacedWidget,
   Place[_] : Monad,
   Container[_] : {Applicative as A, Traverse},
@@ -37,7 +34,7 @@ def linearLayout[
   getBounds: GetBounds[Place, MeasurementUnit],
   setBounds: SetBounds[Place, MeasurementUnit],
   zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
-) : LinearLayout[Place[Sized[MeasurementUnit, PlacedWidget]], Place, Container, MeasurementUnit, Axis] =
+) : LinearContainer[Place[Sized[MeasurementUnit, PlacedWidget]], Place, Container, MeasurementUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
       children,
@@ -54,7 +51,7 @@ def linearLayout[
           zip
         ).map(_.mapValue(elements => A.map(elements)(placedElementAsLayoutMetadata)))
     )
-end linearLayout
+end linearContainer
 
 def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[MeasurementUnit, T]) : (T, Point3d[MeasurementUnit]) =
   (placed.value, placed.coordinate)

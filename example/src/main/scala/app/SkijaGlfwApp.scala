@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package app
 
 import api.effects.{*, given}
-import place.RunPlacement
+import loop.{runApplicationLoopsWithBackend, runDrawLoopOnExecutionContext, runUpdateLoopOnExecutionContext, updateLoop}
 import skija.{SkijaBackend, skijaDrawLoop}
 import update.ApplicationRequest
 
@@ -16,16 +16,11 @@ import cats.~>
 import me.katze.*
 import me.katze.gui4s.example
 import me.katze.gui4s.glfw.*
-import me.katze.gui4s.layout.given
-import me.katze.gui4s.skija.SkijaDraw
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.library.*
 
-import scala.annotation.experimental
 import scala.concurrent.ExecutionContext
-import scala.language.experimental.namedTypeArguments
 
-@experimental
 def skijaGlfwApp[
   F[+_] : {Async as FAsync, Console, ForeighFunctionInterface as ffi},
   Clip : Monoid,

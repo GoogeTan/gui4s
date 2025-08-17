@@ -3,10 +3,7 @@ package decorator
 
 import cats.*
 import cats.syntax.all.*
-import me.katze.gui4s.geometry.Point2d
 import me.katze.gui4s.widget.Path
-
-import scala.language.experimental.namedTypeArguments
 
 def clickCatcher[
   Widget,
@@ -14,13 +11,13 @@ def clickCatcher[
   HandleableEvent,
   MouseClick,
   Point,
-  Shape
+  WidgetBoundingBox
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], Shape, HandleableEvent],
+  eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], WidgetBoundingBox, HandleableEvent],
   currentMousePosition : Update[Point],
   approprieteEvent: HandleableEvent => Option[MouseClick],
   onClick : (Path, MouseClick) => Update[Boolean],
-  isIn : Point => Shape => Update[Boolean]
+  isIn : Point => WidgetBoundingBox => Update[Boolean]
 ) : Decorator[Widget] =
   eventCatcherWithRect:
     (path, widgetBoundingBox, event) =>

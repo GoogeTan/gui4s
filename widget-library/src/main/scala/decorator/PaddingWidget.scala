@@ -10,7 +10,7 @@ import me.katze.gui4s.layout.given
 import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy}
 import me.katze.gui4s.widget.library.decorator.Decorator
 import me.katze.gui4s.widget.library.decorator.Decorator.given
-import me.katze.gui4s.widget.library.{LinearLayout, Widget, WidgetHandlesEvent}
+import me.katze.gui4s.widget.library.{LinearContainer, Widget, WidgetHandlesEvent}
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
@@ -92,7 +92,7 @@ def paddingWidget[
     Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
     Paddings[MeasurementUnit]
   ],
-  layout : LinearLayout[
+  layout : LinearContainer[
     Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
     OuterPlace,
     Id,

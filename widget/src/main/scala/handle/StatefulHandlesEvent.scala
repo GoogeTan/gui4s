@@ -9,24 +9,21 @@ import cats.syntax.all.*
 import cats.{Functor, Monad}
 
 def statefulHandlesEvent[
-  Update[_, _],
+  Update[_] : Monad,
   Place[_] : Functor,
   Widget,
   State : Equiv as stateEquiality,
-  Event,
   ChildEvent,
   HandleableEvent
 ](
-    using Monad[Update[Event, *]]
-)(
-    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Event, State]],
+    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[State]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childWidgetHandlesEvent  : HandlesEvent[Widget, HandleableEvent, Update[Event, (List[ChildEvent], Place[Widget])]],
+    childWidgetHandlesEvent  : HandlesEvent[Widget, HandleableEvent, Update[(List[ChildEvent], Place[Widget])]],
     widgetsAreMergable  : Mergable[Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
   HandleableEvent,
-  Update[Event, Place[Stateful[Widget, State]]]
+  Update[Place[Stateful[Widget, State]]]
 ] =
   (
     self: Stateful[Widget, State],

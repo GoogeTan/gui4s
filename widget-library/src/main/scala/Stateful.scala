@@ -5,15 +5,13 @@ import catnip.syntax.all.{*, given}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.{Functor, Monoid}
-import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import me.katze.gui4s.widget
-import me.katze.gui4s.widget.handle.{HandlesEvent, HandlesEventF, andThen, statefulHandlesEvent, statefulStateHandlesEvents}
+import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
+import me.katze.gui4s.widget.handle.{HandlesEventF, andThen, statefulHandlesEvent, statefulStateHandlesEvents}
 import me.katze.gui4s.widget.merge.{Mergable, statefulMergesWithOldStates}
 import me.katze.gui4s.widget.recomposition.statefulReactsOnRecomposition
 import me.katze.gui4s.widget.state.statefulHasInnerStates
-import me.katze.gui4s.widget.{CatchEvents, Path, Stateful, StatefulBehaviour, StatefulState}
-
-import scala.language.experimental.namedTypeArguments
+import me.katze.gui4s.widget.*
 
 /**
  * Виджет с состоянием
@@ -80,8 +78,8 @@ def stateful[
   ]
 ] =
   render(initialState).map(initialChild =>
-    type Widget_[E] = Widget[
-      Update[E, *],
+    type ChildWidget = Widget[
+      Update[ChildEvent, *],
       Place,
       Draw,
       RecompositionReaction,
@@ -89,8 +87,8 @@ def stateful[
     ]
     type StState = StatefulBehaviour[
       State,
-      State => Place[Widget_[ChildEvent]],
-      (State, Path, NonEmptyList[ChildEvent]) => Update[ParentEvent, State],
+      State => Place[ChildWidget],
+      HandlesEventF[State, NonEmptyList[ChildEvent], Update[ParentEvent, *]],
       State => RecompositionReaction
     ]
     val stateful = Stateful(
@@ -107,60 +105,22 @@ def stateful[
       ),
       child = initialChild
     )
-    val statefulAsFree = widget.free.statefulAsFree[Place, Widget_[ChildEvent], StState](widgetAsFree)
-    Widget.ValueWrapper[
-      T = Stateful[Widget_[ChildEvent], StState],
-      Update_ = Update[ParentEvent, *],
-      Place_ = Place
-    ](
+    val statefulAsFree = widget.free.statefulAsFree[Place, ChildWidget, StState](widgetAsFree)
+    Widget.ValueWrapper(
       valueToDecorate = stateful,
       valueAsFree = statefulAsFree,
       valueIsDrawable = statefulIsDrawable(widgetIsDrawable),
-      valueHandlesEvent = statefulHandlesEvent_(widgetsAreMergeable),
+      valueHandlesEvent = statefulHandlesEvent(
+        stateHandlesEvents = statefulStateHandlesEvents,
+        drawStateIntoWidget = statefulStateDrawsIntoWidget,
+        childWidgetHandlesEvent = widgetHandlesEvent[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent].andThen(_.catchEvents),
+        widgetsAreMergable = widgetsAreMergeable,
+      ),
       valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
-        widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]),
+        widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]
+      ),
       valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
     )
   )
 end stateful
-
-def statefulHandlesEvent_[
-  Update[_, _] : {BiMonad as updateIsBiMonad, CatchEvents},
-  Place[_] : Functor,
-  Draw,
-  RecompositionReaction : Monoid as M,
-  HandlableEvent,
-  State : Equiv,
-  ParentEvent,
-  ChildEvent
-](
-  widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
-): HandlesEventF[
-  Stateful[
-    Widget[
-      Update[ChildEvent, *],
-      Place,
-      Draw,
-      RecompositionReaction,
-      HandlableEvent
-    ],
-    StatefulBehaviour[
-      State,
-      State => Place[
-        Widget[
-          Update[ChildEvent, *],
-          Place, Draw, RecompositionReaction, HandlableEvent
-        ]
-      ],
-      HandlesEvent[State, NonEmptyList[ChildEvent], Update[ParentEvent, State]],
-      State => RecompositionReaction]
-  ],
-  HandlableEvent,
-  [T] =>> Update[ParentEvent, Place[T]],
-] = statefulHandlesEvent(using updateIsBiMonad())(
-  stateHandlesEvents = statefulStateHandlesEvents[Update = Update[ParentEvent, *]],
-  drawStateIntoWidget = statefulStateDrawsIntoWidget,
-  childWidgetHandlesEvent = widgetHandlesEvent[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent].andThen(_.catchEvents),
-  widgetsAreMergable = widgetsAreMergeable,
-)

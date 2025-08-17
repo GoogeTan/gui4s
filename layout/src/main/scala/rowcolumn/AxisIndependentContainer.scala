@@ -8,8 +8,6 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import me.katze.gui4s.geometry.*
 
-import scala.language.experimental.namedTypeArguments
-
 def updateBoundsWithSizedItem[Place[_], MeasurementUnit : Numeric, T](
                                                                         updateBounds : (Bounds[MeasurementUnit] => Bounds[MeasurementUnit]) => Place[Unit]
                                                                       )(

@@ -6,8 +6,6 @@ import cats.syntax.all.*
 import cats.{Comonad, Functor, Monad}
 import me.katze.gui4s.widget.merge.Mergable
 
-import scala.language.experimental.namedTypeArguments
-
 def widgetsAreMergable[
   Update[_],
   OuterPlace[_] : Monad as OPM,
@@ -24,9 +22,10 @@ def widgetsAreMergable[
       oldWidget, newWidget
     )(
       (oldWithInnerPlace, nextWidgetToMerge) =>
-        widgetMergesWithOldState[Place = Place](
+        widgetMergesWithOldState[Update, Place, Draw, RecompositionReaction, HandleableEvent](
           nextWidgetToMerge.extract,
           path,
-          widgetHasInnerStates[Place = Place](oldWithInnerPlace.extract)
+          widgetHasInnerStates(oldWithInnerPlace.extract)
         )
     )
+end widgetsAreMergable

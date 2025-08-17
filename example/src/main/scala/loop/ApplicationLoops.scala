@@ -1,4 +1,5 @@
 package me.katze.gui4s.example
+package loop
 
 import cats.*
 import cats.effect.*

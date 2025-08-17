@@ -10,9 +10,7 @@ import me.katze.gui4s.widget.Path
 import scala.annotation.experimental
 import scala.reflect.Typeable
 
-@experimental
 type ResourceWidget[Widget, F[_]] = [T : Typeable] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
-
 
 @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
 given destructableIsTypeable[T: Typeable, IO: Typeable]: Typeable[(T, IO)] = x => x match {
@@ -21,7 +19,6 @@ given destructableIsTypeable[T: Typeable, IO: Typeable]: Typeable[(T, IO)] = x =
   case _ => None
 }
 
-@experimental
 def resourceWidget[
   Widget[_],
   Update[_, _] : BiMonad,

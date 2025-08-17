@@ -10,6 +10,7 @@ import cats.syntax.all.*
 import cats.{Apply, Functor, Monad, MonadError, Monoid}
 import io.github.humbleui.skija.Canvas
 import io.github.humbleui.skija.shaper.Shaper
+import me.katze.gui4s.example.loop.{DrawLoop, drawLoop}
 import me.katze.gui4s.geometry.{Point2d, Rect}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.glfw.GlfwWindow.*
@@ -20,9 +21,6 @@ import me.katze.gui4s.widget.draw.Drawable
 import scalacache.Cache
 import scalacache.caffeine.CaffeineCache
 
-import scala.annotation.experimental
-
-@experimental
 final case class SkijaBackend[
   F[_],
   Monitor,
@@ -172,7 +170,6 @@ object SkijaBackend:
   end registerCallbacks
 end SkijaBackend
 
-@experimental
 def skijaDrawLoop[
   F[+_] : {Console, ForeighFunctionInterface},
   Widget
