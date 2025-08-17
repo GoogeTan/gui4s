@@ -8,7 +8,6 @@ import api.widget.*
 import app.{SkijaWidget, skijaGlfwCatsApp}
 import place.*
 import skija.SkijaBackend
-import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
 import catnip.cats.effect.SyncForeighFunctionInterface
@@ -60,7 +59,7 @@ object GridExample extends IOApp:
     )
   end run
 
-  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
+  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
     def text[Event] : TextWidget[Widget[Event]] =
         skijaText(ffi, preInit.shaper, preInit.globalTextCache)
     end text

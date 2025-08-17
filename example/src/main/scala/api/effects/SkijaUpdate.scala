@@ -1,8 +1,6 @@
 package me.katze.gui4s.example
 package api.effects
 
-import update.ApplicationRequest
-
 import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import catnip.syntax.bi.{stateWrapsBiMonad, writerIsBiMonad}
@@ -164,7 +162,7 @@ object SkijaUpdate:
     MeasurementUnit : Numeric as N,
     Clip : Monoid,
     UpdateError,
-  ](updateErrorAsExitCode : UpdateError => IO[ExitCode]) : [T] => SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, ApplicationRequest, T] => IO[Either[ExitCode, T]] =
+  ](updateErrorAsExitCode : UpdateError => IO[ExitCode]) : [T] => SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, SkijaApplicationRequest, T] => IO[Either[ExitCode, T]] =
     [T] => update =>
       update.value.run(UpdateEffectState.empty).run.flatMap(result =>
         val (events, (_, maybeWidget)) = result
@@ -174,7 +172,7 @@ object SkijaUpdate:
           case Right(widget) =>
             events.foldM[IO, Either[ExitCode, T]](Right(widget))((_, request) =>
               request match
-                case ApplicationRequest.CloseApp(code) => Left(code).pure[IO]
+                case SkijaApplicationRequest.CloseApp(code) => Left(code).pure[IO]
             )
       )
   end handleApplicationRequests

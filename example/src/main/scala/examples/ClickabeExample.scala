@@ -8,7 +8,6 @@ import api.widget.*
 import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwCatsApp}
 import place.*
 import skija.SkijaBackend
-import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
 import catnip.cats.effect.SyncForeighFunctionInterface
@@ -55,7 +54,7 @@ object ClickabeExample extends IOApp:
       placeErrorAsThrowable = (errorText : String) => new Exception(errorText),
       createGlfwCallbacks = eventOfferingCallbacks,
       settings = WindowCreationSettings(
-        title = "Gui4s window",
+        title = "Gui4s clickable example",
         size = Rect(620f, 480f),
         visible = true,
         resizeable = true,
@@ -64,7 +63,7 @@ object ClickabeExample extends IOApp:
     )
   end run
 
-  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
+  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
     def eventCatcher[Event]: EventCatcherWithRect[
       Widget[Event],
       SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean],

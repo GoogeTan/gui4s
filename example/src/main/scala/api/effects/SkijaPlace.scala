@@ -77,13 +77,5 @@ object SkijaPlace:
       SkijaOuterPlace.liftK,
     )
   end sizeText
-
-  def mapKStateT[F[_] : FlatMap, G[_], U[_], S](f : F ~> G) : (StateT[F, S, *] * U) ~> (StateT[G, S, *] * U) =
-    new ~>[StateT[F, S, *] * U,  StateT[G, S, *] * U]:
-      override def apply[A](fa: StateT[F, S, U[A]]): StateT[G, S, U[A]] =
-        fa.mapK(f)
-      end apply
-    end new
-  end mapKStateT
 end SkijaPlace
 

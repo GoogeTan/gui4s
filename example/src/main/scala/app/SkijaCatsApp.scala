@@ -1,11 +1,10 @@
 package me.katze.gui4s.example
 package app
 
-import api.effects.SkijaDownEvent
+import api.effects.{SkijaApplicationRequest, SkijaDownEvent}
 import api.effects.SkijaDownEvent.eventOfferingCallbacks
 import examples.ClickabeExample.PreInit
 import skija.SkijaBackend
-import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
 import catnip.cats.effect.SyncForeighFunctionInterface
@@ -27,14 +26,14 @@ def skijaGlfwCatsApp[
   HandleableEvent,
   MainThreadPreInit,
 ](
-  preInit : SkijaBackend[IO, Long, OglGlfwWindow, HandleableEvent] => Resource[IO, MainThreadPreInit],
-  widget: MainThreadPreInit => SkijaBackend[IO, Long, OglGlfwWindow, HandleableEvent] ?=> SkijaWidget[IO, Float, Clip, UpdateError, PlaceError, ApplicationRequest, HandleableEvent],
-  updateLoopExecutionContext: ExecutionContext,
-  drawLoopExecutionContext: ExecutionContext,
-  updateErrorAsThrowable : UpdateError => Throwable,
-  placeErrorAsThrowable  : PlaceError => Throwable,
-  createGlfwCallbacks : (HandleableEvent => IO[Unit]) =>  skija.SkijaBackend.GlfwCallbacks[IO[Unit], Float],
-  settings : WindowCreationSettings[Float],
+   preInit : SkijaBackend[IO, Long, OglGlfwWindow, HandleableEvent] => Resource[IO, MainThreadPreInit],
+   widget: MainThreadPreInit => SkijaBackend[IO, Long, OglGlfwWindow, HandleableEvent] ?=> SkijaWidget[IO, Float, Clip, UpdateError, PlaceError, SkijaApplicationRequest, HandleableEvent],
+   updateLoopExecutionContext: ExecutionContext,
+   drawLoopExecutionContext: ExecutionContext,
+   updateErrorAsThrowable : UpdateError => Throwable,
+   placeErrorAsThrowable  : PlaceError => Throwable,
+   createGlfwCallbacks : (HandleableEvent => IO[Unit]) =>  skija.SkijaBackend.GlfwCallbacks[IO[Unit], Float],
+   settings : WindowCreationSettings[Float],
 ): IO[ExitCode] =
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
   

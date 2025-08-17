@@ -4,7 +4,6 @@ package app
 import api.effects.{*, given}
 import loop.{runApplicationLoopsWithBackend, runDrawLoopOnExecutionContext, runUpdateLoopOnExecutionContext, updateLoop}
 import skija.{SkijaBackend, skijaDrawLoop}
-import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
@@ -29,16 +28,16 @@ def skijaGlfwApp[
   HandleableEvent,
   MainThreadPreInit,
 ](
-    preInit : SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent] => Resource[F, MainThreadPreInit],
-    widget: MainThreadPreInit => SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent] ?=> SkijaWidget[F, Float, Clip, UpdateError, PlaceError, ApplicationRequest, HandleableEvent],
-    updateLoopExecutionContext: ExecutionContext,
-    drawLoopExecutionContext: ExecutionContext,
-    updateErrorAsExitCode : UpdateError => F[ExitCode],
-    runEitherTError : EitherT[F, PlaceError, *] ~> F,
-    createGlfwCallbacks : (HandleableEvent => F[Unit]) =>  skija.SkijaBackend.GlfwCallbacks[F[Unit], Float],
-    settings : WindowCreationSettings[Float],
+  preInit : SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent] => Resource[F, MainThreadPreInit],
+  widget: MainThreadPreInit => SkijaBackend[F, Long, OglGlfwWindow, HandleableEvent] ?=> SkijaWidget[F, Float, Clip, UpdateError, PlaceError, SkijaApplicationRequest, HandleableEvent],
+  updateLoopExecutionContext: ExecutionContext,
+  drawLoopExecutionContext: ExecutionContext,
+  updateErrorAsExitCode : UpdateError => F[ExitCode],
+  runEitherTError : EitherT[F, PlaceError, *] ~> F,
+  createGlfwCallbacks : (HandleableEvent => F[Unit]) =>  skija.SkijaBackend.GlfwCallbacks[F[Unit], Float],
+  settings : WindowCreationSettings[Float],
 ): F[ExitCode] =
-  type PlacedWidget = SkijaPlacedWidget[F, Float, Clip, UpdateError, PlaceError, ApplicationRequest, HandleableEvent]
+  type PlacedWidget = SkijaPlacedWidget[F, Float, Clip, UpdateError, PlaceError, SkijaApplicationRequest, HandleableEvent]
 
   runApplicationLoopsWithBackend[
     F,
@@ -73,7 +72,7 @@ def skijaGlfwApp[
               F,
               PlacedWidget,
               SkijaPlaceT[F, Float, PlaceError],
-              SkijaUpdateT[F, Float, Clip, UpdateError, ApplicationRequest],
+              SkijaUpdateT[F, Float, Clip, UpdateError, SkijaApplicationRequest],
               SkijaRecomposition[F],
               HandleableEvent
             ](

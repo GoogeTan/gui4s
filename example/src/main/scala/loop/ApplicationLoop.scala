@@ -5,6 +5,7 @@ import cats.*
 import cats.effect.*
 import cats.effect.std.{Queue, QueueSink}
 import cats.syntax.all.*
+import cats.effect.syntax.all.*
 
 def runApplicationLoopsWithBackend[
   F[+_] : Async,
@@ -60,3 +61,30 @@ def runApplicationLoops[
     )
   yield code
 end runApplicationLoops
+
+/**
+ * Запускает в отдельных потоках обновление виджета и его отрисовку.
+ */
+def applicationLoop[
+  F[+_] : Concurrent,
+  DownEvent,
+  Widget
+](
+  eventBus     : Queue[F, DownEvent],
+  widgetCell   : Ref[F, Widget],
+  drawLoop     : DrawLoop[F, Widget],
+  updateLoop   : UpdateLoop[F, Widget, DownEvent]
+): F[ExitCode] =
+  for
+    initialWidget <- widgetCell.get
+    fork <-
+      Concurrent[F]
+        .race(
+          updateLoop(initialWidget, widgetCell.set, eventBus.take),
+          drawLoop(widgetCell.get)
+        )
+        .map(_.fold(identity, identity))
+        .start
+    code <- fork.joinWithNever
+  yield code
+end applicationLoop

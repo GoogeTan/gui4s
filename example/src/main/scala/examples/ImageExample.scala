@@ -7,7 +7,6 @@ import api.effects.{*, given}
 import api.widget.*
 import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwCatsApp}
 import skija.SkijaBackend
-import update.ApplicationRequest
 
 import catnip.ForeighFunctionInterface
 import catnip.cats.effect.SyncForeighFunctionInterface
@@ -67,7 +66,7 @@ object ImageExample extends IOApp:
     )
   end run
 
-  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[ApplicationRequest] =
+  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
     def eventCatcher[Event]: EventCatcherWithRect[
       Widget[Event],
       SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean],
@@ -178,7 +177,7 @@ object ImageExample extends IOApp:
     gapPadding(ffi)(
       Paddings(10f, 10f, 10f, 10f)
     )(
-      imageUrl[IO[Image], Widget[ApplicationRequest], Image](
+      imageUrl[IO[Image], Widget[SkijaApplicationRequest], Image](
         name = "image",
         resourceInit = resourceInit(_, preInit.globalSupervisor, _),
         imageSource = downloadImage("https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg"),

@@ -1,8 +1,8 @@
 package me.katze.gui4s.example
-package update
+package api.effects
 
 import cats.effect.ExitCode
 
-enum ApplicationRequest:
+enum SkijaApplicationRequest:
   case CloseApp(code : ExitCode)
-end ApplicationRequest
+end SkijaApplicationRequest
