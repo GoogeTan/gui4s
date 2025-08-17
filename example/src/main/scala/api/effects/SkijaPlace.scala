@@ -2,13 +2,13 @@ package me.katze.gui4s.example
 package api.effects
 
 import api.widget.{SizeText, TextCache, sizeTextFFI}
-import place.{RunPlacement, runPlaceStateT}
 
 import _root_.cats.data.{EitherT, StateT}
 import _root_.cats.syntax.all.*
 import _root_.cats.{FlatMap, Monad, MonadError, ~>}
 import catnip.*
 import catnip.syntax.additional.*
+import catnip.syntax.functionk.runStateT
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.bound.{Bounds, GetBounds, SetBounds}
@@ -38,8 +38,8 @@ object SkijaOuterPlace:
     StateT.liftF(EitherT.left(error.pure))
   end raiseError
 
-  def run[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds[MeasurementUnit]]) : RunPlacement[SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]] =
-    runPlaceStateT[EitherT[IO, PlaceError, *], MeasurementUnit](EitherT.liftF(bounds))
+  def run[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds[MeasurementUnit]]) : SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError] ~> EitherT[IO, PlaceError, *] =
+    runStateT[EitherT[IO, PlaceError, *], Bounds[MeasurementUnit]](EitherT.liftF(bounds))
   end run
 
   def getBounds[IO[_] : Monad, MeasurementUnit, PlaceError]: GetBounds[SkijaOuterPlace[IO, MeasurementUnit, PlaceError, *], MeasurementUnit] =
@@ -56,7 +56,7 @@ object SkijaOuterPlace:
 end SkijaOuterPlace
 
 object SkijaPlace:
-  def run[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds[MeasurementUnit]]) : RunPlacement[SkijaPlaceT[IO, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]] =
+  def run[IO[_] : Monad, MeasurementUnit, PlaceError](bounds : IO[Bounds[MeasurementUnit]]) : SkijaPlaceT[IO, MeasurementUnit, PlaceError] ~> EitherT[IO, PlaceError, *] =
     new ~>[SkijaPlaceT[IO, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]]:
       override def apply[A](fa : SkijaPlaceT[IO, MeasurementUnit, PlaceError][A]) : EitherT[IO, PlaceError, A] =
         SkijaOuterPlace.run(bounds)(fa.map(_.value))

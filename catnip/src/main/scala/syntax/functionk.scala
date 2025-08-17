@@ -1,9 +1,10 @@
 package catnip
 package syntax
 
-import cats.data.EitherT
+import catnip.syntax.additional.*
+import cats.data.{EitherT, StateT}
 import cats.syntax.all.{*, given}
-import cats.{Functor, MonadError, ~>}
+import cats.{FlatMap, Functor, MonadError, ~>}
 
 object functionk:
   given[F[_], G[_]]: Conversion[F ~> G, [T] => F[T] => G[T]] =
@@ -33,4 +34,12 @@ object functionk:
       end apply
     end new
   end eitherTMapError
+
+  def runStateT[IO[_] : FlatMap, State](bounds : IO[State]) : StateT[IO, State, *] ~> IO =
+    new ~>[StateT[IO, State, *], IO]:
+      override def apply[A](fa: StateT[IO, State, *][A]): IO[A] =
+        bounds.flatMap(fa.runA)
+      end apply
+    end new
+  end runStateT
 end functionk

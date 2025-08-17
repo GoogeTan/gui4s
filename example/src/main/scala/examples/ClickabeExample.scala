@@ -117,7 +117,7 @@ object ClickabeExample extends IOApp:
       linearLayout(
         mainAxis = Axis.Vertical,
         mainAxisStrategy = ManyElementsPlacementStrategy.Begin(0f),
-        additionalAxisStrategy = OneElementPlacementStrategy.Center(ENErrors.withCenterStrategy),
+        additionalAxisStrategy = OneElementPlacementStrategy.Center(ContainerPlacementError.English.withCenterStrategy),
         children = numbers.map:
           lineNumber =>
             statefulWidget[Int, Event, Unit](

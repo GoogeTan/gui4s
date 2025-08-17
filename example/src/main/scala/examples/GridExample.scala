@@ -77,14 +77,14 @@ object GridExample extends IOApp:
     def gridExample[Event](numbers : List[Int]) : Widget[Event] =
       linearContainer[Event](
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
+        mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ContainerPlacementError.English.withSpaceBetweenStrategy),
         additionalAxisStrategy = OneElementPlacementStrategy.Begin,
         children =
           numbers.map:
             lineIndex =>
               linearContainer[Event](
                 mainAxis = Axis.Horizontal,
-                mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ENErrors.withSpaceBetweenStrategy),
+                mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ContainerPlacementError.English.withSpaceBetweenStrategy),
                 additionalAxisStrategy = OneElementPlacementStrategy.Begin,
                 children =
                   numbers.map:
