@@ -27,6 +27,23 @@ final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : Measur
     end match
   end along
 
+  def mapAlong[T >: MeasurementUnit](axis: Axis, f : T  => T) : Rect[T] =
+    axis match
+      case Axis.Vertical =>
+        copy(
+          height = f(height)
+        )
+      case Axis.Horizontal =>
+        copy(
+          width = f(width)
+        )
+    end match
+  end mapAlong
+
+  def cut[T >: MeasurementUnit](width : T, height : T)(using N : Numeric[T]) : Rect[T] =
+    Rect(N.minus(this.width, width), N.minus(this.height, height))
+  end cut
+
   def asPoint2d : Point2d[MeasurementUnit] =
     Point2d(width, height)
   end asPoint2d

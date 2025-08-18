@@ -13,7 +13,6 @@ import io.github.humbleui.skija.Canvas
 import me.katze.gui4s.geometry.{Point2d, Rect}
 import me.katze.gui4s.glfw.*
 import me.katze.gui4s.glfw.GlfwWindow.*
-import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.draw.Drawable
 
@@ -31,8 +30,8 @@ final case class SkijaBackend[
 )(
   using val windowIsGlfwWindow : GlfwWindow[F, Window, Monitor, Float]
 ):
-  def windowBounds(using Functor[F]) : F[Bounds[Float]] =
-    window.frameBufferSize.map(a => new Bounds(a.width, a.height))
+  def windowBounds(using Functor[F]) : F[Rect[Float]] =
+    window.frameBufferSize
   end windowBounds
 
   def mousePosition : F[Point2d[Float]] =

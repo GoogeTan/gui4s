@@ -1,8 +1,7 @@
 package me.katze.gui4s.layout
 
 import cats.{Comonad, Eq}
-import cats.syntax.all.*
-import me.katze.gui4s.geometry.{Axis, Rect }
+import me.katze.gui4s.geometry.{Axis, Rect}
 
 type SizedT[MeasurementUnit] = [Value] =>> Sized[MeasurementUnit, Value]
 
@@ -10,10 +9,10 @@ final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementU
   def this(value : T, x : MeasurementUnit, y : MeasurementUnit) =
     this(value, Rect(x, y))
   end this
-  
+
   def width : MeasurementUnit = size.width
   def height : MeasurementUnit = size.height
-  
+
   def mapValue[B](f : T => B) : Sized[MeasurementUnit, B] =
     copy(value = f(value))
   end mapValue

@@ -1,9 +1,7 @@
 package me.katze.gui4s.layout
 package rowcolumn
 
-import bound.{Bounds, GetBounds, SetBounds}
-import rowcolumn.measureItems
-
+import catnip.Set.*
 import catnip.Zip
 import catnip.Zip.zip
 import cats.*
@@ -15,32 +13,35 @@ def rowColumnLayoutPlacement[
   Place[_] : Monad,
   Container[_] : {Traverse, Zip},
   Widget,
+  BoundUnit,
   MeasurementUnit : Numeric as MUN,
 ](
-  getBounds: Place[Bounds[MeasurementUnit]],
-  setBounds: SetBounds[Place, MeasurementUnit],
+  getBounds: Place[Rect[BoundUnit]],
+  setBounds: Rect[BoundUnit] => Place[Unit],
+  cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   mainAxis : Axis,
   children : Container[Place[Sized[MeasurementUnit, Widget]]],
-  elementsPlacement : ManyElementsPlacementStrategy[Place, Point2d[InfinityOr[MeasurementUnit]], Container, Point2d[MeasurementUnit]],
+  elementsPlacement : ManyElementsPlacementStrategy[Place, Point2d[BoundUnit], Container, Point2d[MeasurementUnit]],
 ) : Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, Widget]]]] =
   for
-    sizedItems <- measureItems[
-      Place,
-      Container,
-      MeasurementUnit,
-      Widget,
-    ](
+    initialBounds <- getBounds
+    sizedItems <- measureItemsDirty[Place, Container, Sized[MeasurementUnit, Widget]](
+      item => update(getBounds, setBounds)(_.mapAlong(mainAxis, cut(_, item.lengthAlong(mainAxis)))),
       children,
-      mainAxis,
-      getBounds,
-      setBounds,
     )
-    bounds <- getBounds
-    placedItems <- elementsPlacement(sizedItems.map(_.size.asPoint2d), bounds.asPoint2d)
+    _ <- setBounds(initialBounds)
+    placedItems <- elementsPlacement(sizedItems.map(_.size.asPoint2d), initialBounds.asPoint2d)
   yield Sized(
     sizedItems.zip(placedItems.coordinatesOfStarts).map(new Placed(_, _, MUN.zero)),
     new Rect(placedItems.coordinateOfEnd)
   )
 end rowColumnLayoutPlacement
 
-
+def measureItemsDirty[Measure[_] : Monad, Container[_] : Traverse, Item](updateBounds : Item => Measure[Unit], items : Container[Measure[Item]]) : Measure[Container[Item]] =
+  items.traverse(current =>
+    for
+      currentItem <- current
+      _ <- updateBounds(currentItem)
+    yield  currentItem
+  )
+end measureItemsDirty

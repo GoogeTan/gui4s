@@ -80,6 +80,7 @@ def paddingWidget[
     Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
     OuterPlace,
     Id,
+    InfinityOr[MeasurementUnit],
     MeasurementUnit,
     Axis
   ],

@@ -6,8 +6,8 @@ import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
 import cats.{Functor, Monad, ~>}
 import io.github.humbleui.skija.shaper.Shaper
+import me.katze.gui4s.geometry.{InfinityOr, Rect}
 import me.katze.gui4s.layout.{Sized, SizedT}
-import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
 
 type SizeText[Place[_]] = (text: String, options: SkijaTextStyle) => Place[SkijaPlacedText]
@@ -18,7 +18,7 @@ def sizeTextFFI[
   IO[_] : Functor, 
   Place[_] : Monad
 ](
-  getBounds : Place[Bounds[Float]],
+  getBounds : Place[Rect[InfinityOr[Float]]],
   ffi : ForeighFunctionInterface[IO],
   shaper: Shaper,
   cache : TextCache[IO],
@@ -29,12 +29,12 @@ def sizeTextFFI[
       bounds =>
         liftF(
           cache(
-            (text, options, bounds.horizontal.value),
+            (text, options, bounds.width.value),
             placeText(ffi = ffi,
               shaper = shaper,
               text = text,
               style = options,
-              maxWidth = bounds.horizontal.value
+              maxWidth = bounds.width.value
             ).map(placedText => new Sized(placedText.text, placedText.width, placedText.height))
           )
         )

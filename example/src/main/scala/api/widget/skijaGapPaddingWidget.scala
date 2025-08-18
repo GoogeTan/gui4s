@@ -6,7 +6,7 @@ import catnip.syntax.all.{*, given}
 import cats.kernel.Monoid
 import cats.{Id, Monad, Order}
 import me.katze.gui4s.example.api.effects.{*, given}
-import me.katze.gui4s.geometry.Point3d
+import me.katze.gui4s.geometry.{InfinityOr, Point3d, Rect}
 import me.katze.gui4s.layout.{Sized, SizedT}
 import me.katze.gui4s.skija.{SkijaDraw, drawAt}
 import me.katze.gui4s.widget.Path
@@ -28,11 +28,12 @@ def gapPadding[
 ) : PaddingWidget[
   SkijaPlace[
     IO,
+    InfinityOr[Float],
     Float,
     PlaceError,
     Widget[
       SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-      SkijaPlaceT[IO, Float, PlaceError],
+      SkijaPlaceT[IO, InfinityOr[Float], Float, PlaceError],
       SkijaDraw[IO],
       RecompositionReaction,
       DownEvent,
@@ -42,11 +43,12 @@ def gapPadding[
 ] =
   type Widget_ = SkijaPlace[
     IO,
+    InfinityOr[Float],
     Float,
     PlaceError,
     Widget[
       SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-      SkijaPlaceT[IO, Float, PlaceError],
+      SkijaPlaceT[IO, Rect[InfinityOr[Float]], Float, PlaceError],
       SkijaDraw[IO],
       RecompositionReaction,
       DownEvent,
@@ -54,7 +56,7 @@ def gapPadding[
   ]
   gapPaddingWidget[
     SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-    SkijaOuterPlaceT[IO, Float, PlaceError],
+    SkijaOuterPlaceT[IO, Rect[InfinityOr[Float]], PlaceError],
     SizedT[Float],
     SkijaDraw[IO],
     RecompositionReaction,
@@ -62,7 +64,7 @@ def gapPadding[
     Paddings[Float],
   ](
     paddings => [T] => place =>
-      SkijaOuterPlace.withBounds[IO, Float, PlaceError, Sized[Float, T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength)),
+      SkijaOuterPlace.withBounds[IO, Rect[InfinityOr[Float]], PlaceError, Sized[Float, T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength)),
     paddings => update => (path, event) =>
           SkijaUpdate.withCoordinates[IO, Float, Clip, UpdateError, Event, Widget_](update(path, event))(_ + new Point3d(paddings.topLeftCornerShift)),
     paddings => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),
