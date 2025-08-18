@@ -1,29 +1,30 @@
 package me.katze.gui4s.layout
 package rowcolumn
 
-import bound.{GetBounds, SetBounds}
+import bound.{Bounds, GetBounds, SetBounds}
 import rowcolumn.measureItems
 
+import catnip.Zip
+import catnip.Zip.zip
 import cats.*
-import me.katze.gui4s.geometry.Axis
+import cats.syntax.all.*
+import me.katze.gui4s.geometry.{Axis, InfinityOr, Point2d, Rect}
 import me.katze.gui4s.layout.{*, given}
 
 def rowColumnLayoutPlacement[
   Place[_] : Monad,
-  Container[_] : {Applicative, Traverse},
+  Container[_] : {Traverse, Zip},
   Widget,
-  MeasurementUnit : Numeric,
+  MeasurementUnit : Numeric as MUN,
 ](
-  getBounds: GetBounds[Place, MeasurementUnit],
+  getBounds: Place[Bounds[MeasurementUnit]],
   setBounds: SetBounds[Place, MeasurementUnit],
   mainAxis : Axis,
   children : Container[Place[Sized[MeasurementUnit, Widget]]],
-  mainAxisPlacement : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
-  additionalAxisPlacement : OneElementPlacementStrategy[Place, MeasurementUnit],
-  zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+  elementsPlacement : ManyElementsPlacementStrategy[Place, Point2d[InfinityOr[MeasurementUnit]], Container, Point2d[MeasurementUnit]],
 ) : Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, Widget]]]] =
-  Monad[Place].flatMap2(
-    measureItems[
+  for
+    sizedItems <- measureItems[
       Place,
       Container,
       MeasurementUnit,
@@ -33,18 +34,12 @@ def rowColumnLayoutPlacement[
       mainAxis,
       getBounds,
       setBounds,
-    ),
-    getBounds
-  )((sizedItems, bounds) =>
-    rowColumnPlace[Place, Container, MeasurementUnit, Widget](
-      elements = sizedItems,
-      mainAxis = mainAxis,
-      bounds = bounds,
-      mainAxisPlace = mainAxisPlacement,
-      crossAxisPlace = additionalAxisPlacement,
-      zLevel = Numeric[MeasurementUnit].zero,
-      zip = zip
     )
+    bounds <- getBounds
+    placedItems <- elementsPlacement(sizedItems.map(_.size.asPoint2d), bounds.asPoint2d)
+  yield Sized(
+    sizedItems.zip(placedItems.coordinatesOfStarts).map(new Placed(_, _, MUN.zero)),
+    new Rect(placedItems.coordinateOfEnd)
   )
 end rowColumnLayoutPlacement
 

@@ -3,7 +3,7 @@ package bound
 
 import me.katze
 import me.katze.gui4s
-import me.katze.gui4s.geometry.{Axis, InfinityOr, Rect}
+import me.katze.gui4s.geometry.{Axis, InfinityOr, Point2d, Rect}
 import me.katze.gui4s.{geometry, layout}
 
 final case class Bounds[+MeasurementUnit](horizontal : InfinityOr[MeasurementUnit], vertical : InfinityOr[MeasurementUnit]):
@@ -19,6 +19,10 @@ final case class Bounds[+MeasurementUnit](horizontal : InfinityOr[MeasurementUni
     this(InfinityOr(width), InfinityOr(height))
   end this
 
+  def asPoint2d : Point2d[InfinityOr[MeasurementUnit]] =
+    Point2d(horizontal, vertical)
+  end asPoint2d
+  
   def cutAlong[T >: MeasurementUnit](axis: Axis, amount : T)(using Numeric[T]) : Bounds[T] =
     axis match
       case Axis.Vertical => 

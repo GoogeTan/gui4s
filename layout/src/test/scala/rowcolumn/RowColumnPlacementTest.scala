@@ -80,7 +80,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Horizontal,
                 innerChildren,
-                ManyElementsPlacementStrategy.SpaceBetween(PlacementError.BadStrategyForInfiniteSizeContainer),
+                ManyElementsPlacementStrategy.SpaceBetween(),
                 OneElementPlacementStrategy.Begin
             )
         )
@@ -104,7 +104,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Vertical,
                 children,
-                ManyElementsPlacementStrategy.SpaceBetween(PlacementError.BadStrategyForInfiniteSizeContainer),
+                ManyElementsPlacementStrategy.SpaceBetween(),
                 OneElementPlacementStrategy.Begin
             ),
             new Bounds(bounds)

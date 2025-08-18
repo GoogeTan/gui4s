@@ -4,10 +4,10 @@ import catnip.syntax.additional.*
 import catnip.syntax.all.given
 import catnip.syntax.monad.MonadErrorT
 import cats.syntax.all.*
-import cats.{Comonad, Functor, Id}
+import cats.{Applicative, Comonad, Functor, Id}
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.layout.given
-import me.katze.gui4s.layout.rowcolumn.{OneElementPlacementStrategy, ManyElementsPlacementStrategy}
+import me.katze.gui4s.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 import me.katze.gui4s.widget.library.decorator.Decorator
 import me.katze.gui4s.widget.library.decorator.Decorator.given
 import me.katze.gui4s.widget.library.{LinearContainer, Widget, WidgetHandlesEvent}
@@ -50,33 +50,17 @@ def gapPaddingWidget[
     placementDecorator(paddings) |+| eventHandleDecorator(paddings) |+| drawDecorator(paddings)
 end gapPaddingWidget
 
-def paddingLayoutVerticalStrategy[
-  Place[_] : MonadErrorT[Error],
-  MeasurementUnit : Fractional as MUF,
-  Error
-](
-  paddings: Paddings[Padding[MeasurementUnit]],
-  error : Error
-) : ManyElementsPlacementStrategy[Place, Id, MeasurementUnit] =
-  (paddings.top, paddings.bottom) match
-    case (Padding.Gap(_), _)            => ManyElementsPlacementStrategy.Begin(MUF.zero)
-    case (Padding.Fill, Padding.Gap(_)) => ManyElementsPlacementStrategy.End(MUF.zero, error)
-    case (Padding.Fill, Padding.Fill)   => ManyElementsPlacementStrategy.Center(MUF.zero, error)
-end paddingLayoutVerticalStrategy
-
-def paddingLayoutHorizontalStrategy[
-  Place[_] : MonadErrorT[Error],
+def paddingLayoutPlacementStrategy[
+  Place[_] : Applicative,
   MeasurementUnit: Fractional,
-  Error
 ](
     paddings: Paddings[Padding[MeasurementUnit]],
-    error: Error
-): OneElementPlacementStrategy[Place, MeasurementUnit] =
+): OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit] =
   (paddings.left, paddings.right) match
-    case (Padding.Gap(_), _) => OneElementPlacementStrategy.Begin
-    case (Padding.Fill, Padding.Gap(_)) => OneElementPlacementStrategy.End(error)
-    case (Padding.Fill, Padding.Fill) => OneElementPlacementStrategy.Center(error)
-end paddingLayoutHorizontalStrategy
+    case (Padding.Gap(_), _) => OneElementPlacementStrategy.Begin[Place, MeasurementUnit, MeasurementUnit]
+    case (Padding.Fill, Padding.Gap(_)) => OneElementPlacementStrategy.End
+    case (Padding.Fill, Padding.Fill) => OneElementPlacementStrategy.Center
+end paddingLayoutPlacementStrategy
 
 def paddingWidget[
   Update[_],
@@ -105,10 +89,14 @@ def paddingWidget[
   Paddings[Padding[MeasurementUnit]]
 ] =
   paddings => widget =>
+    val placementStrategy = OneElementPlacementStrategy.ErrorIfInfinity(
+      paddingLayoutPlacementStrategy(paddings),
+      infinitePaddingInInfiniteContainer
+    )
     layout(       
       innerGaps(paddings.map(_.gapOrZero))(widget),
       Axis.Vertical,
-      paddingLayoutVerticalStrategy(paddings, infinitePaddingInInfiniteContainer),
-      paddingLayoutHorizontalStrategy(paddings, infinitePaddingInInfiniteContainer)
+      ManyElementsPlacementStrategy.OneByOne(placementStrategy),
+      placementStrategy
     )
 end paddingWidget

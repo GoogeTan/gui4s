@@ -11,5 +11,6 @@ object all:
   export applicative.{*, given}
   export monad.{*, given}
   export functionk.{*, given}
+  export zip.{*, given}
 end all
 

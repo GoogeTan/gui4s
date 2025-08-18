@@ -28,6 +28,7 @@ import scalacache.caffeine.CaffeineCache
 
 object GridExample extends IOApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
+  val containerErrors = ContainerPlacementError.English
 
   private type Widget[Event] = SkijaWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
 
@@ -70,22 +71,22 @@ object GridExample extends IOApp:
           ffi,
           [A : Order, B] => v => f => orderedListProcessing(v)(f),
         ),
-        [A, B] => (a, b) => a.zip(b)
       )
     end linearContainer
 
     def gridExample[Event](numbers : List[Int]) : Widget[Event] =
+      val spaceBetweenStrategy = ManyElementsPlacementStrategy.ErrorIfInfinity[SkijaOuterPlaceT[IO, Float, String], Float, List, String](ManyElementsPlacementStrategy.SpaceBetween, containerErrors.withSpaceBetweenStrategy)
       linearContainer[Event](
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ContainerPlacementError.English.withSpaceBetweenStrategy),
-        additionalAxisStrategy = OneElementPlacementStrategy.Begin,
+        mainAxisStrategy = spaceBetweenStrategy,
+        additionalAxisStrategy = OneElementPlacementStrategy.Begin[SkijaOuterPlaceT[IO, Float, String], InfinityOr[Float], Float],
         children =
           numbers.map:
             lineIndex =>
               linearContainer[Event](
                 mainAxis = Axis.Horizontal,
-                mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween(ContainerPlacementError.English.withSpaceBetweenStrategy),
-                additionalAxisStrategy = OneElementPlacementStrategy.Begin,
+                mainAxisStrategy = spaceBetweenStrategy,
+                additionalAxisStrategy = OneElementPlacementStrategy.Begin[SkijaOuterPlaceT[IO, Float, String], InfinityOr[Float], Float],
                 children =
                   numbers.map:
                     lineJindex =>

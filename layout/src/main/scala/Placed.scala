@@ -2,11 +2,15 @@ package me.katze.gui4s.layout
 
 import cats.Functor
 import me.katze
-import me.katze.gui4s.geometry.{Point3d, Rect}
+import me.katze.gui4s.geometry.{Point2d, Point3d, Rect}
 
 final case class Placed[+MeasurementUnit, +T](value : T, coordinate : Point3d[MeasurementUnit], size : Rect[MeasurementUnit]):
-  def this(sized : Sized[MeasurementUnit, T], coordinate : Point3d[MeasurementUnit]) = this(sized.value, coordinate, Rect(sized.width, sized.height))
-  def this(sized : Sized[MeasurementUnit, T], x : MeasurementUnit, y : MeasurementUnit, z : MeasurementUnit) = this(sized, Point3d(x, y, z))
+  def this(sized : Sized[MeasurementUnit, T], coordinate : Point3d[MeasurementUnit]) = 
+    this(sized.value, coordinate, Rect(sized.width, sized.height))
+  def this(sized : Sized[MeasurementUnit, T], coordinate : Point2d[MeasurementUnit], z : MeasurementUnit) = 
+    this(sized.value, new Point3d(coordinate, z), Rect(sized.width, sized.height))
+  def this(sized : Sized[MeasurementUnit, T], x : MeasurementUnit, y : MeasurementUnit, z : MeasurementUnit) = 
+    this(sized, Point3d(x, y, z))
 
   def x : MeasurementUnit = coordinate.x
   def y : MeasurementUnit = coordinate.y

@@ -31,6 +31,7 @@ import scalacache.caffeine.CaffeineCache
 
 object ClickabeExample extends IOApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
+  val containerPlacementError = ContainerPlacementError.English
 
   private type PlacedWidget[Event] = SkijaPlacedWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
   private type Widget[Event] = SkijaWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
@@ -109,15 +110,14 @@ object ClickabeExample extends IOApp:
         skijaContainer(ffi,
           [A : Order, B] => v => f => orderedListProcessing(v)(f)
         ),
-        [A, B] => (a, b) => a.zip(b)
       )
     end linearLayout
 
     def clickExample[Event](numbers : List[Int]): Widget[Event] =
       linearLayout(
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = ManyElementsPlacementStrategy.Begin(0f),
-        additionalAxisStrategy = OneElementPlacementStrategy.Center(ContainerPlacementError.English.withCenterStrategy),
+        mainAxisStrategy = ManyElementsPlacementStrategy.Begin[SkijaOuterPlaceT[IO, Float, String], InfinityOr[Float], List, Float](0f),
+        additionalAxisStrategy = OneElementPlacementStrategy.ErrorIfInfinity[SkijaOuterPlaceT[IO, Float, String], Float, String](OneElementPlacementStrategy.Center, ContainerPlacementError.English.withCenterStrategy),
         children = numbers.map:
           lineNumber =>
             statefulWidget[Int, Event, Unit](

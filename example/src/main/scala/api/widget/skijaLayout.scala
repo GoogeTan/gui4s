@@ -1,7 +1,7 @@
 package me.katze.gui4s.example
 package api.widget
 
-import catnip.ForeighFunctionInterface
+import catnip.{ForeighFunctionInterface, Zip}
 import catnip.syntax.all.given
 import cats.{Applicative, Monad, Order, Traverse}
 import me.katze.gui4s.example.{*, given}
@@ -18,10 +18,9 @@ def skijaLinearContainer[
   PlacedWidget,
   MeasurementUnit : Fractional,
   PlaceError,
-  Container[_] : {Applicative, Traverse}
+  Container[_] : {Applicative, Traverse, Zip}
 ](
   container : ContainerWidget[PlacedWidget, Container, SkijaPlaceT[IO, MeasurementUnit, PlaceError], Point3d[MeasurementUnit]],
-  zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
 ) : LinearContainer[
   SkijaPlace[IO, MeasurementUnit, PlaceError, PlacedWidget],
   SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError],
@@ -38,7 +37,6 @@ def skijaLinearContainer[
     container = container,
     getBounds = SkijaOuterPlace.getBounds,
     setBounds = SkijaOuterPlace.setBounds,
-    zip = zip
   )
 end skijaLinearContainer
 

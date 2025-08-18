@@ -1,9 +1,10 @@
 package me.katze.gui4s.widget.library
 
+import catnip.Zip
 import catnip.syntax.additional.*
 import cats.syntax.all.*
 import cats.{Applicative, Monad, Traverse}
-import me.katze.gui4s.geometry.{Axis, Point3d}
+import me.katze.gui4s.geometry.{Axis, InfinityOr, Point3d}
 import me.katze.gui4s.layout.bound.{GetBounds, SetBounds}
 import me.katze.gui4s.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy, rowColumnLayoutPlacement}
 import me.katze.gui4s.layout.{Placed, Sized}
@@ -19,21 +20,20 @@ trait LinearContainer[
   def apply(
               children               : Container[Widget],
               mainAxis               : Axis,
-              mainAxisStrategy       : ManyElementsPlacementStrategy[Place, Container, MeasurementUnit],
-              additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit],
+              mainAxisStrategy       : ManyElementsPlacementStrategy[Place, InfinityOr[MeasurementUnit], Container, MeasurementUnit],
+              additionalAxisStrategy : OneElementPlacementStrategy[Place, InfinityOr[MeasurementUnit], MeasurementUnit],
             ) : Widget
 end LinearContainer
 
 def linearContainer[
   PlacedWidget,
   Place[_] : Monad,
-  Container[_] : {Applicative as A, Traverse},
+  Container[_] : {Applicative as A, Traverse, Zip},
   MeasurementUnit : Numeric,
 ](
   container : ContainerWidget[PlacedWidget, Container, Place * Sized[MeasurementUnit, *], Point3d[MeasurementUnit]],
   getBounds: GetBounds[Place, MeasurementUnit],
-  setBounds: SetBounds[Place, MeasurementUnit],
-  zip : [A, B] => (Container[A], Container[B]) => Container[(A, B)]
+  setBounds: SetBounds[Place, MeasurementUnit]
 ) : LinearContainer[Place[Sized[MeasurementUnit, PlacedWidget]], Place, Container, MeasurementUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
@@ -46,9 +46,13 @@ def linearContainer[
           setBounds,
           mainAxis,
           freeChildren,
-          mainAxisStrategy,
-          additionalAxisStrategy,
-          zip
+          ManyElementsPlacementStrategy.Zip(
+            mainAxis,
+            mainAxisStrategy,
+            ManyElementsPlacementStrategy.OneByOne(
+              additionalAxisStrategy
+            )
+          )
         ).map(_.mapValue(elements => A.map(elements)(placedElementAsLayoutMetadata)))
     )
 end linearContainer

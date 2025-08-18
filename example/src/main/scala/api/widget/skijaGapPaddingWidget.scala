@@ -132,7 +132,6 @@ def padding[
         ffi,
         [A : Order, B] => (v : Id[A]) => (f : Id[A] => SkijaUpdate[IO, Float, Clip, UpdateError, Event, Id[B]]) => f(v),
       ),
-      [A, B] => (a, b) => (a, b)
     ),
     placeError
   )
