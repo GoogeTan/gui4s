@@ -64,7 +64,7 @@ def gapPadding[
     Paddings[Float],
   ](
     paddings => [T] => place =>
-      SkijaOuterPlace.withBounds[IO, Rect[InfinityOr[Float]], PlaceError, Sized[Float, T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength)),
+      SkijaOuterPlace.withBounds[IO, Rect[InfinityOr[Float]], PlaceError, Sized[Float, T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength, _.minus[Float](_))),
     paddings => update => (path, event) =>
           SkijaUpdate.withCoordinates[IO, Float, Clip, UpdateError, Event, Widget_](update(path, event))(_ + new Point3d(paddings.topLeftCornerShift)),
     paddings => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),

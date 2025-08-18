@@ -40,8 +40,8 @@ final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : Measur
     end match
   end mapAlong
 
-  def cut[T >: MeasurementUnit](width : T, height : T)(using N : Numeric[T]) : Rect[T] =
-    Rect(N.minus(this.width, width), N.minus(this.height, height))
+  def cut[T, K](width : T, height : T, cut : (MeasurementUnit, T) => K) : Rect[K] =
+    Rect(cut(this.width, width), cut(this.height, height))
   end cut
 
   def asPoint2d : Point2d[MeasurementUnit] =
