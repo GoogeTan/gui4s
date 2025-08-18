@@ -26,11 +26,22 @@ import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.library.*
 import scalacache.caffeine.CaffeineCache
 
-object GridExample extends IOApp:
+object GridExample extends IOApp with ExampleApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
   val containerErrors = ContainerPlacementError.English
 
-  private type Widget[Event] = SkijaWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
+  type UpdateError = String
+  type PlaceError = String
+
+  override type Update[Event, Value] = SkijaUpdate[IO, Float, SkijaClip, UpdateError, Event, Value]
+
+  type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
+  type InnerPlace[Value] = Sized[Float, Value]
+
+  override type Place[Value] = OuterPlace[InnerPlace[Value]]
+  override type Draw = SkijaDraw[IO]
+  override type RecompositionReaction = SkijaRecomposition[IO]
+  override type DownEvent = SkijaDownEvent[Float]
 
   type PreInit = (shaper : Shaper, globalTextCache : TextCache[IO])
 
@@ -65,7 +76,7 @@ object GridExample extends IOApp:
         skijaText(ffi, preInit.shaper, preInit.globalTextCache)
     end text
 
-    def linearContainer[Event] : LinearContainer[Widget[Event], SkijaOuterPlaceT[IO, Float, String], List, Float, Axis] =
+    def linearContainer[Event] : LinearContainer[Widget[Event], SkijaOuterPlaceT[IO, Float, String], List, Float, Float, Axis] =
       skijaLinearContainer(
         skijaContainer(
           ffi,

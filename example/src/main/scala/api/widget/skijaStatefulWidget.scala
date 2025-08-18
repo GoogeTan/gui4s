@@ -22,16 +22,17 @@ def skijaStateful[
   RecompositionReaction: Monoid as RRM,
   HandleableEvent,
   PlaceError,
+  Bounds,
   MeasurementUnit,
 ](
     typecheckError: (Any, Path) => PlaceError,
 ) : StatefulWidget[
-  [Event] =>> SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
+  [Event] =>> SkijaPlace[F, Bounds, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, Bounds, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
   Update,
   [Value] =>> Value => RecompositionReaction
 ] =
   new StatefulWidget[
-    [Event] =>> SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
+    [Event] =>> SkijaPlace[F, Bounds, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, Bounds, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
     Update,
     [Value] =>> Value => RecompositionReaction
   ]:
@@ -43,12 +44,12 @@ def skijaStateful[
       name: String,
       initialState: State,
       eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
-      body: State => SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[ChildEvent, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
+      body: State => SkijaPlace[F, Bounds, MeasurementUnit, PlaceError, Widget[Update[ChildEvent, *], SkijaPlaceT[F, Bounds, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]],
       destructor : State => RecompositionReaction
-    ): SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]] =
+    ): SkijaPlace[F, Bounds, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, Bounds, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]] =
       library.stateful[
         Update,
-        SkijaPlaceT[F, MeasurementUnit, PlaceError],
+        SkijaPlaceT[F, Bounds, MeasurementUnit, PlaceError],
         Draw,
         RecompositionReaction,
         HandleableEvent,
@@ -58,14 +59,14 @@ def skijaStateful[
       ](
         widgetsAreMergeable = widgetsAreMergable[
           Update[ChildEvent, *],
-          SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
+          SkijaOuterPlaceT[F, Bounds, PlaceError],
           SizedT[MeasurementUnit],
           Draw,
           RecompositionReaction,
           HandleableEvent
         ],
-        typeCheckState = [T] => (value: Any, path: Path, callback: StatefulState[State] => SkijaPlace[F, MeasurementUnit, PlaceError, T]) =>
-          typecheckState[SkijaOuterPlaceT[F, MeasurementUnit, PlaceError], State](value, SkijaOuterPlace.raiseError(typecheckError(value, path)))
+        typeCheckState = [T] => (value: Any, path: Path, callback: StatefulState[State] => SkijaPlace[F, Bounds, MeasurementUnit, PlaceError, T]) =>
+          typecheckState[SkijaOuterPlaceT[F, Bounds, PlaceError], State](value, SkijaOuterPlace.raiseError(typecheckError(value, path)))
             .flatMap(callback)
       )(
         name = name,
@@ -80,8 +81,8 @@ def skijaStateful[
                                                             name: String,
                                                             initialState: State,
                                                             eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
-                                                            body: State => SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[ChildEvent, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]]
-                                                          ): SkijaPlace[F, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]] =
+                                                            body: State => SkijaPlace[F, Bounds, MeasurementUnit, PlaceError, Widget[Update[ChildEvent, *], SkijaPlaceT[F, Bounds, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]]
+                                                          ): SkijaPlace[F, Bounds, MeasurementUnit, PlaceError, Widget[Update[Event, *], SkijaPlaceT[F, Bounds, MeasurementUnit, PlaceError], Draw, RecompositionReaction, HandleableEvent]] =
       this(name, initialState, eventHandler, body, _ => RRM.empty)
     end apply
   end new

@@ -9,6 +9,7 @@ import catnip.syntax.all.given
 import cats.{Functor, Monad, Monoid}
 import io.github.humbleui.skija.shaper.Shaper
 import me.*
+import me.katze.gui4s.geometry.{InfinityOr, Rect}
 import me.katze.gui4s.skija.{SkijaDraw, SkijaPlacedText, SkijaTextStyle, drawText}
 import me.katze.gui4s.widget.library.Widget
 
@@ -24,11 +25,19 @@ def skijaText[
   ffi : ForeighFunctionInterface[IO],
   shaper : Shaper,
   textCache : TextCache[IO],
-) : TextWidget[SkijaPlace[IO, Float, PlaceError, Widget[Update, SkijaPlaceT[IO, Float, PlaceError], SkijaDraw[IO], RecompositionReaction, HandlableEvent]]] =
+) : TextWidget[
+  SkijaPlace[
+    IO,
+    Rect[InfinityOr[Float]],
+    Float,
+    PlaceError,
+    Widget[Update, SkijaPlaceT[IO, Rect[InfinityOr[Float]], Float, PlaceError], SkijaDraw[IO], RecompositionReaction, HandlableEvent]
+  ]
+] =
   (text : String, style : SkijaTextStyle) =>
     me.katze.gui4s.widget.library.text[
       Update,
-      SkijaPlaceT[IO, Float, PlaceError],
+      SkijaPlaceT[IO, Rect[InfinityOr[Float]], Float, PlaceError],
       SkijaDraw[IO],
       RecompositionReaction,
       HandlableEvent,

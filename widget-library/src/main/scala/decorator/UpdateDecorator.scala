@@ -39,23 +39,23 @@ end updateDecorator
 
 def updateDecoratorWithRect[
   Update[_] : Functor as UF,
-  Place[_] : Functor as PF,
+  OuterPlace[_] : Functor as PF,
   InnerPlace[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
 ] : UpdateDecorator[
   Update,
-  Place,
-  InnerPlace[Widget[Update, [Value] =>> Place[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]],
+  OuterPlace,
+  InnerPlace[Widget[Update, [Value] =>> OuterPlace[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]],
   HandleableEvent
 ] =
   decorator => original => PF.map(original)(_.coflatMap(
       sizedWidget =>
         Widget.ValueWrapper[
-          InnerPlace[Widget[Update, [Value] =>> Place[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]],
+          InnerPlace[Widget[Update, [Value] =>> OuterPlace[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]],
           Update,
-          [Value] =>> Place[InnerPlace[Value]],
+          [Value] =>> OuterPlace[InnerPlace[Value]],
           Draw,
           RecompositionReaction,
           HandleableEvent

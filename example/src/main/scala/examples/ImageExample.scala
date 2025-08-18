@@ -30,11 +30,21 @@ import scalacache.caffeine.CaffeineCache
 
 import scala.reflect.Typeable
 
-object ImageExample extends IOApp:
+object ImageExample extends IOApp with ExampleApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
 
-  private type PlacedWidget[Event] = SkijaPlacedWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
-  private type Widget[Event] = SkijaWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
+  type UpdateError = String
+  type PlaceError = String
+
+  override type Update[Event, Value] = SkijaUpdate[IO, Float, SkijaClip, UpdateError, Event, Value]
+
+  type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
+  type InnerPlace[Value] = Sized[Float, Value]
+
+  override type Place[Value] = OuterPlace[InnerPlace[Value]]
+  override type Draw = SkijaDraw[IO]
+  override type RecompositionReaction = SkijaRecomposition[IO]
+  override type DownEvent = SkijaDownEvent[Float]
 
   type PreInit = (dispatcher : Dispatcher[IO], globalSupervisor : Supervisor[IO], shaper : Shaper, globalTextCache : TextCache[IO])
 
@@ -48,25 +58,27 @@ object ImageExample extends IOApp:
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaGlfwCatsApp(
+    skijaGlfwApp(
       preInit = preInit,
-      widget = main(_),
+      main = main,
       updateLoopExecutionContext = this.runtime.compute,
       drawLoopExecutionContext = MainThread,
-      updateErrorAsThrowable = (errorText : String) => new Exception(errorText),
-      placeErrorAsThrowable = (errorText : String) => new Exception(errorText),
-      createGlfwCallbacks = eventOfferingCallbacks,
       settings = WindowCreationSettings(
         title = "Gui4s image widget example",
         size = Rect(620f, 480f),
         visible = true,
         resizeable = true,
         debugContext = true
-      )
+      ),
+      ffi = ffi,
+      callbacks = SkijaDownEvent.eventOfferingCallbacks(_),
+      runUpdate = SkijaUpdate.handleApplicationRequests(error => IO.println(error).as(ExitCode.Error)),
+      runPlace = ???,
+      runDraw = ???
     )
   end run
 
-  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
+  def main(preInit : PreInit, backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
     def eventCatcher[Event]: EventCatcherWithRect[
       Widget[Event],
       SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean],
@@ -82,7 +94,7 @@ object ImageExample extends IOApp:
     extension[Event](value : Widget[Event])
       def mapEvent[NewEvent](f : Event => NewEvent) : Widget[NewEvent] =
         skijaMapEvent[
-          IO, Float, SkijaClip, String, SkijaPlaceT[IO, Float, String], SkijaDraw[IO], SkijaRecomposition[IO], SkijaDownEvent[Float]
+          IO, Float, SkijaClip, String, SkijaPlaceT[IO, Rect[Float], Float, String], SkijaDraw[IO], SkijaRecomposition[IO], SkijaDownEvent[Float]
         ](value)(f)
       end mapEvent
 

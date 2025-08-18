@@ -28,12 +28,12 @@ def gapPadding[
 ) : PaddingWidget[
   SkijaPlace[
     IO,
-    InfinityOr[Float],
+    Rect[InfinityOr[Float]],
     Float,
     PlaceError,
     Widget[
       SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-      SkijaPlaceT[IO, InfinityOr[Float], Float, PlaceError],
+      SkijaPlaceT[IO, Rect[InfinityOr[Float]], Float, PlaceError],
       SkijaDraw[IO],
       RecompositionReaction,
       DownEvent,
@@ -43,7 +43,7 @@ def gapPadding[
 ] =
   type Widget_ = SkijaPlace[
     IO,
-    InfinityOr[Float],
+    Rect[InfinityOr[Float]],
     Float,
     PlaceError,
     Widget[
@@ -85,11 +85,12 @@ def padding[
 ) : PaddingWidget[
   SkijaPlace[
     IO,
+    Rect[InfinityOr[Float]],
     Float,
     PlaceError,
     Widget[
       SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-      SkijaPlaceT[IO, Float, PlaceError],
+      SkijaPlaceT[IO, Rect[InfinityOr[Float]], Float, PlaceError],
       SkijaDraw[IO],
       RecompositionReaction,
       DownEvent,
@@ -99,8 +100,8 @@ def padding[
 ] =
   paddingWidget[
     SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-    SkijaOuterPlaceT[IO, Float, PlaceError],
-    SkijaPlaceT[IO, Float, PlaceError],
+    SkijaOuterPlaceT[IO, Rect[InfinityOr[Float]], PlaceError],
+    SkijaPlaceT[IO, Rect[InfinityOr[Float]], Float, PlaceError],
     SkijaDraw[IO],
     RecompositionReaction,
     DownEvent,
@@ -112,11 +113,12 @@ def padding[
       IO,
       Widget[
         SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-        SkijaPlaceT[IO, Float, PlaceError],
+        SkijaPlaceT[IO, Rect[InfinityOr[Float]], Float, PlaceError],
         SkijaDraw[IO],
         RecompositionReaction,
         DownEvent,
       ],
+      InfinityOr[Float],
       Float,
       PlaceError,
       Id,
@@ -129,11 +131,13 @@ def padding[
         Event,
         DownEvent,
         RecompositionReaction,
-        Id
+        Id,
+        Rect[InfinityOr[Float]]
       ](
         ffi,
         [A : Order, B] => (v : Id[A]) => (f : Id[A] => SkijaUpdate[IO, Float, Clip, UpdateError, Event, Id[B]]) => f(v),
       ),
+      _.minus(_)
     ),
     placeError
   )

@@ -5,7 +5,7 @@ import api.*
 import api.effects.SkijaDownEvent.{eventOfferingCallbacks, extractMouseClickEvent}
 import api.effects.{*, given}
 import api.widget.*
-import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwCatsApp}
+import app.{skijaGlfwCatsApp}
 import place.*
 import skija.SkijaBackend
 
@@ -29,12 +29,22 @@ import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.library.decorator.*
 import scalacache.caffeine.CaffeineCache
 
-object ClickabeExample extends IOApp:
+object ClickabeExample extends IOApp with ExampleApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
   val containerPlacementError = ContainerPlacementError.English
 
-  private type PlacedWidget[Event] = SkijaPlacedWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
-  private type Widget[Event] = SkijaWidget[IO, Float, SkijaClip, String, String, Event, SkijaDownEvent[Float]]
+  type UpdateError = String
+  type PlaceError = String
+
+  override type Update[Event, Value] = SkijaUpdate[IO, Float, SkijaClip, UpdateError, Event, Value]
+
+  type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
+  type InnerPlace[Value] = Sized[Float, Value]
+
+  override type Place[Value] = OuterPlace[InnerPlace[Value]]
+  override type Draw = SkijaDraw[IO]
+  override type RecompositionReaction = SkijaRecomposition[IO]
+  override type DownEvent = SkijaDownEvent[Float]
 
   type PreInit = (shaper : Shaper, globalTextCache : TextCache[IO])
 
@@ -46,7 +56,13 @@ object ClickabeExample extends IOApp:
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaGlfwCatsApp(
+    skijaGlfwCatsApp[
+      SkijaClip,
+      UpdateError,
+      PlaceError,
+      DownEvent,
+      PreInit
+    ](
       preInit = preInit,
       widget = main(_),
       updateLoopExecutionContext = this.runtime.compute,
@@ -64,14 +80,29 @@ object ClickabeExample extends IOApp:
     )
   end run
 
-  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
+  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Widget[SkijaApplicationRequest] =
+    def updateDecorator[Event]: UpdateDecorator[
+      UpdateC[Event],
+      OuterPlace,
+      InnerPlace[PlacedWidget[Event]],
+      DownEvent
+    ] = updateDecoratorWithRect[
+      UpdateC[Event], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent
+    ]
+
     def eventCatcher[Event]: EventCatcherWithRect[
       Widget[Event],
-      SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean],
-      Sized[Float, PlacedWidget[Event]],
-      SkijaDownEvent[Float]
-    ] = eventCatcherWithRect(
-      updateDecoratorWithRect,
+      Update[Event, Boolean],
+      InnerPlace[PlacedWidget[Event]],
+      DownEvent
+    ] = eventCatcherWithRect[
+      PlacedWidget[Event],
+      UpdateC[Event],
+      OuterPlace,
+      InnerPlace,
+      DownEvent
+    ](
+      updateDecorator,
       SkijaUpdate.markEventHandled,
       widgetAsFree,
       widgetHandlesEvent
@@ -84,10 +115,10 @@ object ClickabeExample extends IOApp:
           Float,
           SkijaClip,
           String,
-          SkijaPlaceT[IO, Float, String],
-          SkijaDraw[IO],
-          SkijaRecomposition[IO],
-          SkijaDownEvent[Float],
+          Place[String],
+          Draw,
+          RecompositionReaction,
+          DownEvent,
           Event
         ](
           eventCatcher,
@@ -105,7 +136,7 @@ object ClickabeExample extends IOApp:
         skijaText(ffi, preInit.shaper, preInit.globalTextCache)
     end text
 
-    def linearLayout[Event] : LinearContainer[Widget[Event], SkijaOuterPlaceT[IO, Float, String], List, Float, Axis] =
+    def linearLayout[Event] : LinearContainer[Widget[Event], SkijaOuterPlaceT[IO, Float, String], List, Float, Float, Axis] =
       skijaLinearContainer(
         skijaContainer(ffi,
           [A : Order, B] => v => f => orderedListProcessing(v)(f)
@@ -116,8 +147,8 @@ object ClickabeExample extends IOApp:
     def clickExample[Event](numbers : List[Int]): Widget[Event] =
       linearLayout(
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = ManyElementsPlacementStrategy.Begin[SkijaOuterPlaceT[IO, Float, String], InfinityOr[Float], List, Float](0f),
-        additionalAxisStrategy = OneElementPlacementStrategy.ErrorIfInfinity[SkijaOuterPlaceT[IO, Float, String], Float, String](OneElementPlacementStrategy.Center, ContainerPlacementError.English.withCenterStrategy),
+        mainAxisStrategy = ManyElementsPlacementStrategy.Begin[SkijaOuterPlaceT[IO, Float, String], Float, List, Float](0f),
+        additionalAxisStrategy = OneElementPlacementStrategy.Center,
         children = numbers.map:
           lineNumber =>
             statefulWidget[Int, Event, Unit](

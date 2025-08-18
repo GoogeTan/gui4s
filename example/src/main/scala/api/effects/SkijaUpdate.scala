@@ -47,6 +47,10 @@ object SkijaUpdate:
       liftStateTCatchEvents[[A, B] =>> WriterT[IO, List[A], B], UpdateEffectState[MeasurementUnit, Clip]](using writerIsBiMonad)
     )
 
+  def run[IO[_] : Monad, MeasurementUnit : Numeric, Clip : Monoid, UpdateError, Event, Value](value : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Value]) : IO[(List[Event], Either[UpdateError, Value])] =
+    value.value.runA(UpdateEffectState.empty).run
+  end run
+
   def liftF[IO[_] : Monad, MeasurementUnit, Clip, UpdateError, Event, Value](io : IO[Value]) : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Value] =
     liftK(io)
   end liftF

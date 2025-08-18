@@ -8,7 +8,7 @@ import me.katze.gui4s.example.{*, given}
 import api.effects.{*, given}
 
 import cats.kernel.Monoid
-import me.katze.gui4s.geometry.{Axis, Point3d}
+import me.katze.gui4s.geometry.{Axis, Point3d, Rect}
 import me.katze.gui4s.layout.given
 import me.katze.gui4s.skija.{SkijaDraw, drawAt}
 import me.katze.gui4s.widget.library.*
@@ -16,27 +16,32 @@ import me.katze.gui4s.widget.library.*
 def skijaLinearContainer[
   IO[_] : {Monad},
   PlacedWidget,
+  BoundUnit,
   MeasurementUnit : Fractional,
   PlaceError,
   Container[_] : {Applicative, Traverse, Zip}
 ](
-  container : ContainerWidget[PlacedWidget, Container, SkijaPlaceT[IO, MeasurementUnit, PlaceError], Point3d[MeasurementUnit]],
+  container : ContainerWidget[PlacedWidget, Container, SkijaPlaceT[IO, Rect[BoundUnit], MeasurementUnit, PlaceError], Point3d[MeasurementUnit]],
+  cut : (BoundUnit, MeasurementUnit) => BoundUnit
 ) : LinearContainer[
-  SkijaPlace[IO, MeasurementUnit, PlaceError, PlacedWidget],
-  SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError],
+  SkijaPlace[IO, Rect[BoundUnit], MeasurementUnit, PlaceError, PlacedWidget],
+  SkijaOuterPlaceT[IO, Rect[BoundUnit], PlaceError],
   Container,
+  BoundUnit,
   MeasurementUnit,
   Axis
 ] =
   linearContainer[
     PlacedWidget,
-    SkijaOuterPlaceT[IO, MeasurementUnit, PlaceError],
+    SkijaOuterPlaceT[IO, Rect[BoundUnit], PlaceError],
     Container,
+    BoundUnit,
     MeasurementUnit,
   ](
     container = container,
     getBounds = SkijaOuterPlace.getBounds,
     setBounds = SkijaOuterPlace.setBounds,
+    cut = cut
   )
 end skijaLinearContainer
 
@@ -48,20 +53,21 @@ def skijaContainer[
   Event,
   DownEvent,
   RecompositionReaction : Monoid,
-  Container[_] : {Traverse}
+  Container[_] : {Traverse},
+  Bounds,
 ](
   ffi : ForeighFunctionInterface[IO],
   updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => SkijaUpdate[IO, Float, Clip, UpdateError, Event, Container[B]]) => SkijaUpdate[IO, Float, Clip, UpdateError, Event, Container[B]]
 ) : ContainerWidget[
   Widget[
         SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
-        SkijaPlaceT[IO, Float, PlaceError],
+        SkijaPlaceT[IO, Bounds, Float, PlaceError],
         SkijaDraw[IO],
         RecompositionReaction,
         DownEvent,
   ],
   Container,
-  SkijaPlaceT[IO, Float, PlaceError],
+  SkijaPlaceT[IO, Bounds, Float, PlaceError],
   Point3d[Float]
 ] =
   given Order[Point3d[Float]] = Order.by(_.z)

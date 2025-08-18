@@ -12,7 +12,8 @@ import me.katze.gui4s.widget.merge.containerMergesWithOldStates
 import me.katze.gui4s.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
 import me.katze.gui4s.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}
 
-type ContainerWidget[PlacedWidget, Container[_], Place[_], Meta] = (children : Container[Place[PlacedWidget]], layout : Layout[Place, Container, PlacedWidget, Meta]) => Place[PlacedWidget]
+type ContainerWidget[PlacedWidget, Container[_], Place[_], Meta] = 
+  (children : Container[Place[PlacedWidget]], layout : Layout[Place, Container, PlacedWidget, Meta]) => Place[PlacedWidget]
 
 def container[
   Update[_] : Monad,

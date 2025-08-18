@@ -32,20 +32,21 @@ def image[
   IO[_] : Monad,
   Update[_] : Monad,
   RecompositionReaction : Monoid,
+  Bounds,
   DownEvent,
   PlaceError
 ](
   image: Image,
   ffi : ForeighFunctionInterface[IO]
-) : SkijaPlace[IO, Float, PlaceError, Widget[Update, SkijaPlaceT[IO, Float, PlaceError], SkijaDraw[IO], RecompositionReaction, DownEvent]] =
+) : SkijaPlace[IO, Bounds, Float, PlaceError, Widget[Update, SkijaPlaceT[IO, Bounds, Float, PlaceError], SkijaDraw[IO], RecompositionReaction, DownEvent]] =
   drawOnlyWidget[
     Update,
-    SkijaPlaceT[IO, Float, PlaceError],
+    SkijaPlaceT[IO, Bounds, Float, PlaceError],
     SkijaDraw[IO],
     RecompositionReaction,
     DownEvent,
   ](
-    Sized(drawImage(ffi, image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[SkijaOuterPlaceT[IO, Float, PlaceError]],
+    Sized(drawImage(ffi, image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[SkijaOuterPlaceT[IO, Bounds, PlaceError]],
     Monoid[RecompositionReaction].empty,
   )
 end image

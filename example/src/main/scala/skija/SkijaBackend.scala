@@ -166,16 +166,17 @@ object SkijaBackend:
 end SkijaBackend
 
 def skijaDrawLoop[
-  F[+_] : {Console, ForeighFunctionInterface},
+  F[+_] : Console,
+  Draw,
   Widget
 ](
-    widgetIsDrawable : Drawable[Widget, SkijaDraw[F]],
+    widgetIsDrawable : Drawable[Widget, Draw],
     shouldContinue : F[Boolean],
-    drawFrame : (Canvas => F[Unit]) => F[Unit]
+    drawFrame : Draw => F[Unit]
 )(using MonadError[F, Throwable]) : DrawLoop[F, Widget] =
   currentWidget =>
     drawLoop(drawLoopExceptionHandler, shouldContinue)(
-      currentWidget.flatMap(widget => drawFrame((clear[F] |+| widgetIsDrawable(widget)).run))
+      currentWidget.flatMap(widget => drawFrame(widgetIsDrawable(widget)))
     ).map(_.getOrElse(ExitCode.Success))
 end skijaDrawLoop
 
