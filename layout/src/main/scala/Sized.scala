@@ -4,6 +4,8 @@ import cats.{Comonad, Eq}
 import cats.syntax.all.*
 import me.katze.gui4s.geometry.{Axis, Rect }
 
+type SizedT[MeasurementUnit] = [Value] =>> Sized[MeasurementUnit, Value]
+
 final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementUnit]):
   def this(value : T, x : MeasurementUnit, y : MeasurementUnit) =
     this(value, Rect(x, y))
@@ -15,10 +17,6 @@ final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementU
   def mapValue[B](f : T => B) : Sized[MeasurementUnit, B] =
     copy(value = f(value))
   end mapValue
-
-  def withSize[NewMeasurementUnit](newSize : Rect[NewMeasurementUnit]) : Sized[NewMeasurementUnit, T] =
-    Sized(value, newSize)
-  end withSize
 
   /**
    * Возвращает ширину вдоль оси
@@ -40,7 +38,7 @@ object Sized:
     Eq.by(x => (x.value, x.size))
   end sizedEq
 
-  given[MeasurementUnit]: Comonad[Sized[MeasurementUnit, *]] with
+  given[MeasurementUnit]: Comonad[SizedT[MeasurementUnit]] with
     override def coflatMap[A, B](fa: Sized[MeasurementUnit, A])(f: Sized[MeasurementUnit, A] => B): Sized[MeasurementUnit, B] =
       fa.mapValue(_ => f(fa))
     end coflatMap

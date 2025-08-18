@@ -7,7 +7,7 @@ import cats.kernel.Monoid
 import cats.{Id, Monad, Order}
 import me.katze.gui4s.example.api.effects.{*, given}
 import me.katze.gui4s.geometry.Point3d
-import me.katze.gui4s.layout.Sized
+import me.katze.gui4s.layout.{Sized, SizedT}
 import me.katze.gui4s.skija.{SkijaDraw, drawAt}
 import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.library.{Widget, WidgetHandlesEvent}
@@ -55,7 +55,7 @@ def gapPadding[
   gapPaddingWidget[
     SkijaUpdateT[IO, Float, Clip, UpdateError, Event],
     SkijaOuterPlaceT[IO, Float, PlaceError],
-    Sized[Float, *],
+    SizedT[Float],
     SkijaDraw[IO],
     RecompositionReaction,
     DownEvent,

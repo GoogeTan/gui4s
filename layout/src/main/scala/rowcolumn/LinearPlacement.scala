@@ -18,12 +18,6 @@ def updateBoundsWithSizedItem[Place[_], MeasurementUnit : Numeric, T](
   updateBounds(_.cutAlong(mainAxis, sized.lengthAlong(mainAxis)))
 end updateBoundsWithSizedItem
 
-def sizeItems[MeasurementUnit : Numeric, T](items : List[Placed[MeasurementUnit, T]]) : Sized[MeasurementUnit, List[Placed[MeasurementUnit, T]]] =
-  val width = items.map(_.endX).maxOption.getOrElse(Numeric[MeasurementUnit].zero)
-  val height = items.map(_.endY).maxOption.getOrElse(Numeric[MeasurementUnit].zero)
-  new Sized(items, width, height)
-end sizeItems
-
 def measureItems[
   Place[_] : Monad,
   Container[_] : Traverse,

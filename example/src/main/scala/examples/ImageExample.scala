@@ -21,7 +21,7 @@ import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
-import me.katze.gui4s.layout.Sized
+import me.katze.gui4s.layout.{Sized, SizedT}
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.library.decorator.*
@@ -91,7 +91,7 @@ object ImageExample extends IOApp:
           IO,
           String,
           SkijaOuterPlaceT[IO, Float, String],
-          Sized[Float, *],
+          SizedT[Float],
           SkijaRecomposition[IO],
           SkijaDownEvent[Float],
           Event

@@ -8,7 +8,7 @@ import catnip.syntax.all.{*, given}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.{Applicative, Bimonad, Monad, Monoid}
-import me.katze.gui4s.layout.{Sized, given}
+import me.katze.gui4s.layout.{Sized, SizedT, given}
 import me.katze.gui4s.widget.handle.HandlesEventF
 import me.katze.gui4s.widget.library.{StatefulWidget, Widget, widgetsAreMergable}
 import me.katze.gui4s.widget.{CatchEvents, Path, StatefulState, library}
@@ -59,7 +59,7 @@ def skijaStateful[
         widgetsAreMergeable = widgetsAreMergable[
           Update[ChildEvent, *],
           SkijaOuterPlaceT[F, MeasurementUnit, PlaceError],
-          Sized[MeasurementUnit, *],
+          SizedT[MeasurementUnit],
           Draw,
           RecompositionReaction,
           HandleableEvent

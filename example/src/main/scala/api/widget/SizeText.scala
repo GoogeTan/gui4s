@@ -6,7 +6,7 @@ import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
 import cats.{Functor, Monad, ~>}
 import io.github.humbleui.skija.shaper.Shaper
-import me.katze.gui4s.layout.Sized
+import me.katze.gui4s.layout.{Sized, SizedT}
 import me.katze.gui4s.layout.bound.Bounds
 import me.katze.gui4s.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
 
@@ -23,7 +23,7 @@ def sizeTextFFI[
   shaper: Shaper,
   cache : TextCache[IO],
   liftF : IO ~> Place
-) : SizeText[Place * Sized[Float, *]] =
+) : SizeText[Place * SizedT[Float]] =
   (text: String, options: SkijaTextStyle) =>
     getBounds.flatMap:
       bounds =>

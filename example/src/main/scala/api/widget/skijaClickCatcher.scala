@@ -25,7 +25,7 @@ def skijaClickCatcher[
   eventCatcher: EventCatcherWithRect[
     Place[Widget[SkijaUpdateT[IO, MeasurementUnit, Clip, UpdateError, Event], Place, Draw, RecompositionReaction, DownEvent]],
     SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Boolean],
-    Sized[MeasurementUnit, Any],
+    Sized[MeasurementUnit, Any], // TODO убрать Any
     DownEvent
   ],
   extractMouseClickEvent : DownEvent => Option[Unit],
