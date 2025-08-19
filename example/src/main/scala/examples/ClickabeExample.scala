@@ -25,11 +25,13 @@ import me.katze.gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 import me.katze.gui4s.skija.*
-import me.katze.gui4s.widget.Path
+import me.katze.gui4s.widget.{Path, StatefulState, library}
+import me.katze.gui4s.widget.handle.HandlesEventF
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.library
 import me.katze.gui4s.widget.library.decorator.*
 import scalacache.caffeine.CaffeineCache
+
+import scala.reflect.Typeable
 
 object ClickabeExample extends IOApp with ExampleApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
@@ -131,9 +133,46 @@ object ClickabeExample extends IOApp with ExampleApp:
       end onClick
     end extension
 
-    def statefulWidget: StatefulWidget[Widget, SkijaUpdate[IO, Float, SkijaClip, String, *, *], [Value] =>> Value => SkijaRecomposition[IO]] = skijaStateful(
-      (value: Any, path: Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"
-    )
+    def statefulWidget : StatefulWidget[Widget, Update, [State] =>> State => RecompositionReaction] =
+      new StatefulWidget[Widget, Update,  [State] =>> State => RecompositionReaction]:
+        override def apply[State: Typeable, Event, ChildEvent](
+                                                                name: PlaceError,
+                                                                initialState: State,
+                                                                eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                body: State => Widget[ChildEvent]
+                                                              ): Widget[Event] =
+          apply(name, initialState, eventHandler, body, _ => SkijaRecomposition.empty[IO])
+        end apply
+
+        override def apply[State: Typeable, Event, ChildEvent](
+                                                                name: PlaceError,
+                                                                initialState: State,
+                                                                eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                body: State => Widget[ChildEvent],
+                                                                destructor: State => SkijaRecomposition[IO]
+                                                              ): Widget[Event] =
+          library.stateful[
+            Update,
+            Place,
+            Draw,
+            RecompositionReaction,
+            DownEvent,
+            State,
+            Event,
+            ChildEvent
+          ](
+            widgetsAreMergeable = widgetsAreMergable[Update[ChildEvent, *], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
+            typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]")
+          )(
+            name = name,
+            initialState = initialState,
+            handleEvent = eventHandler,
+            render = body,
+            destructor = destructor
+          )
+        end apply
+      end new
+    end statefulWidget
 
     def text[Event](text : String, style : SkijaTextStyle) : Widget[Event] =
       me.katze.gui4s.widget.library.text[

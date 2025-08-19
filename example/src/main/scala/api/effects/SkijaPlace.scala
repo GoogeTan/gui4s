@@ -10,8 +10,13 @@ import catnip.*
 import catnip.syntax.additional.*
 import catnip.syntax.functionk.runStateT
 import io.github.humbleui.skija.shaper.Shaper
+import me.katze.gui4s.example.api.effects.SkijaPlace.typecheck
 import me.katze.gui4s.geometry.{InfinityOr, Rect}
 import me.katze.gui4s.layout.Sized
+import me.katze.gui4s.widget.Path
+import sun.jvm.hotspot.runtime.PerfMemory.end
+
+import scala.reflect.Typeable
 
 opaque type SkijaOuterPlace[IO[_], Bounds, Error, Value] = StateT[EitherT[IO, Error, *], Bounds, Value]
 type SkijaOuterPlaceT[IO[_], BoundUnit, Error] = SkijaOuterPlace[IO, BoundUnit, Error, *]
@@ -82,5 +87,19 @@ object SkijaPlace:
       SkijaOuterPlace.liftK,
     )
   end sizeText
+  
+  def typecheck[
+    IO[_] : Monad,
+    Bounds, 
+    MeasurementUnit, 
+    PlaceError,
+    U : Typeable
+  ](error : (Any, Path) => PlaceError) : [T] => (Any, Path, U => SkijaPlace[IO, Bounds, MeasurementUnit, PlaceError, T]) => SkijaPlace[IO, Bounds, MeasurementUnit, PlaceError, T] =
+    [T] => (value : Any, path : Path, callback : U => SkijaPlace[IO, Bounds, MeasurementUnit, PlaceError, T]) =>
+      value match
+        case v: U => callback(v)
+        case _ => SkijaOuterPlace.raiseError(error(value, path))
+      end match
+  end typecheck
 end SkijaPlace
 

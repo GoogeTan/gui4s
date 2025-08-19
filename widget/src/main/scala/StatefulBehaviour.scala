@@ -1,5 +1,9 @@
 package me.katze.gui4s.widget
 
+import cats.Applicative
+import cats.syntax.all.*
+import scala.reflect.Typeable
+
 final case class StatefulState[State](initialState : State, currentState : State):
   override def toString: String =
     "StatefulState(initialState = " + initialState + ", currentState = " + currentState + ")"
@@ -9,6 +13,14 @@ final case class StatefulState[State](initialState : State, currentState : State
     copy(currentState = state)
   end withNewState
 end StatefulState
+
+@SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+given[State : Typeable] : Typeable[StatefulState[State]] = (a : Any) => a match
+  case StatefulState(_: State, _: State) =>
+    a.asInstanceOf[a.type & StatefulState[State]].some
+  case _ =>
+    None
+end given
 
 final case class StatefulBehaviour[
   State,
