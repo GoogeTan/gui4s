@@ -18,23 +18,23 @@ def sizeTextFFI[
   IO[_] : Functor, 
   Place[_] : Monad
 ](
-  getBounds : Place[Rect[InfinityOr[Float]]],
+  getAvailablePlace : Place[Option[Float]],
   ffi : ForeighFunctionInterface[IO],
   shaper: Shaper,
   cache : TextCache[IO],
   liftF : IO ~> Place
 ) : SizeText[Place * SizedT[Float]] =
   (text: String, options: SkijaTextStyle) =>
-    getBounds.flatMap:
+    getAvailablePlace.flatMap:
       bounds =>
         liftF(
           cache(
-            (text, options, bounds.width.value),
+            (text, options, bounds),
             placeText(ffi = ffi,
               shaper = shaper,
               text = text,
               style = options,
-              maxWidth = bounds.width.value
+              maxWidth = bounds
             ).map(placedText => new Sized(placedText.text, placedText.width, placedText.height))
           )
         )

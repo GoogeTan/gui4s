@@ -10,7 +10,7 @@ import me.katze.gui4s.widget.Path
 import me.katze.gui4s.widget.handle.HandlesEventF
 
 
-type UpdateDecorator[Update[_], Place[_], Widget, HandleableEvent] = HandlesEventF[Widget, HandleableEvent, Update * Place] => Decorator[Place[Widget]]
+type UpdateDecorator[Update[_], OuterPlace[_], Widget, HandleableEvent] = HandlesEventF[Widget, HandleableEvent, Update * OuterPlace] => Decorator[OuterPlace[Widget]]
 /**
  * Декорирует обновление виджета.
  */

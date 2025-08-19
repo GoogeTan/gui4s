@@ -17,15 +17,15 @@ type EventCatcherWithRect[Widget, Update, Rect, HandlableEvent] =
 def eventCatcherWithRect[
   PlaceWidget,
   Update[_] : Monad,
-  Place[_],
+  OuterPlace[_],
   InnerPlace[_] : Comonad,
   HandleableEvent,
 ](
-  updateDecorator: UpdateDecorator[Update, Place, InnerPlace[PlaceWidget], HandleableEvent],
-  markEventHandled : Update[Unit],
-  widgetAsFree : AsFreeF[PlaceWidget, Place * InnerPlace],
-  widgetHandlesEvent : HandlesEventF[PlaceWidget, HandleableEvent, Update * Place * InnerPlace]
-) : EventCatcherWithRect[Place[InnerPlace[PlaceWidget]], Update[Boolean], InnerPlace[PlaceWidget], HandleableEvent] =
+   updateDecorator: UpdateDecorator[Update, OuterPlace, InnerPlace[PlaceWidget], HandleableEvent],
+   markEventHandled : Update[Unit],
+   widgetAsFree : AsFreeF[PlaceWidget, OuterPlace * InnerPlace],
+   widgetHandlesEvent : HandlesEventF[PlaceWidget, HandleableEvent, Update * OuterPlace * InnerPlace]
+) : EventCatcherWithRect[OuterPlace[InnerPlace[PlaceWidget]], Update[Boolean], InnerPlace[PlaceWidget], HandleableEvent] =
   decorator =>
     updateDecorator(
       (self, path, event) =>

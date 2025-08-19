@@ -13,9 +13,9 @@ import scala.concurrent.ExecutionContext
 /**
  * Принимает способ получить нынешнее дерево виджетов и возвращает бесконечный цикл отрисовки. Завершается только в случае ошибки.
  */
-type DrawLoop[F[+_], -Widget] = F[Widget] => F[ExitCode]
+type DrawLoop[F[_], Widget] = F[Widget] => F[ExitCode]
 
-def runDrawLoopOnExecutionContext[F[+_]: Async, Widget](loop : DrawLoop[F, Widget], context : ExecutionContext) : DrawLoop[F, Widget] =
+def runDrawLoopOnExecutionContext[F[_]: Async, Widget](loop : DrawLoop[F, Widget], context : ExecutionContext) : DrawLoop[F, Widget] =
   widgetSource => loop(widgetSource).evalOn(context)
 end runDrawLoopOnExecutionContext
 

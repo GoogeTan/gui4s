@@ -2,7 +2,6 @@ package me.katze.gui4s.example
 package examples
 
 import api.effects.{SkijaApplicationRequest, SkijaDownEvent}
-import app.skijaGlfwCatsApp
 import skija.SkijaBackend
 
 import cats.effect.{ExitCode, IO, IOApp}
@@ -18,7 +17,7 @@ trait ExampleApp:
   type RecompositionReaction
   type DownEvent
 
-  type PlacedWidget[Event] = library.Widget[UpdateC[Event], Place, Draw, RecompositionReaction, Event]
-  type Widget[Event] = Place[PlacedWidget[Event]]
+  final type PlacedWidget[Event] = library.Widget[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent]
+  final type Widget[Event] = Place[PlacedWidget[Event]]
 end ExampleApp
 

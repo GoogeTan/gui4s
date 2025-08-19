@@ -8,7 +8,7 @@ import me.katze.gui4s.widget.state.HasInnerStates
 import me.katze.gui4s.widget.{Path, collectQuitCompositionReactions}
 
 def placeForTheFirstTime[
-  IO[+_] : Monad,
+  IO[_] : Monad,
   Widget,
   Place[_],
   Recomposition,
@@ -27,7 +27,7 @@ end placeForTheFirstTime
 
 // tODO rename me
 def processEvent[
-  IO[+_] : Monad,
+  IO[_] : Monad,
   Widget,
   Place[_],
   Update[_] : Monad,

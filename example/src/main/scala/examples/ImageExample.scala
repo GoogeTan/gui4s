@@ -5,13 +5,14 @@ import api.*
 import api.effects.SkijaDownEvent.{catchExternalEvent, eventOfferingCallbacks}
 import api.effects.{*, given}
 import api.widget.*
-import app.{SkijaPlacedWidget, SkijaWidget, skijaGlfwCatsApp}
+import app.skijaGlfwApp
 import skija.SkijaBackend
 
 import catnip.ForeighFunctionInterface
 import catnip.cats.effect.SyncForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.*
+import cats.data.EitherT
 import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
@@ -24,14 +25,14 @@ import me.katze.gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.{Sized, SizedT}
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.library.decorator.*
+import me.katze.gui4s.widget.library.decorator.{updateDecorator, *}
 import me.katze.gui4s.widget.{Path, library}
 import scalacache.caffeine.CaffeineCache
 
 import scala.reflect.Typeable
 
 object ImageExample extends IOApp with ExampleApp:
-  given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
+  given ffi: ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
 
   type UpdateError = String
   type PlaceError = String
@@ -41,24 +42,33 @@ object ImageExample extends IOApp with ExampleApp:
   type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
   type InnerPlace[Value] = Sized[Float, Value]
 
-  override type Place[Value] = OuterPlace[InnerPlace[Value]]
+  override type Place = [Value] =>> OuterPlace[InnerPlace[Value]]
+
   override type Draw = SkijaDraw[IO]
   override type RecompositionReaction = SkijaRecomposition[IO]
   override type DownEvent = SkijaDownEvent[Float]
 
-  type PreInit = (dispatcher : Dispatcher[IO], globalSupervisor : Supervisor[IO], shaper : Shaper, globalTextCache : TextCache[IO])
+  type PreInit = (dispatcher: Dispatcher[IO], globalSupervisor: Supervisor[IO], shaper: Shaper, globalTextCache: TextCache[IO])
 
-  def preInit(backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Resource[IO, PreInit] =
+  def preInit(backend: SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]): Resource[IO, PreInit] =
     for
       dispatcher <- Dispatcher.sequential[IO]
       supervisor <- Supervisor[IO]
       shaper <- backend.skija.createShaper
-      cache : TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(scalacacheCache)
+      cache: TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(scalacacheCache)
     yield (dispatcher, supervisor, shaper, cache)
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaGlfwApp(
+    skijaGlfwApp[
+      IO,
+      UpdateC[SkijaApplicationRequest],
+      Place,
+      Draw,
+      RecompositionReaction,
+      DownEvent,
+      PreInit
+    ](
       preInit = preInit,
       main = main,
       updateLoopExecutionContext = this.runtime.compute,
@@ -71,24 +81,29 @@ object ImageExample extends IOApp with ExampleApp:
         debugContext = true
       ),
       ffi = ffi,
-      callbacks = SkijaDownEvent.eventOfferingCallbacks(_),
-      runUpdate = SkijaUpdate.handleApplicationRequests(error => IO.println(error).as(ExitCode.Error)),
-      runPlace = ???,
-      runDraw = ???
+      callbacks = sink => SkijaDownEvent.eventOfferingCallbacks(sink.offer),
+      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Float, SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
+      runPlace = backend => SkijaPlace.run[IO, Rect[Float], Float, PlaceError](backend.windowBounds).andThen[EitherT[IO, Throwable, *]](eitherTMapError[IO, String, Throwable](new Exception(_))).andThen(runEitherT[IO, Throwable]),
+      runDraw = (draw, backend) => backend.drawFrame(ffi, (clear[IO] |+| draw).run),
+      runRecomposition = SkijaRecomposition.run[IO]
     )
   end run
 
-  def main(preInit : PreInit, backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
+  def main(preInit : PreInit, backend : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Widget[SkijaApplicationRequest] =
+    def updateDecorator[Event]: UpdateDecorator[UpdateC[Event], OuterPlace, InnerPlace[PlacedWidget[Event]], DownEvent] =
+      updateDecoratorWithRect[UpdateC[Event], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent]
+    end updateDecorator
+
     def eventCatcher[Event]: EventCatcherWithRect[
       Widget[Event],
-      SkijaUpdate[IO, Float, SkijaClip, String, Event, Boolean],
-      Sized[Float, PlacedWidget[Event]],
-      SkijaDownEvent[Float]
-    ] = eventCatcherWithRect(
-      updateDecoratorWithRect,
-      SkijaUpdate.markEventHandled,
+      Update[Event, Boolean],
+      InnerPlace[PlacedWidget[Event]],
+      DownEvent,
+    ] = eventCatcherWithRect[PlacedWidget[Event], UpdateC[Event], OuterPlace, InnerPlace, DownEvent](
+      updateDecorator[Event],
+      SkijaUpdate.markEventHandled[IO, Float, SkijaClip, UpdateError, Event],
       widgetAsFree,
-      widgetHandlesEvent
+      widgetHandlesEvent[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent]
     )
 
     extension[Event](value : Widget[Event])
@@ -99,16 +114,37 @@ object ImageExample extends IOApp with ExampleApp:
       end mapEvent
 
       def clip(path : Rect[Float] => SkijaClip) : Widget[Event] =
-        skijaClip[
-          IO,
-          String,
-          SkijaOuterPlaceT[IO, Float, String],
-          SizedT[Float],
-          SkijaRecomposition[IO],
-          SkijaDownEvent[Float],
-          Event
-        ](ffi)(a => path(a.size))(value)
+        clipWidget[
+          UpdateC[Event],
+          OuterPlace,
+          InnerPlace,
+          Draw,
+          RecompositionReaction,
+          DownEvent,
+          SkijaClip
+        ](
+          [T] => (a, b) => SkijaUpdate.withClip[IO, Float, SkijaClip, UpdateError, Event, T](a, b, SkijaClip.skijaPathAt),
+          SkijaClip.clipToPath[IO](ffi, _ : SkijaClip, _ : SkijaDraw[IO]),
+          place => path(place.size),
+        )(value)
       end clip
+
+      def gapPadding(paddings : Paddings[Float]) : Widget[Event]=
+        gapPaddingWidget[
+          UpdateC[Event],
+          OuterPlace,
+          InnerPlace,
+          Draw,
+          RecompositionReaction,
+          DownEvent,
+          Paddings[Float],
+        ](
+          paddings => [T] => place =>
+            SkijaOuterPlace.withBounds[IO, Rect[Float], PlaceError, InnerPlace[T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength, _ - _)),
+          paddings => update => (path, event) =>
+            SkijaUpdate.withCoordinates[IO, Float, SkijaClip, UpdateError, Event, Widget[Event]](update(path, event))(_ + new Point3d(paddings.topLeftCornerShift)),
+          paddings => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),
+        )(paddings)(value)
     end extension
 
     def statefulWidget: StatefulWidget[Widget, SkijaUpdate[IO, Float, SkijaClip, String, *, *], [Value] =>> Value => SkijaRecomposition[IO]] = skijaStateful(
@@ -120,8 +156,19 @@ object ImageExample extends IOApp with ExampleApp:
         statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](events)
       )
 
-    def text[Event] : TextWidget[Widget[Event]] =
-        skijaText(ffi, preInit.shaper, preInit.globalTextCache)
+    def text[Event](text : String, style : SkijaTextStyle) : Widget[Event] =
+        me.katze.gui4s.widget.library.text[
+          UpdateC[Event],
+          Place,
+          SkijaDraw[IO],
+          RecompositionReaction,
+          DownEvent,
+          SkijaPlacedText
+        ](
+          SkijaPlace.sizeText[IO, Rect[Float], PlaceError](ffi, preInit.shaper, preInit.globalTextCache, _.width.some)(text, style),
+          drawText(ffi, _),
+          Monoid[RecompositionReaction].empty,
+        )
     end text
 
     def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
@@ -186,18 +233,16 @@ object ImageExample extends IOApp with ExampleApp:
       resource(supervisor)(name, init.map(value => (value, IO.unit)))
     end resourceInit
 
-    gapPadding(ffi)(
+    imageUrl[IO[Image], Widget[SkijaApplicationRequest], Image](
+      name = "image",
+      resourceInit = resourceInit(_, preInit.globalSupervisor, _),
+      imageSource = downloadImage("https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg"),
+      imageWidget = image(_, ffi),
+      placeholder = text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
+    ).clip(
+      SkijaClip.Shapes.round
+    ).gapPadding(
       Paddings(10f, 10f, 10f, 10f)
-    )(
-      imageUrl[IO[Image], Widget[SkijaApplicationRequest], Image](
-        name = "image",
-        resourceInit = resourceInit(_, preInit.globalSupervisor, _),
-        imageSource = downloadImage("https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg"),
-        imageWidget = image(_, ffi),
-        placeholder = text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
-      ).clip(
-        SkijaClip.Shapes.round
-      )
     )
   end main
 end ImageExample

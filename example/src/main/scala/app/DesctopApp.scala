@@ -4,7 +4,11 @@ package app
 import api.effects.{SkijaApplicationRequest, SkijaPlace, SkijaRecomposition, SkijaUpdate}
 import loop.*
 import skija.{SkijaBackend, skijaDrawLoop}
+import cats.syntax.all.{*, given}
+import cats.effect.syntax.all.{*, given}
+import catnip.syntax.all.{*, given}
 
+import cats.arrow.FunctionK
 import cats.{Functor, Monad}
 import cats.effect.{Async, ExitCode}
 import cats.effect.kernel.Resource
@@ -31,7 +35,7 @@ def desktopApp[
   main : (PreInit, Backend) => Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
   shouldDrawLoopContinueDrawing : Backend => IO[Boolean],
   runUpdate : [T] => Update[T] => IO[Either[ExitCode, T]],
-  runPlace : Backend => [T] => Place[T] => IO[T],
+  runPlace : Backend => FunctionK[Place, IO],
   runDraw : (Draw, Backend) => IO[Unit],
   runRecomposition : RecompositionReaction => IO[Unit],
   drawLoopExecutionContext : ExecutionContext,
@@ -48,7 +52,7 @@ def desktopApp[
     PlacedWidget,
     (PreInit, Backend)
   ](
-    backend = createBackend,
+    backend = queue => createBackend(queue).evalOn(drawLoopExecutionContext),
     drawLoop = (_, backend) =>
       runDrawLoopOnExecutionContext(
         skijaDrawLoop[IO, Draw, PlacedWidget](
@@ -75,7 +79,7 @@ def desktopApp[
               widgetHandlesEvent,
               widgetReactsOnRecomposition,
               widgetHasInnerStates,
-              runPlace(backend),
+              runPlace(backend).convert,
             )(widget, event)
           )
       ),
@@ -87,7 +91,7 @@ def desktopApp[
         main(preInit, backend),
         widgetReactsOnRecomposition,
         runRecomposition,
-        runPlace(backend)
+        runPlace(backend).convert
       )
   )
 end desktopApp

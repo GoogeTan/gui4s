@@ -66,14 +66,16 @@ object SkijaPlace:
   
   def sizeText[
     IO[_] : Monad,
+    Bounds,
     PlaceError
   ](
     ffi : ForeighFunctionInterface[IO],
     shaper : Shaper,
-    cache : TextCache[IO]
-  ) : SizeText[SkijaPlace[IO, Rect[InfinityOr[Float]], Float, PlaceError, *]] =
-    sizeTextFFI[IO, SkijaOuterPlaceT[IO, Rect[InfinityOr[Float]], PlaceError]](
-      SkijaOuterPlace.getBounds[IO, Rect[InfinityOr[Float]], PlaceError],
+    cache : TextCache[IO],
+    widthFromBounds : Bounds => Option[Float],
+  ) : SizeText[SkijaPlace[IO, Bounds, Float, PlaceError, *]] =
+    sizeTextFFI[IO, SkijaOuterPlaceT[IO, Bounds, PlaceError]](
+      SkijaOuterPlace.getBounds[IO, Bounds, PlaceError].map(widthFromBounds),
       ffi,
       shaper,
       cache,

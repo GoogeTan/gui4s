@@ -5,7 +5,6 @@ import api.*
 import api.effects.SkijaDownEvent.eventOfferingCallbacks
 import api.effects.{*, given}
 import api.widget.*
-import app.{SkijaWidget, skijaGlfwCatsApp}
 import place.*
 import skija.SkijaBackend
 
@@ -13,22 +12,26 @@ import catnip.ForeighFunctionInterface
 import catnip.cats.effect.SyncForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.*
+import cats.syntax.all.*
+import cats.data.*
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s
 import me.katze.gui4s.example
+import me.katze.gui4s.example.app.skijaGlfwApp
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.library.*
+import me.katze.gui4s.widget.library
 import scalacache.caffeine.CaffeineCache
 
 object GridExample extends IOApp with ExampleApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
-  val containerErrors = ContainerPlacementError.English
+  val containerErrors: ContainerPlacementError[PlaceError] = ContainerPlacementError.English
 
   type UpdateError = String
   type PlaceError = String
@@ -53,51 +56,90 @@ object GridExample extends IOApp with ExampleApp:
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    skijaGlfwCatsApp(
+    skijaGlfwApp[
+      IO,
+      UpdateC[SkijaApplicationRequest],
+      Place,
+      Draw,
+      RecompositionReaction,
+      DownEvent,
+      PreInit
+    ](
       preInit = preInit,
-      widget = main(_),
+      main = main,
       updateLoopExecutionContext = this.runtime.compute,
       drawLoopExecutionContext = MainThread,
-      updateErrorAsThrowable = (errorText : String) => new Exception(errorText),
-      placeErrorAsThrowable = (errorText : String) => new Exception(errorText),
-      createGlfwCallbacks = eventOfferingCallbacks,
       settings = WindowCreationSettings(
-        title = "Gui4s nested layouts example",
+        title = "Gui4s nested containers example",
         size = Rect(620f, 480f),
         visible = true,
         resizeable = true,
         debugContext = true
-      )
+      ),
+      ffi = ffi,
+      callbacks = sink => SkijaDownEvent.eventOfferingCallbacks(sink.offer),
+      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Float, SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
+      runPlace = backend => SkijaPlace.run[IO, Rect[Float], Float, PlaceError](backend.windowBounds).andThen[EitherT[IO, Throwable, *]](eitherTMapError[IO, String, Throwable](new Exception(_))).andThen(runEitherT[IO, Throwable]),
+      runDraw = (draw, backend) => backend.drawFrame(ffi, (clear[IO] |+| draw).run),
+      runRecomposition = SkijaRecomposition.run[IO]
     )
   end run
 
-  def main(preInit : PreInit)(using backend : SkijaBackend[IO, Long, OglGlfwWindow, SkijaDownEvent[Float]]) : Widget[SkijaApplicationRequest] =
-    def text[Event] : TextWidget[Widget[Event]] =
-        skijaText(ffi, preInit.shaper, preInit.globalTextCache)
+  def main(preInit : PreInit, backend : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Widget[SkijaApplicationRequest] =
+    def text[Event](text : String, style : SkijaTextStyle) : Widget[Event] =
+      library.text[
+        UpdateC[Event],
+        Place,
+        SkijaDraw[IO],
+        RecompositionReaction,
+        DownEvent,
+        SkijaPlacedText
+      ](
+        SkijaPlace.sizeText[IO, Rect[Float], PlaceError](ffi, preInit.shaper, preInit.globalTextCache, _.width.some)(text, style),
+        drawText(ffi, _),
+        Monoid[RecompositionReaction].empty,
+      )
     end text
 
-    def linearContainer[Event] : LinearContainer[Widget[Event], SkijaOuterPlaceT[IO, Float, String], List, Float, Float, Axis] =
-      skijaLinearContainer(
-        skijaContainer(
-          ffi,
-          [A : Order, B] => v => f => orderedListProcessing(v)(f),
-        ),
+    def container[Container[_] : Traverse, Event](
+                                                  updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => Update[Event, Container[B]]) => Update[Event, Container[B]]
+                                                  ) : ContainerWidget[PlacedWidget[Event], Container, Place, Point3d[Float]] =
+      given Order[Point3d[Float]] = Order.by(_.z)
+      library.container(
+        (draw, meta) => drawAt(ffi, draw, meta.x, meta.y),
+        [T] => (update, point) => SkijaUpdate.withCoordinates(update)(_ + point),
+        SkijaUpdate.isEventHandled[IO, Float, SkijaClip, UpdateError, Event],
+        updateListOrdered
+      )
+    end container
+
+    def linearContainer[Event] : LinearContainer[Widget[Event], OuterPlace, List, Float, Float, Axis] =
+      library.linearContainer[
+        PlacedWidget[Event],
+        OuterPlace,
+        List,
+        Float,
+        Float,
+      ](
+        container = container([A : Order, B] => v => f => orderedListProcessing(v)(f)),
+        getBounds = SkijaOuterPlace.getBounds,
+        setBounds = SkijaOuterPlace.setBounds,
+        cut = _ - _
       )
     end linearContainer
 
     def gridExample[Event](numbers : List[Int]) : Widget[Event] =
-      val spaceBetweenStrategy = ManyElementsPlacementStrategy.ErrorIfInfinity[SkijaOuterPlaceT[IO, Float, String], Float, List, String](ManyElementsPlacementStrategy.SpaceBetween, containerErrors.withSpaceBetweenStrategy)
       linearContainer[Event](
         mainAxis = Axis.Vertical,
-        mainAxisStrategy = spaceBetweenStrategy,
-        additionalAxisStrategy = OneElementPlacementStrategy.Begin[SkijaOuterPlaceT[IO, Float, String], InfinityOr[Float], Float],
+        mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween[OuterPlace, List, Float],
+        additionalAxisStrategy = OneElementPlacementStrategy.Begin[OuterPlace, Float, Float],
         children =
           numbers.map:
             lineIndex =>
               linearContainer[Event](
                 mainAxis = Axis.Horizontal,
-                mainAxisStrategy = spaceBetweenStrategy,
-                additionalAxisStrategy = OneElementPlacementStrategy.Begin[SkijaOuterPlaceT[IO, Float, String], InfinityOr[Float], Float],
+                mainAxisStrategy = ManyElementsPlacementStrategy.SpaceBetween[OuterPlace, List, Float],
+                additionalAxisStrategy = OneElementPlacementStrategy.Begin[OuterPlace, Float, Float],
                 children =
                   numbers.map:
                     lineJindex =>

@@ -71,7 +71,7 @@ object SkijaBackend:
     )
 
   def createForTestsTrue[
-    F[+_] : {Async, Console}, DownEvent
+    F[_] : {Async, Console}, DownEvent
   ](
       queue : QueueSink[F, DownEvent],
       settings : WindowCreationSettings[Float],
@@ -88,7 +88,7 @@ object SkijaBackend:
   end createForTestsTrue
 
   def createForTests[
-    F[+_] : {Async, Console},
+    F[_] : {Async, Console},
     Monitor,
     Window : GlfwWindowT[F, Monitor, Float],
     DownEvent
@@ -166,7 +166,7 @@ object SkijaBackend:
 end SkijaBackend
 
 def skijaDrawLoop[
-  F[+_] : Console,
+  F[_] : Console,
   Draw,
   Widget
 ](

@@ -9,6 +9,7 @@ import skija.{SkijaBackend, skijaDrawLoop}
 import catnip.ForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.*
+import cats.arrow.FunctionK
 import cats.data.EitherT
 import cats.effect.std.{Console, QueueSink}
 import cats.effect.{Async, ExitCode, Resource}
@@ -32,10 +33,10 @@ def skijaGlfwApp[
   DownEvent,
   PreInit,
 ](
-  preInit : QueueSink[IO, DownEvent] => Resource[IO, PreInit],
+  preInit : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent] => Resource[IO, PreInit],
   main : (PreInit, SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) => Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
   runUpdate : [T] => Update[T] => IO[Either[ExitCode, T]],
-  runPlace : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent] => [T] => Place[T] => IO[T],
+  runPlace : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent] => FunctionK[Place, IO],
   runDraw : (Draw, SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) => IO[Unit],
   runRecomposition : RecompositionReaction => IO[Unit],
   drawLoopExecutionContext : ExecutionContext,
@@ -54,14 +55,17 @@ def skijaGlfwApp[
     PreInit,
     SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]
   ](
-    queue => preInit(queue).product(
-      SkijaBackend.createForTestsTrue(
-        queue,
-        settings,
-        ffi,
-        callbacks(queue)
-      )
-    ),
+    queue => 
+      for 
+        backend <-
+          SkijaBackend.createForTestsTrue(
+            queue,
+            settings,
+            ffi,
+            callbacks(queue)
+          )
+        preInit <- preInit(backend)
+      yield (preInit, backend),  
     main,
     _.windowShouldNotClose,
     runUpdate,

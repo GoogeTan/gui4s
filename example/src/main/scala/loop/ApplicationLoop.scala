@@ -8,7 +8,7 @@ import cats.syntax.all.*
 import cats.effect.syntax.all.*
 
 def runApplicationLoopsWithBackend[
-  F[+_] : Async,
+  F[_] : Async,
   DownEvent,
   RootWidget,
   Backend
@@ -34,7 +34,7 @@ def runApplicationLoopsWithBackend[
 end runApplicationLoopsWithBackend
 
 def runApplicationLoops[
-  F[+_] : Async,
+  F[_] : Async,
   DownEvent,
   RootWidget,
 ](
@@ -66,7 +66,7 @@ end runApplicationLoops
  * Запускает в отдельных потоках обновление виджета и его отрисовку.
  */
 def applicationLoop[
-  F[+_] : Concurrent,
+  F[_] : Concurrent,
   DownEvent,
   Widget
 ](
