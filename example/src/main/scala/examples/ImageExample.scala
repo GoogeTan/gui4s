@@ -2,7 +2,7 @@ package me.katze.gui4s.example
 package examples
 
 import api.*
-import api.effects.SkijaDownEvent.{catchExternalEvent, eventOfferingCallbacks}
+import api.effects.SkijaDownEvent.catchExternalEvent
 import api.effects.{*, given}
 import api.widget.*
 import app.skijaGlfwApp
@@ -22,11 +22,13 @@ import me.katze.gui4s
 import me.katze.gui4s.example
 import me.katze.gui4s.geometry.*
 import me.katze.gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
-import me.katze.gui4s.layout.{Sized, SizedT}
+import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.library.*
-import me.katze.gui4s.widget.library.decorator.{updateDecorator, *}
+import me.katze.gui4s.widget.library.decorator.*
 import me.katze.gui4s.widget.{Path, library}
+import org.http4s.Uri
+import org.http4s.ember.client.EmberClientBuilder
 import scalacache.caffeine.CaffeineCache
 
 import scala.reflect.Typeable
@@ -108,9 +110,7 @@ object ImageExample extends IOApp with ExampleApp:
 
     extension[Event](value : Widget[Event])
       def mapEvent[NewEvent](f : Event => NewEvent) : Widget[NewEvent] =
-        skijaMapEvent[
-          IO, Float, SkijaClip, String, SkijaPlaceT[IO, Rect[Float], Float, String], SkijaDraw[IO], SkijaRecomposition[IO], SkijaDownEvent[Float]
-        ](value)(f)
+        library.decorator.mapEvent[Update, Place, Draw, RecompositionReaction, DownEvent]([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))(value)(f)
       end mapEvent
 
       def clip(path : Rect[Float] => SkijaClip) : Widget[Event] =
@@ -172,13 +172,22 @@ object ImageExample extends IOApp with ExampleApp:
     end text
 
     def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[Widget[Event], Key, Path => IO[Unit]] =
-      skijaLaunchedEffect(
-        supervisor,
+      val lew : LaunchedEffectWidget[
+        Widget[Event],
+        Key,
+        Path => RecompositionReaction
+      ] = library.launchedEffect(
         [T] => (path : Path, value : Any) => SkijaOuterPlace.raiseError("Key has changed type at " + path.toString + " value found " + value.toString),
         (valueFound : Any) => SkijaRecomposition.lift[IO, Nothing](
           IO.raiseError(Exception("Key changed the type: " + valueFound.toString))
         ),
       )
+      (name, child, key, task) =>
+        lew(name, child, key, path =>
+          SkijaRecomposition.lift(
+            supervisor.supervise(task(path))
+          )
+        )
     end launchedEffect
 
     @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
@@ -233,11 +242,55 @@ object ImageExample extends IOApp with ExampleApp:
       resource(supervisor)(name, init.map(value => (value, IO.unit)))
     end resourceInit
 
-    imageUrl[IO[Image], Widget[SkijaApplicationRequest], Image](
+    def initWidget[Event, Value](
+                                  name : String,
+                                  imageSource : IO[Value],
+                                  imageWidget : Value => Widget[Event],
+                                  placeholder : Widget[Event]
+                                ) : Widget[Event] =
+      resourceInit(
+        name,
+        preInit.globalSupervisor,
+        imageSource
+      ) {
+        case Some(image) => imageWidget(image)
+        case None => placeholder
+      }
+    end initWidget
+
+    def downloadImage(uri: String): IO[Image] =
+      EmberClientBuilder
+        .default[IO]
+        .build
+        .use(
+          client =>
+            IO.fromEither(
+              Uri.fromString(uri)
+            ).flatMap(
+              client.expect[Array[Byte]]
+            ).map(Image.makeDeferredFromEncodedBytes)
+        )
+    end downloadImage
+
+    def image[Event](
+        image: Image,
+    ): Widget[Event] =
+      drawOnlyWidget[
+        UpdateC[Event],
+        Place,
+        Draw,
+        RecompositionReaction,
+        DownEvent,
+      ](
+        Sized(drawImage(ffi, image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace],
+        Monoid[RecompositionReaction].empty,
+      )
+    end image
+
+    initWidget(
       name = "image",
-      resourceInit = resourceInit(_, preInit.globalSupervisor, _),
       imageSource = downloadImage("https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg"),
-      imageWidget = image(_, ffi),
+      imageWidget = image,
       placeholder = text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
     ).clip(
       SkijaClip.Shapes.round
