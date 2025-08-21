@@ -1,5 +1,7 @@
 package me.katze.gui4s.geometry
 
+import cats.kernel.Group
+
 import scala.reflect.Typeable
 import cats.syntax.all.*
 
@@ -28,7 +30,23 @@ final case class Point2d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
   end along
 end Point2d
 
-@SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
-given[MeasurementUnit : Typeable] : Typeable[Point2d[MeasurementUnit]] = (value : Any) => value match
-  case Point2d[Any](x : MeasurementUnit, y : MeasurementUnit) => Some(Point2d(x, y).asInstanceOf[value.type & Point2d[MeasurementUnit]])
-  case _ => None
+object Point2d:
+  given[MeasurementUnit : Group] : Group[Point2d[MeasurementUnit]] with
+    override def combine(x: Point2d[MeasurementUnit], y: Point2d[MeasurementUnit]): Point2d[MeasurementUnit] =
+      Point2d(x.x |+| y.x, x.y |+| y.y)
+    end combine
+
+    override def empty: Point2d[MeasurementUnit] =
+      Point2d(Group[MeasurementUnit].empty, Group[MeasurementUnit].empty)
+    end empty
+
+    override def inverse(x: Point2d[MeasurementUnit]): Point2d[MeasurementUnit] =
+      Point2d(Group[MeasurementUnit].inverse(x.x), Group[MeasurementUnit].inverse(x.y))
+    end inverse
+  end given
+
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+  given[MeasurementUnit : Typeable] : Typeable[Point2d[MeasurementUnit]] = (value : Any) => value match
+    case Point2d[Any](x : MeasurementUnit, y : MeasurementUnit) => Some(Point2d(x, y).asInstanceOf[value.type & Point2d[MeasurementUnit]])
+    case _ => None
+end Point2d

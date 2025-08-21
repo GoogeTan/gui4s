@@ -40,7 +40,7 @@ object ImageExample extends IOApp with ExampleApp:
   type UpdateError = String
   type PlaceError = String
 
-  override type Update[Event, Value] = SkijaUpdate[IO, Float, SkijaClip, UpdateError, Event, Value]
+  override type Update[Event, Value] = SkijaUpdate[IO, Point3d[Float], SkijaClip, UpdateError, Event, Value]
 
   type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
   type InnerPlace[Value] = Sized[Float, Value]
@@ -85,7 +85,7 @@ object ImageExample extends IOApp with ExampleApp:
       ),
       ffi = ffi,
       callbacks = sink => SkijaDownEvent.eventOfferingCallbacks(sink.offer),
-      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Float, SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
+      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Point3d[Float], SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
       runPlace = backend => SkijaPlace.run[IO, Rect[Float], Float, PlaceError](backend.windowBounds).andThen[EitherT[IO, Throwable, *]](eitherTMapError[IO, String, Throwable](new Exception(_))).andThen(runEitherT[IO, Throwable]),
       runDraw = (draw, backend) => backend.drawFrame(ffi, (clear[IO] |+| draw).run),
       runRecomposition = SkijaRecomposition.run[IO]
@@ -104,7 +104,7 @@ object ImageExample extends IOApp with ExampleApp:
       DownEvent,
     ] = eventCatcherWithRect[PlacedWidget[Event], UpdateC[Event], OuterPlace, InnerPlace, DownEvent](
       updateDecorator[Event],
-      SkijaUpdate.markEventHandled[IO, Float, SkijaClip, UpdateError, Event],
+      SkijaUpdate.markEventHandled[IO, Point3d[Float], SkijaClip, UpdateError, Event],
       widgetAsFree,
       widgetHandlesEvent[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent]
     )
@@ -124,7 +124,7 @@ object ImageExample extends IOApp with ExampleApp:
           DownEvent,
           SkijaClip
         ](
-          [T] => (a, b) => SkijaUpdate.withClip[IO, Float, SkijaClip, UpdateError, Event, T](a, b, SkijaClip.skijaPathAt),
+          [T] => (a, b) => SkijaUpdate.withClip[IO, Point3d[Float], SkijaClip, UpdateError, Event, T](a, b, SkijaClip.skijaPathAt),
           SkijaClip.clipToPath[IO](ffi, _ : SkijaClip, _ : SkijaDraw[IO]),
           place => path(place.size),
         )(value)
@@ -143,7 +143,7 @@ object ImageExample extends IOApp with ExampleApp:
           paddings => [T] => place =>
             SkijaOuterPlace.withBounds[IO, Rect[Float], PlaceError, InnerPlace[T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength, _ - _)),
           paddings => update => (path, event) =>
-            SkijaUpdate.withCoordinates[IO, Float, SkijaClip, UpdateError, Event, Widget[Event]](update(path, event))(_ + new Point3d(paddings.topLeftCornerShift)),
+            SkijaUpdate.withCoordinates[IO, Point3d[Float], SkijaClip, UpdateError, Event, Widget[Event]](update(path, event))(_ + new Point3d(paddings.topLeftCornerShift)),
           paddings => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),
         )(paddings)(value)
     end extension
@@ -179,7 +179,7 @@ object ImageExample extends IOApp with ExampleApp:
           ](
             widgetsAreMergeable = widgetsAreMergable[UpdateC[ChildEvent], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
             typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
-            liftUpdate = SkijaUpdate.catchEvents[IO, Float, SkijaClip, UpdateError, ChildEvent, Event]
+            liftUpdate = SkijaUpdate.catchEvents[IO, Point3d[Float], SkijaClip, UpdateError, ChildEvent, Event]
           )(
             name = name,
             initialState = initialState,
@@ -191,9 +191,9 @@ object ImageExample extends IOApp with ExampleApp:
       end new
     end statefulWidget
 
-    def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, SkijaUpdate[IO, Float, SkijaClip, String, *, *]] =
-      TransitiveStatefulWidgetFromStatefulWidget[Widget, SkijaUpdate[IO, Float, SkijaClip, String, *, *], [Value] =>> Value => SkijaRecomposition[IO]](
-        statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](events)
+    def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update] =
+      TransitiveStatefulWidgetFromStatefulWidget[Widget, Update, [Value] =>> Value => SkijaRecomposition[IO]](
+        statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, Point3d[Float], SkijaClip, String, Event](events)
       )
 
     def text[Event](text : String, style : SkijaTextStyle) : Widget[Event] =
@@ -240,7 +240,7 @@ object ImageExample extends IOApp with ExampleApp:
         IO,
         Widget[Event],
         Key,
-        SkijaUpdate[IO, Float, SkijaClip, String, *, *],
+        Update,
         Sized[Float, PlacedWidget[Event]],
         SkijaDownEvent[Float],
         Event
@@ -250,18 +250,18 @@ object ImageExample extends IOApp with ExampleApp:
         pushEvent = (path, event) =>  backend.raiseEvent(SkijaDownEvent.ExternalEventForWidget(path, event)),
         catchEvent = (path, event) =>
           catchExternalEvent[Event, Float, String](path, event, (valueFound : Any) => "Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString) match
-            case None => false.pure[SkijaUpdateT[IO, Float, SkijaClip, String, Event]]
+            case None => false.pure[UpdateC[Event]]
             case Some(Right(event)) =>
-              SkijaUpdate.raiseEvents[IO, Float, SkijaClip, String, Event](List(event)).as(true)
+              SkijaUpdate.raiseEvents[IO, Point3d[Float], SkijaClip, String, Event](List(event)).as(true)
             case Some(Left(error)) =>
-              SkijaUpdate.raiseError[IO, Float, SkijaClip, String, Event, Boolean](error)
+              SkijaUpdate.raiseError[IO, Point3d[Float], SkijaClip, String, Event, Boolean](error)
       )
     end launchedEvent
 
     def resource[Event](supervisor : Supervisor[IO]) : ResourceWidget[Widget[Event], IO] =
       resourceWidget[
         Widget,
-        SkijaUpdate[IO, Float, SkijaClip, String, *, *],
+        Update,
         IO,
         Event
       ](

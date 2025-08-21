@@ -1,5 +1,9 @@
 package me.katze.gui4s.geometry
 
+import cats.kernel.*
+import cats.syntax.all.*
+import scala.math.Numeric.Implicits.*
+
 @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
 final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementUnit, z : MeasurementUnit):
   def this(point2d : Point2d[MeasurementUnit])(using N : Numeric[MeasurementUnit]) =
@@ -25,4 +29,20 @@ final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
   def unary_-[NewMeasurementUnit >: MeasurementUnit : Numeric as N] : Point3d[NewMeasurementUnit] =
     Point3d(N.negate(x), N.negate(y), N.negate(z))
   end unary_-
+end Point3d
+
+object Point3d:
+  given[MeasurementUnit : Group] : Group[Point3d[MeasurementUnit]] with
+    override def combine(x: Point3d[MeasurementUnit], y: Point3d[MeasurementUnit]): Point3d[MeasurementUnit] =
+      Point3d(x.x |+| y.x, x.y |+| y.y, x.z |+| y.z)
+    end combine
+    
+    override def empty: Point3d[MeasurementUnit] =
+      Point3d(Group[MeasurementUnit].empty, Group[MeasurementUnit].empty, Group[MeasurementUnit].empty)
+    end empty
+    
+    override def inverse(x: Point3d[MeasurementUnit]): Point3d[MeasurementUnit] =
+      Point3d(Group[MeasurementUnit].inverse(x.x), Group[MeasurementUnit].inverse(x.y), Group[MeasurementUnit].inverse(x.z))
+    end inverse
+  end given
 end Point3d

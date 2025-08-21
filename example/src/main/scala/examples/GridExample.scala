@@ -36,7 +36,7 @@ object GridExample extends IOApp with ExampleApp:
   type UpdateError = String
   type PlaceError = String
 
-  override type Update[Event, Value] = SkijaUpdate[IO, Float, SkijaClip, UpdateError, Event, Value]
+  override type Update[Event, Value] = SkijaUpdate[IO, Point3d[Float], SkijaClip, UpdateError, Event, Value]
 
   type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
   type InnerPlace[Value] = Sized[Float, Value]
@@ -78,7 +78,7 @@ object GridExample extends IOApp with ExampleApp:
       ),
       ffi = ffi,
       callbacks = sink => SkijaDownEvent.eventOfferingCallbacks(sink.offer),
-      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Float, SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
+      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Point3d[Float], SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
       runPlace = backend => SkijaPlace.run[IO, Rect[Float], Float, PlaceError](backend.windowBounds).andThen[EitherT[IO, Throwable, *]](eitherTMapError[IO, String, Throwable](new Exception(_))).andThen(runEitherT[IO, Throwable]),
       runDraw = (draw, backend) => backend.drawFrame(ffi, (clear[IO] |+| draw).run),
       runRecomposition = SkijaRecomposition.run[IO]
@@ -108,7 +108,7 @@ object GridExample extends IOApp with ExampleApp:
       library.container(
         (draw, meta) => drawAt(ffi, draw, meta.x, meta.y),
         [T] => (update, point) => SkijaUpdate.withCoordinates(update)(_ + point),
-        SkijaUpdate.isEventHandled[IO, Float, SkijaClip, UpdateError, Event],
+        SkijaUpdate.isEventHandled[IO, Point3d[Float], SkijaClip, UpdateError, Event],
         updateListOrdered
       )
     end container
