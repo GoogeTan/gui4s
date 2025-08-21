@@ -1,4 +1,4 @@
-package catnip.cats.effect
+package catnip.effect
 package syntax
 
 import syntax.all.{BiMonadCancel, given}

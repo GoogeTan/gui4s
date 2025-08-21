@@ -1,4 +1,4 @@
-package catnip.cats.effect
+package catnip.effect
 
 import catnip.ForeighFunctionInterface
 import cats.effect.Sync

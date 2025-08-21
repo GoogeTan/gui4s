@@ -9,10 +9,14 @@ import cats.data.{EitherT, StateT, WriterT}
 import cats.effect.ExitCode
 import cats.kernel.Monoid
 import cats.syntax.all.*
-import cats.{Applicative, Monad}
+import cats.{Applicative, Monad, ~>}
 import io.github.humbleui.skija.{PathFillMode, PathOp, Path as SkijaPath}
+import me.katze.gui4s.example.api.effects.SkijaUpdate.catchEvents
 import me.katze.gui4s.geometry.{Point2d, Point3d}
+import me.katze.gui4s.widget.CatchEvents.catchEventsWriterT
 import me.katze.gui4s.widget.{CatchEvents, given}
+import catnip.transformer.*
+import me.katze.gui4s.widget.library.effect.EventsTransformer
 
 final case class UpdateEffectState[MeasurementUnit, Clip](consumed : Boolean, widgetCoordinates : Point3d[MeasurementUnit], path: Clip):
   def withCoordinates(point: Point3d[MeasurementUnit]): UpdateEffectState[MeasurementUnit, Clip] =
@@ -34,18 +38,35 @@ object UpdateEffectState:
   end empty
 end UpdateEffectState
 
-opaque type SkijaUpdate[IO[_], MeasurementUnit, Clip, UpdateError, Event, Value] = EitherT[StateT[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit, Clip], *], UpdateError, Value]
+type SkijaUpdateTransformer[UpdateError, State, Events] =
+  ErrorTransformer[UpdateError] <> StateTransformer[State] <> EventsTransformer[Events]
+
+object SkijaUpdate2:
+  def catchEvents[IO[_] : Monad, UpdateError, State, Events : Monoid, NewEvents : Monoid] 
+    : [T] => SkijaUpdateTransformer[UpdateError, State, Events][IO, T] => SkijaUpdateTransformer[UpdateError, State, NewEvents][IO, (T, Events)] =
+    [T] => update => EventsTransformer.catchEvents(update)
+  end catchEvents
+  
+  def liftK[IO[_] : Monad, UpdateError, State, Events : Monoid]: IO ~> SkijaUpdateTransformer[UpdateError, State, Events][IO, *] =
+    MonadTransformer[SkijaUpdateTransformer[UpdateError, State, Events]].liftK
+  end liftK
+
+  def updateState[IO[_] : Monad, UpdateError, State, Events: Monoid](f: State => State): SkijaUpdateTransformer[UpdateError, State, Events][IO, Unit] =
+    StateTransformer.modify(f)
+  end updateState
+end SkijaUpdate2
+
+opaque type SkijaUpdate[IO[_], MeasurementUnit, Clip, UpdateError, Event, Value] =
+  EitherT[StateT[WriterT[IO, List[Event], *], UpdateEffectState[MeasurementUnit, Clip], *], UpdateError, Value]
+
+
 type SkijaUpdateT[IO[_], MeasurementUnit, Clip, UpdateError, Event] = SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, *]
 
 object SkijaUpdate:
-  given[IO[_] : Monad, MeasurementUnit, Clip, UpdateError] : CatchEvents[SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, *, *]] =
-    liftEitherTCatchEvents[
-      [A, B] =>> StateT[WriterT[IO, List[A], *], UpdateEffectState[MeasurementUnit, Clip], B],
-      UpdateError
-    ](using
-      stateWrapsBiMonad[[Event, Value] =>> WriterT[IO, List[Event], Value], UpdateEffectState[MeasurementUnit, Clip]](using writerIsBiMonad),
-      liftStateTCatchEvents[[A, B] =>> WriterT[IO, List[A], B], UpdateEffectState[MeasurementUnit, Clip]](using writerIsBiMonad)
-    )
+  def catchEvents[IO[_] : Monad, MeasurementUnit, Clip, UpdateError, Event1, Event2] : [T] => SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event1, T] => SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event2, (List[Event1], T)] =
+    [A] => (update : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event1, A]) =>
+      ???
+  end catchEvents
 
   def run[IO[_] : Monad, MeasurementUnit : Numeric, Clip : Monoid, UpdateError, Event, Value](value : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event, Value]) : IO[(List[Event], Either[UpdateError, Value])] =
     value.value.runA(UpdateEffectState.empty).run
@@ -158,7 +179,9 @@ object SkijaUpdate:
   end raiseError
 
   def mapEvents[IO[_] : Monad, MeasurementUnit, Clip, UpdateError, Event1, Event2, T](f : Event1 => Event2)(skijaUpdate : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event1, T]) : SkijaUpdate[IO, MeasurementUnit, Clip, UpdateError, Event2, T] =
-    skijaUpdate.catchEvents.flatMap((newEvents, value) => raiseEvents(newEvents.map(f)).as(value))
+    catchEvents(
+      skijaUpdate
+    ).flatMap((newEvents, value) => raiseEvents(newEvents.map(f)).as(value))
   end mapEvents
 
   def handleApplicationRequests[

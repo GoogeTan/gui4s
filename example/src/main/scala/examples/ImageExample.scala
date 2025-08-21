@@ -9,7 +9,7 @@ import app.skijaGlfwApp
 import skija.SkijaBackend
 
 import catnip.ForeighFunctionInterface
-import catnip.cats.effect.SyncForeighFunctionInterface
+import catnip.effect.SyncForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.*
 import cats.data.{EitherT, NonEmptyList}
@@ -168,17 +168,18 @@ object ImageExample extends IOApp with ExampleApp:
                                                                 destructor: State => SkijaRecomposition[IO]
                                                               ): Widget[Event] =
           library.stateful[
-            Update,
+            UpdateC[Event],
+            UpdateC[ChildEvent],
             Place,
             Draw,
             RecompositionReaction,
             DownEvent,
             State,
-            Event,
             ChildEvent
           ](
-            widgetsAreMergeable = widgetsAreMergable[Update[ChildEvent, *], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
-            typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]")
+            widgetsAreMergeable = widgetsAreMergable[UpdateC[ChildEvent], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
+            typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
+            liftUpdate = SkijaUpdate.catchEvents[IO, Float, SkijaClip, UpdateError, ChildEvent, Event]
           )(
             name = name,
             initialState = initialState,

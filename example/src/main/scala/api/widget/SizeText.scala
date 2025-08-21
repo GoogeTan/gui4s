@@ -16,14 +16,14 @@ type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized
 
 def sizeTextFFI[
   IO[_] : Functor, 
-  Place[_] : Monad
+  OuterPlace[_] : Monad
 ](
-  getAvailablePlace : Place[Option[Float]],
+  getAvailablePlace : OuterPlace[Option[Float]],
   ffi : ForeighFunctionInterface[IO],
   shaper: Shaper,
   cache : TextCache[IO],
-  liftF : IO ~> Place
-) : SizeText[Place * SizedT[Float]] =
+  liftF : IO ~> OuterPlace
+) : SizeText[OuterPlace * SizedT[Float]] =
   (text: String, options: SkijaTextStyle) =>
     getAvailablePlace.flatMap:
       bounds =>

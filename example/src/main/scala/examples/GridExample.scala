@@ -9,7 +9,7 @@ import place.*
 import skija.SkijaBackend
 
 import catnip.ForeighFunctionInterface
-import catnip.cats.effect.SyncForeighFunctionInterface
+import catnip.effect.SyncForeighFunctionInterface
 import catnip.syntax.all.{*, given}
 import cats.*
 import cats.syntax.all.*

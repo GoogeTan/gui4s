@@ -11,7 +11,6 @@ object monad:
    * Каррированная версия MonadError.
    */
   type MonadErrorT[T] = [F[_]] =>> MonadError[F, T]
-  
 
   given readerMonad[Ctx, F[_] : Monad as M] : Monad[[Value] =>> Ctx => F[Value]] with
     override def pure[B](x: B): Ctx => F[B] =

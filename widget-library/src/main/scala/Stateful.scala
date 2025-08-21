@@ -4,7 +4,7 @@ import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import cats.{Functor, Monoid}
+import cats.{Functor, Monad, Monoid}
 import me.katze.gui4s.widget
 import me.katze.gui4s.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import me.katze.gui4s.widget.handle.{HandlesEventF, andThen, statefulHandlesEvent, statefulStateHandlesEvents}
@@ -51,26 +51,27 @@ import me.katze.gui4s.widget.*
  * Когда виджет покидает композицию, вызывается destructor для отчистки ресурсов, которые могут быть частью состояния.
  */
 def stateful[
-  Update[Event, Value] : {BiMonad, CatchEvents},
+  Update[_] : Monad,
+  ChildUpdate[_] : Functor,
   Place[_] : Functor,
   Draw,
   RecompositionReaction : Monoid as M,
   HandlableEvent,
   State : Equiv,
-  ParentEvent,
   ChildEvent
 ](
-  widgetsAreMergeable : Mergable[Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]]],
+  widgetsAreMergeable : Mergable[Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]]],
   typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
+  liftUpdate : [T] => ChildUpdate[T] => Update[(List[ChildEvent], T)]
 )(
   name : String,
   initialState : State,
-  handleEvent : HandlesEventF[State, NonEmptyList[ChildEvent], Update[ParentEvent, *]],
-  render : State => Place[Widget[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]],
+  handleEvent : HandlesEventF[State, NonEmptyList[ChildEvent], Update],
+  render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]],
   destructor : State => RecompositionReaction,
 ) : Place[
   Widget[
-    Update[ParentEvent, *],
+    Update,
     Place,
     Draw,
     RecompositionReaction,
@@ -79,7 +80,7 @@ def stateful[
 ] =
   render(initialState).map(initialChild =>
     type ChildWidget = Widget[
-      Update[ChildEvent, *],
+      ChildUpdate,
       Place,
       Draw,
       RecompositionReaction,
@@ -88,7 +89,7 @@ def stateful[
     type StState = StatefulBehaviour[
       State,
       State => Place[ChildWidget],
-      HandlesEventF[State, NonEmptyList[ChildEvent], Update[ParentEvent, *]],
+      HandlesEventF[State, NonEmptyList[ChildEvent], Update],
       State => RecompositionReaction
     ]
     val stateful = Stateful(
@@ -113,12 +114,12 @@ def stateful[
       valueHandlesEvent = statefulHandlesEvent(
         stateHandlesEvents = statefulStateHandlesEvents,
         drawStateIntoWidget = statefulStateDrawsIntoWidget,
-        childWidgetHandlesEvent = widgetHandlesEvent[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent].andThen(_.catchEvents),
+        childWidgetHandlesEvent = widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent].andThen(liftUpdate(_)),
         widgetsAreMergable = widgetsAreMergeable,
       ),
       valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
-        widgetReactsOnRecomposition[Update[ChildEvent, *], Place, Draw, RecompositionReaction, HandlableEvent]
+        widgetReactsOnRecomposition[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]
       ),
       valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
     )

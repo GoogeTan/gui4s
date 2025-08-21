@@ -19,11 +19,12 @@ trait TransitiveStatefulWidget[Widget[_], Update[Event, Value]]:
 
 final class TransitiveStatefulWidgetFromStatefulWidget[
   Widget[_],
-  Update[Event, Value] : {BiMonad, CatchEvents},
+  Update[Event, Value] : BiMonad,
   Destructor[_]
 ](
   statefulWidget: StatefulWidget[Widget, Update, Destructor],
-  raiseEvents : [Event] => List[Event] => Update[Event, Unit]
+  raiseEvents : [Event] => List[Event] => Update[Event, Unit],
+  //catchEvents : [E1, E2, V] => Update[E1, V] => Update[E2, (List[E1], E2)]
 ) extends TransitiveStatefulWidget[Widget, Update]:
   override def apply[State: Typeable, TransitiveEvent, OwnEvent](
                                                                   name: String,

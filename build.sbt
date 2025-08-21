@@ -73,7 +73,7 @@ val catnip = (project in file("catnip"))
 val catnipEffect = (project in file("catnip-cats-effect"))
   .settings(
     name := "catnip-cats-effect",
-    idePackagePrefix := Some("catnip.cats.effect"),
+    idePackagePrefix := Some("catnip.effect"),
     libraryDependencies ++= catsEffectLibs ++ testLibs,
     wartremoverErrors := Warts.all,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
