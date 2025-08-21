@@ -40,7 +40,7 @@ object ImageExample extends IOApp with ExampleApp:
   type UpdateError = String
   type PlaceError = String
 
-  override type Update[Event, Value] = SkijaUpdate[IO, Point3d[Float], SkijaClip, UpdateError, Event, Value]
+  override type Update[Event, Value] = SkijaUpdate[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, Event, Value]
 
   type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
   type InnerPlace[Value] = Sized[Float, Value]
@@ -179,7 +179,7 @@ object ImageExample extends IOApp with ExampleApp:
           ](
             widgetsAreMergeable = widgetsAreMergable[UpdateC[ChildEvent], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
             typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
-            liftUpdate = SkijaUpdate.catchEvents[IO, Point3d[Float], SkijaClip, UpdateError, ChildEvent, Event]
+            liftUpdate = SkijaUpdate.catchEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, ChildEvent, Event]
           )(
             name = name,
             initialState = initialState,
@@ -193,7 +193,7 @@ object ImageExample extends IOApp with ExampleApp:
 
     def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update] =
       TransitiveStatefulWidgetFromStatefulWidget[Widget, Update, [Value] =>> Value => SkijaRecomposition[IO]](
-        statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, Point3d[Float], SkijaClip, String, Event](events)
+        statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], String, Event](events)
       )
 
     def text[Event](text : String, style : SkijaTextStyle) : Widget[Event] =
@@ -252,9 +252,9 @@ object ImageExample extends IOApp with ExampleApp:
           catchExternalEvent[Event, Float, String](path, event, (valueFound : Any) => "Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString) match
             case None => false.pure[UpdateC[Event]]
             case Some(Right(event)) =>
-              SkijaUpdate.raiseEvents[IO, Point3d[Float], SkijaClip, String, Event](List(event)).as(true)
+              SkijaUpdate.raiseEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], String, Event](List(event)).as(true)
             case Some(Left(error)) =>
-              SkijaUpdate.raiseError[IO, Point3d[Float], SkijaClip, String, Event, Boolean](error)
+              SkijaUpdate.raiseError[IO, UpdateEffectState[Point3d[Float], SkijaClip], String, Event, Boolean](error)
       )
     end launchedEvent
 

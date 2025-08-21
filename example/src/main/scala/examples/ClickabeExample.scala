@@ -40,7 +40,7 @@ object ClickabeExample extends IOApp with ExampleApp:
   type UpdateError = String
   type PlaceError = String
 
-  override type Update[Event, Value] = SkijaUpdate[IO, Point3d[Float], SkijaClip, UpdateError, Event, Value]
+  override type Update[Event, Value] = SkijaUpdate[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, Event, Value]
 
   type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
   type InnerPlace[Value] = Sized[Float, Value]
@@ -123,7 +123,7 @@ object ClickabeExample extends IOApp with ExampleApp:
           eventCatcherWithRect = eventCatcher,
           currentMousePosition = SkijaUpdate.liftF(backend.mousePosition),
           approprieteEvent = extractMouseClickEvent,
-          onClick = (_, _) => SkijaUpdate.raiseEvents[IO, Point3d[Float], SkijaClip, UpdateError, Event](List(event)).as(true),
+          onClick = (_, _) => SkijaUpdate.raiseEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, Event](List(event)).as(true),
           isIn = point => shape =>
             SkijaUpdate.getCoordinates2d[IO, Float, SkijaClip, UpdateError, Event].map(
               coordinatesOfTopLeftCornet =>
@@ -163,7 +163,7 @@ object ClickabeExample extends IOApp with ExampleApp:
           ](
             widgetsAreMergeable = widgetsAreMergable[UpdateC[ChildEvent], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
             typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
-            liftUpdate = SkijaUpdate.catchEvents[IO, Point3d[Float], SkijaClip, UpdateError, ChildEvent, Event]
+            liftUpdate = SkijaUpdate.catchEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, ChildEvent, Event]
           )(
             name = name,
             initialState = initialState,
@@ -227,7 +227,7 @@ object ClickabeExample extends IOApp with ExampleApp:
             statefulWidget[Int, Event, Unit](
               name = "line-" + lineNumber.toString,
               initialState = 0,
-              eventHandler = (state, _, _) => (state + 1).pure[SkijaUpdateT[IO, Point3d[Float], SkijaClip, String, Event]],
+              eventHandler = (state, _, _) => (state + 1).pure[UpdateC[Event]],
               body = state =>
                 text(
                   "# " + lineNumber.toString + " : " + state.toString,
