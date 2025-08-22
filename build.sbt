@@ -5,6 +5,11 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.7.1"
 
+// for running glfw in sbt shell
+example/run/fork := true
+example/run/javaOptions ++= Seq("-XstartOnFirstThread")
+// end for sbt shell
+
 // for nix os
 sys.env.get("LD_LIBRARY_PATH") match {
   case Some(libPath) =>
