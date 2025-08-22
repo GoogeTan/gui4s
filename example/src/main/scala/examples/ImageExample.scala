@@ -63,7 +63,7 @@ object ImageExample extends IOApp with ExampleApp:
       dispatcher <- Dispatcher.sequential[IO]
       supervisor <- Supervisor[IO]
       shaper <- backend.skija.createShaper
-      cache: TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(scalacacheCache)
+      cache: TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_))
     yield (dispatcher, supervisor, shaper, cache)
   end preInit
 

@@ -6,7 +6,6 @@ import catnip.transformer.*
 import catnip.syntax.all.{*, given}
 import cats.*
 import cats.data.*
-import cats.syntax.all.*
 
 type SkijaOuterPlaceTransformer[Bounds, Error] =  StateTransformer[Bounds] <> ErrorTransformer[Error]
 

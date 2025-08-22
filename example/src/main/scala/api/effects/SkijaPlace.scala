@@ -1,15 +1,12 @@
 package me.katze.gui4s.example
 package api.effects
 
-import api.widget.{SizeText, TextCache, sizeTextFFI}
+import api.widget.{SizeText, TextCache, sizeTextFFI, MapKCache}
 
-import _root_.cats.data.{EitherT, StateT}
-import _root_.cats.syntax.all.*
-import _root_.cats.{Monad, MonadError, ~>}
+import _root_.cats.data.EitherT
+import _root_.cats.{Monad, ~>}
 import catnip.*
-import catnip.syntax.all.{*, given}
-import catnip.syntax.functionk.runStateT
-import catnip.transformer.*
+import catnip.syntax.all.given
 import io.github.humbleui.skija.shaper.Shaper
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.widget.Path
@@ -38,13 +35,12 @@ object SkijaPlace:
     cache : TextCache[IO],
     widthFromBounds : Bounds => Option[Float],
   ) : SizeText[SkijaPlace[IO, Bounds, Float, PlaceError, *]] =
-    sizeTextFFI[IO, SkijaOuterPlaceT[IO, Bounds, PlaceError]](
+    sizeTextFFI[SkijaOuterPlaceT[IO, Bounds, PlaceError]](
       SkijaOuterPlace.getBounds[IO, Bounds, PlaceError].map(widthFromBounds),
-      ffi,
+      ffi.mapK(SkijaOuterPlace.liftK),
       shaper,
-      cache,
-      SkijaOuterPlace.liftK,
-    )(using IOM, SkijaOuterPlace.monadInstance)
+      MapKCache(cache, SkijaOuterPlace.liftK)(using IOM, SkijaOuterPlace.monadInstance),
+    )(using SkijaOuterPlace.monadInstance)
   end sizeText
   
   def typecheck[
