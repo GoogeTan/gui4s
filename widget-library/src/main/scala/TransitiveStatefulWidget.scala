@@ -4,7 +4,6 @@ import catnip.BiMonad
 import catnip.syntax.all.{*, given}
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import me.katze.gui4s.widget.CatchEvents
 import me.katze.gui4s.widget.handle.HandlesEventF
 
 import scala.reflect.Typeable

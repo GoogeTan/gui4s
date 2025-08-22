@@ -5,12 +5,13 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.7.1"
 
+// for nix os
 sys.env.get("LD_LIBRARY_PATH") match {
   case Some(libPath) =>
     javaOptions += s"-Djava.library.path=$libPath"
   case _ => javaOptions += ""
 }
-
+// end for nix os
 
 addCompilerPlugin("org.wartremover" %% "wartremover" % "3.3.4" cross CrossVersion.full)
 

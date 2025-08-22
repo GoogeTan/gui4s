@@ -31,6 +31,8 @@ import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.library.decorator.*
 import scalacache.caffeine.CaffeineCache
 import me.katze.gui4s.example.api.effects.SkijaUpdateTransformer.given
+import me.katze.gui4s.example.api.effects.SkijaOuterPlace.given
+import me.katze.gui4s.example.api.effects.SkijaPlace.given
 
 import scala.reflect.Typeable
 

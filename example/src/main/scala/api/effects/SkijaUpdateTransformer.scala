@@ -2,9 +2,8 @@ package me.katze.gui4s.example
 package api.effects
 
 import catnip.BiMonad
-import catnip.syntax.transformer.{*, given}
+import catnip.syntax.all.{*, given}
 import catnip.transformer.*
-import catnip.transformer.instances.given
 import cats.*
 import cats.effect.ExitCode
 import cats.kernel.Monoid
@@ -17,7 +16,7 @@ type SkijaUpdateTransformer[UpdateError, State, Events] =
 
 object SkijaUpdateTransformer:
   given[IO[_] : Monad, UpdateError, State] : BiMonad[[A, B] =>> SkijaUpdateTransformer[UpdateError, State, List[A]][IO, B]] =
-    [T] => () => summon
+    [T] => () => monadInstanceForTransformer
 
   def liftK[IO[_] : Monad, UpdateError, State, Events : Monoid]: IO ~> SkijaUpdateTransformer[UpdateError, State, Events][IO, *] =
     MonadTransformer[SkijaUpdateTransformer[UpdateError, State, Events]].liftK
