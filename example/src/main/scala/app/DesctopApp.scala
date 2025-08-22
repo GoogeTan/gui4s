@@ -1,7 +1,6 @@
 package me.katze.gui4s.example
 package app
 
-import api.effects.{SkijaApplicationRequest, SkijaPlace, SkijaRecomposition, SkijaUpdate}
 import loop.*
 import skija.{SkijaBackend, skijaDrawLoop}
 import cats.syntax.all.{*, given}

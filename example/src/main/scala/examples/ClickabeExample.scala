@@ -30,17 +30,19 @@ import me.katze.gui4s.widget.handle.HandlesEventF
 import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.library.decorator.*
 import scalacache.caffeine.CaffeineCache
+import me.katze.gui4s.example.api.effects.SkijaUpdateTransformer.given
 
 import scala.reflect.Typeable
 
 object ClickabeExample extends IOApp with ExampleApp:
   given ffi : ForeighFunctionInterface[IO] = SyncForeighFunctionInterface[IO]
-  val containerPlacementError = ContainerPlacementError.English
+  val containerPlacementError: ContainerPlacementError[PlaceError] = ContainerPlacementError.English
 
   type UpdateError = String
   type PlaceError = String
 
-  override type Update[Event, Value] = SkijaUpdate[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, Event, Value]
+  override type Update[Event, Value] = SkijaUpdateTransformer[UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event]][IO, Value]
+  given[Event] : Monad[UpdateC[Event]] = unwrapBi
 
   type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
   type InnerPlace[Value] = Sized[Float, Value]
@@ -82,7 +84,7 @@ object ClickabeExample extends IOApp with ExampleApp:
       ),
       ffi = ffi,
       callbacks = sink => SkijaDownEvent.eventOfferingCallbacks(sink.offer),
-      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Point3d[Float], SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
+      runUpdate = SkijaUpdateTransformer.handleApplicationRequests[IO, Point3d[Float], SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
       runPlace = backend => SkijaPlace.run[IO, Rect[Float], Float, PlaceError](backend.windowBounds).andThen[EitherT[IO, Throwable, *]](eitherTMapError[IO, String, Throwable](new Exception(_))).andThen(runEitherT[IO, Throwable]),
       runDraw = (draw, backend) => backend.drawFrame(ffi, (clear[IO] |+| draw).run),
       runRecomposition = SkijaRecomposition.run[IO]
@@ -112,7 +114,7 @@ object ClickabeExample extends IOApp with ExampleApp:
       DownEvent
     ](
       updateDecorator,
-      SkijaUpdate.markEventHandled,
+      SkijaUpdateTransformer.markEventHandled,
       widgetAsFree,
       widgetHandlesEvent
     )
@@ -121,11 +123,11 @@ object ClickabeExample extends IOApp with ExampleApp:
       def onClick(event : Event) : Widget[Event] =
         clickCatcher(
           eventCatcherWithRect = eventCatcher,
-          currentMousePosition = SkijaUpdate.liftF(backend.mousePosition),
+          currentMousePosition = SkijaUpdateTransformer.liftK[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event]](backend.mousePosition),
           approprieteEvent = extractMouseClickEvent,
-          onClick = (_, _) => SkijaUpdate.raiseEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, Event](List(event)).as(true),
+          onClick = (_, _) => SkijaUpdateTransformer.emitEvents[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event]](List(event)).as(true),
           isIn = point => shape =>
-            SkijaUpdate.getCoordinates2d[IO, Float, SkijaClip, UpdateError, Event].map(
+            SkijaUpdateTransformer.getCornerCoordinates2d[IO, UpdateError, Float, SkijaClip, List[Event]].map(
               coordinatesOfTopLeftCornet =>
                 RectAtPoint2d(shape.size, coordinatesOfTopLeftCornet).containsPoint(point)
             )
@@ -163,7 +165,7 @@ object ClickabeExample extends IOApp with ExampleApp:
           ](
             widgetsAreMergeable = widgetsAreMergable[UpdateC[ChildEvent], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
             typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
-            liftUpdate = SkijaUpdate.catchEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, ChildEvent, Event]
+            liftUpdate = SkijaUpdateTransformer.catchEvents[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[ChildEvent], List[Event]]
           )(
             name = name,
             initialState = initialState,
@@ -196,8 +198,8 @@ object ClickabeExample extends IOApp with ExampleApp:
       given Order[Point3d[Float]] = Order.by(_.z)
       library.container(
         (draw, meta) => drawAt(ffi, draw, meta.x, meta.y),
-        [T] => (update : Update[Event, T], point : Point3d[Float]) => SkijaUpdate.withCoordinates(update)(_ + point),
-        SkijaUpdate.isEventHandled[IO, Point3d[Float], SkijaClip, UpdateError, Event],
+        [T] => (update : Update[Event, T], point : Point3d[Float]) => SkijaUpdateTransformer.withCornerCoordinates(update, _ + point),
+        SkijaUpdateTransformer.isEventHandled[IO, UpdateError, Point3d[Float], SkijaClip, List[Event]],
         updateListOrdered
       )
     end container

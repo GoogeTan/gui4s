@@ -24,7 +24,6 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
 ](
   statefulWidget: StatefulWidget[Widget, Update, Destructor],
   raiseEvents : [Event] => List[Event] => Update[Event, Unit],
-  //catchEvents : [E1, E2, V] => Update[E1, V] => Update[E2, (List[E1], E2)]
 ) extends TransitiveStatefulWidget[Widget, Update]:
   override def apply[State: Typeable, TransitiveEvent, OwnEvent](
                                                                   name: String,

@@ -8,6 +8,8 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.{Functor, Monad}
 
+import scala.collection.immutable.List
+
 def statefulHandlesEvent[
   Update[_] : Monad,
   Place[_] : Functor,
@@ -18,7 +20,7 @@ def statefulHandlesEvent[
 ](
     stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[State]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childWidgetHandlesEvent  : HandlesEvent[Widget, HandleableEvent, Update[(List[ChildEvent], Place[Widget])]],
+    childWidgetHandlesEvent  : HandlesEvent[Widget, HandleableEvent, Update[(Place[Widget], List[ChildEvent])]],
     widgetsAreMergable  : Mergable[Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
@@ -31,7 +33,7 @@ def statefulHandlesEvent[
     event: HandleableEvent
   ) =>
     for
-      (events, newChildWidget) <- childWidgetHandlesEvent(
+      (newChildWidget, events) <- childWidgetHandlesEvent(
         self.child,
         pathToParent.appendLast(self.name),
         event

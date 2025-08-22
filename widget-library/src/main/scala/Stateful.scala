@@ -62,7 +62,7 @@ def stateful[
 ](
   widgetsAreMergeable : Mergable[Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]]],
   typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
-  liftUpdate : [T] => ChildUpdate[T] => Update[(List[ChildEvent], T)]
+  liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])]
 )(
   name : String,
   initialState : State,

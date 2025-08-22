@@ -3,6 +3,7 @@ package examples
 
 import api.*
 import api.effects.SkijaDownEvent.catchExternalEvent
+import api.effects.SkijaUpdateTransformer.given
 import api.effects.{*, given}
 import api.widget.*
 import app.skijaGlfwApp
@@ -25,8 +26,8 @@ import me.katze.gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import me.katze.gui4s.layout.Sized
 import me.katze.gui4s.skija.*
 import me.katze.gui4s.widget.handle.HandlesEventF
-import me.katze.gui4s.widget.library.{Widget, *}
 import me.katze.gui4s.widget.library.decorator.*
+import me.katze.gui4s.widget.library.*
 import me.katze.gui4s.widget.{Path, StatefulState, library}
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
@@ -40,7 +41,8 @@ object ImageExample extends IOApp with ExampleApp:
   type UpdateError = String
   type PlaceError = String
 
-  override type Update[Event, Value] = SkijaUpdate[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, Event, Value]
+  override type Update[Event, Value] = SkijaUpdateTransformer[UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event]][IO, Value]
+  given[Event] : Monad[UpdateC[Event]] = unwrapBi
 
   type OuterPlace[Value] = SkijaOuterPlace[IO, Rect[Float], PlaceError, Value]
   type InnerPlace[Value] = Sized[Float, Value]
@@ -85,7 +87,7 @@ object ImageExample extends IOApp with ExampleApp:
       ),
       ffi = ffi,
       callbacks = sink => SkijaDownEvent.eventOfferingCallbacks(sink.offer),
-      runUpdate = SkijaUpdate.handleApplicationRequests[IO, Point3d[Float], SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
+      runUpdate = SkijaUpdateTransformer.handleApplicationRequests[IO, Point3d[Float], SkijaClip, String](error => IO.println(error).as(ExitCode.Error)),
       runPlace = backend => SkijaPlace.run[IO, Rect[Float], Float, PlaceError](backend.windowBounds).andThen[EitherT[IO, Throwable, *]](eitherTMapError[IO, String, Throwable](new Exception(_))).andThen(runEitherT[IO, Throwable]),
       runDraw = (draw, backend) => backend.drawFrame(ffi, (clear[IO] |+| draw).run),
       runRecomposition = SkijaRecomposition.run[IO]
@@ -104,14 +106,22 @@ object ImageExample extends IOApp with ExampleApp:
       DownEvent,
     ] = eventCatcherWithRect[PlacedWidget[Event], UpdateC[Event], OuterPlace, InnerPlace, DownEvent](
       updateDecorator[Event],
-      SkijaUpdate.markEventHandled[IO, Point3d[Float], SkijaClip, UpdateError, Event],
+      SkijaUpdateTransformer.markEventHandled[IO, UpdateError, Point3d[Float], SkijaClip, List[Event]],
       widgetAsFree,
       widgetHandlesEvent[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent]
     )
 
+    def mapEventWidget : MapEvent[Widget] =
+      [Event, NewEvent] => f => original =>
+        library.decorator.mapUpdate[UpdateC[Event], UpdateC[NewEvent], Place, Draw, RecompositionReaction, DownEvent](
+          original,
+          SkijaUpdateTransformer.mapEvents[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event], List[NewEvent]](_.map(f))
+        )
+    end mapEventWidget
+
     extension[Event](value : Widget[Event])
       def mapEvent[NewEvent](f : Event => NewEvent) : Widget[NewEvent] =
-        library.decorator.mapEvent[Update, Place, Draw, RecompositionReaction, DownEvent]([T, A, B] => (f : A => B) => SkijaUpdate.mapEvents(f))(value)(f)
+        mapEventWidget(f)(value)
       end mapEvent
 
       def clip(path : Rect[Float] => SkijaClip) : Widget[Event] =
@@ -124,7 +134,12 @@ object ImageExample extends IOApp with ExampleApp:
           DownEvent,
           SkijaClip
         ](
-          [T] => (a, b) => SkijaUpdate.withClip[IO, Point3d[Float], SkijaClip, UpdateError, Event, T](a, b, SkijaClip.skijaPathAt),
+          [T] => (shape, update) =>
+            SkijaUpdateTransformer.withClip[IO, UpdateError, Point3d[Float], SkijaClip, List[Event], T](
+              update,
+              (oldShape, point) =>
+                oldShape |+| SkijaClip.skijaPathAt(shape, point)
+            ),
           SkijaClip.clipToPath[IO](ffi, _ : SkijaClip, _ : SkijaDraw[IO]),
           place => path(place.size),
         )(value)
@@ -143,7 +158,7 @@ object ImageExample extends IOApp with ExampleApp:
           paddings => [T] => place =>
             SkijaOuterPlace.withBounds[IO, Rect[Float], PlaceError, InnerPlace[T]](place, _.cut(paddings.horizontalLength, paddings.verticalLength, _ - _)),
           paddings => update => (path, event) =>
-            SkijaUpdate.withCoordinates[IO, Point3d[Float], SkijaClip, UpdateError, Event, Widget[Event]](update(path, event))(_ + new Point3d(paddings.topLeftCornerShift)),
+            SkijaUpdateTransformer.withCornerCoordinates[IO, UpdateError, Point3d[Float], SkijaClip, List[Event], Widget[Event]](update(path, event), _ + new Point3d(paddings.topLeftCornerShift)),
           paddings => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),
         )(paddings)(value)
     end extension
@@ -179,7 +194,7 @@ object ImageExample extends IOApp with ExampleApp:
           ](
             widgetsAreMergeable = widgetsAreMergable[UpdateC[ChildEvent], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
             typeCheckState = SkijaPlace.typecheck[IO, Rect[Float], Float, String, StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
-            liftUpdate = SkijaUpdate.catchEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], UpdateError, ChildEvent, Event]
+            liftUpdate = SkijaUpdateTransformer.catchEvents[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[ChildEvent], List[Event]]
           )(
             name = name,
             initialState = initialState,
@@ -193,7 +208,8 @@ object ImageExample extends IOApp with ExampleApp:
 
     def transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update] =
       TransitiveStatefulWidgetFromStatefulWidget[Widget, Update, [Value] =>> Value => SkijaRecomposition[IO]](
-        statefulWidget, [Event] => events => SkijaUpdate.raiseEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], String, Event](events)
+        statefulWidget,
+        [Event] => events => SkijaUpdateTransformer.emitEvents[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event]](events)
       )
 
     def text[Event](text : String, style : SkijaTextStyle) : Widget[Event] =
@@ -252,9 +268,9 @@ object ImageExample extends IOApp with ExampleApp:
           catchExternalEvent[Event, Float, String](path, event, (valueFound : Any) => "Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString) match
             case None => false.pure[UpdateC[Event]]
             case Some(Right(event)) =>
-              SkijaUpdate.raiseEvents[IO, UpdateEffectState[Point3d[Float], SkijaClip], String, Event](List(event)).as(true)
+              SkijaUpdateTransformer.emitEvents[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event]](List(event)).as(true)
             case Some(Left(error)) =>
-              SkijaUpdate.raiseError[IO, UpdateEffectState[Point3d[Float], SkijaClip], String, Event, Boolean](error)
+              SkijaUpdateTransformer.raiseError[IO, UpdateError, UpdateEffectState[Point3d[Float], SkijaClip], List[Event], Boolean](error)
       )
     end launchedEvent
 
@@ -274,7 +290,7 @@ object ImageExample extends IOApp with ExampleApp:
                 (),
                 task.map(Left(_))
               ),
-        doubleAllocError = [T] => (path : Path) => SkijaUpdate.raiseError("Double resource alloc at " + path.toString)
+        doubleAllocError = [T] => (path : Path) => SkijaUpdateTransformer.raiseError("Double resource alloc at " + path.toString)
       )
     end resource
 
