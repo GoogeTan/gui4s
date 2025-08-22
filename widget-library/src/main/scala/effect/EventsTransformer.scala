@@ -5,6 +5,8 @@ import catnip.syntax.transformer.<>
 import catnip.transformer.*
 import cats.Monad
 import cats.kernel.Monoid
+import cats.syntax.all.*
+import catnip.syntax.all.{*, given}
 
 type EventsTransformer[Events] = WriterTransformer[Events]
 
@@ -28,7 +30,7 @@ object EventsTransformer:
     WriterTransformer.tell(events)
   end raiseEvents
 
-  def catchEvents[
+  def catchEvents_[
     IO[_] : Monad,
     Events : Monoid,
     NewEvents : Monoid,
@@ -37,7 +39,7 @@ object EventsTransformer:
     original: EventsTransformer[Events][IO, T]
   ): EventsTransformer[NewEvents][IO, (T, Events)] =
     WriterTransformer.extract_[IO, Events, NewEvents, T](original)
-  end catchEvents
+  end catchEvents_
 
   def catchEvents[
     F[_[_], _] : MonadTransformer,
@@ -50,4 +52,37 @@ object EventsTransformer:
   ): (F <> EventsTransformer[NewEvents])[IO, (T, Events)] =
     WriterTransformer.extract[F, IO, Events, NewEvents, T](original)
   end catchEvents
+
+  def mapEvents_[
+    IO[_] : Monad,
+    Events : Monoid,
+    NewEvents : Monoid,
+    T
+  ](
+    original: EventsTransformer[Events][IO, T],
+    f : Events => NewEvents
+  ): EventsTransformer[NewEvents][IO, T] =
+    for
+      tmp <- catchEvents_[IO, Events, NewEvents, T](original)
+      (value, events) = tmp
+      _ <- raiseEvents_(f(events))
+    yield value 
+  end mapEvents_
+  
+  def mapEvents[
+    F[_[_], _] : MonadTransformer,
+    IO[_] : Monad,
+    Events : Monoid,
+    NewEvents : Monoid,
+    T
+  ](
+    original: (F <> EventsTransformer[Events])[IO, T],
+    f : Events => NewEvents
+  ): (F <> EventsTransformer[NewEvents])[IO, T] =
+    for
+      tmp <- catchEvents[F, IO, Events, NewEvents, T](original)
+      (value, events) = tmp
+      _ <- raiseEvents(f(events))
+    yield value  
+  end mapEvents
 end EventsTransformer

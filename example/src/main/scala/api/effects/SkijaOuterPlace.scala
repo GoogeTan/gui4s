@@ -35,14 +35,8 @@ object SkijaOuterPlace:
   end setBounds
   
   def withBounds[IO[_] : Monad, Bounds, Error, T](original : SkijaOuterPlace[IO, Bounds, Error, T], f : Bounds => Bounds) : SkijaOuterPlace[IO, Bounds, Error, T] =
-    for
-      bounds <- getBounds
-      _ <- StateTransformer.set_[ErrorTransformer[Error][IO, *], Bounds](f(bounds))
-      result <- original
-      _ <- StateTransformer.set_[ErrorTransformer[Error][IO, *], Bounds](bounds)
-    yield result
+    StateTransformer.modifyScoped_(original, f)
   end withBounds
-
 
   def raiseError[IO[_] : Monad, Bounds, PlaceError, Value](error : => PlaceError) : SkijaOuterPlace[IO, Bounds, PlaceError, Value] =
     ErrorTransformer.raiseError[StateTransformer[Bounds], IO, PlaceError, Value](error)
