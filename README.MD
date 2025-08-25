@@ -1,5 +1,5 @@
 # Gui4s
-Gui4s — это библиотека для создания графических интерфейсов, фокусирующаяся на гибкости, переносимости, стабильности и тестируемости. Вам не потребуются плагины компилятора, рефлексию, мутабельность,
+Gui4s — это библиотека для создания графических интерфейсов, фокусирующаяся на гибкости, переносимости, стабильности и тестируемости. Вам НЕ потребуются плагины компилятора, рефлексия, мутабельность,
 аннотации и другие трюки для построения интерфейсов: библиотека на 99% состоит из чистых функций, поэтому код будет работать, как вы ожидаете. 
 # Установка
 ```
@@ -53,7 +53,7 @@ def registrationForm[Event](formIsComplete : UserFormState => Event) : Widget[Ev
       case (state, NameInput(newName)) => state.copy(name = newName).eventResult
       case (state, EmailInput(newEmail)) => state.copy(email = newEmail).eventResult
       case (state, PasswordInput(newPassowrd)) => state.copy(name = newPassword).eventResult
-      case (state, submit) => formIsSomplete(state).raiseEvent
+      case (state, Submit) => formIsSomplete(state).raiseEvent
     },
     body = {
       case UserFormState(currentName, currentEmail, currentPassowrd) =>

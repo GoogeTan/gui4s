@@ -1,6 +1,6 @@
-package me.katze.gui4s.glfw
+package gui4s.glfw
 
-import me.katze.gui4s.geometry.Rect
+import gui4s.core.geometry.Rect
 
 final case class WindowCreationSettings[MeasurementUnit](
                                                           title : String, 

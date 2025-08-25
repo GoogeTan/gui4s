@@ -1,6 +1,6 @@
-package me.katze.gui4s.glfw
+package gui4s.glfw
 
-import catnip.ForeighFunctionInterface
+import catnip.ForeignFunctionInterface
 import cats.MonadError
 import cats.effect.std.Dispatcher
 import cats.effect.{Async, Resource, Sync}
@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.system.MemoryUtil
 
 // TODO Сделать типизированные ошибки, а не использовать MonadThrow из Sync.
-final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}] extends Glfw[F, Long, OglGlfwWindow]:
+final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends Glfw[F, Long, OglGlfwWindow]:
   override def swapInterval(interval: Int): F[Unit] =
     impure.delay:
       glfwSwapInterval(interval)
@@ -100,7 +100,7 @@ final class GlfwImpl[F[_] : {ForeighFunctionInterface as impure, Sync}] extends 
 end GlfwImpl
 
 object GlfwImpl:
-  def apply[F[_] : {ForeighFunctionInterface, Sync}](run : [A] => F[A] => A) : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : {ForeignFunctionInterface, Sync}](run : [A] => F[A] => A) : Resource[F, GlfwImpl[F]] =
     Resource.make(
       {
         val res = new GlfwImpl[F]()
@@ -111,11 +111,11 @@ object GlfwImpl:
     )
   end apply
   
-  def apply[F[_] : {ForeighFunctionInterface, Sync}](dispatcher : Dispatcher[F]) : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : {ForeignFunctionInterface, Sync}](dispatcher : Dispatcher[F]) : Resource[F, GlfwImpl[F]] =
     GlfwImpl[F]([A] => (effect : F[A]) => dispatcher.unsafeRunSync(effect))
   end apply
   
-  def apply[F[_] : {ForeighFunctionInterface, Async}]() : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : {ForeignFunctionInterface, Async}]() : Resource[F, GlfwImpl[F]] =
     Dispatcher.sequential[F].flatMap(GlfwImpl[F](_))
   end apply
 end GlfwImpl

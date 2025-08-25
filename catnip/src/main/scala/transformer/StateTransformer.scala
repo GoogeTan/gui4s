@@ -1,6 +1,6 @@
 package catnip.transformer
 
-import catnip.syntax.transformer.<>
+import catnip.syntax.transformer.{*, given}
 import catnip.MyStateT
 import cats.{Applicative, Monad}
 import cats.syntax.all.*

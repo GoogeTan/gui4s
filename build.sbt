@@ -30,13 +30,7 @@ inThisBuild(
   )
 )
 
-val packagePrefix = "me.katze.gui4s"
-/*
-lazy val root = (project in file("."))
-  .settings(
-    name := "gui4s",
-    idePackagePrefix := Some("me.katze")
-  )*/
+val packagePrefix = "gui4s"
 
 def scalaCOptions(scalaVersion : String) =
   List(
@@ -48,7 +42,7 @@ def scalaCOptions(scalaVersion : String) =
   )
 
 def catsLibs = List("org.typelevel" %% "cats-core" % "2.13.0")
-def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.1")
+def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.3")
 def fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.0")
 def testLibs = List(
   "org.scalatest" %% "scalatest" % "3.2.19" % "test",
@@ -58,10 +52,10 @@ def testLibs = List(
   "org.typelevel" %% "discipline-scalatest" % "2.3.0" % Test
 )
 
-val geometry = (project in file("geometry"))
+val geometry = (project in file("core/geometry"))
   .settings(
     name := "geometry",
-    idePackagePrefix := Some("me.katze.gui4s.geometry"),
+    idePackagePrefix := Some(packagePrefix + ".core.geometry"),
     libraryDependencies ++= catsLibs ++ testLibs,
     wartremoverErrors := Warts.all,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
@@ -85,30 +79,30 @@ val catnipEffect = (project in file("catnip-cats-effect"))
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(catnip)
 
-lazy val layout = (project in file("layout"))
+lazy val layout = (project in file("core/layout"))
   .settings(
     name := "layout",
-    idePackagePrefix := Some(s"$packagePrefix.layout"),
+    idePackagePrefix := Some(s"$packagePrefix.core.layout"),
     libraryDependencies ++= catsLibs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(geometry, catnip)
 
-lazy val widget = (project in file("widget"))
+lazy val widget = (project in file("core/widget"))
   .settings(
     name := "layout",
-    idePackagePrefix := Some(s"$packagePrefix.widget"),
+    idePackagePrefix := Some(s"$packagePrefix.core.widget"),
     libraryDependencies ++= catsLibs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(catnip)
 
-lazy val widgetLibrary = (project in file("widget-library"))
+lazy val widgetLibrary = (project in file("desktop/widgetLibrary"))
   .settings(
     name := "layout",
-    idePackagePrefix := Some(s"$packagePrefix.widget.library"),
+    idePackagePrefix := Some(s"$packagePrefix.decktop.widget.library"),
     libraryDependencies ++= catsLibs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
@@ -145,31 +139,51 @@ lazy val skijaLibs = List(
   "io.github.humbleui" % s"skija-$os-x64" % "0.116.4",
 )
 
-lazy val draw = (project in file("draw"))
+lazy val draw = (project in file("desktop/skija"))
   .settings(
     name := "draw",
-    //idePackagePrefix := Some(s"$packagePrefix.draw"),
+    idePackagePrefix := Some(s"$packagePrefix.desktop.skija"),
     libraryDependencies ++= catsEffectLibs ++ testLibs ++ skijaLibs,
-    mainClass := Some("io.github.humbleui.skija.example.Main"),
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(widget).dependsOn(catnip, glfw)
+  ).dependsOn(catnip, glfw)
 
-lazy val loops = (project in file("loops"))
+lazy val loops = (project in file("core/loops"))
   .settings(
     name := "loops",
-    idePackagePrefix := Some(s"$packagePrefix.loops"),
+    idePackagePrefix := Some(s"$packagePrefix.core.loops"),
     libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs,
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   )
+  .dependsOn(geometry, catnip)
 
-lazy val example = (project in file("example"))
+lazy val genericDevKit = (project in file("core/generickit"))
+  .settings(
+    name := "kit-generic",
+    idePackagePrefix := Some(s"$packagePrefix.core.kit"),
+    libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs,
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe,
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
+  ).dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary)
+
+lazy val desktopCatsDevKit = (project in file("desktop/kit/cats"))
+  .settings(
+    name := "kit-desctop-cats",
+    idePackagePrefix := Some(s"$packagePrefix.desktop.kit.cats"),
+    libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs,
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe,
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
+  ).dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, genericDevKit)
+
+lazy val example = (project in file("desktop/example/cats"))
   .settings(
     name := "example",
-    idePackagePrefix := Some(s"$packagePrefix.example"),
+    idePackagePrefix := Some(s"$packagePrefix.desktop.example.cats"),
     libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
       "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
@@ -183,5 +197,5 @@ lazy val example = (project in file("example"))
     scalacOptions ++= scalaCOptions(scalaVersion.value),
     mainClass := Some("me.katze.gui4s.example.SkijaAppExample")
   )
-  .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary)
+  .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, desktopCatsDevKit)
 

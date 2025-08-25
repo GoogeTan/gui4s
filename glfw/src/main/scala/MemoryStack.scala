@@ -1,9 +1,9 @@
-package me.katze.gui4s.glfw
+package gui4s.glfw
 
-import catnip.ForeighFunctionInterface
+import catnip.ForeignFunctionInterface
 import cats.effect.{Resource, Sync}
 import org.lwjgl.system.MemoryStack
 
-def stackPush[F[_] : Sync](ffi : ForeighFunctionInterface[F]): Resource[F, MemoryStack] =
+def stackPush[F[_] : Sync](ffi : ForeignFunctionInterface[F]): Resource[F, MemoryStack] =
   Resource.fromAutoCloseable(ffi.delay(MemoryStack.stackPush()))
 end stackPush

@@ -1,16 +1,16 @@
-package me.katze.gui4s.glfw
+package gui4s.glfw
 
-import catnip.ForeighFunctionInterface
+import catnip.ForeignFunctionInterface
 import cats.effect.Sync
 import cats.syntax.all.*
-import me.katze.gui4s.geometry.{Point2d, Rect}
+import gui4s.core.geometry.{Point2d, Rect}
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.system.{MemoryStack, MemoryUtil}
+import org.lwjgl.system.MemoryUtil
 
 final case class OglGlfwWindow(id: Long)
   
 final class OglWindowIsGlfwWindow[F[_] : Sync](
-                                                impure : ForeighFunctionInterface[F],
+                                                impure : ForeignFunctionInterface[F],
                                                 unsafeRunF: F[Unit] => Unit
                                               ) extends GlfwWindow[F, OglGlfwWindow, Long, Float]:
   override def center(window: OglGlfwWindow): F[Unit] =

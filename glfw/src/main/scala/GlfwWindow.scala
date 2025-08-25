@@ -1,7 +1,7 @@
-package me.katze.gui4s.glfw
+package gui4s.glfw
 
 import cats.Functor
-import me.katze.gui4s.geometry.{Point2d, Rect}
+import gui4s.core.geometry.{Point2d, Rect}
 
 type GlfwWindowT[F[_], Monitor, MeasurementUnit] = [Window] =>> GlfwWindow[F, Window, Monitor, MeasurementUnit]
 

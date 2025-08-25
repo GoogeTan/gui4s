@@ -4,7 +4,7 @@ import cats.Functor
 import cats.data.EitherT
 import cats.syntax.functor.*
 
-final class EitherTFFI[F[_] : Functor, Error](initial : ForeighFunctionInterface[F]) extends ForeighFunctionInterface[[T] =>> EitherT[F, Error, T]]:
+final class EitherTFFI[F[_] : Functor, Error](initial : ForeignFunctionInterface[F]) extends ForeignFunctionInterface[[T] =>> EitherT[F, Error, T]]:
   override def delay[A](trunk: => A): EitherT[F, Error, A] =
     EitherT(initial.delay(trunk).map(Right[Error, A]))
   end delay

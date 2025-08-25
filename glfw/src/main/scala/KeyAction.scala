@@ -1,4 +1,4 @@
-package me.katze.gui4s.glfw
+package gui4s.glfw
 
 import org.lwjgl.glfw.GLFW.*
 
