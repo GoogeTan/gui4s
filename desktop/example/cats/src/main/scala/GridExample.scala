@@ -1,0 +1,84 @@
+package gui4s.desktop.example.cats
+
+import catnip.ForeignFunctionInterface
+import catnip.effect.SyncForeignFunctionInterface
+import catnip.syntax.all.given
+import cats.*
+import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.syntax.all.*
+import gui4s.core.geometry.*
+import gui4s.core.layout.Sized
+import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
+import gui4s.desktop.kit.cats.*
+import gui4s.desktop.kit.cats.effects.{*, given}
+import gui4s.desktop.kit.cats.widgets.*
+import gui4s.desktop.skija.*
+import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
+import io.github.humbleui.skija.*
+import io.github.humbleui.skija.shaper.Shaper
+import scalacache.caffeine.CaffeineCache
+
+
+object GridExample extends IOApp:
+  given ffi : ForeignFunctionInterface[IO] = SyncForeignFunctionInterface[IO]
+
+  final case class PreInit(shaper : Shaper, globalTextCache : TextCache[IO])
+
+  def preInit(backend : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
+    for
+      shaper <- backend.skija.createShaper
+      cache : TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_))
+    yield PreInit(shaper, cache)
+  end preInit
+
+  override def run(args: List[String]): IO[ExitCode] =
+    desktopApp[
+      PreInit
+    ](
+      preInit = preInit,
+      main = main,
+      updateLoopExecutionContext = this.runtime.compute,
+      drawLoopExecutionContext = MainThread,
+      settings = WindowCreationSettings(
+        title = "Gui4s nested containers example",
+        size = Rect(620f, 480f),
+        visible = true,
+        resizeable = true,
+        debugContext = true
+      ),
+      ffi = ffi,
+    )
+  end run
+
+  def main(preInit : PreInit) : DesktopWidget[ApplicationRequest] =
+    def gridExample[Event](numbers : List[Int]) : DesktopWidget[Event] =
+      val spaceBetween = ManyElementsPlacementStrategy.ErrorIfInfinity(
+        ManyElementsPlacementStrategy.SpaceBetween[OuterPlace, List, Float],
+        ContainerPlacementError.English.withSpaceBetweenStrategy
+      )
+      val begin = OneElementPlacementStrategy.Begin[OuterPlace, InfinityOr[Float], Float]
+      linearContainer[Event](
+        mainAxis = Axis.Vertical,
+        mainAxisStrategy = spaceBetween,
+        additionalAxisStrategy = begin,
+        children =
+          numbers.map:
+            lineIndex =>
+              linearContainer[Event](
+                mainAxis = Axis.Horizontal,
+                mainAxisStrategy = spaceBetween,
+                additionalAxisStrategy = begin,
+                children =
+                  numbers.map:
+                    lineJindex =>
+                      text(preInit.shaper, preInit.globalTextCache)(
+                        lineIndex.toString + ":" + lineJindex.toString,
+                        SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))
+                      )
+              )
+      )
+    end gridExample
+
+    gridExample((0 until 10).toList)
+  end main
+end GridExample
