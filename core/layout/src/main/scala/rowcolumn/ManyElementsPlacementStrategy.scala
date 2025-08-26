@@ -8,8 +8,10 @@ import cats.syntax.all.*
 import gui4s.core.geometry.{Axis, InfinityOr, Point2d, Rect}
 import gui4s.core.layout.linear.* 
 
+final case class ElementPlacementResult[Container[_], Point](coordinateOfEnd : Point, coordinatesOfStarts : Container[Point])
+
 type ManyElementsPlacementStrategy[Place[_], Bounds, Container[_], Point] =
-    (Container[Point], Bounds) => Place[(coordinateOfEnd : Point, coordinatesOfStarts : Container[Point])]
+    (Container[Point], Bounds) => Place[ElementPlacementResult[Container, Point]]
 
 object ManyElementsPlacementStrategy:
     def Begin[
@@ -21,7 +23,7 @@ object ManyElementsPlacementStrategy:
         (children, _) =>
             val placedChildren = placeBeginManyWithGap(children, gap)
             val size = placedChildren.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(Numeric[MeasurementUnit].zero)
-            (size, placedChildren.map(_.coordinateOfTheBeginning)).pure[Place]
+            ElementPlacementResult(size, placedChildren.map(_.coordinateOfTheBeginning)).pure[Place]
     end Begin
 
     def Center[
@@ -32,7 +34,7 @@ object ManyElementsPlacementStrategy:
         gap : MeasurementUnit,
     ) : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
-            (maxSpace, placeCenterManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
+            ElementPlacementResult(maxSpace, placeCenterManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
     end Center
 
     def End[
@@ -43,7 +45,7 @@ object ManyElementsPlacementStrategy:
         gap : MeasurementUnit,
     ) : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
-            (maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
+            ElementPlacementResult(maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
     end End
 
     def SpaceAround[
@@ -52,7 +54,7 @@ object ManyElementsPlacementStrategy:
         MeasurementUnit : Fractional,
     ] : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
-            (maxSpace, A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning)).pure[Place]
+            ElementPlacementResult(maxSpace, A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning)).pure[Place]
     end SpaceAround
 
     def SpaceBetween[
@@ -61,7 +63,7 @@ object ManyElementsPlacementStrategy:
         MeasurementUnit : Fractional,
     ] : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
-            (maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)).pure[Place]
+            ElementPlacementResult(maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)).pure[Place]
     end SpaceBetween
 
     def OneByOne[
@@ -75,7 +77,7 @@ object ManyElementsPlacementStrategy:
         (elements, bounds) =>
             elements.traverse(oneElementPlacementStrategy(_, bounds)).map(
                 placedElements =>
-                    (
+                    ElementPlacementResult(
                         placedElements.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero),
                         placedElements.map(_.coordinateOfTheBeginning),
                     )
@@ -97,8 +99,8 @@ object ManyElementsPlacementStrategy:
                 mainAxis(elements.map(_.along(axis)), bounds.along(axis)),
                 crossAxis(elements.map(_.along(axis.another)), bounds.along(axis.another)),
             ) {
-                case ((mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), (crossAxisCoordinateOfEnd, crossAxisElementsCoordinates)) =>
-                    (
+                case (ElementPlacementResult(mainAxisCoordinateOfEnd, mainAxisElementsCoordinates), ElementPlacementResult(crossAxisCoordinateOfEnd, crossAxisElementsCoordinates)) =>
+                    ElementPlacementResult(
                         new Point2d(
                             axis,
                             mainAxisCoordinateOfEnd,
@@ -115,7 +117,7 @@ object ManyElementsPlacementStrategy:
         MeasurementUnit,
     ](
         original: ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit],
-        ifInfinity: Place[(coordinateOfEnd : MeasurementUnit, coordinatesOfStarts : Container[MeasurementUnit])],
+        ifInfinity: Place[ElementPlacementResult[Container, MeasurementUnit]],
     ): ManyElementsPlacementStrategy[Place, InfinityOr[MeasurementUnit], Container, MeasurementUnit] = {
         case (itemLength, InfinityOr(Some(space))) => original(itemLength, space)
         case _ => ifInfinity

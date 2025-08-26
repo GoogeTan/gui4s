@@ -29,6 +29,6 @@ def sizeTextFFI[
             text = text,
             style = options,
             maxWidth = bounds
-          ).map(placedText => new Sized(placedText.text, placedText.width, placedText.height))
+          )
         )
 end sizeTextFFI

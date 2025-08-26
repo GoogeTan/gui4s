@@ -1,7 +1,7 @@
 package gui4s.desktop.kit.cats
 
 import effects.*
-import effects.OuterPlace.given
+import effects.Place.given
 import effects.Update.given
 
 import catnip.ForeignFunctionInterface

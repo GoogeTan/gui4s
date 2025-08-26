@@ -8,6 +8,8 @@ import cats.*
 import cats.data.*
 
 type OuterPlaceTansformer[Bounds, Error] =  StateTransformer[Bounds] <> ErrorTransformer[Error]
+given[Bounds, Error]: MonadTransformer[OuterPlaceTansformer[Bounds, Error]] =
+  composedMonadTransformerInstance[StateTransformer[Bounds], ErrorTransformer[Error]]
 
 type OuterPlace[IO[_], Bounds, Error, Value] = OuterPlaceTansformer[Bounds, Error][IO, Value]
 

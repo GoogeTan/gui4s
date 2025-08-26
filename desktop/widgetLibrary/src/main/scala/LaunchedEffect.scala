@@ -1,5 +1,6 @@
 package gui4s.decktop.widget.library
 
+import catnip.syntax.additional.*
 import catnip.syntax.all.given
 import cats.*
 import cats.arrow.Strong
@@ -47,7 +48,7 @@ def launchedEffect[
           valueToDecorate = (LaunchedEffect(name, key, task), child),
           valueAsFree = Strong[[A, B] =>> A => Place[B]].second(widgetAsFree(using PF)),
           valueIsDrawable = Contravariant[[A] =>> A => Draw].contramap(widgetIsDrawable)(_._2),
-          valueHandlesEvent = handlesEventFIsStrong.second(widgetHandlesEvent(using UA, PF)),
+          valueHandlesEvent = handlesEventFIsStrong[Update * Place, HandlableEvent](using nestedFunctorsAreFunctors[Update, Place]).second(widgetHandlesEvent(using UA, PF)),
           valueMergesWithOldState = launchedEffectMergesWithOldState(using KT, PF)(keyTypeError, widgetMergesWithOldState),
           valueReactsOnRecomposition = reactsOnRecompositionIsContravariantMonoidal.product(
             launchedEffectReactsOnRecomposition(M.empty, keysTypeMismatchError),

@@ -20,7 +20,6 @@ object Place:
     end new
   end run
   
-  
   def typecheck[
     IO[_] : Monad,
     Bounds, 

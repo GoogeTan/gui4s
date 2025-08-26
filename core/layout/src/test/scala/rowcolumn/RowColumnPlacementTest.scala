@@ -12,10 +12,8 @@ import org.scalatest.*
 import org.scalatest.flatspec.*
 import org.scalatest.matchers.should.Matchers.*
 
-import scala.annotation.experimental
 import scala.collection.immutable.List
 
-@experimental
 final class RowColumnPlacementTest extends AnyFlatSpec:
     type MeasurementUnit = Float
     type Place[T] = State[Rect[MeasurementUnit], T]

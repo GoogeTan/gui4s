@@ -34,7 +34,7 @@ object list:
   end orderedListProcessing
   
   def traverseUntil[F[_] : Monad, G[_] : Traverse, A, B](original : G[A], main : A => F[(Boolean, B)], afterAll : A => F[B]) : F[G[B]] =
-    original.traverse[StateT[F, Boolean, *], B](
+    original.traverse[[Value] =>> StateT[F, Boolean, Value], B](
       element =>
         StateT(
           shouldStop =>

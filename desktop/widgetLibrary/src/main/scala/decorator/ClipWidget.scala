@@ -7,7 +7,7 @@ import cats.{Comonad, Functor, Monad}
 
 def clipWidget[
   Update[_] : Monad as UM,
-  Place[_] : Functor as PF,
+  OuterPlace[_] : Functor as PF,
   InnerPlace[_] : Comonad,
   Draw,
   RecompositionReaction,
@@ -17,22 +17,24 @@ def clipWidget[
     withClip : [T] => (Shape, Update[T]) => Update[T],
     drawModifier : (Shape, Draw) => Draw,
     shapeFabric : InnerPlace[Unit] => Shape
-) : Decorator[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
+) : Decorator[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
   freeWidgetToClip =>
     PF.map(
       freeWidgetToClip
     )(
       _.coflatMap { sizedWidget =>
-          final case class ClipWidget(currentWidget: Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent], shape: Shape):
-            def this(placed : InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]) =
+          final case class ClipWidget(currentWidget: Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent], shape: Shape):
+            def this(placed : InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]) =
               this(placed.extract, shapeFabric(placed.as(())))
             end this
           end ClipWidget
+          
+          given Functor[OuterPlace * InnerPlace] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]
 
           Widget.ValueWrapper[
             ClipWidget,
             Update,
-            Place * InnerPlace,
+            OuterPlace * InnerPlace,
             Draw,
             RecompositionReaction,
             HandleableEvent
@@ -41,7 +43,7 @@ def clipWidget[
             valueAsFree = self => PF.map(self.currentWidget.asFree)(_.coflatMap(new ClipWidget(_))),
             valueIsDrawable = self => drawModifier(self.shape, self.currentWidget.draw),
             valueHandlesEvent = (self, path, event) =>
-              withClip[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]](self.shape, self.currentWidget.handleEvent(path, event))
+              withClip[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]](self.shape, self.currentWidget.handleEvent(path, event))
                 .map(_.map(_.coflatMap(new ClipWidget(_)))),
             valueMergesWithOldState = (self, path, states) =>
               PF.map(self.currentWidget.mergeWithOldState(path, states))(_.coflatMap(new ClipWidget(_))),

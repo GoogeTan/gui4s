@@ -3,7 +3,6 @@ package gui4s.desktop.skija
 import cats.effect.Resource
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
-import gui4s.desktop.skija.SkiaRenderTarget
 
 trait SkijaInit[F[_]]:
   def createDirectContext: Resource[F, DirectContext]

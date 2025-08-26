@@ -2,9 +2,10 @@ package catnip.transformer
 
 import catnip.syntax.transformer.{*, given}
 import catnip.MyStateT
-import cats.{Applicative, Monad}
+import cats.{Applicative, Functor, Id, Monad}
 import cats.syntax.all.*
 import catnip.syntax.all.{*, given}
+import cats.data.StateT
 
 given[IO[_] : Monad, State]: Monad[MyStateT[IO, State, *]] = catnip.syntax.state.stateTMonad[IO, State]
 type StateTransformer[State] = [IO[_], T] =>> MyStateT[IO, State, T]
@@ -52,5 +53,14 @@ object StateTransformer:
       _ <- set(originalState)
     yield res
   end modifyScoped
+
+  def run[F[_[_], _] : {MonadTransformer as FMT}, IO[_] : Monad, State, T](original : (F <> StateTransformer[State])[IO, T], initialState: State) : F[IO, (T, State)] =
+    FMT.innerTransform[MyStateT[IO, State, *], IO, T, (T, State)](
+      original,
+      [Inner[_] : Functor] => value =>
+        value.run(initialState).map((state, innerT) =>
+          innerT.map(t => (t, state))
+        )
+    )
 end StateTransformer
 

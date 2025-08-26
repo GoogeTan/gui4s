@@ -17,21 +17,22 @@ type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
 def gapPaddingWidget[
   Update[_] : Functor,
-  Place[_] : Functor,
+  OuterPlace[_] : Functor,
   InnerPlace[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
   Padding,
 ](
-  placementDecoration : Padding => [T] => Place[InnerPlace[T]] => Place[InnerPlace[T]],
-  updateDecorations : Padding => Decorator[WidgetHandlesEvent[HandleableEvent, Update[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]]]],
+  placementDecoration : Padding => [T] => OuterPlace[InnerPlace[T]] => OuterPlace[InnerPlace[T]],
+  updateDecorations : Padding => Decorator[WidgetHandlesEvent[HandleableEvent, Update[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]]]],
   drawDecoration : Padding => InnerPlace[Draw] => Draw
-): PaddingWidget[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
-  gapPaddingWidget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent, Padding](
-    paddings => placementDecorator[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent](placementDecoration(paddings)),
-    paddings => updateDecorator[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent](updateDecorations(paddings)),
-    paddings => drawDecorator[Update, Place, InnerPlace, Draw, RecompositionReaction, HandleableEvent](drawDecoration(paddings))
+): PaddingWidget[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
+  given Functor[OuterPlace * InnerPlace] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]
+  gapPaddingWidget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent, Padding](
+    paddings => placementDecorator[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent](placementDecoration(paddings)),
+    paddings => updateDecorator[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent](updateDecorations(paddings)),
+    paddings => drawDecorator[Update, OuterPlace, InnerPlace, Draw, RecompositionReaction, HandleableEvent](drawDecoration(paddings))
   )
 end gapPaddingWidget
 

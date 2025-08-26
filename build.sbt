@@ -3,7 +3,7 @@ import sbtide.Keys.idePackagePrefix
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.7.1"
+ThisBuild / scalaVersion := "3.6.2"
 
 // for running glfw in sbt shell
 example/run/fork := true
@@ -17,6 +17,8 @@ sys.env.get("LD_LIBRARY_PATH") match {
   case _ => javaOptions += ""
 }
 // end for nix os
+
+Global / excludeLintKeys += idePackagePrefix
 
 addCompilerPlugin("org.wartremover" %% "wartremover" % "3.3.4" cross CrossVersion.full)
 
@@ -147,7 +149,7 @@ lazy val draw = (project in file("desktop/skija"))
     coverageEnabled := true,
     wartremoverErrors := Warts.allBut(Warts.all*),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
-  ).dependsOn(catnip, glfw)
+  ).dependsOn(catnip, glfw, layout)
 
 lazy val loops = (project in file("core/loops"))
   .settings(
@@ -172,7 +174,7 @@ lazy val genericDevKit = (project in file("core/generickit"))
 
 lazy val desktopCatsDevKit = (project in file("desktop/kit/cats"))
   .settings(
-    name := "kit-desctop-cats",
+    name := "desktop-kit-cats",
     idePackagePrefix := Some(s"$packagePrefix.desktop.kit.cats"),
     libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs,
     coverageEnabled := true,
@@ -195,7 +197,6 @@ lazy val example = (project in file("desktop/example/cats"))
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,
     scalacOptions ++= scalaCOptions(scalaVersion.value),
-    mainClass := Some("me.katze.gui4s.example.SkijaAppExample")
   )
   .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, desktopCatsDevKit)
 

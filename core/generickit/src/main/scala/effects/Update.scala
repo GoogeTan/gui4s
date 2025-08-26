@@ -10,6 +10,12 @@ import cats.kernel.Monoid
 type UpdateTransformer[UpdateError, State, Events] =
     StateTransformer[State] <> EventsTransformer[Events] <> ErrorTransformer[UpdateError]
 
+
+given [UpdateError, State, Events : Monoid] : MonadTransformer[UpdateTransformer[UpdateError, State, Events]] =
+  composedMonadTransformerInstance[StateTransformer[State], EventsTransformer[Events] <> ErrorTransformer[UpdateError]](
+    using summon, composedMonadTransformerInstance[EventsTransformer[Events], ErrorTransformer[UpdateError]]
+  )
+
 type Update[IO[_], UpdateError, State, Events, Value] = UpdateTransformer[UpdateError, State, Events][IO, Value]
 
 trait UpdateOps[IO[_] : Monad, UpdateError, State]:
@@ -121,5 +127,4 @@ trait UpdateStateOps[IO[_] : Monad, UpdateError, Point, Clip] extends UpdateOps[
       _ <- setClip(clip)
     yield res
   end withClip
-
 end UpdateStateOps

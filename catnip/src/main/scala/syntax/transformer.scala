@@ -100,7 +100,7 @@ object transformer:
         [Inner[_] : Functor] => (value : U[G, Inner[A]]) =>
           UMT.innerTransform[G, K, Inner[A], Inner[B]](value,
             [Inner2[_] : Functor] => (value : G[Inner2[Inner[A]]]) => 
-              f[Inner2 * Inner](value)
+              f[Inner2 * Inner](value)(using nestedFunctorsAreFunctors[Inner2, Inner])
           )
       )
     end innerTransform

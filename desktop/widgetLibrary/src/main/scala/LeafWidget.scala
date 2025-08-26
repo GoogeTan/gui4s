@@ -7,8 +7,6 @@ import gui4s.core.widget.merge.anyHasNothingToMerge
 import gui4s.core.widget.recomposition.hasNoReactionOnRecomposition
 import gui4s.core.widget.state.hasNoInnerState
 
-import scala.language.experimental.namedTypeArguments
-
 def leafWidget[
   Marker,
   Update[_] : Monad as M,
