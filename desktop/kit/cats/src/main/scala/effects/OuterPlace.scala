@@ -5,38 +5,8 @@ import catnip.{Get, Set}
 import cats.data.EitherT
 import cats.effect.IO
 import cats.*
-import gui4s.core.kit.effects.OuterPlace as GenericOuterPlace
+import gui4s.core.kit.effects.{OuterPlace as GenericOuterPlace, OuterPlaceOps}
 
 type OuterPlace[T] = GenericOuterPlace[IO, Bounds, String, T]
 
-object OuterPlace:
-  given MonadError[OuterPlace, String] = GenericOuterPlace.monadInstance
-
-  def liftK : IO ~> OuterPlace =
-    GenericOuterPlace.liftK
-  end liftK
-
-  def liftF[Value](value : IO[Value]) : OuterPlace[Value] =
-    GenericOuterPlace.liftF(value)
-  end liftF
-
-  def getBounds: Get[OuterPlace, Bounds] =
-    GenericOuterPlace.getBounds
-  end getBounds
-
-  def setBounds: Set[OuterPlace, Bounds] =
-    GenericOuterPlace.setBounds
-  end setBounds
-
-  def withBounds[T](original : OuterPlace[T], f : Bounds => Bounds) : OuterPlace[T] =
-    GenericOuterPlace.withBounds(original, f)
-  end withBounds
-
-  def raiseError[Value](error : => String) : OuterPlace[Value] =
-    GenericOuterPlace.raiseError(error)
-  end raiseError
-
-  def run(bounds : IO[Bounds]) : OuterPlace ~> EitherT[IO, String, *] =
-    GenericOuterPlace.run(bounds)
-  end run
-end OuterPlace
+object OuterPlace extends OuterPlaceOps[IO, Bounds, String]

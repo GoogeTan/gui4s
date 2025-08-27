@@ -1,8 +1,8 @@
 package gui4s.core.kit
 package effects
 
-import _root_.cats.data.EitherT
-import _root_.cats.{Monad, ~>}
+import _root_.cats.MonadError
+import catnip.syntax.all.*
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
@@ -12,25 +12,16 @@ type Place[IO[_], Bounds, MeasurementUnit, Error, Value] = OuterPlaceT[IO, Bound
 type PlaceT[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, MeasurementUnit, Error, *]
 
 object Place:
-  def run[IO[_] : Monad, Bounds, MeasurementUnit, PlaceError](bounds : IO[Bounds]) : PlaceT[IO, Bounds, MeasurementUnit, PlaceError] ~> EitherT[IO, PlaceError, *] =
-    new ~>[PlaceT[IO, Bounds, MeasurementUnit, PlaceError], EitherT[IO, PlaceError, *]]:
-      override def apply[A](fa : PlaceT[IO, Bounds, MeasurementUnit, PlaceError][A]) : EitherT[IO, PlaceError, A] =
-        OuterPlace.run(bounds)(fa.map(_.value))
-      end apply
-    end new
-  end run
-  
   def typecheck[
-    IO[_] : Monad,
-    Bounds, 
-    MeasurementUnit, 
+    OuterPlace[_] : MonadErrorT[PlaceError],
+    InnerPlace[_],
     PlaceError,
     U : Typeable
-  ](error : (Any, Path) => PlaceError) : [T] => (Any, Path, U => Place[IO, Bounds, MeasurementUnit, PlaceError, T]) => Place[IO, Bounds, MeasurementUnit, PlaceError, T] =
-    [T] => (value : Any, path : Path, callback : U => Place[IO, Bounds, MeasurementUnit, PlaceError, T]) =>
+  ](error : (Any, Path) => PlaceError) : [T] => (Any, Path, U => OuterPlace[InnerPlace[T]]) => OuterPlace[InnerPlace[T]] =
+    [T] => (value : Any, path : Path, callback : U => OuterPlace[InnerPlace[T]]) =>
       value match
         case v: U => callback(v)
-        case _ => OuterPlace.raiseError(error(value, path))
+        case _ => MonadError[OuterPlace, PlaceError].raiseError(error(value, path))
       end match
   end typecheck
 end Place

@@ -18,9 +18,13 @@ type Place[T] = GenericPlace[IO, Bounds, Float, String, T]
 
 object Place:
   def run(bounds : IO[Bounds]) : Place ~> EitherT[IO, String, *] =
-    GenericPlace.run(bounds)
+    new ~>[Place, EitherT[IO, String, *]]:
+      override def apply[A](fa : Place[A]) : EitherT[IO, String, A] =
+        OuterPlace.run(bounds)(fa.map(_.value))
+      end apply
+    end new
   end run
-
+  
   def sizeText(
     ffi : ForeignFunctionInterface[IO],
     shaper : Shaper,
@@ -36,7 +40,7 @@ object Place:
   end sizeText
 
   def typecheck[U : Typeable](error : (Any, Path) => String) : [T] => (Any, Path, U => Place[T]) => Place[T] =
-    GenericPlace.typecheck[IO, Bounds, Float, String, U](error)
+    GenericPlace.typecheck[OuterPlace, InnerPlace, String, U](error)
   end typecheck
 
   given Functor[Place] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]

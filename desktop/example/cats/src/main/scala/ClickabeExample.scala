@@ -11,6 +11,7 @@ import gui4s.core.layout.Sized
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.{*, given}
 import gui4s.desktop.kit.cats.widgets.*
+import gui4s.desktop.kit.cats.widgets.decorator.*
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
@@ -46,13 +47,25 @@ object ClickabeExample extends IOApp:
     )
   end run
 
+
   def main(preInit : PreInit) : DesktopWidget[ApplicationRequest] =
-    text(
-      preInit.shaper,
-      preInit.globalTextCache
-    )(
-      "test text",
-      SkijaTextStyle(new Font(Typeface.makeDefault(), 24), new Paint().setColor(0xFF8484A4))
+    extension[Event](value : DesktopWidget[Event])
+      def onClick(event : Event) : DesktopWidget[Event] =
+        clickCatcher(preInit.mousePosition, event)(value)
+      end onClick
+    end extension
+    statefulWidget[Int, ApplicationRequest, Unit](
+      name = "state",
+      initialState = 0,
+      eventHandler = (state, _, _) => (state + 1).pure[UpdateC[ApplicationRequest]],
+      body = state =>
+        text(
+          preInit.shaper,
+          preInit.globalTextCache
+        )(
+          "test text " + state.toString,
+          SkijaTextStyle(new Font(Typeface.makeDefault(), 24), new Paint().setColor(0xFF8484A4))
+        ).onClick(())
     )
   end main
 end ClickabeExample

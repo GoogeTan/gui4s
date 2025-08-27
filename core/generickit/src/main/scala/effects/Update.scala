@@ -4,6 +4,7 @@ package effects
 import catnip.BiMonad
 import catnip.syntax.transformer.{*, given}
 import catnip.transformer.*
+import catnip.transformer.ErrorTransformer.monadErrorInstance
 import cats.*
 import cats.kernel.Monoid
 
@@ -21,7 +22,9 @@ type Update[IO[_], UpdateError, State, Events, Value] = UpdateTransformer[Update
 trait UpdateOps[IO[_] : Monad, UpdateError, State]:
   given biMonadInstance : BiMonad[[A, B] =>> UpdateTransformer[UpdateError, State, List[A]][IO, B]] =
     [T] => () => monadInstanceForTransformer
-  given[Event] :  Monad[Update[IO, UpdateError, State, List[Event], *]]  = biMonadInstance()
+    
+  given[Event] : MonadError[Update[IO, UpdateError, State, List[Event], *], UpdateError] =
+    monadErrorInstance
 
   def liftK[Events : Monoid]: IO ~> UpdateTransformer[UpdateError, State, Events][IO, *] =
     MonadTransformer[UpdateTransformer[UpdateError, State, Events]].liftK
