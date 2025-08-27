@@ -4,13 +4,13 @@ package effects
 import catnip.{Get, Set}
 import cats.data.EitherT
 import cats.effect.IO
-import cats.{Monad, ~>}
+import cats.*
 import gui4s.core.kit.effects.OuterPlace as GenericOuterPlace
 
 type OuterPlace[T] = GenericOuterPlace[IO, Bounds, String, T]
 
 object OuterPlace:
-  given Monad[OuterPlace] = GenericOuterPlace.monadInstance
+  given MonadError[OuterPlace, String] = GenericOuterPlace.monadInstance
 
   def liftK : IO ~> OuterPlace =
     GenericOuterPlace.liftK

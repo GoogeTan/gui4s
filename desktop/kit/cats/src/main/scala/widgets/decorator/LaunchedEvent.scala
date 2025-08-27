@@ -9,7 +9,7 @@ import widgets.*
 import cats.effect.IO
 import cats.effect.std.Supervisor
 import gui4s.decktop.widget.library.{launchedEvent as genericLaunchedEvent, LaunchedEffectWidget}
-import io.github.humbleui.skija.Path
+import gui4s.core.widget.Path
 import scala.reflect.Typeable
 import cats.syntax.all.* 
 
@@ -25,13 +25,14 @@ def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[IO], 
   ](
     launchedEffectWidget = launchedEffect(supervisor),
     eventCatcher = eventCatcher,
-    pushEvent = (path, event) => raiseExternalEvent(SkijaDownEvent.ExternalEventForWidget(path, event)),
+    pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
     catchEvent = (path, event) =>
-      DownEvent.catchExternalEvent(path, event, (valueFound : Any) => "Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString) match
-        case None => false.pure[UpdateC[Event]]
-        case Some(Right(event)) =>
+      DownEvent.catchExternalEvent(path, event) match
+        case None =>
+          false.pure[UpdateC[Event]]
+        case Some[Any](event : Event) =>
           Update.emitEvents(List(event)).as(true)
-        case Some(Left(error)) =>
-          Update.raiseError(error)
+        case Some[Any](valueFound : Any) =>
+          Update.raiseError("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString)
   )
 end launchedEvent

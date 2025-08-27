@@ -35,20 +35,30 @@ def resource[Event](supervisor : Supervisor[IO], raiseExternalEvent : DownEvent 
   )
 end resource
 
-def resourceInit[Event, Value : Typeable](name : String, supervisor : Supervisor[IO], init : IO[Value]) : WithContext[DesktopWidget[Event], Option[Value]] =
-  resource(supervisor)(name, init.map(value => (value, IO.unit)))
+def resourceInit[Event, Value : Typeable](
+  supervisor : Supervisor[IO],
+  raiseExternalEvent : DownEvent => IO[Unit],
+)(
+  name : String,
+  init : IO[Value]
+) : WithContext[DesktopWidget[Event], Option[Value]] =
+  resource(supervisor, raiseExternalEvent)(name, init.map(value => (value, IO.unit)))
 end resourceInit
 
 def initWidget[Event, Value](
                               supervisor: Supervisor[IO],
+                              raiseExternalEvent : DownEvent => IO[Unit],
+                            )(
                               name : String,
                               imageSource : IO[Value],
                               imageWidget : Value => DesktopWidget[Event],
-                              placeholder : DesktopWidget[Event]
+                              placeholder : DesktopWidget[Event],
                             ) : DesktopWidget[Event] =
   resourceInit(
-    name,
     supervisor,
+    raiseExternalEvent,
+  )(
+    name,
     imageSource
   ) {
     case Some(image) => imageWidget(image)

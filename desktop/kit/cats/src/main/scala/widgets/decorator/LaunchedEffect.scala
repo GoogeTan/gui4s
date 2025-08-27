@@ -6,11 +6,11 @@ import effects.Place.given
 import effects.Update.given
 import widgets.*
 
+import gui4s.core.widget.Path
 import cats.effect.IO
 import cats.effect.std.Supervisor
 import gui4s.decktop.widget.library.*
 import gui4s.decktop.widget.library.launchedEffect as genericLaunchedEffect
-import io.github.humbleui.skija.Path
 
 import scala.reflect.Typeable
 
@@ -19,9 +19,16 @@ def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : Launche
     DesktopWidget[Event],
     Key,
     Path => RecompositionReaction
-  ] = genericLaunchedEffect(
+  ] = genericLaunchedEffect[
+    UpdateC[Event],
+    Place,
+    Draw,
+    RecompositionReaction,
+    DownEvent,
+    Key
+  ](
     [T] => (path : Path, value : Any) => OuterPlace.raiseError("Key has changed type at " + path.toString + " value found " + value.toString),
-    (valueFound : Any) => RecompositionReaction.lift(
+    (valueFound : Any) => RecompositionReaction.lift[Any](
       IO.raiseError(Exception("Key changed the type: " + valueFound.toString))
     ),
   )

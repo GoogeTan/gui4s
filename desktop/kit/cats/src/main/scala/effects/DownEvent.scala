@@ -37,12 +37,10 @@ object DownEvent:
       case _ => None
   end extractMouseClickEvent
   
-  def catchExternalEvent[ExpectedType : Typeable, Error](expectedPath : Path, event : DownEvent, errorIfMistyped : Any => Error) : Option[Either[Error, ExpectedType]] =
+  def catchExternalEvent(expectedPath : Path, event : DownEvent) : Option[Any] =
     event match 
-      case DownEvent.ExternalEventForWidget(taskPath, event : ExpectedType) if taskPath == expectedPath =>
-        Some(Right(event))
-      case DownEvent.ExternalEventForWidget(taskPath, valueFound : Any) if taskPath == expectedPath =>
-        Some(Left(errorIfMistyped(valueFound)))
+      case DownEvent.ExternalEventForWidget(taskPath, event : Any) if taskPath == expectedPath =>
+        Some[Any](event)
       case _ =>
         None 
     end match

@@ -6,6 +6,8 @@ import catnip.transformer.*
 import catnip.{Get, Set}
 import cats.*
 import cats.data.*
+import catnip.transformer.ErrorTransformer.given
+    
 
 type OuterPlaceTansformer[Bounds, Error] =  StateTransformer[Bounds] <> ErrorTransformer[Error]
 given[Bounds, Error]: MonadTransformer[OuterPlaceTansformer[Bounds, Error]] =
@@ -16,8 +18,8 @@ type OuterPlace[IO[_], Bounds, Error, Value] = OuterPlaceTansformer[Bounds, Erro
 type OuterPlaceT[IO[_], Bounds, Error] = OuterPlace[IO, Bounds, Error, *]
 
 object OuterPlace:
-  given monadInstance[IO[_] : Monad, Bounds, Error] : Monad[OuterPlaceT[IO, Bounds, Error]] =
-    monadInstanceForTransformer
+  given monadInstance[IO[_] : Monad, Bounds, Error] : MonadError[OuterPlaceT[IO, Bounds, Error], Error] =
+    summon
 
   def liftK[IO[_] : Monad, Bounds, PlaceError] : IO ~> OuterPlaceT[IO, Bounds, PlaceError] =
     MonadTransformer[OuterPlaceTansformer[Bounds, PlaceError]].liftK

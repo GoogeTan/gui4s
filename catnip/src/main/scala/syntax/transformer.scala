@@ -1,8 +1,6 @@
 package catnip
 package syntax
 
-import syntax.additional.*
-import syntax.applicative.nestedFunctorsAreFunctors
 import syntax.state.given
 import catnip.transformer.*
 
@@ -23,8 +21,16 @@ object transformer:
       MyStateT.liftFunctionK(f)
     end liftFunctionK
 
-    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: MyStateT[G, S, A], f: [Inner[_] : Functor] => G[Inner[A]] => K[Inner[B]]): MyStateT[K, S, B] =
-      MyStateT(state => f[(S, *)](original.run(state)))
+    override def innerTransform[G[_] : Monad as GM, K[_] : Monad as KM, A, B](original: MyStateT[G, S, A], f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]): MyStateT[K, S, B] =
+      MyStateT(state =>
+        given Monoid[S] with
+          override def empty: S = state
+          override def combine(x: S, y: S): S = state
+        end given
+        KM.map(
+          f[Writer[S, *]](GM.map(original.run(state))(Writer(_, _)))
+        )(_.run)
+      )
     end innerTransform
 
     override def monadInstance[IO[_] : Monad]: Monad[MyStateT[IO, S, *]] = summon
@@ -39,7 +45,7 @@ object transformer:
       ReaderT.liftFunctionK(f)
     end liftFunctionK
 
-    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: ReaderT[G, C, A], f: [Inner[_] : Functor] => G[Inner[A]] => K[Inner[B]]): ReaderT[K, C, B] =
+    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: ReaderT[G, C, A], f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]): ReaderT[K, C, B] =
       ReaderT(source => f[Id](original.run(source)))
     end innerTransform
 
@@ -53,7 +59,7 @@ object transformer:
       WriterT.liftFunctionK(f)
     end liftFunctionK
 
-    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: WriterT[G, L, A], f: [Inner[_] : Functor] => G[Inner[A]] => K[Inner[B]]): WriterT[K, L, B] =
+    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: WriterT[G, L, A], f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]): WriterT[K, L, B] =
       WriterT(f[(L, *)](original.run))
     end innerTransform
 
@@ -69,7 +75,7 @@ object transformer:
       end new
     end liftFunctionK
 
-    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: EitherT[G, Error, A], f: [Inner[_] : Functor] => G[Inner[A]] => K[Inner[B]]): EitherT[K, Error, B] =
+    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: EitherT[G, Error, A], f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]): EitherT[K, Error, B] =
       EitherT(f[Either[Error, *]](original.value))
     end innerTransform
 
@@ -91,16 +97,16 @@ object transformer:
       UMT.liftK.andThen(FMT.liftK)
     end liftK
 
-    override def innerTransform[G[_] : Monad, K[_] : Monad, A, B](
+    override def innerTransform[G[_] : Monad as GM, K[_] : Monad as KM, A, B](
                                                                     original: (F <> U)[G, A],
-                                                                    f: [Inner[_] : Functor] => G[Inner[A]] => K[Inner[B]]
+                                                                    f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]
                                                                   ): (F <> U)[K, B] =
       FMT.innerTransform[U[G, *], U[K, *], A, B](
         original,
-        [Inner[_] : Functor] => (value : U[G, Inner[A]]) =>
+        [Inner[_] : Applicative] => (value : U[G, Inner[A]]) =>
           UMT.innerTransform[G, K, Inner[A], Inner[B]](value,
-            [Inner2[_] : Functor] => (value : G[Inner2[Inner[A]]]) => 
-              f[Inner2 * Inner](value)(using nestedFunctorsAreFunctors[Inner2, Inner])
+            [Inner2[_] : Applicative] => (value : G[Inner2[Inner[A]]]) => 
+              KM.map(f[Nested[Inner2, Inner, *]](GM.map(value)(Nested(_))))(_.value)
           )
       )
     end innerTransform

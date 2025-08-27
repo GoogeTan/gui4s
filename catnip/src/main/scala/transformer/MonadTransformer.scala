@@ -9,7 +9,7 @@ trait MonadTransformer[F[_[_], _]]:
   def liftK[G[_] : Monad] : G ~> F[G, *]
   def liftFunctionK[G[_] : Monad, K[_] : Monad](f : G ~> K) : F[G, *] ~> F[K, *]
 
-  def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: F[G, A], f: [Inner[_] : Functor] => G[Inner[A]] => K[Inner[B]]): F[K, B]
+  def innerTransform[G[_] : Monad, K[_] : Monad, A, B](original: F[G, A], f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]): F[K, B]
 end MonadTransformer
 
 object MonadTransformer:

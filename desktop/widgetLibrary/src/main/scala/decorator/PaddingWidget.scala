@@ -11,7 +11,6 @@ import cats.syntax.all.*
 import cats.{Applicative, Comonad, Functor, Id}
 import gui4s.core.geometry.*
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
-import gui4s.decktop.widget.library.{LinearContainer, Widget, WidgetHandlesEvent}
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 

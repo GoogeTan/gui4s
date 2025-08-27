@@ -2,21 +2,23 @@ package gui4s.desktop.example.cats
 
 import catnip.ForeignFunctionInterface
 import catnip.effect.SyncForeignFunctionInterface
-import catnip.syntax.all.given
 import cats.*
 import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
-import gui4s.decktop.widget.library.decorator.MapEvent
+import gui4s.decktop.widget.library.decorator.Paddings
 import gui4s.desktop.kit.cats.*
-import gui4s.desktop.kit.cats.effects.{*, given}
+import gui4s.desktop.kit.cats.effects.*
 import gui4s.desktop.kit.cats.widgets.*
+import gui4s.desktop.kit.cats.widgets.decorator.*
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
+import org.http4s.Uri
+import org.http4s.ember.client.*
 import scalacache.caffeine.CaffeineCache
 
 import scala.reflect.Typeable
@@ -24,7 +26,13 @@ import scala.reflect.Typeable
 object ImageExample extends IOApp:
   given ffi: ForeignFunctionInterface[IO] = SyncForeignFunctionInterface[IO]
 
-  final case class PreInit(dispatcher: Dispatcher[IO], globalSupervisor: Supervisor[IO], shaper: Shaper, globalTextCache: TextCache[IO], raiseEvent : DownEvent => IO[Unit])
+  final case class PreInit(
+                            dispatcher: Dispatcher[IO],
+                            globalSupervisor: Supervisor[IO],
+                            shaper: Shaper,
+                            globalTextCache: TextCache[IO],
+                            raiseEvent : DownEvent => IO[Unit]
+                          )
 
   def preInit(backend: SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]): Resource[IO, PreInit] =
     for
@@ -75,28 +83,16 @@ object ImageExample extends IOApp:
         )
     end downloadImage
 
-    def image[Event](
-        image: Image,
-    ): Widget[Event] =
-      drawOnlyWidget[
-        UpdateC[Event],
-        Place,
-        Draw,
-        RecompositionReaction,
-        DownEvent,
-      ](
-        Sized(drawImage(ffi, image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace],
-        Monoid[RecompositionReaction].empty,
-      )
-    end image
-
     initWidget(
+      supervisor = preInit.globalSupervisor,
+      raiseExternalEvent = preInit.raiseEvent
+    )(
       name = "image",
       imageSource = downloadImage("https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg"),
       imageWidget = image,
-      placeholder = text("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4)))
+      placeholder = text(preInit.shaper, preInit.globalTextCache)("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))),
     ).clip(
-      SkijaClip.Shapes.round
+      Shapes.round
     ).gapPadding(
       Paddings(10f, 10f, 10f, 10f)
     )
