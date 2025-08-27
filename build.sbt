@@ -5,11 +5,6 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.6.2"
 
-// for running glfw in sbt shell
-example/run/fork := true
-example/run/javaOptions ++= Seq("-XstartOnFirstThread")
-// end for sbt shell
-
 // for nix os
 sys.env.get("LD_LIBRARY_PATH") match {
   case Some(libPath) =>
@@ -182,9 +177,25 @@ lazy val desktopCatsDevKit = (project in file("desktop/kit/cats"))
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, genericDevKit)
 
-lazy val example = (project in file("desktop/example/cats"))
+val zioLibs = List(
+ "dev.zio" %% "zio" % "2.1.20",
+ "dev.zio" %% "zio-interop-cats" % "23.1.0.5"
+)
+
+lazy val desktopZioDevKit = (project in file("desktop/kit/zio"))
   .settings(
-    name := "example",
+    name := "desktop-kit-zio",
+    idePackagePrefix := Some(s"$packagePrefix.desktop.kit.zio"),
+    libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs ++ zioLibs,
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe,
+    scalacOptions ++= scalaCOptions(scalaVersion.value)
+  ).dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, genericDevKit)
+
+
+lazy val desktopCatsExample = (project in file("desktop/example/cats"))
+  .settings(
+    name := "dekstopCatsExample",
     idePackagePrefix := Some(s"$packagePrefix.desktop.example.cats"),
     libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
@@ -199,4 +210,35 @@ lazy val example = (project in file("desktop/example/cats"))
     scalacOptions ++= scalaCOptions(scalaVersion.value),
   )
   .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, desktopCatsDevKit)
+
+
+// for running glfw in sbt shell
+desktopCatsExample/run/fork := true
+desktopCatsExample/run/javaOptions ++= Seq("-XstartOnFirstThread")
+// end for sbt shell
+
+
+lazy val desktopZioExample = (project in file("desktop/example/zio"))
+  .settings(
+    name := "dekstopZioExample",
+    idePackagePrefix := Some(s"$packagePrefix.desktop.example.zio"),
+    libraryDependencies ++= catsLibs ++ zioLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
+      "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
+      "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
+      "co.fs2" %% "fs2-core" % "3.12.0",
+      "co.fs2" %% "fs2-io" % "3.12.0",
+      "org.http4s" %% "http4s-ember-client" % "0.23.30",
+      "org.http4s" %% "http4s-core" % "0.23.30"
+    ),
+    coverageEnabled := true,
+    wartremoverErrors := Warts.unsafe,
+    scalacOptions ++= scalaCOptions(scalaVersion.value),
+  )
+  .dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, desktopZioDevKit)
+
+
+// for running glfw in sbt shell
+desktopZioExample/run/fork := true
+desktopZioExample/run/javaOptions ++= Seq("-XstartOnFirstThread")
+// end for sbt shell
 

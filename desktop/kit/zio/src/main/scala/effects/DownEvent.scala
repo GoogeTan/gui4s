@@ -1,10 +1,12 @@
-package gui4s.desktop.kit.cats
+package gui4s.desktop.kit.zio
 package effects
 
 import gui4s.core.geometry.Point2d
+import gui4s.core.widget.Path
 import gui4s.glfw.KeyAction.Press
 import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
-import gui4s.core.widget.Path
+
+import scala.reflect.Typeable
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum DownEvent:

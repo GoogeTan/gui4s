@@ -1,4 +1,4 @@
-package gui4s.desktop.kit.cats
+package gui4s.desktop.kit.zio
 package widgets.decorator
 
 import effects.*

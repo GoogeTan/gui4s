@@ -5,7 +5,7 @@ import effects.Place.given
 import effects.Update.given
 
 import catnip.ForeignFunctionInterface
-import catnip.syntax.applicative.given
+import catnip.syntax.all.given
 import catnip.syntax.functionk.{eitherTMapError, runEitherT}
 import cats.*
 import cats.data.EitherT
