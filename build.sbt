@@ -15,18 +15,6 @@ sys.env.get("LD_LIBRARY_PATH") match {
 
 Global / excludeLintKeys += idePackagePrefix
 
-addCompilerPlugin("org.wartremover" %% "wartremover" % "3.3.4" cross CrossVersion.full)
-
-scalacOptions += "-Xkind-projector"
-scalacOptions += "-P:wartremover:traverser:org.wartremover.warts.Unsafe"
-scalacOptions += "-experimental"
-
-inThisBuild(
-  List(
-    semanticdbEnabled := true, // enable SemanticDB for scalafix
-  )
-)
-
 val packagePrefix = "gui4s"
 
 def scalaCOptions(scalaVersion : String) =
@@ -188,7 +176,7 @@ lazy val desktopZioDevKit = (project in file("desktop/kit/zio"))
     idePackagePrefix := Some(s"$packagePrefix.desktop.kit.zio"),
     libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs ++ zioLibs,
     coverageEnabled := true,
-    wartremoverErrors := Warts.unsafe,
+    wartremoverErrors := Warts.allBut(Wart.Any, Wart.ToString, Wart.Overloading),
     scalacOptions ++= scalaCOptions(scalaVersion.value)
   ).dependsOn(widget, draw, layout, loops, catnip, catnipEffect, glfw, widgetLibrary, genericDevKit)
 
@@ -227,8 +215,7 @@ lazy val desktopZioExample = (project in file("desktop/example/zio"))
       "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
       "co.fs2" %% "fs2-core" % "3.12.0",
       "co.fs2" %% "fs2-io" % "3.12.0",
-      "org.http4s" %% "http4s-ember-client" % "0.23.30",
-      "org.http4s" %% "http4s-core" % "0.23.30"
+      "dev.zio" %% "zio-http" % "3.0.0-RC9"
     ),
     coverageEnabled := true,
     wartremoverErrors := Warts.unsafe,

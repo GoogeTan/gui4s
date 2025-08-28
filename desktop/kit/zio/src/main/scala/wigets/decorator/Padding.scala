@@ -29,7 +29,7 @@ extension [Event](value : DesktopWidget[Event])
         OuterPlace.withBounds(place, _.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_))),
       paddings => update => (path, event) =>
         Update.withCornerCoordinates(update(path, event), _ + new Point3d(paddings.topLeftCornerShift)),
-      paddings => draw => drawAt(SyncForeignFunctionInterface[IO](), draw.value, paddings.left, paddings.top),
+      paddings => draw => Draw.drawAt(draw.value, paddings.left, paddings.top),
     )(paddings)(value)
   end gapPadding
 end extension

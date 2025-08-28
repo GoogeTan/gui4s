@@ -1,5 +1,8 @@
 package gui4s.core.widget
 
+import cats.*
+import cats.syntax.all.*
+
 final case class Path(value : List[String]):
   def this(strings : String*) = this(strings.toList)
   
@@ -10,3 +13,7 @@ end Path
 object Path:
   def unapplySeq(value : Path) : Option[Seq[String]] =
     Some(value.value)
+  end unapplySeq
+
+  given Eq[Path] = Eq.by(_.value)
+end Path

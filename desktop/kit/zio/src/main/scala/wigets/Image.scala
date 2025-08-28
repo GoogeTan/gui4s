@@ -5,6 +5,7 @@ import effects.*
 import effects.OuterPlace.given
 import effects.Update.given
 import effects.Place.given
+import effects.RecompositionReaction.given
 
 import cats.Monoid
 import cats.effect.IO
@@ -26,7 +27,7 @@ def image[Event](
     RecompositionReaction,
     DownEvent,
   ](
-    Sized(drawImage(SyncForeignFunctionInterface[IO](), image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace],
+    Sized(Draw.drawImage(image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace],
     Monoid[RecompositionReaction].empty,
   )
 end image

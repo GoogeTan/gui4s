@@ -4,25 +4,25 @@ package widgets
 import effects.*
 import effects.Place.given
 import effects.Update.given
+import effects.Draw.given
 
 import catnip.effect.SyncForeignFunctionInterface
-import cats.effect.IO
 import gui4s.decktop.widget.library.text as genericText
 import gui4s.desktop.skija.*
 import io.github.humbleui.skija.shaper.Shaper
+import zio.*
 
-def text[Event](shaper : Shaper, textCache : TextCache[IO])(text : String, style : SkijaTextStyle) : DesktopWidget[Event] =
-  val ffi = SyncForeignFunctionInterface[IO]()
+def text[Event](shaper : Shaper, textCache : TextCache[Task])(text : String, style : SkijaTextStyle) : DesktopWidget[Event] =
   genericText[
     UpdateC[Event],
     Place,
-    SkijaDraw[IO],
+    Draw,
     RecompositionReaction,
     DownEvent,
     SkijaPlacedText
   ](
-    Place.sizeText(ffi, shaper, textCache)(text, style),
-    drawText(ffi, _),
+    Place.sizeText(shaper, textCache)(text, style),
+    Draw.drawText,
     RecompositionReaction.empty,
   )
 end text

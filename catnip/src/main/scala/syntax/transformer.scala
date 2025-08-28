@@ -6,12 +6,29 @@ import catnip.transformer.*
 
 import cats.*
 import cats.data.*
+import cats.syntax.all.*
 
 object transformer:
   type <>[F[_[_], _], G[_[_], _]] = [IO[_], T] =>> F[G[IO, *], T]
 
   given monadInstanceForTransformer[F[_[_], _]: MonadTransformer as FMT, IO[_] : Monad] : Monad[F[IO, *]] = FMT.monadInstance[IO]
+  given monadErrorInstanceForTransformer[F[_[_], _]: MonadTransformer as FMT, IO[_], Error](using M : MonadError[IO, Error]) : MonadError[F[IO, *], Error] with
+    val original : Monad[F[IO, *]] = monadInstanceForTransformer[F, IO]
+    export original.*
 
+    override def raiseError[A](e: Error): F[IO, A] =
+      FMT.liftK(M.raiseError(e))
+    end raiseError
+
+    override def handleErrorWith[A](fa: F[IO, A])(f: Error => F[IO, A]): F[IO, A] =
+      FMT.monadInstance[IO].flatten(
+        FMT.innerTransform[IO, IO, A, F[IO, A]](fa, [Inner[_] : Applicative] => (ioInnerA : IO[Inner[A]]) =>
+            M.handleErrorWith[Inner[F[IO, A]]](M.map(ioInnerA)(_.map(pure)))(error => f(error).pure[Inner].pure[IO])
+        )
+      ) 
+    end handleErrorWith
+  end monadErrorInstanceForTransformer
+  
   given stateTInstance[S]: MonadTransformer[StateTransformer[S]] with
     override def liftK[G[_] : Monad]: G ~> MyStateT[G, S, *] =
       MyStateT.liftK[G, S]

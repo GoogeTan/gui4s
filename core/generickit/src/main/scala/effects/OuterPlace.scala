@@ -6,10 +6,9 @@ import catnip.transformer.*
 import catnip.{Get, Set}
 import cats.*
 import cats.data.*
-import catnip.transformer.ErrorTransformer.given
-    
 
 type OuterPlaceTansformer[Bounds, Error] =  StateTransformer[Bounds] <> ErrorTransformer[Error]
+
 given[Bounds, Error]: MonadTransformer[OuterPlaceTansformer[Bounds, Error]] =
   composedMonadTransformerInstance[StateTransformer[Bounds], ErrorTransformer[Error]]
 

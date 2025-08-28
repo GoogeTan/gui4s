@@ -3,8 +3,8 @@ package effects
 
 import gui4s.core.kit.effects as generic_effects
 import zio.*
-import zio.interop.cats.*
+import zio.interop.catz.*
 
-type RecompositionReaction = generic_effects.RecompositionReaction[UIO]
+type RecompositionReaction = generic_effects.RecompositionReaction[Task]
 
-object RecompositionReaction extends generic_effects.RecompositionReactionOps[UIO]
+object RecompositionReaction extends generic_effects.RecompositionReactionOps[Task]

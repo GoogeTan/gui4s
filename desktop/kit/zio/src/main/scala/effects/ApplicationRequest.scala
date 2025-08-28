@@ -1,7 +1,7 @@
 package gui4s.desktop.kit.zio
 package effects
 
-import cats.effect.ExitCode
+import zio.*
 
 enum ApplicationRequest:
   case CloseApp(code : ExitCode)

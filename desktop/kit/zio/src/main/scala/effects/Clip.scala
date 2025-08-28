@@ -28,8 +28,4 @@ object Clip:
       point.y
     )
   end moveClipToPoint
-
-  def drawClipped[IO[_] : Monad](ffi: ForeignFunctionInterface[IO])(path: Clip, original: SkijaDraw[IO]): SkijaDraw[IO] =
-    clipToPath(ffi, path, original)
-  end drawClipped
 end Clip

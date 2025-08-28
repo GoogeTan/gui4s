@@ -7,6 +7,7 @@ import gui4s.glfw.KeyAction.Press
 import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
 
 import scala.reflect.Typeable
+import cats.syntax.all.*
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum DownEvent:
@@ -19,6 +20,7 @@ enum DownEvent:
   case ExternalEventForWidget(destination: Path, event: Any)
 end DownEvent
 
+@SuppressWarnings(Array("org.wartremover.warts.All"))
 object DownEvent:
   def eventOfferingCallbacks[F](offerEvent: DownEvent => F) : GlfwCallbacks[F, Float] =
     GlfwCallbacks(
@@ -39,7 +41,7 @@ object DownEvent:
   
   def catchExternalEvent(expectedPath : Path, event : DownEvent) : Option[Any] =
     event match 
-      case DownEvent.ExternalEventForWidget(taskPath, event : Any) if taskPath == expectedPath =>
+      case DownEvent.ExternalEventForWidget(taskPath, event : Any) if taskPath === expectedPath =>
         Some[Any](event)
       case _ =>
         None 

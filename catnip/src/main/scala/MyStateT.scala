@@ -1,11 +1,10 @@
 package catnip
 
 import cats.arrow.FunctionK
-import cats.{Applicative, Functor, Monad, ~>}
+import cats.{Applicative, Functor, Monad, MonadError, ~>}
 import cats.syntax.functor.*
 import cats.syntax.flatMap.*
 import cats.syntax.applicative.*
-import sun.jvm.hotspot.runtime.PerfMemory.end
 
 final case class MyStateT[F[_], S, A](run: S => F[(S, A)]):
   def map[B](f: A => B)(using F: Functor[F]): MyStateT[F, S, B] =
@@ -65,4 +64,22 @@ object MyStateT:
         MyStateT(s => fk(fa.run(s)))
     end new
   end liftFunctionK
+
+  given[IO[_], State, Error](using M: MonadError[IO, Error]) : MonadError[MyStateT[IO, State, *], Error] with
+    val original : Monad[MyStateT[IO, State, *]] = catnip.syntax.transformer.stateTInstance[State].monadInstance[IO]
+    export original.*
+
+    override def raiseError[A](e: Error): MyStateT[IO, State, A] =
+      MyStateT(_ => M.raiseError(e))
+    end raiseError
+
+    override def handleErrorWith[A](fa: MyStateT[IO, State, A])(f: Error => MyStateT[IO, State, A]): MyStateT[IO, State, A] = 
+      MyStateT(state =>
+        M.handleErrorWith(
+         fa.run(state) 
+        )(
+          error => f(error).run(state)
+        )
+      )
+  end given
 end MyStateT

@@ -5,6 +5,7 @@ import effects.*
 import effects.Update.given
 import effects.OuterPlace.given
 import effects.Place.given
+import effects.RecompositionReaction.given
 
 import catnip.effect.SyncForeignFunctionInterface
 import catnip.syntax.list.orderedListProcessing
@@ -22,7 +23,7 @@ def container[Container[_] : Traverse, Event](
                                               ) : ContainerWidget[DesktopPlacedWidget[Event], Container, Place, Point3d[Float]] =
   given Order[Point3d[Float]] = Order.by(_.z)
   genericContainer(
-    (draw, meta) => drawAt(SyncForeignFunctionInterface[IO](), draw, meta.x, meta.y),
+    (draw, meta) => Draw.drawAt(draw, meta.x, meta.y),
     [T] => (update, point) => Update.withCornerCoordinates(update, _ + point),
     Update.isEventHandled,
     updateListOrdered

@@ -6,16 +6,16 @@ import effects.Place.given
 import effects.Update.given
 import widgets.*
 
-import cats.effect.IO
-import cats.effect.std.Supervisor
 import gui4s.decktop.widget.library.{launchedEvent as genericLaunchedEvent, LaunchedEffectWidget}
 import gui4s.core.widget.Path
 import scala.reflect.Typeable
 import cats.syntax.all.* 
+import zio.*
+import zio.interop.catz.*
 
-def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[IO], raiseExternalEvent : DownEvent => IO[Unit]) : LaunchedEffectWidget[DesktopWidget[Event], Key, IO[Event]] =
+def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[Unit], raiseExternalEvent : DownEvent => UIO[Unit]) : LaunchedEffectWidget[DesktopWidget[Event], Key, Task[Event]] =
   genericLaunchedEvent[
-    IO,
+    Task,
     DesktopWidget[Event],
     Key,
     Update,

@@ -14,6 +14,10 @@ class RecompositionReactionOps[F[_] : Applicative]:
 
   final def lift[T](value : F[T]) : RecompositionReaction[F] = value.as(())
 
+  final def raiseError[Error](using M : MonadError[F, Error])(error : Error) : F[Unit] =
+    M.raiseError(error)
+  end raiseError
+  
   final given Monoid[RecompositionReaction[F]] = summon
 end RecompositionReactionOps
 

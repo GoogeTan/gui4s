@@ -5,42 +5,46 @@ import zio.*
 import catnip.*
 import catnip.syntax.transformer.{*, given}
 import catnip.transformer.{MonadTransformer, StateTransformer}
-import cats.{Monoid, ~>}
+import cats.{Monoid, ~>, MonadError}
+import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
 import gui4s.core.kit.EventsTransformer
-import gui4s.core.kit.effects.{UpdateState, UpdateStateOps}
+import gui4s.core.kit.effects.{UpdateState, UpdateStateOps, UpdateTransformer, given}
 import zio.interop.catz.*
 
 type State = UpdateState[Point3d[Float], Clip]
-
-type UpdateTransformer[Event] =
-  StateTransformer[State] <> EventsTransformer[List[Event]]
-
-type Update[Event, T] = UpdateTransformer[Event][ZIO[Any, String, *], T]
+type Update[Event, T] = UpdateTransformer[State, List[Event]][Task, T]
 type UpdateC[Event] = [Value] =>> Update[Event, Value]
 
-object Update extends UpdateStateOps[IO[String, *], Point3d[Float], Clip]:
-  def liftK[Event] : IO[String, *] ~> Update[Event, *] =
-    MonadTransformer[UpdateTransformer[Event]].liftK
+@SuppressWarnings(Array("org.wartremover.warts.All"))
+object Update extends UpdateStateOps[Task, Point3d[Float], Clip]:
+  def liftK[Event] : Task ~> Update[Event, *] =
+    MonadTransformer[UpdateTransformer[State, List[Event]]].liftK
   end liftK
 
+  given[Event] : MonadError[UpdateC[Event], Throwable] = summon 
+
   def raiseError[Event, T](error : String) : Update[Event, T] =
+    raiseError(new Exception(error))
+  end raiseError
+  
+  def raiseError[Event, T](error : Throwable) : Update[Event, T] =
     liftK(
       ZIO.fail(error)
     )
   end raiseError
 
-  def handleApplicationRequests(updateErrorAsExitCode: String => UIO[ExitCode]): [T] => Update[ApplicationRequest, T] => UIO[Either[ExitCode, T]] =
+  def handleApplicationRequests(updateErrorAsExitCode: Throwable => IO[ExitCode, Nothing]): [T] => Update[ApplicationRequest, T] => IO[ExitCode, T] =
     [T] => update =>
       import Clip.given
       run[List[ApplicationRequest]](UpdateState.empty[Point3d[Float], Clip])(update).either.flatMap {
         case Right((events, (_, widget))) =>
-          events.foldM[IO, Either[ExitCode, T]](Right(widget))((_, request) =>
+          events.foldM[IO[ExitCode, *], T](widget)((_, request) =>
             request match
-              case ApplicationRequest.CloseApp(code) => Left(code).pure[IO]
+              case ApplicationRequest.CloseApp(code) => ZIO.fail(code)
           )
         case Left(error) =>
-          updateErrorAsExitCode(error).map(Left(_))
+          updateErrorAsExitCode(error)
       }
   end handleApplicationRequests
 end Update

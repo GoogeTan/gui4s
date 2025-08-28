@@ -3,7 +3,9 @@ package widgets
 
 import effects.*
 import effects.Update.given
+import effects.OuterPlace.given
 import effects.Place.given
+import effects.RecompositionReaction.given
 
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.decktop.widget.library.*
@@ -16,6 +18,7 @@ import gui4s.core.widget.given
 import catnip.syntax.all.given
 import scala.reflect.Typeable
 
+@SuppressWarnings(Array("org.wartremover.warts.All"))
 def statefulWidget : StatefulWidget[DesktopWidget, Update, [State] =>> State => RecompositionReaction] =
   new StatefulWidget[DesktopWidget, Update,  [State] =>> State => RecompositionReaction]:
     override def apply[State: Typeable, Event, ChildEvent](
@@ -27,6 +30,7 @@ def statefulWidget : StatefulWidget[DesktopWidget, Update, [State] =>> State => 
       apply(name, initialState, eventHandler, body, _ => RecompositionReaction.empty)
     end apply
 
+    @SuppressWarnings(Array("org.wartremover.warts.All"))
     override def apply[State: Typeable, Event, ChildEvent](
                                                             name: String,
                                                             initialState: State,
@@ -45,7 +49,7 @@ def statefulWidget : StatefulWidget[DesktopWidget, Update, [State] =>> State => 
         ChildEvent
       ](
         widgetsAreMergeable = widgetsAreMergable[UpdateC[ChildEvent], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent],
-        typeCheckState = Place.typecheck[StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
+        typeCheckState = Place.typecheckS[StatefulState[State]]((value : Any, path : Path) => "Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]"),
         liftUpdate = Update.catchEvents[List[ChildEvent], List[Event]]
       )(
         name = name,

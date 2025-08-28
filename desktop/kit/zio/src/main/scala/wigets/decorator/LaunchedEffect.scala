@@ -4,17 +4,19 @@ package widgets.decorator
 import effects.*
 import effects.Place.given
 import effects.Update.given
+import effects.RecompositionReaction.given
 import widgets.*
 
 import gui4s.core.widget.Path
-import cats.effect.IO
-import cats.effect.std.Supervisor
 import gui4s.decktop.widget.library.*
 import gui4s.decktop.widget.library.launchedEffect as genericLaunchedEffect
 
 import scala.reflect.Typeable
+import zio.*
+import zio.interop.catz.*
 
-def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[DesktopWidget[Event], Key, Path => IO[Unit]] =
+@SuppressWarnings(Array("org.wartremover.warts.All"))
+def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[Unit]) : LaunchedEffectWidget[DesktopWidget[Event], Key, Path => Task[Unit]] =
   val lew : LaunchedEffectWidget[
     DesktopWidget[Event],
     Key,
@@ -28,14 +30,14 @@ def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : Launche
     Key
   ](
     [T] => (path : Path, value : Any) => OuterPlace.raiseError("Key has changed type at " + path.toString + " value found " + value.toString),
-    (valueFound : Any) => RecompositionReaction.lift[Any](
-      IO.raiseError(Exception("Key changed the type: " + valueFound.toString))
+    (valueFound : Any) => RecompositionReaction.raiseError(
+      Exception("Key changed the type: " + valueFound.toString)
     ),
   )
   (name, child, key, task) =>
     lew(name, child, key, path =>
       RecompositionReaction.lift(
-        supervisor.supervise(task(path))
+        task(path).supervised(supervisor).fork
       )
     )
 end launchedEffect

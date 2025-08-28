@@ -7,24 +7,25 @@ import effects.Update.given
 import widgets.*
 import widgets.decorator.*
 
-import cats.effect.IO
-import cats.effect.std.Supervisor
 import gui4s.decktop.widget.library.{resourceWidget as genericResourceWidget, ResourceWidget}
 import gui4s.decktop.widget.library.WithContext
 import gui4s.core.widget.Path
 
 import scala.reflect.Typeable
+import zio.*
+import zio.interop.catz.*
 
-def resource[Event](supervisor : Supervisor[IO], raiseExternalEvent : DownEvent => IO[Unit]) : ResourceWidget[DesktopWidget[Event], IO] =
+@SuppressWarnings(Array("org.wartremover.warts.All"))
+def resource[Event](supervisor : Supervisor[Unit], raiseExternalEvent : DownEvent => UIO[Unit]) : ResourceWidget[DesktopWidget[Event], Task] =
   genericResourceWidget[
     DesktopWidget,
     Update,
-    IO,
+    Task,
     Event
   ](
     transitiveStatefulWidget = transitiveStatefulWidget,
     launchedEffect =
-      [TaskEvent : Typeable] => (name, child, task) =>
+      [TaskEvent : Typeable] => (name : String, child : DesktopWidget[Event], task : Task[TaskEvent]) =>
           launchedEvent[Either[TaskEvent, Event], Unit](supervisor, raiseExternalEvent)(
             name,
             child.mapEvent(Right(_)),
@@ -35,22 +36,24 @@ def resource[Event](supervisor : Supervisor[IO], raiseExternalEvent : DownEvent 
   )
 end resource
 
+@SuppressWarnings(Array("org.wartremover.warts.All"))
 def resourceInit[Event, Value : Typeable](
-  supervisor : Supervisor[IO],
-  raiseExternalEvent : DownEvent => IO[Unit],
+  supervisor : Supervisor[Unit],
+  raiseExternalEvent : DownEvent => UIO[Unit],
 )(
   name : String,
-  init : IO[Value]
+  init : Task[Value]
 ) : WithContext[DesktopWidget[Event], Option[Value]] =
-  resource(supervisor, raiseExternalEvent)(name, init.map(value => (value, IO.unit)))
+  resource(supervisor, raiseExternalEvent)(name, init.map(value => (value, ZIO.succeed(()))))
 end resourceInit
 
+@SuppressWarnings(Array("org.wartremover.warts.All"))
 def initWidget[Event, Value](
-                              supervisor: Supervisor[IO],
-                              raiseExternalEvent : DownEvent => IO[Unit],
+                              supervisor: Supervisor[Unit],
+                              raiseExternalEvent : DownEvent => UIO[Unit],
                             )(
                               name : String,
-                              imageSource : IO[Value],
+                              imageSource : Task[Value],
                               imageWidget : Value => DesktopWidget[Event],
                               placeholder : DesktopWidget[Event],
                             ) : DesktopWidget[Event] =
