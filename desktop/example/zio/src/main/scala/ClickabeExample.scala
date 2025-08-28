@@ -14,6 +14,7 @@ import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import scalacache.caffeine.CaffeineCache
+import catnip.zio.ZioForeignFunctionInterface
 import zio.*
 
 object ClickabeExample extends ZIOAppDefault:

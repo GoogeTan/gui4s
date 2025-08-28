@@ -1,6 +1,7 @@
 package gui4s.glfw
 
 import catnip.ForeignFunctionInterface
+import catnip.syntax.all.*
 import cats.effect.Sync
 import cats.syntax.all.*
 import gui4s.core.geometry.{Point2d, Rect}
@@ -9,6 +10,7 @@ import org.lwjgl.system.MemoryUtil
 
 final case class OglGlfwWindow(id: Long)
   
+// TODO Перейти на нормальную обработку ошибок
 final class OglWindowIsGlfwWindow[F[_] : Sync](
                                                 impure : ForeignFunctionInterface[F],
                                                 unsafeRunF: F[Unit] => Unit
@@ -51,6 +53,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
           (width.get(0), height.get(0))
   end getScale
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def frameBufferResizeCallback(window: OglGlfwWindow)(callback: Rect[Float] => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetFramebufferSizeCallback(window.id, (_, width, height) =>
@@ -61,10 +64,17 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
       end if
   end frameBufferResizeCallback
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def keyCallback(window: OglGlfwWindow)(callback: (key: Int, scanCode: Int, keyAction: KeyAction, keyModes: KeyModes) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetKeyCallback(window.id, (_, key, scancode, action, modes) =>
-        unsafeRunF(callback(key, scancode, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
+        
+        unsafeRunF(
+          KeyAction
+           .fromCode(action)
+           .getOrRaise(new Exception("Invalid key action code got"))
+           .flatMap(callback(key, scancode, _, KeyModes.fromMask(modes)))
+        )
       )
       if old != null then
         old.free()
@@ -99,6 +109,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   end frameBufferSize
 
   //TODO проверить, правда ли это скрин координаты, а не пиксели.
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def scrollCallback(window: OglGlfwWindow)(callback: (xoffset: Float, yoffset: Float) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetScrollCallback(window.id,
@@ -112,6 +123,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
       end if
   end scrollCallback
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def cursorPosCallback(window: OglGlfwWindow)(callback: (newPos: Point2d[Float]) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetCursorPosCallback(window.id, (_, xCursorPosition, yCursorPosition) =>
@@ -121,11 +133,17 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
         old.free()
       end if
   end cursorPosCallback
-
+  
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def mouseButtonCallback(window: OglGlfwWindow)(callback: (key: Int, action: KeyAction, mode: KeyModes) => F[Unit]): F[Unit] =
     impure.delay:
       val old = glfwSetMouseButtonCallback(window.id, (_, key, action, modes) =>
-        unsafeRunF(callback(key, KeyAction.fromCode(action), KeyModes.fromMask(modes)))
+        unsafeRunF(
+          KeyAction
+            .fromCode(action)
+            .getOrRaise(new Exception("Invalid key action code got"))
+            .flatMap(callback(key, _, KeyModes.fromMask(modes)))
+        )
       )
       if old != null then
         old.free()

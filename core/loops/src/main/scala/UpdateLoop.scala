@@ -32,12 +32,10 @@ def updateLoop[
   )
 end updateLoop
 
-def doIfLeft[F[_] : Monad, A, B](f : A => F[Unit])(value : Either[A, B]) : F[Either[A, B]] =
-  value match
-    case Left(value)  => f(value).as(Left(value))
-    case Right(value) => Right(value).pure[F]
-  end match
-end doIfLeft
+def doIfLeft[F[_] : Monad, A, B](f : A => F[Unit]): Either[A, B] => F[Either[A, B]] = {
+  case Left(value)  => f(value).as(Left[A, B](value))
+  case Right(value) => Right[A, B](value).pure[F]
+}
 
 
 /**
@@ -59,7 +57,7 @@ def updateStep[
   eventSource.flatMap(event =>
     processEvent(widget, event)
   ).flatMap {
-    case Left(code) => Right(code).pure[F]
-    case Right(widget) => widget.map(Left(_))
+    case Left(code) => Right[PlacedWidget, ExitCode](code).pure[F]
+    case Right(widget) => widget.map(Left[PlacedWidget, ExitCode](_))
   }
 end updateStep

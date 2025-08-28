@@ -41,6 +41,7 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeignFunctionInterface[F]) extend
     inner.allocated.map((a, _) => a)
   end createRenderTarget
 
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
   override def createSurface(
                               context: DirectContext,
                               target: BackendRenderTarget,

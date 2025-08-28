@@ -1,5 +1,6 @@
 package gui4s.glfw
 
+import cats.*
 import org.lwjgl.glfw.GLFW.*
 
 enum KeyAction:
@@ -7,12 +8,19 @@ enum KeyAction:
 end KeyAction
 
 object KeyAction:
-  def fromCode(code : Int) : KeyAction =
+  def fromCode(code : Int) : Option[KeyAction] =
     code match
-      case GLFW_PRESS => KeyAction.Press
-      case GLFW_REPEAT => KeyAction.Repeat
-      case GLFW_RELEASE => KeyAction.Release
-      case _ => throw new Exception(s"Impossible key code: $code")
+      case GLFW_PRESS => Some(KeyAction.Press)
+      case GLFW_REPEAT => Some(KeyAction.Repeat)
+      case GLFW_RELEASE => Some(KeyAction.Release)
+      case _ => None
     end match
   end fromCode
+
+  given Eq[KeyAction] = {
+    case (KeyAction.Press, KeyAction.Press) => true
+    case (KeyAction.Release, KeyAction.Release) => true
+    case (KeyAction.Repeat, KeyAction.Repeat) => true
+    case _ => false
+  }
 end KeyAction

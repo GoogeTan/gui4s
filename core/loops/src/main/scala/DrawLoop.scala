@@ -36,16 +36,16 @@ def runWhileNoError[F[_] : MonadErrorT[InternalError], InternalError, ExternalEr
                                                                                       recover: InternalError => F[Option[ExternalError]], 
                                                                                       shouldContinue: F[Boolean]
                                                                                     ): F[Option[ExternalError]] =
-  Monad[F].tailRecM[None.type, Option[ExternalError]](
-    None
+  Monad[F].tailRecM[Unit, Option[ExternalError]](
+    ()
   )(_ =>
     shouldContinue.flatMap(continue =>
       if continue then
         effect
-          .as(Left(None))
-          .handleErrorWith(error => recover(error).map(_.toRight(None).map(Some(_))))
+          .as(Left[Unit, Option[ExternalError]](()))
+          .handleErrorWith(error => recover(error).map(_.some.toRight(())))
       else
-        Right(None).pure[F]
+        Right[Unit, Option[ExternalError]](None).pure[F]
     )
   )
 end runWhileNoError

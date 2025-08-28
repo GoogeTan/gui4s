@@ -9,6 +9,7 @@ final case class StateTree[+QuitRecompositionReaction](
   def this(state : Any, quitRecompositionReaction: QuitRecompositionReaction) =
     this(state, quitRecompositionReaction, Map())
 
+@SuppressWarnings(Array("org.wartremover.warts.Recursion"))
 def collectQuitCompositionReactions[Reaction](
                                               oldTree: Map[String, StateTree[Reaction]],
                                               newTree: Map[String, StateTree[Reaction]]

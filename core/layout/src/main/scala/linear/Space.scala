@@ -1,7 +1,9 @@
 package gui4s.core.layout
 package linear
 
-import cats.data.NonEmptyList
+import cats.* 
+import cats.syntax.all.*
+import cats.data.* 
 
 import scala.math.Numeric.Implicits.*
 import gui4s.core.geometry.*
@@ -10,15 +12,10 @@ import gui4s.core.geometry.*
  * Считает расстояние между элементами. Предполагается, что они расположены в порядке отдаления от начала координат в положительную строну.
  */
 def spaceBetweenElements[MeasurementUnit: Numeric](items: NonEmptyList[Rect1dOnPoint1d[MeasurementUnit]]): List[MeasurementUnit] =
-  def helper(previousItemsEnd: MeasurementUnit, remainingItems: List[Rect1dOnPoint1d[MeasurementUnit]]): List[MeasurementUnit] =
-    remainingItems match
-      case Rect1dOnPoint1d(size, start) :: others =>
-        (start - previousItemsEnd) :: helper(start + size, others)
-      case Nil => Nil
-    end match
-  end helper
-
-  helper(items.head.coordinateOfTheEnd, items.tail)
+  Traverse[List].mapAccumulate(items.head.coordinateOfTheEnd, items.tail) {
+      case (previousItemsEnd, Rect1dOnPoint1d(size, start)) =>
+        (start + size, start - previousItemsEnd)
+  }._2
 end spaceBetweenElements
 
 /**
@@ -44,11 +41,7 @@ def spaceAroundElements[MeasurementUnit: Numeric as N](items: List[Rect1dOnPoint
   )
 end spaceAroundElements
 
-def minimalRequiredSpace[MeasurementUnit: Numeric](lengths: List[MeasurementUnit]): MeasurementUnit =
-  lengths.sum
-end minimalRequiredSpace
-
-def minimalRequiredSpace[MeasurementUnit: Numeric](lengths: NonEmptyList[MeasurementUnit]): MeasurementUnit =
+def minimalRequiredSpace[Container[_] : Foldable, MeasurementUnit: Numeric](lengths: Container[MeasurementUnit]): MeasurementUnit =
   lengths.foldLeft(Numeric[MeasurementUnit].zero)(_ + _)
 end minimalRequiredSpace
 

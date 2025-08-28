@@ -40,14 +40,6 @@ final case class StatefulBehaviour[
   override def toString: String =
     "StatefulState(name = \"" + name + "\", state={" + state.toString + "})"
   end toString
-
-  override def equals(obj: Any): Boolean =
-    obj match
-      case that: StatefulBehaviour[_, _, _, _] =>
-        this.name == that.name && this.state == that.state
-      case _ => false
-    end match
-  end equals
 end StatefulBehaviour
 
 given[State : Equiv as sEq] : Equiv[StatefulState[State]] =
@@ -57,5 +49,5 @@ end given
 
 given[State : Equiv as sEq, Draw, EventHandler, Destructor] : Equiv[StatefulBehaviour[State, Draw, EventHandler, Destructor]] =
   (a, b) =>
-    a.name == b.name && Equiv[StatefulState[State]].equiv(a.state, b.state)
+    a.name === b.name && Equiv[StatefulState[State]].equiv(a.state, b.state)
 end given

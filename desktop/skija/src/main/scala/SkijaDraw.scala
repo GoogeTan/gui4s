@@ -12,7 +12,7 @@ type SkijaDrawLoud[F[_], T] = ReaderT[F, Canvas, T]
 
 object SkijaDrawLoud:
   def liftF[F[_], T](original : F[T]) : SkijaDrawLoud[F, T] =
-    ReaderT.liftF(original)
+    ReaderT.liftF[F, Canvas, T](original)
   end liftF
 
   def getCanvas[F[_] : Applicative] : SkijaDrawLoud[F, Canvas] =

@@ -73,6 +73,7 @@ final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends 
     end toGlfwBoolean
   end extension
 
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
   override def createPrintErrorCallback: Resource[F, GLFWErrorCallback] =
     Resource.make(
       impure.delay(GLFWErrorCallback.createPrint.set())
