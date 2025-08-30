@@ -10,33 +10,43 @@ import scala.concurrent.ExecutionContext
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).
  */
-type UpdateLoop[F[_], Widget, DownEvent] = (Widget, Widget => F[Unit], F[DownEvent]) => F[ExitCode]
+type UpdateLoop[F[_], Widget, DownEvent, ExitCode] = (Widget, Widget => F[Unit], F[DownEvent]) => F[ExitCode]
 
-def runUpdateLoopOnExecutionContext[F[_] : Async, Widget, HandleableEvent](loop: UpdateLoop[F, Widget, HandleableEvent], context: ExecutionContext): UpdateLoop[F, Widget, HandleableEvent] =
+def runUpdateLoopOnExecutionContext[
+  F[_] : Async,
+  Widget,
+  HandleableEvent,
+  ExitCode
+](
+   loop: UpdateLoop[F, Widget, HandleableEvent, ExitCode],
+   context: ExecutionContext
+): UpdateLoop[F, Widget, HandleableEvent, ExitCode] =
   (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
 end runUpdateLoopOnExecutionContext
 
 def updateLoop[
   F[_] : Monad,
   PlacedWidget,
-  DownEvent
+  DownEvent,
+  ExitCode
 ](
-  processEvent : (PlacedWidget, DownEvent) => F[Either[ExitCode, F[PlacedWidget]]]
-)(
+  processEvent : (PlacedWidget, DownEvent) => F[Either[ExitCode, PlacedWidget]]
+) : UpdateLoop[F, PlacedWidget, DownEvent, ExitCode] =
+  (
   initial: PlacedWidget,
   pushNew: PlacedWidget => F[Unit],
   nextEvent: F[DownEvent],
-) : F[ExitCode] =
-  Monad[F].tailRecM(initial)(
-    updateStep(_, nextEvent, processEvent) >>= doIfLeft(pushNew)
+  ) => Monad[F].tailRecM(initial)(currentWidget =>
+    updateStep(currentWidget, nextEvent, processEvent).flatTap(doIfRight(pushNew)).map(_.swap)
   )
 end updateLoop
 
-def doIfLeft[F[_] : Monad, A, B](f : A => F[Unit]): Either[A, B] => F[Either[A, B]] = {
-  case Left(value)  => f(value).as(Left[A, B](value))
-  case Right(value) => Right[A, B](value).pure[F]
-}
-
+def doIfRight[F[_] : Monad, A, B](f : B => F[Unit])(value : Either[A, B]) : F[Unit] =
+  value match
+    case Left(value)  => ().pure[F]
+    case Right(value) => f(value)
+  end match
+end doIfRight
 
 /**
  * Одна итерация обновления виджетов. Ожидает появления события, обновляет дерево и выполняет все запросы виджета.
@@ -48,16 +58,14 @@ def doIfLeft[F[_] : Monad, A, B](f : A => F[Unit]): Either[A, B] => F[Either[A, 
 def updateStep[
   F[_] : Monad,
   PlacedWidget,
-  DownEvent
+  DownEvent,
+  ExitCode
 ](
   widget     : PlacedWidget,
   eventSource: F[DownEvent],
-  processEvent : (PlacedWidget, DownEvent) => F[Either[ExitCode, F[PlacedWidget]]]
-): F[Either[PlacedWidget, ExitCode]] =
+  processEvent : (PlacedWidget, DownEvent) => F[Either[ExitCode, PlacedWidget]]
+): F[Either[ExitCode, PlacedWidget]] =
   eventSource.flatMap(event =>
     processEvent(widget, event)
-  ).flatMap {
-    case Left(code) => Right[PlacedWidget, ExitCode](code).pure[F]
-    case Right(widget) => widget.map(Left[PlacedWidget, ExitCode](_))
-  }
+  )
 end updateStep

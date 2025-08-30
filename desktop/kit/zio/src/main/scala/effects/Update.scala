@@ -34,17 +34,15 @@ object Update extends UpdateStateOps[Task, Point3d[Float], Clip]:
     )
   end raiseError
 
-  def handleApplicationRequests(updateErrorAsExitCode: Throwable => IO[ExitCode, Nothing]): [T] => Update[ApplicationRequest, T] => IO[ExitCode, T] =
+  def handleApplicationRequests: [T] => Update[ApplicationRequest, T] => Task[Either[ExitCode, T]] =
     [T] => update =>
       import Clip.given
-      run[List[ApplicationRequest]](UpdateState.empty[Point3d[Float], Clip])(update).either.flatMap {
-        case Right((events, (_, widget))) =>
-          events.foldM[IO[ExitCode, *], T](widget)((_, request) =>
+      run[List[ApplicationRequest]](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
+        case (events, (_, widget)) =>
+          events.foldM[Task, Either[ExitCode, T]](Right(widget))((_, request) =>
             request match
-              case ApplicationRequest.CloseApp(code) => ZIO.fail(code)
+              case ApplicationRequest.CloseApp(code) => ZIO.succeed(Left(code))
           )
-        case Left(error) =>
-          updateErrorAsExitCode(error)
       }
   end handleApplicationRequests
 end Update

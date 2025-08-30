@@ -9,9 +9,8 @@ import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
 import gui4s.desktop.kit.cats.*
-import gui4s.desktop.kit.cats.effects.{*, given}
-import gui4s.desktop.kit.cats.widgets.*
-import gui4s.desktop.kit.cats.widgets.decorator.*
+import _root_.effects.{ApplicationRequest, DownEvent, UpdateC}
+import widgets.{DesktopWidget, statefulWidget, text, *}
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*

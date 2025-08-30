@@ -1,16 +1,17 @@
 package gui4s.desktop.kit.cats
 package effects
 
-import catnip.{ForeignFunctionInterface, MapKCache}
+import effects.InnerPlace.given
+import effects.OuterPlace.given
+
 import catnip.syntax.applicative.nestedFunctorsAreFunctors
+import catnip.{ForeignFunctionInterface, MapKCache}
 import cats.data.EitherT
 import cats.effect.IO
 import cats.{Functor, ~>}
-import io.github.humbleui.skija.shaper.Shaper
 import gui4s.core.kit.effects.Place as GenericPlace
 import gui4s.core.widget.Path
-import OuterPlace.given
-import InnerPlace.given
+import io.github.humbleui.skija.shaper.Shaper
 
 import scala.reflect.Typeable
 

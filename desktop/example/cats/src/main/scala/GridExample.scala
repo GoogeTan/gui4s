@@ -10,9 +10,9 @@ import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 import gui4s.desktop.kit.cats.*
-import gui4s.desktop.kit.cats.effects.{*, given}
-import gui4s.desktop.kit.cats.effects.OuterPlace.given
-import gui4s.desktop.kit.cats.widgets.*
+import _root_.effects.{ApplicationRequest, DownEvent, OuterPlace}
+import _root_.effects.OuterPlace.given
+import widgets.*
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*

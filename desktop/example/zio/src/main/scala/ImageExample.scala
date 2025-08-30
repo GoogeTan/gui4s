@@ -10,17 +10,19 @@ import gui4s.desktop.kit.zio.effects.*
 import gui4s.desktop.kit.zio.widgets.*
 import gui4s.desktop.kit.zio.widgets.decorator.*
 import gui4s.desktop.skija.*
+import gui4s.desktop.kit.generic.SkijaBackend
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import scalacache.caffeine.CaffeineCache
 import zio.*
-import zio.http.Client
-
+import zio.http.*
+import zio.interop.catz.*
+import catnip.zio.*
 import scala.reflect.Typeable
 
 object ImageExample extends ZIOAppDefault:
-  given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface(zio.Runtime.default)
+  given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface()
 
   final case class PreInit(
                             shaper: Shaper,
@@ -31,7 +33,7 @@ object ImageExample extends ZIOAppDefault:
   def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =
     for
       shaper <- backend.skija.createShaper
-      cache: TextCache[Task] <- ZIO.fromEither(CaffeineCache[Task, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_)).orDie
+      cache: TextCache[Task] <- CaffeineCache[Task, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]].map(ScalacacheCache(_)).orDie
     yield PreInit(shaper, cache, backend.raiseEvent)
   end preInit
 
@@ -62,7 +64,9 @@ object ImageExample extends ZIOAppDefault:
     def downloadImage(uri: String): ZIO[Client, Throwable, Image] =
       for
         client <- ZIO.service[Client]
-        response <- client.url(java.net.URI.create(uri).toURL).flatMap(_.body.asArray)
+        url <- ZIO.fromEither(URL.decode(uri))
+        res <- client.url(url)
+        body <- res.body.asArray
       yield Image.makeDeferredFromEncodedBytes(response)
     end downloadImage
 

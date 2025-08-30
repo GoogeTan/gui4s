@@ -3,24 +3,25 @@ package gui4s.core.loops
 import cats.*
 import cats.effect.*
 import cats.effect.std.{Queue, QueueSink}
-import cats.effect.syntax.all.*
 import cats.syntax.all.*
 
 def runApplicationLoopsWithBackend[
   F[_] : Async,
   DownEvent,
   RootWidget,
-  Backend
+  Backend,
+  ExitCode
 ](
     backend : QueueSink[F, DownEvent] => Resource[F, Backend],
-    drawLoop : Backend => DrawLoop[F, RootWidget],
-    updateLoop : Backend => UpdateLoop[F, RootWidget, DownEvent],
+    drawLoop : Backend => DrawLoop[F, RootWidget, ExitCode],
+    updateLoop : Backend => UpdateLoop[F, RootWidget, DownEvent, ExitCode],
     rootWidget : Backend => F[RootWidget]
 ) : F[ExitCode] =
   runApplicationLoops[
     F,
     DownEvent,
-    RootWidget
+    RootWidget,
+    ExitCode
   ](
     sink => backend(sink).map(state =>
       (
@@ -36,29 +37,27 @@ def runApplicationLoops[
   F[_] : Async,
   DownEvent,
   RootWidget,
+  ExitCode
 ](
   loops: QueueSink[F, DownEvent] => Resource[F, (
-      DrawLoop[F, RootWidget],
-      UpdateLoop[F, RootWidget, DownEvent],
+      DrawLoop[F, RootWidget, ExitCode],
+      UpdateLoop[F, RootWidget, DownEvent, ExitCode],
       F[RootWidget],
     )
   ],
 ) : F[ExitCode] =
-  for
-    eventBus <- Queue.unbounded[F, DownEvent]
-    code <- loops(eventBus).use((drawLoop, updateLoop, freeRootWidget) =>
-      for
-        rootWidget <- freeRootWidget
-        widgetCell : Ref[F, RootWidget] <- Ref[F].of(rootWidget)
-        code <- applicationLoop(
-          eventBus,
-          widgetCell,
+  Queue.unbounded[F, DownEvent].flatMap(eventBus =>
+    loops(eventBus).use((drawLoop, updateLoop, freeRootWidget) =>
+      freeRootWidget.flatMap(Ref[F].of).flatMap(
+        applicationLoop(
+          eventBus.take,
+          _,
           drawLoop,
           updateLoop,
         )
-      yield code
+      )
     )
-  yield code
+  )  
 end runApplicationLoops
 
 /**
@@ -67,23 +66,22 @@ end runApplicationLoops
 def applicationLoop[
   F[_] : Concurrent,
   DownEvent,
-  Widget
+  Widget,
+  ExitCode
 ](
-  eventBus     : Queue[F, DownEvent],
+  eventSource  : F[DownEvent],
   widgetCell   : Ref[F, Widget],
-  drawLoop     : DrawLoop[F, Widget],
-  updateLoop   : UpdateLoop[F, Widget, DownEvent]
+  drawLoop     : DrawLoop[F, Widget, ExitCode],
+  updateLoop   : UpdateLoop[F, Widget, DownEvent, ExitCode]
 ): F[ExitCode] =
   for
     initialWidget <- widgetCell.get
-    fork <-
+    code <-
       Concurrent[F]
         .race(
-          updateLoop(initialWidget, widgetCell.set, eventBus.take),
+          updateLoop(initialWidget, widgetCell.set, eventSource),
           drawLoop(widgetCell.get)
         )
         .map(_.fold(identity, identity))
-        .start
-    code <- fork.joinWithNever
   yield code
 end applicationLoop

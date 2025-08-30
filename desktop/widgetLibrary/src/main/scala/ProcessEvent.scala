@@ -25,7 +25,7 @@ def placeForTheFirstTime[
   )
 end placeForTheFirstTime
 
-// tODO rename me
+// TODO rename me
 def processEvent[
   IO[_] : Monad,
   Widget,

@@ -8,23 +8,30 @@ import gui4s.core.layout.Sized
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 import gui4s.desktop.kit.zio.*
 import gui4s.desktop.kit.zio.effects.{*, given}
+import gui4s.desktop.kit.zio.effects.Update.given
+import gui4s.desktop.kit.zio.effects.Place.given
+import gui4s.desktop.kit.zio.effects.OuterPlace.given
 import gui4s.desktop.kit.zio.widgets.*
 import gui4s.desktop.skija.*
+import gui4s.desktop.kit.generic.SkijaBackend
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import scalacache.caffeine.CaffeineCache
+import cats.syntax.all.*
+import catnip.zio.*
 import zio.*
+import zio.interop.catz.*
 
 object GridExample extends ZIOAppDefault:
-  given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface(zio.Runtime.default)
+  given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface()
 
   final case class PreInit(shaper: Shaper, globalTextCache: TextCache[Task])
 
   def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =
     for
       shaper <- backend.skija.createShaper
-      cache: TextCache[Task] <- ZIO.fromEither(CaffeineCache[Task, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_)).orDie
+      cache: TextCache[Task] <- CaffeineCache[Task, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]].map(ScalacacheCache(_)).orDie
     yield PreInit(shaper, cache)
   end preInit
 
