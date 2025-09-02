@@ -92,13 +92,13 @@ lazy val glfw = (project in file("glfw"))
   .settings(libraryDependencies ++= catsEffectLibs ++ testLibs ++ glfwLibs)
   .dependsOn(catnip, catnipCatsEffect, geometry)// TODO Может стоит убрать кетс эффект.
 
-lazy val draw = (project in file("desktop/skija"))
-  .settings(commonSettings("draw", s"$packagePrefix.desktop.skija"))
+lazy val desktopSkijaBindings = (project in file("desktop/skija"))
+  .settings(commonSettings("desktop-skija-bindings", s"$packagePrefix.desktop.skija"))
   .settings(libraryDependencies ++= catsEffectLibs ++ testLibs ++ skijaLibs)
   .dependsOn(catnip, glfw, layout)
 
-lazy val loops = (project in file("core/loops"))
-  .settings(commonSettings("loops", s"$packagePrefix.core.loops"))
+lazy val loops = (project in file("core/loop"))
+  .settings(commonSettings("loop", s"$packagePrefix.core.loop"))
   .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
   .dependsOn(catnip)
 
@@ -108,17 +108,17 @@ lazy val desktopWidgetLibrary = (project in file("desktop/widgetLibrary"))
   .dependsOn(catnip, widget, layout, geometry)
 
 lazy val commonDevKit = (project in file("core/kit"))
-  .settings(commonSettings("common-kit", s"$packagePrefix.core.kit"))
+  .settings(commonSettings("core-kit", s"$packagePrefix.core.kit"))
   .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
   .dependsOn(widget, layout, loops, catnip)
 
 lazy val desktopCommonDevKit = (project in file("desktop/kit/common"))
-  .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit.common"))
+  .settings(commonSettings("desktop-kit-common", s"$packagePrefix.desktop.kit.common"))
   .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
-  .dependsOn(widget, draw, layout, loops, glfw, catnip, desktopWidgetLibrary, commonDevKit)
+  .dependsOn(widget, desktopSkijaBindings, layout, loops, glfw, catnip, desktopWidgetLibrary, commonDevKit)
 
 lazy val desktopCatsDevKit = (project in file("desktop/kit/cats"))
-  .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit.cats"))
+  .settings(commonSettings("desktop-kit-cats", s"$packagePrefix.desktop.kit.cats"))
   .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
   .dependsOn(desktopCommonDevKit)
   .dependsOn(catnipCatsEffect)
@@ -161,7 +161,7 @@ lazy val desktopZioExample = (project in file("desktop/example/zio"))
       "dev.zio" %% "zio-http" % "3.4.0"
     )
   )
-  .dependsOn(widget, draw, layout, loops)
+  .dependsOn(widget, desktopSkijaBindings, layout, loops)
   .dependsOn(catnip, catnipZio, glfw, desktopWidgetLibrary, desktopZioDevKit)
 
 

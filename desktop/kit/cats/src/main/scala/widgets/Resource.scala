@@ -7,7 +7,6 @@ import cats.*
 import cats.effect.IO
 import cats.effect.std.Supervisor
 import cats.syntax.all.*
-import gui4s.desktop.kit.common.widgets.{initWidget, resource, resourceInit}
 import gui4s.desktop.widget.library.{ResourceWidget, WithContext}
 
 import scala.reflect.Typeable
@@ -37,7 +36,7 @@ end resourceInit
 
 def initWidget[
   Event,
-  Value
+  Value : Typeable
 ](
     supervisor: Supervisor[IO],
     raiseExternalEvent : DownEvent => IO[Unit],

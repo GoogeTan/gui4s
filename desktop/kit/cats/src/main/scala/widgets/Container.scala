@@ -1,14 +1,9 @@
 package gui4s.desktop.kit.cats
 package widgets
 
-import effects.Draw.given
-import effects.OuterPlace.given
-import effects.Place.given
-import effects.Update.given
 import effects.{*, given}
 
 import cats.*
-import cats.syntax.all.*
 import cats.effect.IO
 import gui4s.core.geometry.{Axis, InfinityOr, Point3d}
 import gui4s.desktop.widget.library.{ContainerWidget, LinearContainer}

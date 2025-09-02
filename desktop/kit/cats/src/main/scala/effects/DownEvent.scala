@@ -1,13 +1,9 @@
 package gui4s.desktop.kit.cats
 package effects
 
-import cats.syntax.all.*
 import cats.effect.IO
-import gui4s.core.geometry.Point2d
 import gui4s.core.widget.Path
-import gui4s.core.widget.Path.given
-import gui4s.glfw.KeyAction.{Press, given}
-import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
+import gui4s.glfw.GlfwCallbacks
 
 type DownEvent = gui4s.desktop.kit.common.effects.DownEvent
 

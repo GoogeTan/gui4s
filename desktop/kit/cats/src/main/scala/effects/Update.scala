@@ -2,13 +2,9 @@ package gui4s.desktop.kit.cats
 package effects
 
 import catnip.BiMonad
-import catnip.syntax.transformer.{*, given}
-import catnip.transformer.{ErrorTransformer, MonadTransformer, StateTransformer}
+import catnip.syntax.transformer.given
 import cats.*
-import cats.data.EitherT
-import cats.effect.ExitCode
-import cats.effect.IO
-import cats.kernel.Monoid
+import cats.effect.{ExitCode, IO}
 import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
 import gui4s.core.kit.effects.UpdateState

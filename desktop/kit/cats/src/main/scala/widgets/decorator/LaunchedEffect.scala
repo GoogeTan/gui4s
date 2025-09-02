@@ -1,7 +1,6 @@
 package gui4s.desktop.kit.cats
 package widgets.decorator
 
-import effects.*
 import widgets.DesktopWidget
 
 import cats.*

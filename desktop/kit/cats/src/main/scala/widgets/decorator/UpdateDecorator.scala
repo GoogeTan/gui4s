@@ -2,8 +2,6 @@ package gui4s.desktop.kit.cats
 package widgets.decorator
 
 import effects.*
-import effects.OuterPlace.given
-import effects.Update.given
 import widgets.*
 
 import cats.*

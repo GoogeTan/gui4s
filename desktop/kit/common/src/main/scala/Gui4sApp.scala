@@ -8,7 +8,7 @@ import cats.effect.kernel.Resource
 import cats.effect.std.QueueSink
 import cats.syntax.all.*
 import cats.{Functor, Monad}
-import gui4s.core.loops.*
+import gui4s.core.loop.*
 import gui4s.core.widget.Path
 import gui4s.core.widget.draw.Drawable
 import gui4s.desktop.widget.library.*

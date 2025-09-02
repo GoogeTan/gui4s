@@ -4,7 +4,6 @@ package widgets.decorator
 import effects.{*, given}
 import widgets.DesktopWidget
 
-import cats.syntax.all.*
 import gui4s.core.geometry.Rect
 import gui4s.desktop.kit.common.widgets.decorator.clip as genericClip
 

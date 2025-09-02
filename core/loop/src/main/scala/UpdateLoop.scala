@@ -1,4 +1,4 @@
-package gui4s.core.loops
+package gui4s.core.loop
 
 import cats.*
 import cats.effect.*
