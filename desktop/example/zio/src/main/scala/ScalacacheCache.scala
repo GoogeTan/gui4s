@@ -1,9 +1,8 @@
 package gui4s.desktop.example.zio
 
 import catnip.Cache
-import catnip.zio.resourceToScoped
 import scalacache.caffeine.CaffeineCache
-import zio.{RIO, Scope, Task, ZIO}
+import zio.Task
 import zio.interop.catz.*
 
 final class ScalacacheCache[K, V](cache: scalacache.Cache[Task, K, V]) extends Cache[Task, K, V] :

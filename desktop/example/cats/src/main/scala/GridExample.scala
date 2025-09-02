@@ -18,7 +18,6 @@ import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
-import scalacache.caffeine.CaffeineCache
 
 object GridExample extends IOApp:
   given ffi : ForeignFunctionInterface[IO] = SyncForeignFunctionInterface[IO]
@@ -28,7 +27,7 @@ object GridExample extends IOApp:
   def preInit(backend : gui4s.desktop.kit.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
     for
       shaper <- backend.skija.createShaper
-      cache : TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_))
+      cache : TextCache[IO] <- ScalacacheCache()
     yield PreInit(shaper, cache)
   end preInit
 

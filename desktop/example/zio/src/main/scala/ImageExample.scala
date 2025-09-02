@@ -23,21 +23,19 @@ import scala.concurrent.ExecutionContext
 object ImageExample extends Gui4sZioApp:
   given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface()
 
-  type PreInit = ImagePreInit
-
-  final case class ImagePreInit(
-                                  shaper: Shaper,
-                                  globalTextCache: TextCache[Task],
-                                  raiseEvent: DownEvent => Task[Unit],
-                                  supervisor : cats.effect.std.Supervisor[Task]
-                                )
+  final case class PreInit(
+                            shaper: Shaper,
+                            globalTextCache: TextCache[Task],
+                            raiseEvent: DownEvent => Task[Unit],
+                            supervisor : cats.effect.std.Supervisor[Task]
+                          )
 
   override def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =
     for
       shaper <- Draw.makeShaper
       cache: TextCache[Task] <- ScalacacheCache()
       supervisor <- CatsSupervisor
-    yield ImagePreInit(shaper, cache, backend.raiseEvent, supervisor)
+    yield PreInit(shaper, cache, backend.raiseEvent, supervisor)
   end preInit
 
   override val settings: WindowCreationSettings[Float] = WindowCreationSettings(

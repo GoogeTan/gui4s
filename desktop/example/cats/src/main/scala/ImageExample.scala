@@ -7,7 +7,6 @@ import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.core.layout.Sized
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, Shapes}
@@ -20,7 +19,6 @@ import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import org.http4s.Uri
 import org.http4s.ember.client.*
-import scalacache.caffeine.CaffeineCache
 
 import scala.reflect.Typeable
 
@@ -40,7 +38,7 @@ object ImageExample extends IOApp:
       dispatcher <- Dispatcher.sequential[IO]
       supervisor <- Supervisor[IO]
       shaper <- backend.skija.createShaper
-      cache: TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_))
+      cache: TextCache[IO] <- ScalacacheCache()
     yield PreInit(dispatcher, supervisor, shaper, cache, backend.raiseEvent)
   end preInit
 

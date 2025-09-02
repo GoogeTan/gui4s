@@ -18,9 +18,6 @@ import io.github.humbleui.skija.shaper.Shaper
 import zio.*
 import zio.interop.catz.*
 
-import java.util.concurrent.Executors
-import scala.concurrent.ExecutionContext
-
 object GridExample extends Gui4sZioApp:
   given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface()
 
