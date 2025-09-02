@@ -28,10 +28,10 @@ end exitCaseToZioExit
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 def resourceToScoped[A](res: Resource[Task, A]): ZIO[Scope, Throwable, A] =
-  for {
+  for
     (a, release) <- res.allocated
     _ <- ZIO.addFinalizer(release.orDie)
-  } yield a
+  yield a
 end resourceToScoped
 
 extension (ec: CatsExitCode)
