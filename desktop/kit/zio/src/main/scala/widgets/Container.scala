@@ -20,9 +20,9 @@ def container[
 ](
   updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => Update[Event, Container[B]]) => Update[Event, Container[B]]
 ) : ContainerWidget[DesktopPlacedWidget[Event], Container, Place, Point3d[Float]] =
-  gui4s.desktop.kit.widgets.container(updateListOrdered)
+  gui4s.desktop.kit.common.widgets.container(updateListOrdered)
 end container
 
 def linearContainer[Event] : LinearContainer[DesktopWidget[Event], OuterPlace, List, InfinityOr[Float], Float, Axis] =
-  gui4s.desktop.kit.widgets.linearContainer[Task, Event]
+  gui4s.desktop.kit.common.widgets.linearContainer[Task, Event]
 end linearContainer

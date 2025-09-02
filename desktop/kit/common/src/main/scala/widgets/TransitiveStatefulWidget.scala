@@ -1,8 +1,8 @@
 package gui4s.desktop.kit
-package widgets
+package common.widgets
 
-import effects.*
-import effects.Update.given
+import common.effects.*
+import common.effects.Update.given 
 
 import cats.MonadThrow
 import gui4s.desktop.widget.library.{TransitiveStatefulWidget, TransitiveStatefulWidgetFromStatefulWidget}

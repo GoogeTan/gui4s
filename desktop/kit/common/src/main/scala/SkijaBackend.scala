@@ -1,9 +1,10 @@
 package gui4s.desktop.kit
+package common
 
 import catnip.ForeignFunctionInterface
 import catnip.syntax.all.given
 import cats.effect.*
-import cats.effect.std.{AtomicCell, Console, Dispatcher, QueueSink}
+import cats.effect.std.{AtomicCell, Dispatcher, QueueSink}
 import cats.syntax.all.*
 import cats.{Apply, Functor, Monad, Monoid}
 import gui4s.core.geometry.{Point2d, Rect}

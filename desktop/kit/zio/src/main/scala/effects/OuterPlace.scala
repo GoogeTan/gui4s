@@ -4,7 +4,7 @@ package effects
 import catnip.{Get, Set}
 import cats.*
 import cats.data.EitherT
-import gui4s.desktop.kit.effects.OuterPlace as GenericOuterPlace
+import gui4s.desktop.kit.common.effects.OuterPlace as GenericOuterPlace
 import zio.*
 import zio.interop.catz.*
 

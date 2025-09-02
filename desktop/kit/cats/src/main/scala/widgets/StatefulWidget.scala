@@ -6,5 +6,5 @@ import cats.effect.IO
 import gui4s.desktop.widget.library.StatefulWidget
 
 def statefulWidget : StatefulWidget[DesktopWidget, Update, [State] =>> State => RecompositionReaction] =
-  gui4s.desktop.kit.widgets.statefulWidget[IO]
+  gui4s.desktop.kit.common.widgets.statefulWidget[IO]
 end statefulWidget

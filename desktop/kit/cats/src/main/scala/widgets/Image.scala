@@ -10,5 +10,5 @@ def image[
 ](
   image: Image,
 ): DesktopWidget[Event] =
-  gui4s.desktop.kit.widgets.image(image)
+  gui4s.desktop.kit.common.widgets.image(image)
 end image

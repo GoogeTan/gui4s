@@ -1,12 +1,11 @@
 package gui4s.desktop.kit
-package widgets.decorator
-
-import effects.*
-import widgets.*
+package common.widgets.decorator
 
 import cats.*
 import cats.effect.std.Supervisor
 import cats.syntax.all.*
+import gui4s.desktop.kit.common.widgets.{DesktopPlacedWidget, DesktopWidget}
+import gui4s.desktop.kit.common.effects.*
 import gui4s.desktop.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
 
 import scala.reflect.Typeable

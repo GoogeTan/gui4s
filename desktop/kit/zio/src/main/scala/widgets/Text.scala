@@ -3,7 +3,7 @@ package widgets
 
 import effects.{*, given}
 
-import gui4s.desktop.kit.widgets.TextWidget
+import gui4s.desktop.kit.common.widgets.{TextWidget, text}
 import io.github.humbleui.skija.shaper.Shaper
 import zio.*
 import zio.interop.catz.*
@@ -12,6 +12,6 @@ def text[Event](
   shaper : Shaper,
   textCache : TextCache[Task],
 ) : TextWidget[Task, Event] =
-  gui4s.desktop.kit.widgets.text(shaper, textCache)
+  gui4s.desktop.kit.common.widgets.text(shaper, textCache)
 end text
 

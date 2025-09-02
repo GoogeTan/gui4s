@@ -8,7 +8,7 @@ import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
-import gui4s.desktop.kit.*
+import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.OuterPlace.given
 import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, OuterPlace}
@@ -24,7 +24,7 @@ object GridExample extends IOApp:
 
   final case class PreInit(shaper : Shaper, globalTextCache : TextCache[IO])
 
-  def preInit(backend : gui4s.desktop.kit.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
+  def preInit(backend : gui4s.desktop.kit.common.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
     for
       shaper <- backend.skija.createShaper
       cache : TextCache[IO] <- ScalacacheCache()

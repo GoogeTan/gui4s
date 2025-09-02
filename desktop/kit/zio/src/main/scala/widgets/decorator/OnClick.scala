@@ -12,5 +12,5 @@ import zio.*
 import zio.interop.catz.*
 
 def clickCatcher[Event](mousePosition : Task[Point2d[Float]], eventOnClick : Event) : Decorator[DesktopWidget[Event]] =
-  gui4s.desktop.kit.widgets.decorator.clickCatcher(mousePosition, eventOnClick)
+  gui4s.desktop.kit.common.widgets.decorator.clickCatcher(mousePosition, eventOnClick)
 end clickCatcher

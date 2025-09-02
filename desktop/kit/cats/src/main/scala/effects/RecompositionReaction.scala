@@ -6,7 +6,7 @@ import cats.*
 import cats.syntax.all.* 
 import cats.effect.IO
 
-type RecompositionReaction = gui4s.desktop.kit.effects.RecompositionReaction[IO]
+type RecompositionReaction = gui4s.desktop.kit.common.effects.RecompositionReaction[IO]
 
 object RecompositionReaction:
   def empty : RecompositionReaction = ().pure[IO]

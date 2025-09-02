@@ -7,7 +7,7 @@ import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.desktop.kit.*
+import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, Shapes}
 import gui4s.desktop.kit.cats.widgets.*
@@ -33,7 +33,7 @@ object ImageExample extends IOApp:
                             raiseEvent : DownEvent => IO[Unit]
                           )
 
-  def preInit(backend: gui4s.desktop.kit.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]): Resource[IO, PreInit] =
+  def preInit(backend: gui4s.desktop.kit.common.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]): Resource[IO, PreInit] =
     for
       dispatcher <- Dispatcher.sequential[IO]
       supervisor <- Supervisor[IO]

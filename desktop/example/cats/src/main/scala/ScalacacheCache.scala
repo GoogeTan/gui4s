@@ -1,7 +1,6 @@
 package gui4s.desktop.example.cats
 
 import catnip.Cache
-import cats.effect.kernel.Resource
 import cats.effect.{IO, Resource}
 import scalacache.caffeine.CaffeineCache
 

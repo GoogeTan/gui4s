@@ -5,7 +5,7 @@ import catnip.ForeignFunctionInterface
 import catnip.syntax.all.given
 import cats.*
 import cats.effect.IO
-import gui4s.desktop.kit.effects.Draw as GenericDraw
+import gui4s.desktop.kit.common.effects.Draw as GenericDraw
 import gui4s.desktop.skija
 import gui4s.desktop.skija.SkijaDraw
 import io.github.humbleui.skija.*

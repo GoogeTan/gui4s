@@ -1,17 +1,15 @@
 package gui4s.desktop.kit
-package widgets
+package common.widgets
 
-import effects.*
-import effects.Update.given
-import widgets.*
-import widgets.decorator.*
+import common.effects.*
+import common.effects.Update.given
 
 import cats.*
-import cats.syntax.all.*
 import cats.effect.std.Supervisor
-import gui4s.desktop.widget.library.{resourceWidget as genericResourceWidget, ResourceWidget}
-import gui4s.desktop.widget.library.WithContext
+import cats.syntax.all.*
 import gui4s.core.widget.Path
+import gui4s.desktop.kit.common.widgets.decorator.launchedEvent
+import gui4s.desktop.widget.library.{ResourceWidget, WithContext, resourceWidget as genericResourceWidget}
 
 import scala.reflect.Typeable
 

@@ -15,5 +15,5 @@ def updateDecorator[Event]: UpdateDecorator[
   OuterPlace,
   InnerPlace[DesktopPlacedWidget[Event]],
   DownEvent
-] = gui4s.desktop.kit.widgets.decorator.updateDecorator[IO, Event]
+] = gui4s.desktop.kit.common.widgets.decorator.updateDecorator[IO, Event]
 

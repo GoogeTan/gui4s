@@ -1,11 +1,9 @@
 package gui4s.desktop.example.zio
 
-import catnip.ForeignFunctionInterface
 import catnip.syntax.all.given
-import catnip.zio.ZioForeignFunctionInterface
 import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.desktop.kit.SkijaBackend
+import gui4s.desktop.kit.common.SkijaBackend
 import gui4s.desktop.kit.zio.*
 import gui4s.desktop.kit.zio.effects.{*, given}
 import gui4s.desktop.kit.zio.widgets.*
@@ -17,12 +15,7 @@ import io.github.humbleui.skija.shaper.Shaper
 import zio.*
 import zio.interop.catz.*
 
-import java.util.concurrent.Executors
-import scala.concurrent.ExecutionContext
-
 object ClickabeExample extends Gui4sZioApp:
-  given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface()
-
   final case class PreInit(shaper: Shaper, globalTextCache: TextCache[Task], mousePosition: Task[Point2d[Float]])
 
   override def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =

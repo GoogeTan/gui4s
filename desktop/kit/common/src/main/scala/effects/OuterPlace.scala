@@ -1,10 +1,9 @@
 package gui4s.desktop.kit
-package effects
+package common.effects
 
 import catnip.{Get, Set}
-import cats.data.EitherT
-import cats.effect.IO
 import cats.*
+import cats.data.EitherT
 import gui4s.core.kit.effects.OuterPlace as GenericOuterPlace
 
 type OuterPlace[IO[_], T] = GenericOuterPlace[IO, Bounds, Throwable, T]

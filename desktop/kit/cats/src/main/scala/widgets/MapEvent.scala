@@ -10,7 +10,7 @@ import cats.effect.IO
 import gui4s.desktop.widget.library.decorator.{MapEvent, mapUpdate as genericMapUpdate}
 
 def mapEventWidget : MapEvent[DesktopWidget] =
-  gui4s.desktop.kit.widgets.mapEventWidget[IO]
+  gui4s.desktop.kit.common.widgets.mapEventWidget[IO]
 end mapEventWidget
 
 extension[IO[_] : Monad, Event](value : DesktopWidget[Event])

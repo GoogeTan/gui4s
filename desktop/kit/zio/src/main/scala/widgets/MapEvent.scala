@@ -11,7 +11,7 @@ import zio.*
 import zio.interop.catz.*
 
 def mapEventWidget : MapEvent[DesktopWidget] =
-  gui4s.desktop.kit.widgets.mapEventWidget[Task]
+  gui4s.desktop.kit.common.widgets.mapEventWidget[Task]
 end mapEventWidget
 
 

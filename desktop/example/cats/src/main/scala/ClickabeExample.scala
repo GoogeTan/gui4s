@@ -7,7 +7,7 @@ import cats.*
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.desktop.kit.*
+import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, UpdateC}
 import gui4s.desktop.kit.cats.widgets.*
@@ -22,7 +22,7 @@ object ClickabeExample extends IOApp:
 
   final case class PreInit(shaper : Shaper, globalTextCache : TextCache[IO], mousePosition : IO[Point2d[Float]])
 
-  def preInit(backend : gui4s.desktop.kit.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
+  def preInit(backend : gui4s.desktop.kit.common.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
     for
       shaper <- backend.skija.createShaper
       cache : TextCache[IO] <- ScalacacheCache()

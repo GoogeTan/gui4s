@@ -7,7 +7,7 @@ import cats.*
 import cats.syntax.all.*
 import catnip.syntax.applicative.given 
 
-type RecompositionReaction = gui4s.desktop.kit.effects.RecompositionReaction[Task]
+type RecompositionReaction = gui4s.desktop.kit.common.effects.RecompositionReaction[Task]
 
 object RecompositionReaction:
   def empty : RecompositionReaction = ().pure[Task]

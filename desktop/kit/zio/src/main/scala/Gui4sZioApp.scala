@@ -4,8 +4,8 @@ import effects.given
 import widgets.DesktopWidget
 
 import catnip.zio.{toZIO, zioScopedToResource}
-import gui4s.desktop.kit.SkijaBackend
-import gui4s.desktop.kit.effects.{ApplicationRequest, DownEvent}
+import gui4s.desktop.kit.common.SkijaBackend
+import gui4s.desktop.kit.common.effects.{ApplicationRequest, DownEvent}
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import zio.*
 import zio.interop.catz.*
@@ -21,7 +21,7 @@ trait Gui4sZioApp extends MainThreadApp:
   def preInit(backend : SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]) : RIO[Scope, PreInit]
   
   override def run(args: List[String]): ZIO[Any, Throwable, ExitCode] =
-    gui4s.desktop.kit.desktopApp[Task, PreInit](
+    gui4s.desktop.kit.common.desktopApp[Task, PreInit](
       preInit.andThen(zioScopedToResource),
       main,
       MainThreadApp.mainThread,

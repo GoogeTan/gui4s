@@ -6,7 +6,7 @@ import cats.MonadThrow
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
-import gui4s.desktop.kit.SkijaBackend
+import gui4s.desktop.kit.common.SkijaBackend
 import gui4s.desktop.kit.generic.ContainerPlacementError
 import gui4s.desktop.kit.zio.*
 import gui4s.desktop.kit.zio.effects.{*, given}
@@ -19,8 +19,6 @@ import zio.*
 import zio.interop.catz.*
 
 object GridExample extends Gui4sZioApp:
-  given ffi: ForeignFunctionInterface[Task] = new ZioForeignFunctionInterface()
-
   final case class PreInit(shaper: Shaper, globalTextCache: TextCache[Task])
 
   override def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =

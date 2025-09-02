@@ -8,5 +8,5 @@ import zio.*
 import zio.interop.catz.*
 
 def transitiveStatefulWidget: TransitiveStatefulWidget[DesktopWidget, Update] =
-  gui4s.desktop.kit.widgets.transitiveStatefulWidget[Task]
+  gui4s.desktop.kit.common.widgets.transitiveStatefulWidget[Task]
 end transitiveStatefulWidget 

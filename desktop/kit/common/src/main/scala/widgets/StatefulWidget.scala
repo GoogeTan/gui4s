@@ -1,20 +1,18 @@
 package gui4s.desktop.kit
-package widgets
+package common.widgets
 
-import effects.*
-import effects.Update.given
-import effects.Place.given
+import common.effects.*
+import common.effects.Place.given 
 
-import gui4s.core.widget.handle.HandlesEventF
-import gui4s.desktop.widget.library.*
-import gui4s.desktop.widget.library
+import catnip.syntax.all.given
 import cats.*
 import cats.data.*
-import gui4s.core.widget.Path
 import gui4s.core.layout.Sized.given
-import gui4s.core.widget.StatefulState
-import gui4s.core.widget.given
-import catnip.syntax.all.given
+import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.{Path, StatefulState, given}
+import gui4s.desktop.widget.library
+import gui4s.desktop.widget.library.*
+
 import scala.reflect.Typeable
 
 def statefulWidget[IO[_] : MonadThrow] : StatefulWidget[DesktopWidget[IO, *], Update[IO, *, *], [State] =>> State => RecompositionReaction[IO]] =

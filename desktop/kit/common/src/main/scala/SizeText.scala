@@ -1,4 +1,5 @@
 package gui4s.desktop.kit
+package common
 
 import catnip.syntax.all.*
 import catnip.{Cache, ForeignFunctionInterface}

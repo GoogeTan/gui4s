@@ -1,24 +1,20 @@
 package gui4s.desktop.kit
+package common
 
-import widgets.DesktopWidget
+import common.effects.*
+import common.effects.Place.given
+import common.widgets.DesktopWidget
 
 import catnip.ForeignFunctionInterface
 import catnip.syntax.all.given
-import catnip.syntax.functionk.{eitherTMapError, runEitherT}
+import catnip.syntax.functionk.runEitherT
 import cats.*
 import cats.data.EitherT
-import cats.effect.{ExitCode, Resource}
+import cats.effect.{Async, ExitCode, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.InfinityOr
-import effects.*
-import effects.Place.given 
-
-import gui4s.desktop.kit.*
-
 import gui4s.desktop.skija.clear
 import gui4s.glfw.*
-import cats.effect.Async
-import cats.effect.std.Console
 
 import scala.concurrent.ExecutionContext
 

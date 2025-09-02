@@ -1,11 +1,9 @@
 package gui4s.desktop.kit
-package widgets.decorator
+package common.widgets.decorator
 
-import effects.*
-import effects.Update.given
-import effects.OuterPlace.given
 import cats.*
-import widgets.*
+import gui4s.desktop.kit.common.widgets.DesktopPlacedWidget
+import gui4s.desktop.kit.common.effects.*
 import gui4s.desktop.widget.library.decorator.*
 
 def updateDecorator[IO[_] : Monad, Event]: UpdateDecorator[

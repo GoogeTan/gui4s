@@ -1,23 +1,18 @@
 package gui4s.desktop.kit
-package widgets
+package common.widgets
 
-import effects.*
-import effects.Update.given
-import effects.OuterPlace.given
-import effects.Place.given
-import effects.Draw.given
+import common.effects.*
+import common.effects.Place.given 
 
-import catnip.effect.SyncForeignFunctionInterface
+import catnip.ForeignFunctionInterface
+import catnip.syntax.applicative.given
 import catnip.syntax.list.orderedListProcessing
 import catnip.syntax.zip.given
-import catnip.syntax.applicative.given
-import catnip.ForeignFunctionInterface
 import cats.*
 import cats.data.*
-import cats.syntax.all.*
 import gui4s.core.geometry.{Axis, InfinityOr, Point3d}
-import gui4s.desktop.widget.library.{ContainerWidget, LinearContainer, container as genericContainer, linearContainer as genericLinearContainer}
 import gui4s.desktop.skija.drawAt
+import gui4s.desktop.widget.library.{ContainerWidget, LinearContainer, container as genericContainer, linearContainer as genericLinearContainer}
 
 def container[
   IO[_] : {Monad, ForeignFunctionInterface as ffi},

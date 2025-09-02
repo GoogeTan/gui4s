@@ -12,8 +12,8 @@ import cats.kernel.Monoid
 import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
 import gui4s.core.kit.effects.UpdateState
-import gui4s.desktop.kit.effects as generic_effects
-import gui4s.desktop.kit.effects.ApplicationRequest
+import gui4s.desktop.kit.common.effects as generic_effects
+import gui4s.desktop.kit.common.effects.ApplicationRequest
 
 type Update[Event, A] = generic_effects.Update[IO, Event, A]
 type UpdateC[Event] = Update[Event, *]

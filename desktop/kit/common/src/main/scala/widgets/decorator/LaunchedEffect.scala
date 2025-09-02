@@ -1,17 +1,15 @@
 package gui4s.desktop.kit
-package widgets.decorator
+package common.widgets.decorator
 
-import effects.*
-import effects.Place.given
-import effects.Update.given
-import effects.RecompositionReaction.given
+import common.effects.*
+import common.effects.Place.given
+import common.effects.RecompositionReaction.given
+import common.widgets.DesktopWidget
+
 import cats.*
-import widgets.*
-
-import gui4s.core.widget.Path
 import cats.effect.std.Supervisor
-import gui4s.desktop.widget.library.*
-import gui4s.desktop.widget.library.launchedEffect as genericLaunchedEffect
+import gui4s.core.widget.Path
+import gui4s.desktop.widget.library.{launchedEffect as genericLaunchedEffect, *}
 
 import scala.reflect.Typeable
 

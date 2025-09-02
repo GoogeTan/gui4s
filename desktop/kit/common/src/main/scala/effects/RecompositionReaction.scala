@@ -1,5 +1,5 @@
 package gui4s.desktop.kit
-package effects
+package common.effects
 
 type RecompositionReaction[IO[_]] = gui4s.core.kit.effects.RecompositionReaction[IO]
 

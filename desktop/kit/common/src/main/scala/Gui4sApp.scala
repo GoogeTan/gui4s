@@ -1,8 +1,8 @@
 package gui4s.desktop.kit
+package common
 
 import catnip.syntax.all.given
 import cats.arrow.FunctionK
-import cats.data.*
 import cats.effect.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.QueueSink

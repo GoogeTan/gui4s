@@ -1,13 +1,13 @@
 package gui4s.desktop.kit
-package widgets.decorator
+package common.widgets.decorator
 
-import effects.*
-import effects.Place.given
-import effects.Update.given
-import widgets.*
-import gui4s.desktop.widget.library.*
-import gui4s.desktop.widget.library.decorator.{eventCatcherWithRect, EventCatcherWithRect}
+import common.effects.*
+import common.effects.Place.given
+import common.widgets.DesktopPlacedWidget
+
 import cats.Monad
+import gui4s.desktop.widget.library.*
+import gui4s.desktop.widget.library.decorator.{EventCatcherWithRect, eventCatcherWithRect}
 
 def eventCatcher[IO[_] : Monad, Event]: EventCatcherWithRect[
   OuterPlace[IO, InnerPlace[DesktopPlacedWidget[IO, Event]]],

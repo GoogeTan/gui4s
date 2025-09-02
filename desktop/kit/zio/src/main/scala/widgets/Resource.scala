@@ -5,6 +5,7 @@ import effects.*
 
 import cats.*
 import cats.effect.std.Supervisor
+import gui4s.desktop.kit.common.widgets.{initWidget, resource, resourceInit}
 import gui4s.desktop.widget.library.{ResourceWidget, WithContext}
 import zio.*
 import zio.interop.catz.*
@@ -15,7 +16,7 @@ def resource[Event](
                       supervisor : Supervisor[Task],
                       raiseExternalEvent : DownEvent => Task[Unit]
                     ) : ResourceWidget[DesktopWidget[Event], Task] =
-  gui4s.desktop.kit.widgets.resource[Task, Event](supervisor, raiseExternalEvent)
+  gui4s.desktop.kit.common.widgets.resource[Task, Event](supervisor, raiseExternalEvent)
 end resource
 
 def resourceInit[Event, Value : Typeable](
@@ -25,7 +26,7 @@ def resourceInit[Event, Value : Typeable](
   name : String,
   init : Task[Value]
 ) : WithContext[DesktopWidget[Event], Option[Value]] =
-  gui4s.desktop.kit.widgets.resourceInit[Task, Event, Value](supervisor, raiseExternalEvent)(name, init)
+  gui4s.desktop.kit.common.widgets.resourceInit[Task, Event, Value](supervisor, raiseExternalEvent)(name, init)
 end resourceInit
 
 def initWidget[
@@ -40,5 +41,5 @@ def initWidget[
     imageWidget : Value => DesktopWidget[Event],
     placeholder : DesktopWidget[Event],
   ) : DesktopWidget[Event] =
-  gui4s.desktop.kit.widgets.initWidget(supervisor, raiseExternalEvent)(name, imageSource, imageWidget, placeholder)
+  gui4s.desktop.kit.common.widgets.initWidget(supervisor, raiseExternalEvent)(name, imageSource, imageWidget, placeholder)
 end initWidget

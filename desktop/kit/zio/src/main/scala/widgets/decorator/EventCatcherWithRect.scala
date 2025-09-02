@@ -17,4 +17,4 @@ def eventCatcher[Event]: EventCatcherWithRect[
   Update[Event, Boolean],
   InnerPlace[DesktopPlacedWidget[Event]],
   DownEvent
-] =  gui4s.desktop.kit.widgets.decorator.eventCatcher[Task, Event]
+] =  gui4s.desktop.kit.common.widgets.decorator.eventCatcher[Task, Event]

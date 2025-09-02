@@ -1,18 +1,15 @@
 package gui4s.desktop.kit
-package effects
+package common.effects
 
-import gui4s.core.geometry.Point3d
-import gui4s.core.kit.{EventsTransformer, effects as generic_effects}
-import gui4s.core.kit.effects.UpdateState
-import cats.effect.{ExitCode, IO}
+import catnip.BiMonad
 import cats.*
 import cats.data.EitherT
-import cats.syntax.all.*
-import catnip.BiMonad
-import catnip.syntax.transformer.{*, given}
-import catnip.syntax.transformer.monadErrorInstanceForTransformer
-import catnip.transformer.{ErrorTransformer, MonadTransformer, StateTransformer}
+import cats.effect.{ExitCode, IO}
 import cats.kernel.Monoid
+import cats.syntax.all.*
+import gui4s.core.geometry.Point3d
+import gui4s.core.kit.effects.UpdateState
+import gui4s.core.kit.{EventsTransformer, effects as generic_effects}
 
 type Update[IO[_], Event, A] = generic_effects.Update[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable, A]
 type UpdateC[IO[_], Event] = Update[IO, Event, *]

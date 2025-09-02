@@ -113,7 +113,7 @@ lazy val commonDevKit = (project in file("core/kit"))
   .dependsOn(widget, layout, loops, catnip)
 
 lazy val desktopCommonDevKit = (project in file("desktop/kit/common"))
-  .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit"))
+  .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit.common"))
   .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
   .dependsOn(widget, draw, layout, loops, glfw, catnip, desktopWidgetLibrary, commonDevKit)
 
@@ -131,15 +131,16 @@ lazy val desktopZioDevKit = (project in file("desktop/kit/zio"))
   ).dependsOn(desktopCommonDevKit, catnipZio)
 
 lazy val desktopCatsExample = (project in file("desktop/example/cats"))
+  .settings(commonSettings("desktop-example-cats", s"$packagePrefix.desktop.example.cats"))
   .settings(
-    (libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
+    libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
       "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
       "co.fs2" %% "fs2-core" % "3.12.0",
       "co.fs2" %% "fs2-io" % "3.12.0",
       "org.http4s" %% "http4s-ember-client" % "0.23.30",
       "org.http4s" %% "http4s-core" % "0.23.30"
-    )) :: commonSettings("desktop-example-cats", s"$packagePrefix.desktop.example.cats"),
+    )
   ).dependsOn(desktopCatsDevKit)
 
 
@@ -150,14 +151,15 @@ desktopCatsExample/run/javaOptions ++= Seq("-XstartOnFirstThread")
 
 
 lazy val desktopZioExample = (project in file("desktop/example/zio"))
+  .settings(commonSettings("desktop-example-zio", s"$packagePrefix.desktop.example.zio"))
   .settings(
-    (libraryDependencies ++= catsLibs ++ zioLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
+    libraryDependencies ++= catsLibs ++ zioLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
       "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
       "co.fs2" %% "fs2-core" % "3.12.0",
       "co.fs2" %% "fs2-io" % "3.12.0",
       "dev.zio" %% "zio-http" % "3.4.0"
-    )) :: commonSettings("desktop-example-zio", s"$packagePrefix.desktop.example.zio"),
+    )
   )
   .dependsOn(widget, draw, layout, loops)
   .dependsOn(catnip, catnipZio, glfw, desktopWidgetLibrary, desktopZioDevKit)

@@ -1,12 +1,12 @@
 package gui4s.desktop.kit
-package effects
+package common.effects
 
 import catnip.ForeignFunctionInterface
 import cats.Monad
 import cats.kernel.Monoid
-import io.github.humbleui.skija.{Path, PathFillMode, PathOp}
 import gui4s.core.geometry.Point3d
 import gui4s.desktop.skija.{SkijaDraw, clipToPath}
+import io.github.humbleui.skija.{Path, PathFillMode, PathOp}
 
 type Clip = Path
 

@@ -1,5 +1,5 @@
 package gui4s.desktop.kit
-package effects
+package common.effects
 
 import gui4s.core.geometry.{InfinityOr, Rect}
 

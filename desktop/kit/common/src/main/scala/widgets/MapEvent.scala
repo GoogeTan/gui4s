@@ -1,9 +1,8 @@
 package gui4s.desktop.kit
-package widgets
+package common.widgets
 
-import effects.*
-import effects.Place.given
-import effects.Update.given
+import common.effects.*
+import common.effects.Place.given
 
 import cats.Monad
 import gui4s.desktop.widget.library.decorator.{MapEvent, mapUpdate as genericMapUpdate}

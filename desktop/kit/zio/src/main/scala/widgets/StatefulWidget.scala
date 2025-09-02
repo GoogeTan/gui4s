@@ -8,5 +8,5 @@ import zio.*
 import zio.interop.catz.*
 
 def statefulWidget : StatefulWidget[DesktopWidget, Update, [State] =>> State => RecompositionReaction] =
-  gui4s.desktop.kit.widgets.statefulWidget[Task]
+  gui4s.desktop.kit.common.widgets.statefulWidget[Task]
 end statefulWidget

@@ -1,14 +1,14 @@
 package gui4s.desktop.kit
-package widgets
+package common.widgets
 
-import effects.*
-import effects.Place.given
-import effects.Update.given
+import common.effects.*
+import common.*
+import common.effects.Place.given
 
 import catnip.ForeignFunctionInterface
 import cats.*
-import gui4s.desktop.widget.library.text as genericText
 import gui4s.desktop.skija.*
+import gui4s.desktop.widget.library.text as genericText
 import io.github.humbleui.skija.shaper.Shaper
 
 type TextWidget[IO[_], Event] =(

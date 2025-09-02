@@ -6,8 +6,6 @@ import cats.kernel.Monoid
 import cats.syntax.all.*
 import cats.{Applicative, ApplicativeError, Functor}
 
-import scala.Tuple.:*
-
 object applicative:
   type ApplicativeErrorT[T] = [F[_]] =>> ApplicativeError[F, T]
   

@@ -10,7 +10,7 @@ import gui4s.core.geometry.Rect
 import zio.*
 import zio.interop.catz.*
 
-import gui4s.desktop.kit.widgets.decorator.clip as genericClip
+import gui4s.desktop.kit.common.widgets.decorator.clip as genericClip
 
 extension[Event](value : DesktopWidget[Event])
   def clip(path : Rect[Float] => Clip) : DesktopWidget[Event] =

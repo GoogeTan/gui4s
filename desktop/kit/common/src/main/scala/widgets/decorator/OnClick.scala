@@ -1,13 +1,11 @@
 package gui4s.desktop.kit
-package widgets.decorator
-
-import effects.*
-import effects.Update.given
-import widgets.DesktopWidget
+package common.widgets.decorator
 
 import cats.Monad
 import cats.syntax.all.*
 import gui4s.core.geometry.{Point2d, RectAtPoint2d}
+import gui4s.desktop.kit.common.widgets.DesktopWidget
+import gui4s.desktop.kit.common.effects.*
 import gui4s.desktop.widget.library.*
 import gui4s.desktop.widget.library.decorator.{Decorator, clickCatcher as genericClickCatcher}
 

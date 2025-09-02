@@ -7,7 +7,7 @@ import cats.*
 import gui4s.desktop.skija
 import gui4s.desktop.skija.SkijaDraw
 import io.github.humbleui.skija.*
-import gui4s.desktop.kit.effects.Draw as GenericDraw
+import gui4s.desktop.kit.common.effects.Draw as GenericDraw
 import io.github.humbleui.skija.shaper.Shaper
 import zio.*
 import zio.interop.catz.*

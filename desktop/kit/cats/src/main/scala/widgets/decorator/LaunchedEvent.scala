@@ -20,5 +20,5 @@ def launchedEvent[
   raiseExternalEvent : DownEvent => IO[Unit],
   eventFromAny : Any => Option[Event]
 ) : LaunchedEffectWidget[DesktopWidget[Event], Key, IO[Event]] =
-  gui4s.desktop.kit.widgets.decorator.launchedEvent(supervisor, raiseExternalEvent, eventFromAny)
+  gui4s.desktop.kit.common.widgets.decorator.launchedEvent(supervisor, raiseExternalEvent, eventFromAny)
 end launchedEvent

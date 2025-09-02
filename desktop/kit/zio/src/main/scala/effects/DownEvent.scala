@@ -10,19 +10,19 @@ import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
 import zio.*
 import zio.interop.catz.*
 
-type DownEvent = gui4s.desktop.kit.effects.DownEvent
+type DownEvent = gui4s.desktop.kit.common.effects.DownEvent
 
 object DownEvent:
   def eventOfferingCallbacks(offerEvent: DownEvent => Task[Unit]) : GlfwCallbacks[Task[Unit], Float] =
-    gui4s.desktop.kit.effects.DownEvent.eventOfferingCallbacks(offerEvent)
+    gui4s.desktop.kit.common.effects.DownEvent.eventOfferingCallbacks(offerEvent)
   end eventOfferingCallbacks
 
   def extractMouseClickEvent(downEvent : DownEvent) : Option[Unit] =
-    gui4s.desktop.kit.effects.DownEvent.extractMouseClickEvent(downEvent)
+    gui4s.desktop.kit.common.effects.DownEvent.extractMouseClickEvent(downEvent)
   end extractMouseClickEvent
   
   def catchExternalEvent(expectedPath : Path, event : DownEvent) : Option[Any] =
-    gui4s.desktop.kit.effects.DownEvent.catchExternalEvent(expectedPath, event)
+    gui4s.desktop.kit.common.effects.DownEvent.catchExternalEvent(expectedPath, event)
   end catchExternalEvent
 end DownEvent
 

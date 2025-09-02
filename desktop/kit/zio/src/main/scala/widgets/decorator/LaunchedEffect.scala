@@ -14,5 +14,5 @@ import zio.interop.catz.*
 import scala.reflect.Typeable
 
 def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[Task]) : LaunchedEffectWidget[DesktopWidget[Event], Key, Path => Task[Unit]] =
-  gui4s.desktop.kit.widgets.decorator.launchedEffect(supervisor)
+  gui4s.desktop.kit.common.widgets.decorator.launchedEffect(supervisor)
 end launchedEffect

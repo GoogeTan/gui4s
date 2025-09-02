@@ -1,13 +1,12 @@
 package gui4s.desktop.kit
-package effects
+package common.effects
 
+import cats.syntax.all.*
 import gui4s.core.geometry.Point2d
-import gui4s.glfw.KeyAction.Press
-import gui4s.glfw.KeyAction.given
-import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
-import cats.syntax.all.*
+import gui4s.glfw.KeyAction.{Press, given}
+import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum DownEvent:

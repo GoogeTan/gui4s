@@ -5,8 +5,8 @@ import cats.data.EitherT
 import cats.effect.IO
 import cats.{Functor, ~>}
 import gui4s.core.widget.Path
-import gui4s.desktop.kit.*
-import gui4s.desktop.kit.effects.Place as GenericPlace
+import gui4s.desktop.kit.common.*
+import gui4s.desktop.kit.common.effects.Place as GenericPlace
 import io.github.humbleui.skija.shaper.Shaper
 
 import scala.reflect.Typeable
