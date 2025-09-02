@@ -1,4 +1,4 @@
-package gui4s.decktop.widget.library
+package gui4s.desktop.widget.library
 package decorator
 
 // TODO Это по смыслу буквально то же самое, что и AxisBounds. Можно попытаться унифицировать.

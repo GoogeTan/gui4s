@@ -2,24 +2,31 @@ package gui4s.desktop.kit
 package widgets.decorator
 
 import effects.*
-import effects.Place.given
-import effects.Update.given
 import widgets.*
 
-import cats.effect.IO
+import cats.*
 import cats.effect.std.Supervisor
-import gui4s.decktop.widget.library.{launchedEvent as genericLaunchedEvent, LaunchedEffectWidget}
-import gui4s.core.widget.Path
-import scala.reflect.Typeable
-import cats.syntax.all.* 
+import cats.syntax.all.*
+import gui4s.desktop.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
 
-def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[IO], raiseExternalEvent : DownEvent => IO[Unit]) : LaunchedEffectWidget[DesktopWidget[Event], Key, IO[Event]] =
+import scala.reflect.Typeable
+
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
+def launchedEvent[
+  IO[_] : MonadThrow,
+  Event,
+  Key : Typeable
+](
+  supervisor: Supervisor[IO],
+  raiseExternalEvent : DownEvent => IO[Unit],
+  eventFromAny : Any => Option[Event]
+) : LaunchedEffectWidget[DesktopWidget[IO, Event], Key, IO[Event]] =
   genericLaunchedEvent[
     IO,
-    DesktopWidget[Event],
+    DesktopWidget[IO, Event],
     Key,
-    Update,
-    InnerPlace[DesktopPlacedWidget[Event]],
+    Update[IO, *, *],
+    InnerPlace[DesktopPlacedWidget[IO, Event]],
     DownEvent,
     Event
   ](
@@ -29,10 +36,12 @@ def launchedEvent[Event : Typeable, Key : Typeable](supervisor: Supervisor[IO], 
     catchEvent = (path, event) =>
       DownEvent.catchExternalEvent(path, event) match
         case None =>
-          false.pure[UpdateC[Event]]
-        case Some[Any](event : Event) =>
-          Update.emitEvents(List(event)).as(true)
+          false.pure[UpdateC[IO, Event]]
         case Some[Any](valueFound : Any) =>
-          Update.raiseError("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString)
+          eventFromAny(valueFound) match
+            case Some(event) =>
+              Update.emitEvents(List(event)).as(true)
+            case None =>
+              Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
   )
 end launchedEvent

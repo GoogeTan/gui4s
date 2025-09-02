@@ -1,7 +1,6 @@
 package gui4s.core.geometry
 
 import cats.*
-import cats.data.*
 import cats.syntax.all.*
 import scala.math.Numeric.Implicits.*
 

@@ -4,14 +4,15 @@ package widgets.decorator
 import effects.*
 import effects.Update.given
 import effects.OuterPlace.given
+import cats.*
 import widgets.*
-import gui4s.decktop.widget.library.decorator.*
+import gui4s.desktop.widget.library.decorator.*
 
-def updateDecorator[Event]: UpdateDecorator[
-  UpdateC[Event],
-  OuterPlace,
-  InnerPlace[DesktopPlacedWidget[Event]],
+def updateDecorator[IO[_] : Monad, Event]: UpdateDecorator[
+  UpdateC[IO, Event],
+  OuterPlace[IO, *],
+  InnerPlace[DesktopPlacedWidget[IO, Event]],
   DownEvent
 ] = updateDecoratorWithRect[
-  UpdateC[Event], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent
+  UpdateC[IO, Event], OuterPlace[IO, *], InnerPlace, Draw[IO], RecompositionReaction[IO], DownEvent
 ]

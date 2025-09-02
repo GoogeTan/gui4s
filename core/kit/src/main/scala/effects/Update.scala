@@ -7,47 +7,58 @@ import catnip.transformer.*
 import cats.*
 import cats.kernel.Monoid
 
-type UpdateTransformer[State, Events] =
-    StateTransformer[State] <> EventsTransformer[Events]
+type UpdateTransformer[State, Events, Error] =
+    StateTransformer[State] <> EventsTransformer[Events] <> ErrorTransformer[Error]
 
-given [State, Events : Monoid] : MonadTransformer[UpdateTransformer[State, Events]] =
-  composedMonadTransformerInstance[StateTransformer[State], EventsTransformer[Events]]
+given mt [State, Events : Monoid, Error] : MonadTransformer[UpdateTransformer[State, Events, Error]] =
+  composedMonadTransformerInstance[StateTransformer[State], EventsTransformer[Events] <> ErrorTransformer[Error]](
+    using summon, composedMonadTransformerInstance[
+      EventsTransformer[Events], ErrorTransformer[Error]
+    ]
+  )
 
-type Update[IO[_], State, Events, Value] = UpdateTransformer[State, Events][IO, Value]
+type Update[IO[_], State, Events, Error, Value] = UpdateTransformer[State, Events, Error][IO, Value]
 
-trait UpdateOps[IO[_] : Monad, State]:
-  given biMonadInstance : BiMonad[[A, B] =>> UpdateTransformer[State, List[A]][IO, B]] =
+object Update:
+  given biMonadInstance[IO[_] : Monad, State, Error] : BiMonad[[A, B] =>> UpdateTransformer[State, List[A], Error][IO, B]] =
     [T] => () => monadInstanceForTransformer
 
+  def liftK[IO[_] : Monad, State, Events : Monoid, Error] : IO ~> Update[IO, State, Events, Error, *] =
+    mt.liftK
+  end liftK
 
-  def getState[Events: Monoid]: UpdateTransformer[State, Events][IO, State] =
+  def raiseError[IO[_] : Monad, State, Events : Monoid, Error, Value](error : Error) : Update[IO, State, Events, Error, Value] =
+    ErrorTransformer.raiseError(error)
+  end raiseError
+
+  def getState[IO[_] : Monad, State, Events: Monoid, Error]: UpdateTransformer[State, Events, Error][IO, State] =
     StateTransformer.get_
   end getState
 
-  def setState[Events: Monoid](state: State): UpdateTransformer[State, Events][IO, Unit] =
+  def setState[IO[_] : Monad, State, Events: Monoid, Error](state: State): UpdateTransformer[State, Events, Error][IO, Unit] =
     StateTransformer.set_(state)
   end setState
 
-  def updateState[Events: Monoid](f: State => State): UpdateTransformer[State, Events][IO, Unit] =
+  def updateState[IO[_] : Monad, State, Events: Monoid, Error](f: State => State): UpdateTransformer[State, Events, Error][IO, Unit] =
     StateTransformer.modify_(f)
   end updateState
 
-  def emitEvents[Events: Monoid](events: Events): UpdateTransformer[State, Events][IO, Unit] =
+  def emitEvents[IO[_] : Monad, State, Events: Monoid, Error](events: Events): UpdateTransformer[State, Events, Error][IO, Unit] =
     EventsTransformer.raiseEvents(events)
   end emitEvents
 
-  def catchEvents[Events : Monoid, NewEvents : Monoid]: [T] => UpdateTransformer[State, Events][IO, T] => UpdateTransformer[State, NewEvents][IO, (T, Events)] =
+  def catchEvents[IO[_] : Monad, State, Events : Monoid, NewEvents : Monoid, Error]: [T] => UpdateTransformer[State, Events, Error][IO, T] => UpdateTransformer[State, NewEvents, Error][IO, (T, Events)] =
     [T] => update => EventsTransformer.catchEvents(update)
   end catchEvents
 
-  def mapEvents[Events : Monoid, NewEvents : Monoid](f : Events => NewEvents)
-  : UpdateTransformer[State, Events][IO, *] ~> UpdateTransformer[State, NewEvents][IO, *] =
+  def mapEvents[IO[_] : Monad, State, Events : Monoid, NewEvents : Monoid, Error](f : Events => NewEvents)
+  : UpdateTransformer[State, Events, Error][IO, *] ~> UpdateTransformer[State, NewEvents, Error][IO, *] =
     new ~>[
-      UpdateTransformer[State, Events][IO, *], UpdateTransformer[State, NewEvents][IO, *]
+      UpdateTransformer[State, Events, Error][IO, *], UpdateTransformer[State, NewEvents, Error][IO, *]
     ]:
-      override def apply[A](fa: UpdateTransformer[State, Events][IO, A]): UpdateTransformer[State, NewEvents][IO, A] =
+      override def apply[A](fa: UpdateTransformer[State, Events, Error][IO, A]): UpdateTransformer[State, NewEvents, Error][IO, A] =
         for
-          tmp <- catchEvents[Events, NewEvents][A](fa)
+          tmp <- catchEvents[IO, State, Events, NewEvents, Error][A](fa)
           (result, events) = tmp
           _ <- emitEvents(f(events))
         yield result
@@ -56,58 +67,67 @@ trait UpdateOps[IO[_] : Monad, State]:
   end mapEvents
 
   def run[
-    Events
+    IO[_] : Monad,
+    State,
+    Events,
+    Error
   ](
     initialState : State,
-  ) : [T] => UpdateTransformer[State, Events][IO, T] => IO[(Events, (State,  T))] =
+  ) : [T] => UpdateTransformer[State, Events, Error][IO, T] => IO[Either[Error, (Events, (State,  T))]] =
     [T] => update =>
-      update.run(initialState).run
+      update.run(initialState).run.value
   end run
-end UpdateOps
 
-trait UpdateStateOps[IO[_] : Monad, Point, Clip] extends UpdateOps[IO, UpdateState[Point, Clip]]:
-  def getCornerCoordinates[Events : Monoid] : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Point] =
+  def getCornerCoordinates[IO[_] : Monad, Point, Clip, Events : Monoid, Error] : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Point] =
     getState.map(_.widgetCoordinates)
   end getCornerCoordinates
 
-  def getClip[Events : Monoid] : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Clip] =
+  def getClip[IO[_] : Monad, Point, Clip, Events : Monoid, Error] : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Clip] =
     getState.map(_.path)
   end getClip
 
-  def setClip[Events : Monoid](clip : Clip) : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Unit] =
+  def setClip[IO[_] : Monad, Point, Clip, Events : Monoid, Error](clip : Clip) : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Unit] =
     updateState(_.withClip(clip))
   end setClip
 
-  def markEventHandled[Events : Monoid] : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Unit] =
+  def markEventHandled[IO[_] : Monad, Point, Clip, Events : Monoid, Error] : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Unit] =
     updateState(_.markEventHandled)
   end markEventHandled
 
-  def isEventHandled[Events : Monoid] : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Boolean] =
+  def isEventHandled[IO[_] : Monad, Point, Clip, Events : Monoid, Error] : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Boolean] =
     getState.map(_.consumed)
   end isEventHandled
 
   def withCornerCoordinates[
+    IO[_] : Monad,
+    Point,
+    Clip,
     Events : Monoid,
+    Error,
     Value
   ](
-    original : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Value],
+    original : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Value],
     f : Point => Point
-  ) : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Value] =
+  ) : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Value] =
     for
       coordinates <- getCornerCoordinates
-      _ <- updateState(_.withCoordinates(f(coordinates)))
+      _ <- updateState[IO, UpdateState[Point, Clip], Events, Error](_.withCoordinates(f(coordinates)))
       res <- original
-      _ <- updateState(_.withCoordinates(coordinates))
+      _ <- updateState[IO, UpdateState[Point, Clip], Events, Error](_.withCoordinates(coordinates))
     yield res
   end withCornerCoordinates
 
   def withClip[
+    IO[_] : Monad,
+    Point,
+    Clip,
     Events : Monoid,
+    Error,
     Value
   ](
-    original : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Value],
+    original : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Value],
     f : (Clip, Point) => Clip
-  ) : UpdateTransformer[UpdateState[Point, Clip], Events][IO, Value] =
+  ) : UpdateTransformer[UpdateState[Point, Clip], Events, Error][IO, Value] =
     for
       coordinates <- getCornerCoordinates
       clip <- getClip
@@ -116,4 +136,4 @@ trait UpdateStateOps[IO[_] : Monad, Point, Clip] extends UpdateOps[IO, UpdateSta
       _ <- setClip(clip)
     yield res
   end withClip
-end UpdateStateOps
+end Update

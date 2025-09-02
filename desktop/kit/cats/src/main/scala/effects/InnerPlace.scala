@@ -1,10 +1,8 @@
 package gui4s.desktop.kit.cats
 package effects
 
-import gui4s.core.layout.Sized
-
-type InnerPlace[T] = Sized[Float, T]
+type InnerPlace[T] = gui4s.desktop.kit.effects.InnerPlace[T]
 
 object InnerPlace:
-  export gui4s.core.layout.Sized.given
+  export gui4s.desktop.kit.effects.InnerPlace.given
 end InnerPlace

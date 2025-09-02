@@ -16,35 +16,35 @@ type OuterPlace[IO[_], Bounds, Error, Value] = OuterPlaceTansformer[Bounds, Erro
 
 type OuterPlaceT[IO[_], Bounds, Error] = OuterPlace[IO, Bounds, Error, *]
 
-trait OuterPlaceOps[IO[_] : Monad, Bounds, Error]:
-  final given monadInstance : MonadError[OuterPlaceT[IO, Bounds, Error], Error] =
+object OuterPlace:
+  given monadInstance[IO[_] : Monad, Bounds, Error] : MonadError[OuterPlaceT[IO, Bounds, Error], Error] =
     summon
 
-  final def liftK : IO ~> OuterPlaceT[IO, Bounds, Error] =
+  def liftK[IO[_] : Monad, Bounds, Error] : IO ~> OuterPlaceT[IO, Bounds, Error] =
     MonadTransformer[OuterPlaceTansformer[Bounds, Error]].liftK
   end liftK
 
-  final def liftF[Value](value : IO[Value]) : OuterPlace[IO, Bounds, Error, Value] =
+  def liftF[IO[_] : Monad, Bounds, Error, Value](value : IO[Value]) : OuterPlace[IO, Bounds, Error, Value] =
     liftK(value)
   end liftF
 
-  final def getBounds: Get[OuterPlace[IO, Bounds, Error, *], Bounds] =
+  def getBounds[IO[_] : Monad, Bounds, Error]: Get[OuterPlace[IO, Bounds, Error, *], Bounds] =
     StateTransformer.get_
   end getBounds
 
-  final def setBounds: Set[OuterPlace[IO, Bounds, Error, *], Bounds] =
+  def setBounds[IO[_] : Monad, Bounds, Error]: Set[OuterPlace[IO, Bounds, Error, *], Bounds] =
     StateTransformer.set_
   end setBounds
   
-  final def withBounds[T](original : OuterPlace[IO, Bounds, Error, T], f : Bounds => Bounds) : OuterPlace[IO, Bounds, Error, T] =
+  def withBounds[IO[_] : Monad, Bounds, Error, T](original : OuterPlace[IO, Bounds, Error, T], f : Bounds => Bounds) : OuterPlace[IO, Bounds, Error, T] =
     StateTransformer.modifyScoped_(original, f)
   end withBounds
 
-  final def raiseError[Value](error : => Error) : OuterPlace[IO, Bounds, Error, Value] =
+  def raiseError[IO[_] : Monad, Bounds, Error, Value](error : => Error) : OuterPlace[IO, Bounds, Error, Value] =
     ErrorTransformer.raiseError[StateTransformer[Bounds], IO, Error, Value](error)
   end raiseError
 
-  final def run(bounds : IO[Bounds]) : OuterPlaceT[IO, Bounds, Error] ~> EitherT[IO, Error, *] =
+  def run[IO[_] : Monad, Bounds, Error](bounds : IO[Bounds]) : OuterPlaceT[IO, Bounds, Error] ~> EitherT[IO, Error, *] =
     new ~>[
       OuterPlaceT[IO, Bounds, Error], EitherT[IO, Error, *]
     ]:
@@ -53,5 +53,5 @@ trait OuterPlaceOps[IO[_] : Monad, Bounds, Error]:
       end apply
     end new
   end run
-end OuterPlaceOps
+end OuterPlace
 

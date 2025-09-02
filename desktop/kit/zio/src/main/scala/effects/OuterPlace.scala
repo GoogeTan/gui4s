@@ -1,59 +1,45 @@
 package gui4s.desktop.kit.zio
 package effects
 
-import catnip.{Get, Set, MyStateT}
-import catnip.MyStateT.given
-import catnip.transformer.*
-import cats.data.EitherT
+import catnip.{Get, Set}
 import cats.*
-import gui4s.core.kit.effects.OuterPlace as GenericOuterPlace
+import cats.data.EitherT
+import gui4s.desktop.kit.effects.OuterPlace as GenericOuterPlace
 import zio.*
 import zio.interop.catz.*
 
-type OuterPlace[T] = MyStateT[Task, Bounds, T]
+type OuterPlace[T] = GenericOuterPlace[Task, T]
 
-@SuppressWarnings(Array("org.wartremover.warts.All"))
 object OuterPlace:
-  given MonadError[OuterPlace, Throwable] = summon
-    
-  def liftK : Task ~> OuterPlace =
-    MyStateT.liftK
+  given monadInstance[IO[_] : Monad]: MonadThrow[OuterPlace] =
+    GenericOuterPlace.monadInstance
+  end monadInstance  
+
+  def liftK: Task ~> OuterPlace =
+    GenericOuterPlace.liftK[Task]
   end liftK
 
-  def liftF[Value](value : Task[Value]) : OuterPlace[Value] =
+  def liftF[Value](value: Task[Value]): OuterPlace[Value] =
     liftK(value)
   end liftF
 
   def getBounds: Get[OuterPlace, Bounds] =
-    MyStateT.get
+    GenericOuterPlace.getBounds[Task]
   end getBounds
 
   def setBounds: Set[OuterPlace, Bounds] =
-    MyStateT.set
+    GenericOuterPlace.setBounds[Task]
   end setBounds
 
-  def withBounds[T](original : OuterPlace[T], f : Bounds => Bounds) : OuterPlace[T] =
-    for
-      bounds <- getBounds
-      _ <- setBounds(f(bounds))
-      res <- original
-      _ <- setBounds(bounds)
-    yield res
+  def withBounds[T](original: OuterPlace[T], f: Bounds => Bounds): OuterPlace[T] =
+    GenericOuterPlace.withBounds(original, f)
   end withBounds
 
-  def raiseError[Value](error : => Throwable) : OuterPlace[Value] =
-    MyStateT.liftF(ZIO.fail(error))
+  def raiseError[Value](error: => Throwable): OuterPlace[Value] =
+    GenericOuterPlace.raiseError(error)
   end raiseError
 
-  def raiseError[Value](error : String) : OuterPlace[Value] =
-    raiseError(new Exception(error))
-  end raiseError
-
-  def run(bounds : Task[Bounds]) : OuterPlace ~> Task =
-    new (OuterPlace ~> Task):
-      override def apply[A](place : OuterPlace[A]) : Task[A] =
-        bounds.flatMap(place.eval)
-      end apply
-    end new
+  def run(bounds: Task[Bounds]): OuterPlace ~> EitherT[Task, Throwable, *] =
+    GenericOuterPlace.run[Task](bounds)
   end run
 end OuterPlace

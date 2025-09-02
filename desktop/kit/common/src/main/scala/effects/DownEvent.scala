@@ -3,8 +3,11 @@ package effects
 
 import gui4s.core.geometry.Point2d
 import gui4s.glfw.KeyAction.Press
+import gui4s.glfw.KeyAction.given
 import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
 import gui4s.core.widget.Path
+import gui4s.core.widget.Path.given
+import cats.syntax.all.*
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum DownEvent:
@@ -30,14 +33,14 @@ object DownEvent:
 
   def extractMouseClickEvent(downEvent : DownEvent) : Option[Unit] =
     downEvent match
-      case DownEvent.MouseClick(_, action, _) if action == Press =>
+      case DownEvent.MouseClick(_, action, _) if action === Press =>
         Some(()) // TODO ClickHandlerDownEvent(button, action, mods))
       case _ => None
   end extractMouseClickEvent
   
   def catchExternalEvent(expectedPath : Path, event : DownEvent) : Option[Any] =
     event match 
-      case DownEvent.ExternalEventForWidget(taskPath, event : Any) if taskPath == expectedPath =>
+      case DownEvent.ExternalEventForWidget(taskPath, event : Any) if taskPath === expectedPath =>
         Some[Any](event)
       case _ =>
         None 

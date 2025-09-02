@@ -1,9 +1,23 @@
 package gui4s.desktop.kit.cats
 package effects
 
+import catnip.syntax.applicative.given
+import cats.*
+import cats.syntax.all.* 
 import cats.effect.IO
-import gui4s.core.kit.effects as generic_effects
 
-type RecompositionReaction = generic_effects.RecompositionReaction[IO]
+type RecompositionReaction = gui4s.desktop.kit.effects.RecompositionReaction[IO]
 
-object RecompositionReaction extends generic_effects.RecompositionReactionOps[IO]
+object RecompositionReaction:
+  def empty : RecompositionReaction = ().pure[IO]
+
+  def run(recomposition : RecompositionReaction) : IO[Unit] = recomposition
+
+  def lift[Value](value : IO[Value]) : RecompositionReaction = value.as(())
+
+  def raiseError[Error](error : Throwable) : RecompositionReaction =
+    IO.raiseError(error)
+  end raiseError
+
+  given Monoid[RecompositionReaction] = applicativesAreMonoids
+end RecompositionReaction

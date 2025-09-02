@@ -10,8 +10,8 @@ import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 import gui4s.desktop.kit.cats.*
-import _root_.effects.{ApplicationRequest, DownEvent, OuterPlace}
-import _root_.effects.OuterPlace.given
+import effects.{ApplicationRequest, DownEvent, OuterPlace}
+import effects.OuterPlace.given
 import widgets.*
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}

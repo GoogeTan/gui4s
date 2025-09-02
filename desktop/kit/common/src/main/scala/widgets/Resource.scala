@@ -7,53 +7,65 @@ import effects.Update.given
 import widgets.*
 import widgets.decorator.*
 
-import cats.effect.IO
+import cats.*
+import cats.syntax.all.*
 import cats.effect.std.Supervisor
-import gui4s.decktop.widget.library.{resourceWidget as genericResourceWidget, ResourceWidget}
-import gui4s.decktop.widget.library.WithContext
+import gui4s.desktop.widget.library.{resourceWidget as genericResourceWidget, ResourceWidget}
+import gui4s.desktop.widget.library.WithContext
 import gui4s.core.widget.Path
 
 import scala.reflect.Typeable
 
-def resource[Event](supervisor : Supervisor[IO], raiseExternalEvent : DownEvent => IO[Unit]) : ResourceWidget[DesktopWidget[Event], IO] =
+def resource[IO[_] : MonadThrow, Event](
+                                        supervisor : Supervisor[IO],
+                                        raiseExternalEvent : DownEvent => IO[Unit]
+                                      )(using Typeable[IO[Unit]]) : ResourceWidget[DesktopWidget[IO, Event], IO] =
   genericResourceWidget[
-    DesktopWidget,
-    Update,
+    DesktopWidget[IO, *],
+    Update[IO, *, *],
     IO,
     Event
   ](
-    transitiveStatefulWidget = transitiveStatefulWidget,
+    transitiveStatefulWidget = transitiveStatefulWidget[IO],
     launchedEffect =
-      [TaskEvent : Typeable] => (name, child, task) =>
-          launchedEvent[Either[TaskEvent, Event], Unit](supervisor, raiseExternalEvent)(
-            name,
-            child.mapEvent(Right(_)),
-            (),
-            task.map(Left(_))
-          ),
-    doubleAllocError = [T] => (path : Path) => Update.raiseError("Double resource alloc at " + path.toString)
+      [TaskEvent : Typeable as TET] => (name, child, task) =>
+        launchedEvent[IO, Either[TaskEvent, Event], Unit](
+          supervisor, 
+          raiseExternalEvent,
+          TET.unapply.andThen(_.map(Left(_)))
+        )(
+          name,
+          child.mapEvent(Right(_)),
+          (),
+          task.map(Left(_))
+        ),
+    doubleAllocError = [T] => (path : Path) => Update.raiseError(new Exception("Double resource alloc at " + path.toString))
   )
 end resource
 
-def resourceInit[Event, Value : Typeable](
+def resourceInit[IO[_] : MonadThrow, Event, Value : Typeable](
   supervisor : Supervisor[IO],
   raiseExternalEvent : DownEvent => IO[Unit],
 )(
   name : String,
   init : IO[Value]
-) : WithContext[DesktopWidget[Event], Option[Value]] =
-  resource(supervisor, raiseExternalEvent)(name, init.map(value => (value, IO.unit)))
+)(using Typeable[IO[Unit]]) : WithContext[DesktopWidget[IO, Event], Option[Value]] =
+  resource(supervisor, raiseExternalEvent)(name, init.map(value => (value, ().pure[IO])))
 end resourceInit
 
-def initWidget[Event, Value](
-                              supervisor: Supervisor[IO],
-                              raiseExternalEvent : DownEvent => IO[Unit],
-                            )(
-                              name : String,
-                              imageSource : IO[Value],
-                              imageWidget : Value => DesktopWidget[Event],
-                              placeholder : DesktopWidget[Event],
-                            ) : DesktopWidget[Event] =
+def initWidget[
+  IO[_] : MonadThrow,
+  Event,
+  Value
+](
+  supervisor: Supervisor[IO],
+  raiseExternalEvent : DownEvent => IO[Unit],
+)(
+  name : String,
+  imageSource : IO[Value],
+  imageWidget : Value => DesktopWidget[IO, Event],
+  placeholder : DesktopWidget[IO, Event],
+)(using Typeable[IO[Unit]]) : DesktopWidget[IO, Event] =
   resourceInit(
     supervisor,
     raiseExternalEvent,

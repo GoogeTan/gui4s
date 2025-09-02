@@ -7,20 +7,17 @@ import cats.syntax.all.*
 
 type RecompositionReaction[F[_]] = F[Unit]
 
-class RecompositionReactionOps[F[_] : Applicative]:
-  final def empty : RecompositionReaction[F] = ().pure[F]
+object RecompositionReaction:
+  def empty[F[_] : Applicative] : RecompositionReaction[F] = ().pure[F]
 
-  final def run(recomposition : RecompositionReaction[F]) : F[Unit] = recomposition
+  def run[F[_] : Applicative](recomposition : RecompositionReaction[F]) : F[Unit] = recomposition
 
-  final def lift[T](value : F[T]) : RecompositionReaction[F] = value.as(())
+  def lift[F[_] : Applicative, Value](value : F[Value]) : RecompositionReaction[F] = value.as(())
 
-  final def raiseError[Error](using M : MonadError[F, Error])(error : Error) : F[Unit] =
+  def raiseError[F[_] : Applicative, Error](using M : MonadError[F, Error])(error : Error) : RecompositionReaction[F] =
     M.raiseError(error)
   end raiseError
   
-  final given Monoid[RecompositionReaction[F]] = summon
-end RecompositionReactionOps
-
-object RecompositionReaction:
-  def apply[F[_] : Applicative]: RecompositionReactionOps[F] = RecompositionReactionOps[F]()
+  given[F[_] : Applicative]: Monoid[RecompositionReaction[F]] = summon
 end RecompositionReaction
+

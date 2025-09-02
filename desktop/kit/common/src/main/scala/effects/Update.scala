@@ -2,37 +2,109 @@ package gui4s.desktop.kit
 package effects
 
 import gui4s.core.geometry.Point3d
-import gui4s.core.kit.effects as generic_effects
+import gui4s.core.kit.{EventsTransformer, effects as generic_effects}
 import gui4s.core.kit.effects.UpdateState
 import cats.effect.{ExitCode, IO}
 import cats.*
 import cats.data.EitherT
 import cats.syntax.all.*
+import catnip.BiMonad
 import catnip.syntax.transformer.{*, given}
 import catnip.syntax.transformer.monadErrorInstanceForTransformer
-import catnip.transformer.{ErrorTransformer, MonadTransformer}
+import catnip.transformer.{ErrorTransformer, MonadTransformer, StateTransformer}
 import cats.kernel.Monoid
 
-type Update[IO[_], Event, A] = generic_effects.Update[EitherT[IO, String, *], generic_effects.UpdateState[Point3d[Float], Clip], List[Event], A]
+type Update[IO[_], Event, A] = generic_effects.Update[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable, A]
 type UpdateC[IO[_], Event] = Update[IO, Event, *]
 
-trait UpdateOps[IO[_] : Monad] extends generic_effects.UpdateStateOps[EitherT[IO, String, *], Point3d[Float], Clip]:
-  given[Event] : MonadError[UpdateC[IO, Event], String] = monadErrorInstanceForTransformer
+object Update:
+  given biMonadInstance[IO[_] : Monad] : BiMonad[[A, B] =>> Update[IO, A, B]] =
+    generic_effects.Update.biMonadInstance
 
-  def liftK[Event]: IO ~> UpdateC[IO, Event] =
-    MonadTransformer[generic_effects.UpdateTransformer[UpdateState[Point3d[Float], Clip], List[Event]] <> ErrorTransformer[String]].liftK
+  def liftK[IO[_] : Monad, Event] : IO ~> UpdateC[IO, Event] =
+    generic_effects.Update.liftK
   end liftK
 
-  def raiseError[Event, T](error : String) : Update[IO, Event, T] =
-    import generic_effects.given
-    MonadTransformer[generic_effects.UpdateTransformer[UpdateState[Point3d[Float], Clip], List[Event]]]
-      .liftK[EitherT[IO, String, *]](EitherT.left(error.pure[IO]))
+  def getState[IO[_] : Monad, Event]: Update[IO, Event, UpdateState[Point3d[Float], Clip]] =
+    generic_effects.Update.getState
+  end getState
+
+  def setState[IO[_] : Monad, Event](state: UpdateState[Point3d[Float], Clip]): Update[IO, Event, Unit] =
+    generic_effects.Update.setState(state)
+  end setState
+
+  def updateState[IO[_] : Monad, Event](f: UpdateState[Point3d[Float], Clip] => UpdateState[Point3d[Float], Clip]): Update[IO, Event, Unit] =
+    generic_effects.Update.updateState(f)
+  end updateState
+
+  def emitEvents[IO[_] : Monad, Event](events : List[Event]): Update[IO, Event, Unit] =
+    generic_effects.Update.emitEvents(events)
+  end emitEvents
+
+  def catchEvents[IO[_] : Monad, Event, NewEvent]: [T] => Update[IO, Event, T] => Update[IO, NewEvent, (T, List[Event])] =
+    generic_effects.Update.catchEvents[IO, UpdateState[Point3d[Float], Clip], List[Event], List[NewEvent], Throwable]
+  end catchEvents
+
+  def mapEvents[IO[_] : Monad, Event, NewEvent](f : Event => NewEvent) : UpdateC[IO, Event] ~> UpdateC[IO, NewEvent] =
+    generic_effects.Update.mapEvents(_.map(f))
+  end mapEvents
+
+  def run[IO[_] : Monad, Event](initialState : UpdateState[Point3d[Float], Clip])
+      : [T] => Update[IO, Event, T] => IO[Either[Throwable, (List[Event], (UpdateState[Point3d[Float], Clip],  T))]] =
+    generic_effects.Update.run[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable](initialState)
+  end run
+
+  def raiseError[IO[_] : Monad, Event, Value](error : Throwable) : Update[IO, Event, Value] =
+    generic_effects.Update.raiseError(error)
   end raiseError
 
-  def handleApplicationRequests(updateErrorAsExitCode : String => IO[ExitCode]): [T] => Update[IO, ApplicationRequest, T] => IO[Either[ExitCode, T]] =
+  def getCornerCoordinates[IO[_] : Monad, Event] : Update[IO, Event, Point3d[Float]] =
+    generic_effects.Update.getCornerCoordinates
+  end getCornerCoordinates
+
+  def getClip[IO[_] : Monad, Event] : Update[IO, Event, Clip] =
+    generic_effects.Update.getClip
+  end getClip
+
+  def setClip[IO[_] : Monad, Event](clip : Clip) : Update[IO, Event, Unit] =
+    generic_effects.Update.setClip[IO, Point3d[Float], Clip, List[Event], Throwable](clip)
+  end setClip
+
+  def markEventHandled[IO[_] : Monad, Event] : Update[IO, Event, Unit] =
+    generic_effects.Update.markEventHandled
+  end markEventHandled
+
+  def isEventHandled[IO[_] : Monad, Event] : Update[IO, Event, Boolean] =
+    generic_effects.Update.isEventHandled
+  end isEventHandled
+
+  def withCornerCoordinates[
+    IO[_] : Monad,
+    Event,
+    Value
+  ](
+    original : Update[IO, Event, Value],
+    f : Point3d[Float] => Point3d[Float]
+  ) : Update[IO, Event, Value] =
+    generic_effects.Update.withCornerCoordinates(original, f)
+  end withCornerCoordinates
+
+  def withClip[
+    IO[_] : Monad,
+    Event,
+    Value
+  ](
+      original : Update[IO, Event, Value],
+      f : (Clip, Point3d[Float]) => Clip
+  ) : Update[IO, Event, Value] =
+    generic_effects.Update.withClip(original, f)
+  end withClip
+
+
+  def handleApplicationRequests[IO[_] : MonadThrow](updateErrorAsExitCode : Throwable => IO[ExitCode]): [T] => Update[IO, ApplicationRequest, T] => IO[Either[ExitCode, T]] =
     [T] => update =>
       import Clip.given
-      run[List[ApplicationRequest]](UpdateState.empty[Point3d[Float], Clip])(update).value.flatMap {
+      run[IO, ApplicationRequest](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
         case Right((events, (_, widget))) =>
           events.foldM[IO, Either[ExitCode, T]](Right(widget))((_, request) =>
             request match

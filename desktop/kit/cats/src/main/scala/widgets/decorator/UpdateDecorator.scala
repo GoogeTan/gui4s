@@ -1,17 +1,19 @@
-package gui4s.desktop.kit.zio
+package gui4s.desktop.kit.cats
 package widgets.decorator
 
 import effects.*
-import effects.Update.given
 import effects.OuterPlace.given
+import effects.Update.given
 import widgets.*
-import gui4s.decktop.widget.library.decorator.*
+
+import cats.*
+import cats.effect.IO
+import gui4s.desktop.widget.library.decorator.*
 
 def updateDecorator[Event]: UpdateDecorator[
   UpdateC[Event],
   OuterPlace,
   InnerPlace[DesktopPlacedWidget[Event]],
   DownEvent
-] = updateDecoratorWithRect[
-  UpdateC[Event], OuterPlace, InnerPlace, Draw, RecompositionReaction, DownEvent
-]
+] = gui4s.desktop.kit.widgets.decorator.updateDecorator[IO, Event]
+

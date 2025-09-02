@@ -1,9 +1,8 @@
 package catnip
 package syntax
 
-import catnip.syntax.additional.*
 import cats.data.{EitherT, StateT}
-import cats.syntax.all.{*, given}
+import cats.syntax.all.*
 import cats.{FlatMap, Functor, MonadError, ~>}
 
 object functionk:

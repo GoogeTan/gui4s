@@ -1,17 +1,17 @@
-package gui4s.desktop.kit.generic
+package gui4s.desktop.kit
 
 import catnip.syntax.all.given
-import cats.data.*
 import cats.arrow.FunctionK
+import cats.data.*
+import cats.effect.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.QueueSink
-import cats.effect.Async
 import cats.syntax.all.*
 import cats.{Functor, Monad}
 import gui4s.core.loops.*
 import gui4s.core.widget.Path
 import gui4s.core.widget.draw.Drawable
-import gui4s.decktop.widget.library.*
+import gui4s.desktop.widget.library.*
 
 import scala.concurrent.ExecutionContext
 
@@ -26,8 +26,6 @@ def gui4sApp[
   Backend,
   ExitCode
 ](
-  sendAnEvent : DownEvent => IO[Unit],
-  getAnEvent : IO[DownEvent],
   createBackend : QueueSink[IO, DownEvent] => Resource[IO, (PreInit, Backend)],
   main : PreInit => Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
   runUpdate : [T] => Update[T] => IO[Either[ExitCode, T]],
@@ -50,7 +48,7 @@ def gui4sApp[
     backend = queue => createBackend(queue).evalOn(drawLoopExecutionContext),
     drawLoop = (_, backend) =>
       runDrawLoopOnExecutionContext(
-        skijaDrawLoop[IO, Draw, PlacedWidget, ExitCode](
+        drawableBasedDrawLoop[IO, Draw, PlacedWidget, ExitCode](
           widgetIsDrawable[Update, Place, Draw, RecompositionReaction, DownEvent],
           runDraw(_, backend)
         ),
@@ -99,8 +97,7 @@ def flattenRight[F[_] : Monad, A, B](value : F[Either[A, F[B]]]) : F[Either[A, B
   }
 end flattenRight
 
-// TODO rename me
-def skijaDrawLoop[
+def drawableBasedDrawLoop[
   F[_] : Monad,
   Draw,
   Widget,
@@ -113,4 +110,4 @@ def skijaDrawLoop[
     drawLoop(
       currentWidget.flatMap(widget => drawFrame(widgetIsDrawable(widget)))
     )
-end skijaDrawLoop
+end drawableBasedDrawLoop

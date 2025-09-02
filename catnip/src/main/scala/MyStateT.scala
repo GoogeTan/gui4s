@@ -3,7 +3,6 @@ package catnip
 import cats.arrow.FunctionK
 import cats.{Applicative, Functor, Monad, MonadError, ~>}
 import cats.syntax.functor.*
-import cats.syntax.flatMap.*
 import cats.syntax.applicative.*
 
 final case class MyStateT[F[_], S, A](run: S => F[(S, A)]):

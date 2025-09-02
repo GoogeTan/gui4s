@@ -6,21 +6,21 @@ import effects.Clip.given
 import effects.OuterPlace.given
 import effects.Update.given
 
-import catnip.effect.SyncForeignFunctionInterface
-import cats.effect.IO
+import catnip.ForeignFunctionInterface
+import cats.Monad
 import cats.syntax.all.*
 import gui4s.core.geometry.Rect
-import gui4s.decktop.widget.library.decorator.clipWidget
+import gui4s.desktop.widget.library.decorator.clipWidget
 import widgets.DesktopWidget
 
-extension[Event](value : DesktopWidget[Event])
-  def clip(path : Rect[Float] => Clip) : DesktopWidget[Event] =
+extension[IO[_] : {Monad, ForeignFunctionInterface as ffi}, Event](value : DesktopWidget[IO, Event])
+  def clip(path : Rect[Float] => Clip) : DesktopWidget[IO, Event] =
     clipWidget[
-      UpdateC[Event],
-      OuterPlace,
+      UpdateC[IO, Event],
+      OuterPlace[IO, *],
       InnerPlace,
-      Draw,
-      RecompositionReaction,
+      Draw[IO],
+      RecompositionReaction[IO],
       DownEvent,
       Clip
     ](
@@ -30,8 +30,7 @@ extension[Event](value : DesktopWidget[Event])
           (oldShape, point) =>
             oldShape |+| Clip.moveClipToPoint(shape, point)
         ),
-
-      Clip.drawClipped(SyncForeignFunctionInterface[IO]()),
+      Clip.drawClipped,
       place => path(place.size),
     )(value)
   end clip

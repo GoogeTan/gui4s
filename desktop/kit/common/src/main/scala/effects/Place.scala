@@ -5,33 +5,32 @@ import catnip.{ForeignFunctionInterface, MapKCache}
 import catnip.syntax.applicative.nestedFunctorsAreFunctors
 import cats.data.EitherT
 import cats.effect.IO
-import cats.{Functor, ~>}
+import cats.{Functor, Monad, MonadThrow, ~>}
 import io.github.humbleui.skija.shaper.Shaper
 import gui4s.core.kit.effects.Place as GenericPlace
+import gui4s.core.kit.effects.Place.given
 import gui4s.core.widget.Path
-import OuterPlace.given
+import OuterPlace.given 
 import InnerPlace.given
 
 import scala.reflect.Typeable
 
-type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, String, T]
+type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, Throwable, T]
 type PlaceC[IO[_]] = [Value] =>> Place[IO, Value]
 
-trait PlaceOps:
-  def run[IO[_]](bounds : IO[Bounds]) : Place[IO, *] ~> EitherT[IO, String, *] =
-    new ~>[Place, EitherT[IO, String, *]]:
-      override def apply[A](fa : Place[A]) : EitherT[IO, String, A] =
+object Place:
+  def run[IO[_] : Monad](bounds : IO[Bounds]) : Place[IO, *] ~> EitherT[IO, Throwable, *] =
+    new ~>[Place[IO, *], EitherT[IO, Throwable, *]]:
+      override def apply[A](fa : Place[IO, A]) : EitherT[IO, Throwable, A] =
         OuterPlace.run(bounds)(fa.map(_.value))
       end apply
     end new
   end run
   
-  def sizeText[IO[_]](
-    ffi : ForeignFunctionInterface[IO],
+  def sizeText[IO[_] : {Monad, ForeignFunctionInterface as ffi}](
     shaper : Shaper,
     cache : TextCache[IO],
   ) : SizeText[Place[IO, *]] =
-    import OuterPlace.given
     sizeTextFFI[OuterPlace[IO, *]](
       OuterPlace.getBounds.map(_.width.value),
       ffi.mapK(OuterPlace.liftK),
@@ -40,9 +39,9 @@ trait PlaceOps:
     )
   end sizeText
 
-  def typecheck[IO[_], U : Typeable](error : (Any, Path) => String) : [T] => (Any, Path, U => Place[IO, T]) => Place[IO, T] =
-    GenericPlace.typecheck[OuterPlace[IO, *], InnerPlace, String, U](error)
+  def typecheck[IO[_] : MonadThrow, U : Typeable](error : (Any, Path) => Throwable) : [T] => (Any, Path, U => Place[IO, T]) => Place[IO, T] =
+    GenericPlace.typecheck[OuterPlace[IO, *], InnerPlace, Throwable, U](error)
   end typecheck
 
-  given[IO[_] : Functor] : Functor[Place[IO, *]] = nestedFunctorsAreFunctors[OuterPlace[IO, *], InnerPlace]
+  given functorInstance[IO[_] : Monad] : Functor[Place[IO, *]] = nestedFunctorsAreFunctors[OuterPlace[IO, *], InnerPlace]
 end Place

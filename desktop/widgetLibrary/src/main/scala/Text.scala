@@ -1,7 +1,9 @@
-package gui4s.decktop.widget.library
+package gui4s.desktop.widget.library
 
 import cats.{Functor, Monad}
 import cats.syntax.all.*
+
+
 
 def text[
   Update[_] : Monad,

@@ -1,7 +1,6 @@
 package catnip
 package syntax
 
-import catnip.CovariantOptionT
 import cats.data.OptionT
 import cats.syntax.all.*
 import cats.{Monad, MonadError}

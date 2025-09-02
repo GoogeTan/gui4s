@@ -1,0 +1,35 @@
+package gui4s.desktop.kit.zio
+
+import effects.given
+import widgets.DesktopWidget
+
+import catnip.zio.{toZIO, zioScopedToResource}
+import gui4s.desktop.kit.SkijaBackend
+import gui4s.desktop.kit.effects.{ApplicationRequest, DownEvent}
+import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
+import zio.*
+import zio.interop.catz.*
+
+import scala.concurrent.ExecutionContext
+import java.util.concurrent.{Executors, ThreadPoolExecutor}
+
+trait Gui4sZioApp extends MainThreadApp:
+  type PreInit 
+  
+  val settings : WindowCreationSettings[Float]
+
+  def preInit(backend : SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]) : RIO[Scope, PreInit]
+  
+  override def run(args: List[String]): ZIO[Any, Throwable, ExitCode] = 
+    gui4s.desktop.kit.desktopApp[Task, PreInit](
+      preInit.andThen(zioScopedToResource),
+      main,
+      MainThreadApp.mainThread,
+      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(10)),
+      settings
+    ).map(_.toZIO)
+  end run
+  
+  def main(preInit : PreInit) : DesktopWidget[ApplicationRequest]
+end Gui4sZioApp
+

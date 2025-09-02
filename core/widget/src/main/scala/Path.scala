@@ -8,6 +8,9 @@ final case class Path(value : List[String]):
   
   def appendLast(s : String) : Path = Path(s :: value)
   def appendFirst(s : String) : Path = Path(value ++ List(s))
+
+  override def toString: String =
+    value.reverse.mkString("::")
 end Path
 
 object Path:

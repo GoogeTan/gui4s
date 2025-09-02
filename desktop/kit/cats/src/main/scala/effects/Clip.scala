@@ -1,6 +1,8 @@
 package gui4s.desktop.kit.cats
 package effects
 
+import effects.given
+
 import catnip.ForeignFunctionInterface
 import cats.Monad
 import cats.kernel.Monoid
@@ -8,28 +10,17 @@ import gui4s.core.geometry.Point3d
 import gui4s.desktop.skija.{SkijaDraw, clipToPath}
 import io.github.humbleui.skija.{Path, PathFillMode, PathOp}
 
-type Clip = Path
+type Clip = gui4s.desktop.kit.effects.Clip
 
 object Clip:
-  given clipMonoid : Monoid[Clip] with
-    override def empty: Clip =
-      new Path().setFillMode(PathFillMode.INVERSE_WINDING)
-    end empty
-
-    override def combine(x: Clip, y: Clip): Clip =
-      Path.makeCombining(x, y, PathOp.INTERSECT)
-    end combine
-  end clipMonoid
+  given clipMonoid : Monoid[Clip] =
+    gui4s.desktop.kit.effects.Clip.clipMonoid
 
   def moveClipToPoint(path : Clip, point : Point3d[Float]) : Clip =
-    clipMonoid.empty.addPath(
-      path,
-      point.x,
-      point.y
-    )
+    gui4s.desktop.kit.effects.Clip.moveClipToPoint(path, point)
   end moveClipToPoint
 
-  def drawClipped[IO[_] : Monad](ffi: ForeignFunctionInterface[IO])(path: Clip, original: SkijaDraw[IO]): SkijaDraw[IO] =
-    clipToPath(ffi, path, original)
+  def drawClipped(path: Clip, original: Draw): Draw =
+    gui4s.desktop.kit.effects.Clip.drawClipped(path, original)
   end drawClipped
 end Clip

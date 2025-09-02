@@ -1,8 +1,10 @@
-
 package gui4s.desktop.example.zio
 
 import catnip.Cache
-import zio.Task
+import catnip.zio.resourceToScoped
+import scalacache.caffeine.CaffeineCache
+import zio.{RIO, Scope, Task, ZIO}
+import zio.interop.catz.*
 
 final class ScalacacheCache[K, V](cache: scalacache.Cache[Task, K, V]) extends Cache[Task, K, V] :
   override def get(key: K): Task[Option[V]] =
@@ -16,6 +18,8 @@ end ScalacacheCache
 
 
 object ScalacacheCache:
-  def apply[K, V](cache: scalacache.Cache[Task, K, V]): ScalacacheCache[K, V] =
-    new ScalacacheCache(cache)
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  def apply[K <: AnyRef, V]() : Task[ScalacacheCache[K, V]] =
+    CaffeineCache[Task, K, V].map(new ScalacacheCache(_))
+  end apply
 end ScalacacheCache

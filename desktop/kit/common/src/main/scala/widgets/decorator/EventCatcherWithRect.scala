@@ -5,23 +5,24 @@ import effects.*
 import effects.Place.given
 import effects.Update.given
 import widgets.*
-import gui4s.decktop.widget.library.*
-import gui4s.decktop.widget.library.decorator.{eventCatcherWithRect, EventCatcherWithRect}
+import gui4s.desktop.widget.library.*
+import gui4s.desktop.widget.library.decorator.{eventCatcherWithRect, EventCatcherWithRect}
+import cats.Monad
 
-def eventCatcher[Event]: EventCatcherWithRect[
-  OuterPlace[InnerPlace[DesktopPlacedWidget[Event]]],
-  UpdateC[Event][Boolean],
-  InnerPlace[DesktopPlacedWidget[Event]],
+def eventCatcher[IO[_] : Monad, Event]: EventCatcherWithRect[
+  OuterPlace[IO, InnerPlace[DesktopPlacedWidget[IO, Event]]],
+  Update[IO, Event, Boolean],
+  InnerPlace[DesktopPlacedWidget[IO, Event]],
   DownEvent
 ] = eventCatcherWithRect[
-  DesktopPlacedWidget[Event],
-  UpdateC[Event],
-  OuterPlace,
+  DesktopPlacedWidget[IO, Event],
+  UpdateC[IO, Event],
+  OuterPlace[IO, *],
   InnerPlace,
   DownEvent
 ](
-  updateDecorator[Event],
-  Update.markEventHandled[List[Event]],
-  widgetAsFree[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent],
-  widgetHandlesEvent[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent]
+  updateDecorator[IO, Event],
+  Update.markEventHandled[IO, Event],
+  widgetAsFree[UpdateC[IO, Event], Place[IO, *], Draw[IO], RecompositionReaction[IO], DownEvent],
+  widgetHandlesEvent[UpdateC[IO, Event], Place[IO, *], Draw[IO], RecompositionReaction[IO], DownEvent]
 )

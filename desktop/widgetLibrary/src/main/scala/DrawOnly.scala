@@ -1,4 +1,4 @@
-package gui4s.decktop.widget.library
+package gui4s.desktop.widget.library
 
 import cats.syntax.all.*
 import cats.{Functor, Monad}

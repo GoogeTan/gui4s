@@ -5,20 +5,20 @@ import effects.*
 import effects.Place.given
 import effects.Update.given
 
-import gui4s.decktop.widget.library.decorator.{MapEvent, mapUpdate as genericMapUpdate}
+import cats.Monad
+import gui4s.desktop.widget.library.decorator.{MapEvent, mapUpdate as genericMapUpdate}
 
-def mapEventWidget : MapEvent[DesktopWidget] =
+def mapEventWidget[IO[_] : Monad] : MapEvent[DesktopWidget[IO, *]] =
   [Event, NewEvent] => f => original =>
-    genericMapUpdate[UpdateC[Event], UpdateC[NewEvent], Place, Draw, RecompositionReaction, DownEvent](
+    genericMapUpdate[UpdateC[IO, Event], UpdateC[IO, NewEvent], PlaceC[IO], Draw[IO], RecompositionReaction[IO], DownEvent](
       original,
-      Update.mapEvents(_.map(f))
+      Update.mapEvents[IO, Event, NewEvent](f)
     )
 end mapEventWidget
 
 
-extension[Event](value : DesktopWidget[Event])
-  def mapEvent[NewEvent](f : Event => NewEvent) : DesktopWidget[NewEvent] =
+extension[IO[_] : Monad, Event](value : DesktopWidget[IO, Event])
+  def mapEvent[NewEvent](f : Event => NewEvent) : DesktopWidget[IO, NewEvent] =
     mapEventWidget(f)(value)
   end mapEvent
 end extension
-  

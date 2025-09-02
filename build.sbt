@@ -103,7 +103,7 @@ lazy val loops = (project in file("core/loops"))
   .dependsOn(catnip)
 
 lazy val desktopWidgetLibrary = (project in file("desktop/widgetLibrary"))
-  .settings(commonSettings("desktop-widget-library", s"$packagePrefix.decktop.widget.library"))
+  .settings(commonSettings("desktop-widget-library", s"$packagePrefix.desktop.widget.library"))
   .settings(libraryDependencies ++= catsLibs ++ testLibs)
   .dependsOn(catnip, widget, layout, geometry)
 
@@ -121,6 +121,7 @@ lazy val desktopCatsDevKit = (project in file("desktop/kit/cats"))
   .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit.cats"))
   .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
   .dependsOn(desktopCommonDevKit)
+  .dependsOn(catnipCatsEffect)
 
 lazy val desktopZioDevKit = (project in file("desktop/kit/zio"))
   .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit.zio"))
