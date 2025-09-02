@@ -38,10 +38,10 @@ def launchedEvent[
         case None =>
           false.pure[UpdateC[IO, Event]]
         case Some[Any](valueFound : Any) =>
-          eventFromAny(valueFound) match
-            case Some(event) =>
-              Update.emitEvents(List(event)).as(true)
-            case None =>
-              Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+          eventFromAny(valueFound).fold(
+            Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+          )(
+            event => Update.emitEvents(List(event)).as(true)
+          )
   )
 end launchedEvent

@@ -2,30 +2,30 @@ package gui4s.desktop.example.cats
 
 import catnip.ForeignFunctionInterface
 import catnip.effect.SyncForeignFunctionInterface
-import catnip.syntax.all.given
 import cats.*
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
+import gui4s.desktop.kit.*
 import gui4s.desktop.kit.cats.*
-import effects.{ApplicationRequest, DownEvent, OuterPlace}
-import effects.OuterPlace.given
-import widgets.*
+import gui4s.desktop.kit.cats.effects.OuterPlace.given
+import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, OuterPlace}
+import gui4s.desktop.kit.cats.widgets.*
+import gui4s.desktop.kit.generic.ContainerPlacementError
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 import scalacache.caffeine.CaffeineCache
 
-
 object GridExample extends IOApp:
   given ffi : ForeignFunctionInterface[IO] = SyncForeignFunctionInterface[IO]
 
   final case class PreInit(shaper : Shaper, globalTextCache : TextCache[IO])
 
-  def preInit(backend : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
+  def preInit(backend : gui4s.desktop.kit.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
     for
       shaper <- backend.skija.createShaper
       cache : TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_))
@@ -33,9 +33,7 @@ object GridExample extends IOApp:
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    desktopApp[
-      PreInit
-    ](
+    desktopApp(
       preInit = preInit,
       main = main,
       updateLoopExecutionContext = this.runtime.compute,
@@ -47,13 +45,12 @@ object GridExample extends IOApp:
         resizeable = true,
         debugContext = true
       ),
-      ffi = ffi,
     )
   end run
 
   def main(preInit : PreInit) : DesktopWidget[ApplicationRequest] =
     def gridExample[Event](numbers : List[Int]) : DesktopWidget[Event] =
-      val spaceBetween = ManyElementsPlacementStrategy.ErrorIfInfinity(
+      val spaceBetween : ManyElementsPlacementStrategy[OuterPlace, InfinityOr[Float], List, Float] = ManyElementsPlacementStrategy.ErrorIfInfinity(
         ManyElementsPlacementStrategy.SpaceBetween[OuterPlace, List, Float],
         ContainerPlacementError.English.withSpaceBetweenStrategy
       )

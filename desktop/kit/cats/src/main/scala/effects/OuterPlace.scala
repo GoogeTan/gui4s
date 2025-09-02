@@ -10,7 +10,7 @@ import gui4s.desktop.kit.effects.OuterPlace as GenericOuterPlace
 type OuterPlace[T] = GenericOuterPlace[IO, T]
 
 object OuterPlace:
-  given monadInstance[IO[_] : Monad]: MonadThrow[OuterPlace] =
+  given monadInstance: MonadThrow[OuterPlace] =
     GenericOuterPlace.monadInstance
   end monadInstance  
 

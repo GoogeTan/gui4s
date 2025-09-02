@@ -8,11 +8,13 @@ import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
-import gui4s.decktop.widget.library.decorator.Paddings
+import gui4s.desktop.kit.*
 import gui4s.desktop.kit.cats.*
-import _root_.effects.{ApplicationRequest, DownEvent, Shapes}
-import widgets.*
+import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, Shapes}
+import gui4s.desktop.kit.cats.widgets.*
+import gui4s.desktop.kit.cats.widgets.decorator.*
 import gui4s.desktop.skija.*
+import gui4s.desktop.widget.library.decorator.Paddings
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
@@ -33,7 +35,7 @@ object ImageExample extends IOApp:
                             raiseEvent : DownEvent => IO[Unit]
                           )
 
-  def preInit(backend: SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]): Resource[IO, PreInit] =
+  def preInit(backend: gui4s.desktop.kit.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]): Resource[IO, PreInit] =
     for
       dispatcher <- Dispatcher.sequential[IO]
       supervisor <- Supervisor[IO]
@@ -43,9 +45,7 @@ object ImageExample extends IOApp:
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    desktopApp[
-      PreInit
-    ](
+    desktopApp(
       preInit = preInit,
       main = main,
       updateLoopExecutionContext = this.runtime.compute,
@@ -57,7 +57,6 @@ object ImageExample extends IOApp:
         resizeable = true,
         debugContext = true
       ),
-      ffi = ffi,
     )
   end run
 
@@ -66,7 +65,6 @@ object ImageExample extends IOApp:
     given Typeable[IO[Unit]] = a => a match
       case b: IO[t] => Some(b.as(()).asInstanceOf[IO[Unit] & a.type])
       case _ => None
-
 
     def downloadImage(uri: String): IO[Image] =
       EmberClientBuilder

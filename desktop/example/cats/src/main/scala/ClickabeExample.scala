@@ -8,9 +8,11 @@ import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
+import gui4s.desktop.kit.*
 import gui4s.desktop.kit.cats.*
-import _root_.effects.{ApplicationRequest, DownEvent, UpdateC}
-import widgets.{DesktopWidget, statefulWidget, text, *}
+import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, UpdateC}
+import gui4s.desktop.kit.cats.widgets.*
+import gui4s.desktop.kit.cats.widgets.decorator.*
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
@@ -22,7 +24,7 @@ object ClickabeExample extends IOApp:
 
   final case class PreInit(shaper : Shaper, globalTextCache : TextCache[IO], mousePosition : IO[Point2d[Float]])
 
-  def preInit(backend : SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
+  def preInit(backend : gui4s.desktop.kit.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
     for
       shaper <- backend.skija.createShaper
       cache : TextCache[IO] <- Resource.eval(CaffeineCache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]).map(ScalacacheCache(_))
@@ -42,17 +44,16 @@ object ClickabeExample extends IOApp:
         resizeable = true,
         debugContext = true
       ),
-      ffi = ffi,
     )
   end run
 
 
   def main(preInit : PreInit) : DesktopWidget[ApplicationRequest] =
-    extension[Event](value : DesktopWidget[Event])
-      def onClick(event : Event) : DesktopWidget[Event] =
+    extension (value: DesktopWidget[Unit])
+      def onClick(event: Unit): DesktopWidget[Unit] =
         clickCatcher(preInit.mousePosition, event)(value)
-      end onClick
     end extension
+
     statefulWidget[Int, ApplicationRequest, Unit](
       name = "state",
       initialState = 0,

@@ -26,8 +26,8 @@ end zioScopedToResource
 def resourceToScoped[A](res: Resource[Task, A]): ZIO[Scope, Throwable, A] =
   ZIO.scoped {
     for {
-      (a, release) <- res.allocated // acquire + get финалайзер
-      _ <- ZIO.addFinalizer(release.orDie) // регистрируем финалайзер в Scope
+      (a, release) <- res.allocated 
+      _ <- ZIO.addFinalizer(release.orDie)
     } yield a
   }
 end resourceToScoped

@@ -2,18 +2,20 @@ package gui4s.desktop.kit.cats
 package widgets
 
 import effects.*
-import effects.Place.given
-import effects.Update.given
-
-import cats.effect.IO
 
 import cats.*
+import cats.effect.IO
 import cats.effect.std.Supervisor
 import cats.syntax.all.*
-import gui4s.core.widget.Path
 import gui4s.desktop.widget.library.{ResourceWidget, WithContext}
 
 import scala.reflect.Typeable
+
+@SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+given Typeable[IO[Unit]] = (x : Any) => x match {
+  case a : IO[t] => Some(a.asInstanceOf[x.type & IO[Unit]])
+  case _ => None  
+}
 
 def resource[Event](
                       supervisor : Supervisor[IO],

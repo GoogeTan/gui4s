@@ -2,7 +2,6 @@ package gui4s.desktop.kit
 package widgets
 
 import effects.*
-import effects.Place.given
 import effects.Update.given
 import widgets.*
 import widgets.decorator.*
@@ -32,7 +31,9 @@ def resource[IO[_] : MonadThrow, Event](
         launchedEvent[IO, Either[TaskEvent, Event], Unit](
           supervisor, 
           raiseExternalEvent,
-          TET.unapply.andThen(_.map(Left(_)))
+          (valueFound : Any) => valueFound match
+            case Left[Any, Any](event : TaskEvent) => Some(Left(event))
+            case _ => None
         )(
           name,
           child.mapEvent(Right(_)),
@@ -56,7 +57,7 @@ end resourceInit
 def initWidget[
   IO[_] : MonadThrow,
   Event,
-  Value
+  Value : Typeable
 ](
   supervisor: Supervisor[IO],
   raiseExternalEvent : DownEvent => IO[Unit],
