@@ -3,9 +3,10 @@ package gui4s.desktop.widget.library
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid}
+import catnip.syntax.function.andThen
 import gui4s.core.widget
 import gui4s.core.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
-import gui4s.core.widget.handle.{HandlesEventF, andThen, statefulHandlesEvent, statefulStateHandlesEvents}
+import gui4s.core.widget.handle.{HandlesEventF, statefulHandlesEvent, statefulStateHandlesEvents}
 import gui4s.core.widget.merge.{Mergable, statefulMergesWithOldStates}
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates

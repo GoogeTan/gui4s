@@ -40,10 +40,3 @@ given handlesEventFIsStrong[F[_] : Functor, Event]: Strong[[A, B] =>> HandlesEve
       fa(self._2, path, event).map(b => (self._1, b))
   end second
 end handlesEventFIsStrong
-
-extension[T, Event, NewT](value : HandlesEvent[T, Event, NewT])
-  // TODO Я не знаю, почему встроенный метод не работает, так что так
-  infix def andThen[NewNewT](f : NewT => NewNewT) : HandlesEvent[T, Event, NewNewT] =
-    (self, path, event) => f(value(self, path, event))
-  end andThen
-end extension

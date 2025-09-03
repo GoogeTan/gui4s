@@ -2,39 +2,45 @@ package gui4s.desktop.widget.library
 package decorator
 
 import decorator.Decorator
-
-import cats.Functor
+import catnip.syntax.function.andThen
+import cats.{Functor, ~>}
 import cats.syntax.all.*
 
 def placementDecorator[
   Update[_] : Functor,
-  Place[_] : Functor,
+  OldPlace[_] : Functor,
+  NewPlace[_] : Functor,
   Draw,
   RecompositionReaction,
   HandleableEvent,
 ](
-  placementShift : [T] => Place[T] => Place[T]
-) : Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]] =
-  original =>
-    placementShift(
-      original,
-    ).map(
-      placedWidget =>
-        Widget.ValueWrapper[
-          Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent],
-          Update,
-          Place,
-          Draw,
-          RecompositionReaction,
-          HandleableEvent
-        ](
-          valueToDecorate = placedWidget,
-          valueAsFree = placed => placementShift(placed.asFree),
-          valueIsDrawable = widgetIsDrawable,
-          valueHandlesEvent = widgetHandlesEvent,
-          valueMergesWithOldState = widgetMergesWithOldState,
-          valueReactsOnRecomposition = widgetReactsOnRecomposition,
-          valueHasInnerState = widgetHasInnerStates
-        )
-    )
+  placementShift : OldPlace ~> NewPlace
+)(
+  original : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]]
+) : NewPlace[Widget[Update, NewPlace, Draw, RecompositionReaction, HandleableEvent]] =
+  placementShift(
+    original,
+  ).map(
+    placedWidget =>
+      Widget.ValueWrapper[
+        Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent],
+        Update,
+        NewPlace,
+        Draw,
+        RecompositionReaction,
+        HandleableEvent
+      ](
+        valueToDecorate = placedWidget,
+        valueAsFree = placed => placementShift(placed.asFree),
+        valueIsDrawable = widgetIsDrawable,
+        valueHandlesEvent =
+          widgetHandlesEvent[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]
+            .andThen(_.map(placementShift[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]])),
+        valueMergesWithOldState =
+          widgetMergesWithOldState[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]
+            .andThen(placementShift(_)),
+        valueReactsOnRecomposition = widgetReactsOnRecomposition,
+        valueHasInnerState = widgetHasInnerStates
+      )
+  )
 end placementDecorator

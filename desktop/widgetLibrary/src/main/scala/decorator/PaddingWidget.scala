@@ -8,7 +8,7 @@ import catnip.syntax.additional.*
 import catnip.syntax.all.given
 import catnip.syntax.monad.MonadErrorT
 import cats.syntax.all.*
-import cats.{Applicative, Comonad, Functor, Id}
+import cats.{Applicative, Comonad, Functor, Id, ~>}
 import gui4s.core.geometry.*
 import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
 
@@ -23,13 +23,13 @@ def gapPaddingWidget[
   HandleableEvent,
   Padding,
 ](
-  placementDecoration : Padding => [T] => OuterPlace[InnerPlace[T]] => OuterPlace[InnerPlace[T]],
+  placementDecoration : Padding => (OuterPlace * InnerPlace) ~> (OuterPlace * InnerPlace),
   updateDecorations : Padding => Decorator[WidgetHandlesEvent[HandleableEvent, Update[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]]]],
   drawDecoration : Padding => InnerPlace[Draw] => Draw
 ): PaddingWidget[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
   given Functor[OuterPlace * InnerPlace] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]
   gapPaddingWidget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent, Padding](
-    paddings => placementDecorator[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent](placementDecoration(paddings)),
+    paddings => placementDecorator[Update, OuterPlace * InnerPlace, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent](placementDecoration(paddings)),
     paddings => updateDecorator[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent](updateDecorations(paddings)),
     paddings => drawDecorator[Update, OuterPlace, InnerPlace, Draw, RecompositionReaction, HandleableEvent](drawDecoration(paddings))
   )

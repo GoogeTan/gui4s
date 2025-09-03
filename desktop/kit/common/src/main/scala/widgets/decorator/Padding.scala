@@ -2,6 +2,7 @@ package gui4s.desktop.kit
 package common.widgets.decorator
 
 import catnip.ForeignFunctionInterface
+import catnip.syntax.functionk.given 
 import cats.Monad
 import gui4s.core.geometry.Point3d
 import gui4s.desktop.kit.common.widgets.DesktopWidget
@@ -20,8 +21,11 @@ extension[IO[_] : {Monad, ForeignFunctionInterface as ffi}, Event](value : Deskt
       DownEvent,
       Paddings[Float],
     ](
-      paddings => [T] => place =>
-        OuterPlace.withBounds(place, _.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_))),
+      paddings =>
+        asFunctionK(
+          [T] => place =>
+            OuterPlace.withBounds(place, _.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_)))
+        ),
       paddings => update => (path, event) =>
         Update.withCornerCoordinates(update(path, event), _ + new Point3d(paddings.topLeftCornerShift)),
       paddings => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),

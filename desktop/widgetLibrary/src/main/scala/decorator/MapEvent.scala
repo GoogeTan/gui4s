@@ -1,4 +1,4 @@
-package gui4s.desktop.widget.library
+  package gui4s.desktop.widget.library
 package decorator
 
 import cats.syntax.all.*

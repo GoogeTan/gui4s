@@ -9,6 +9,7 @@ object all:
   export applicative.{*, given}
   export monad.{*, given}
   export functionk.{*, given}
+  export function.{*, given}
   export zip.{*, given}
   export state.{*, given}
 end all
