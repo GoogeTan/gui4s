@@ -20,7 +20,7 @@ def rowColumnLayoutPlacement[
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   mainAxis : Axis,
   children : Container[Place[Sized[MeasurementUnit, Widget]]],
-  elementsPlacement : ManyElementsPlacementStrategy[Place, Rect[BoundUnit], Container, Point2d[MeasurementUnit]],
+  elementsPlacement : PlacementStrategy[Place, Rect[BoundUnit], Container, Point2d[MeasurementUnit]],
 ) : Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, Widget]]]] =
   for
     initialBounds <- getBounds

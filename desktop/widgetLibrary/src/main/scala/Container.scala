@@ -10,7 +10,7 @@ import gui4s.core.widget.merge.containerMergesWithOldStates
 import gui4s.core.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
 import gui4s.core.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}
 
-type ContainerWidget[PlacedWidget, Container[_], Place[_], Meta] = 
+type ContainerWidget[PlacedWidget, Container[_], Place[_], Meta] =
   (children : Container[Place[PlacedWidget]], layout : Layout[Place, Container, PlacedWidget, Meta]) => Place[PlacedWidget]
 
 def container[

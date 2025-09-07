@@ -10,7 +10,7 @@ import catnip.syntax.monad.MonadErrorT
 import cats.syntax.all.*
 import cats.{Applicative, Comonad, Functor, Id, ~>}
 import gui4s.core.geometry.*
-import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
+import gui4s.core.layout.rowcolumn.{PlacementStrategy, OneElementPlacementStrategy}
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
@@ -98,7 +98,7 @@ def paddingWidget[
     layout(       
       innerGaps(paddings.map(_.gapOrZero))(widget),
       Axis.Vertical,
-      ManyElementsPlacementStrategy.OneByOne(placementStrategy),
+      PlacementStrategy.OneByOne(placementStrategy),
       placementStrategy
     )
 end paddingWidget

@@ -5,7 +5,7 @@ import gui4s.core.widget.handle.HandlesEventF
 
 import scala.reflect.Typeable
 
-trait StatefulWidget[Widget[_], Update[Event, Value], Destructor[_]]:
+trait StatefulWidget[Widget[_], Update[Event, Value], -Destructor[_]]:
   def apply[State : Typeable, Event, ChildEvent](
                                                   name : String,
                                                   initialState : State,

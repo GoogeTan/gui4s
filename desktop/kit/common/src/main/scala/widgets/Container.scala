@@ -30,6 +30,8 @@ def container[
   )
 end container
 
+def zIndexContainer[IO[_] : {Monad, ForeignFunctionInterface}, Event] = ()
+
 def linearContainer[IO[_] : {Monad, ForeignFunctionInterface}, Event] : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     DesktopPlacedWidget[IO, Event],

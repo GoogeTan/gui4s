@@ -83,11 +83,9 @@ object ImageExample extends IOApp:
       raiseExternalEvent = preInit.raiseEvent
     )(
       name = "image",
-      imageSource = downloadImage("https://i.pinimg.com/1200x/1b/6e/8c/1b6e8c66f6d302c0c0156104a52a32be.jpg"),
-      imageWidget = image,
+      imageSource = downloadImage("https://4pda.to/s/qirtdz1qChDeJB8Bcsz2XUtscYQoC8Vfk3E2i62x51wPrcI3rKcz0Gz1z0BWwKe.png"),
+      imageWidget = data => image(data).clip(Shapes.roundedCorners(15f)),
       placeholder = text(preInit.shaper, preInit.globalTextCache)("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))),
-    ).clip(
-      Shapes.round
     ).gapPadding(
       Paddings(10f, 10f, 10f, 10f)
     )

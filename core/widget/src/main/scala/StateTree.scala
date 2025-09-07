@@ -5,7 +5,7 @@ final case class StateTree[+QuitRecompositionReaction](
                                                         state: Any,
                                                         quitCompositionReaction: QuitRecompositionReaction,
                                                         childrenStates: Map[String, StateTree[QuitRecompositionReaction]]
-                                                        ):
+                                                      ):
   def this(state : Any, quitRecompositionReaction: QuitRecompositionReaction) =
     this(state, quitRecompositionReaction, Map())
 

@@ -1,23 +1,25 @@
 package gui4s.core.layout
 package rowcolumn
 
+import catnip.Zip
 import cats.*
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.linear.*
+import scala.math.Numeric.Implicits.*
 
-type OneElementPlacementStrategy[Place[_], BoundsUnit, MeasurementUnit] = (itemLength : MeasurementUnit, bounds : BoundsUnit) => Place[Rect1dOnPoint1d[MeasurementUnit]]
+type OneElementPlacementStrategy[Place[_], BoundsUnit, MeasurementUnit] = PlacementStrategy[Place, BoundsUnit, Id, MeasurementUnit]
 
 object OneElementPlacementStrategy:
-    def Const[Place[_] : Applicative, BoundsUnit, MeasurementUnit](whereToPlace : MeasurementUnit) : OneElementPlacementStrategy[Place, BoundsUnit, MeasurementUnit] =
-        (itemLength, _) => Rect1dOnPoint1d(itemLength, whereToPlace).pure[Place]
+    def Const[Place[_] : Applicative, BoundsUnit, MeasurementUnit : Numeric](whereToPlace : MeasurementUnit) : OneElementPlacementStrategy[Place, BoundsUnit, MeasurementUnit] =
+        (itemLength, _) => ElementPlacementResult[Id, MeasurementUnit](whereToPlace + itemLength, whereToPlace).pure[Place]
     end Const
 
     def Begin[Place[_] : Applicative, BoundsUnit, MeasurementUnit : Numeric] : OneElementPlacementStrategy[Place, BoundsUnit, MeasurementUnit] =
         (itemLength, _) =>
-            Rect1dOnPoint1d(
-                coordinateOfTheBeginning = placeBegin[MeasurementUnit],
-                length = itemLength
+            ElementPlacementResult[Id, MeasurementUnit](
+                coordinatesOfStarts = placeBegin[MeasurementUnit],
+                coordinateOfEnd = itemLength
             ).pure[Place]
     end Begin
 
@@ -26,9 +28,10 @@ object OneElementPlacementStrategy:
         MeasurementUnit : Fractional,
     ] : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit] =
         (itemLength, space) =>
-            Rect1dOnPoint1d(
-                length = itemLength,
-                coordinateOfTheBeginning = placeCenter(itemLength, space)
+            val coordinatesOfStart = placeCenter(itemLength, space)
+            ElementPlacementResult[Id, MeasurementUnit](
+                coordinatesOfStarts = coordinatesOfStart,
+                coordinateOfEnd = coordinatesOfStart + itemLength
             ).pure[Place]
     end Center
 
@@ -37,9 +40,10 @@ object OneElementPlacementStrategy:
         MeasurementUnit : Numeric,
     ] : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit] =
         (itemLength, space) =>
-            Rect1dOnPoint1d(
-                length = space,
-                coordinateOfTheBeginning = placeEnd(itemLength, space)
+            val coordinatesOfStart = placeEnd(itemLength, space)
+            ElementPlacementResult[Id, MeasurementUnit](
+                coordinatesOfStarts = coordinatesOfStart,
+                coordinateOfEnd = coordinatesOfStart + itemLength
             ).pure[Place]
     end End
     
@@ -48,7 +52,7 @@ object OneElementPlacementStrategy:
         MeasurementUnit,
     ](
         original : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit],
-        ifInfinity : Place[Rect1dOnPoint1d[MeasurementUnit]],
+        ifInfinity : Place[ElementPlacementResult[Id, MeasurementUnit]],
     ) : OneElementPlacementStrategy[Place, InfinityOr[MeasurementUnit], MeasurementUnit] = {
         case (itemLength, InfinityOr(Some(space))) => original(itemLength, space)
         case _ => ifInfinity  

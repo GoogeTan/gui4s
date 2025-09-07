@@ -5,7 +5,7 @@ import catnip.syntax.additional.*
 import cats.syntax.all.*
 import cats.{Applicative, Monad, Traverse}
 import gui4s.core.geometry.{Axis, Point3d, Rect}
-import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy, rowColumnLayoutPlacement}
+import gui4s.core.layout.rowcolumn.{PlacementStrategy, OneElementPlacementStrategy, rowColumnLayoutPlacement}
 import gui4s.core.layout.{Placed, Sized}
 
 @FunctionalInterface
@@ -20,7 +20,7 @@ trait LinearContainer[
   def apply(
               children               : Container[Widget],
               mainAxis               : Axis,
-              mainAxisStrategy       : ManyElementsPlacementStrategy[Place, BoundUnit, Container, MeasurementUnit],
+              mainAxisStrategy       : PlacementStrategy[Place, BoundUnit, Container, MeasurementUnit],
               additionalAxisStrategy : OneElementPlacementStrategy[Place, BoundUnit, MeasurementUnit],
             ) : Widget
 end LinearContainer
@@ -49,10 +49,10 @@ def linearContainer[
           cut,
           mainAxis,
           freeChildren,
-          ManyElementsPlacementStrategy.Zip(
+          PlacementStrategy.Zip(
             mainAxis,
             mainAxisStrategy,
-            ManyElementsPlacementStrategy.OneByOne(
+            PlacementStrategy.OneByOne(
               additionalAxisStrategy
             )
           ),

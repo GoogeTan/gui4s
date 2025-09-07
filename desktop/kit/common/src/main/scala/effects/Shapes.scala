@@ -10,7 +10,7 @@ object Shapes:
     new Path().addOval(SkijaRect(0f, 0f, rect.width, rect.height))
   end round
 
-  def roundedCorners(rect: Rect[Float], radius: Float): Clip =
+  def roundedCorners(radius : Float)(rect: Rect[Float]): Clip =
     new Path().addRRect(SkijaRounedRect.makeLTRB(0f, 0f, rect.width, rect.height, radius))
   end roundedCorners
 end Shapes

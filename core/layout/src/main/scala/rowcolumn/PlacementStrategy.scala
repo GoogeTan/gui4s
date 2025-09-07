@@ -10,16 +10,16 @@ import gui4s.core.layout.linear.*
 
 final case class ElementPlacementResult[Container[_], Point](coordinateOfEnd : Point, coordinatesOfStarts : Container[Point])
 
-type ManyElementsPlacementStrategy[Place[_], Bounds, Container[_], Point] =
+type PlacementStrategy[Place[_], Bounds, Container[_], Point] =
     (Container[Point], Bounds) => Place[ElementPlacementResult[Container, Point]]
 
-object ManyElementsPlacementStrategy:
+object PlacementStrategy:
     def Begin[
         Place[_] : Applicative,
         Bounds,
         Container[_] : Traverse,
         MeasurementUnit : Numeric
-    ](gap : MeasurementUnit) : ManyElementsPlacementStrategy[Place, Bounds, Container, MeasurementUnit] =
+    ](gap : MeasurementUnit) : PlacementStrategy[Place, Bounds, Container, MeasurementUnit] =
         (children, _) =>
             val placedChildren = placeBeginManyWithGap(children, gap)
             val size = placedChildren.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(Numeric[MeasurementUnit].zero)
@@ -32,7 +32,7 @@ object ManyElementsPlacementStrategy:
         MeasurementUnit : Fractional as MUF,
     ](
         gap : MeasurementUnit,
-    ) : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
+    ) : PlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, placeCenterManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
     end Center
@@ -43,7 +43,7 @@ object ManyElementsPlacementStrategy:
         MeasurementUnit : Numeric
     ](
         gap : MeasurementUnit,
-    ) : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
+    ) : PlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
     end End
@@ -52,7 +52,7 @@ object ManyElementsPlacementStrategy:
         Place[_] : Applicative,
         Container[_] : {Traverse, Applicative as A, SemigroupK},
         MeasurementUnit : Fractional,
-    ] : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
+    ] : PlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning)).pure[Place]
     end SpaceAround
@@ -61,7 +61,7 @@ object ManyElementsPlacementStrategy:
         Place[_] : Applicative,
         Container[_] : Traverse,
         MeasurementUnit : Fractional,
-    ] : ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
+    ] : PlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)).pure[Place]
     end SpaceBetween
@@ -73,13 +73,13 @@ object ManyElementsPlacementStrategy:
         MeasurementUnit : Numeric as measurementUnitsAreNumbers,
     ](
         oneElementPlacementStrategy : OneElementPlacementStrategy[Place, BoundsUnit, MeasurementUnit],
-    ) : ManyElementsPlacementStrategy[Place, BoundsUnit, Container, MeasurementUnit] =
+    ) : PlacementStrategy[Place, BoundsUnit, Container, MeasurementUnit] =
         (elements, bounds) =>
             elements.traverse(oneElementPlacementStrategy(_, bounds)).map(
                 placedElements =>
                     ElementPlacementResult(
-                        placedElements.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero),
-                        placedElements.map(_.coordinateOfTheBeginning),
+                        placedElements.map(_.coordinateOfEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero),
+                        placedElements.map(_.coordinatesOfStarts),
                     )
             )
     end OneByOne
@@ -91,9 +91,9 @@ object ManyElementsPlacementStrategy:
         MeasurementUnit,
     ](
         axis : Axis,
-        mainAxis : ManyElementsPlacementStrategy[Place, BoundsUnit, Container, MeasurementUnit],
-        crossAxis : ManyElementsPlacementStrategy[Place, BoundsUnit, Container, MeasurementUnit],
-    ) : ManyElementsPlacementStrategy[Place, Rect[BoundsUnit], Container, Point2d[MeasurementUnit]] =
+        mainAxis : PlacementStrategy[Place, BoundsUnit, Container, MeasurementUnit],
+        crossAxis : PlacementStrategy[Place, BoundsUnit, Container, MeasurementUnit],
+    ) : PlacementStrategy[Place, Rect[BoundsUnit], Container, Point2d[MeasurementUnit]] =
         (elements, bounds) =>
             Applicative[Place].map2(
                 mainAxis(elements.map(_.along(axis)), bounds.along(axis)),
@@ -116,9 +116,9 @@ object ManyElementsPlacementStrategy:
         Container[_],
         MeasurementUnit,
     ](
-        original: ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit],
+        original: PlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit],
         ifInfinity: Place[ElementPlacementResult[Container, MeasurementUnit]],
-    ): ManyElementsPlacementStrategy[Place, InfinityOr[MeasurementUnit], Container, MeasurementUnit] = {
+    ): PlacementStrategy[Place, InfinityOr[MeasurementUnit], Container, MeasurementUnit] = {
         case (itemLength, InfinityOr(Some(space))) => original(itemLength, space)
         case _ => ifInfinity
     }
@@ -131,9 +131,9 @@ object ManyElementsPlacementStrategy:
     ](
         using M: MonadError[Place, Error]
     )(
-        original: ManyElementsPlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit],
+        original: PlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit],
         error: Error
-    ): ManyElementsPlacementStrategy[Place, InfinityOr[MeasurementUnit], Container, MeasurementUnit] =
+    ): PlacementStrategy[Place, InfinityOr[MeasurementUnit], Container, MeasurementUnit] =
         MaybeInInfiniteSpace(original, M.raiseError(error))
     end ErrorIfInfinity
-end ManyElementsPlacementStrategy
+end PlacementStrategy
