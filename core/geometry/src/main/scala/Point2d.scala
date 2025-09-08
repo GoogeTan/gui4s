@@ -28,6 +28,10 @@ final case class Point2d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
       case Axis.Horizontal => x
     end match
   end along
+
+  def toRect : Rect[MeasurementUnit] =
+     Rect(x, y)
+  end toRect  
 end Point2d
 
 object Point2d:

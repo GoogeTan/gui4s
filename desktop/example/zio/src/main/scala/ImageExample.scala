@@ -3,7 +3,7 @@ package gui4s.desktop.example.zio
 import catnip.ForeignFunctionInterface
 import catnip.zio.*
 import gui4s.core.geometry.*
-import gui4s.desktop.kit.common.SkijaBackend
+import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.zio.*
 import gui4s.desktop.kit.zio.effects.*
 import gui4s.desktop.kit.zio.widgets.*

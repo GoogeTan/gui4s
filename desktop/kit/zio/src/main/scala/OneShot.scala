@@ -10,7 +10,7 @@ import java.util.concurrent.locks.{Condition, ReentrantLock}
  */
 @SuppressWarnings(Array("org.wartremover.warts.All"))
 final class OneShot[A] private () extends ReentrantLock(false) {
-  @volatile private var value                 = null.asInstanceOf[A with AnyRef]
+  @volatile private var value                 = null.asInstanceOf[A & AnyRef]
   private final val isSetCondition: Condition = this.newCondition()
 
   /**
@@ -25,7 +25,7 @@ final class OneShot[A] private () extends ReentrantLock(false) {
     try {
       if (value ne null) throw new Error("Defect: OneShot variable being set twice")
 
-      value = v.asInstanceOf[A with AnyRef]
+      value = v.asInstanceOf[A & AnyRef]
 
       this.isSetCondition.signalAll()
     } finally {

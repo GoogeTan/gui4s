@@ -5,8 +5,8 @@ import catnip.zio.*
 import cats.MonadThrow
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
-import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
-import gui4s.desktop.kit.common.SkijaBackend
+import gui4s.core.layout.rowcolumn.*
+import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.generic.ContainerPlacementError
 import gui4s.desktop.kit.zio.*
 import gui4s.desktop.kit.zio.effects.{*, given}
@@ -40,8 +40,8 @@ object GridExample extends Gui4sZioApp:
     @SuppressWarnings(Array("org.wartremover.warts.Any"))
     def gridExample[Event](numbers: List[Int]): DesktopWidget[Event] =
       given MonadThrow[OuterPlace] = OuterPlace.monadInstance[Task]
-      val spaceBetween : ManyElementsPlacementStrategy[OuterPlace, InfinityOr[Float], List, Float] = ManyElementsPlacementStrategy.ErrorIfInfinity(
-        ManyElementsPlacementStrategy.SpaceBetween[OuterPlace, List, Float],
+      val spaceBetween : PlacementStrategy[OuterPlace, InfinityOr[Float], List, Float] = PlacementStrategy.ErrorIfInfinity(
+        PlacementStrategy.SpaceBetween[OuterPlace, List, Float],
         ContainerPlacementError.English.withSpaceBetweenStrategy
       )
       val begin = OneElementPlacementStrategy.Begin[OuterPlace, InfinityOr[Float], Float]

@@ -29,7 +29,7 @@ def rowColumnLayoutPlacement[
       children,
     )
     _ <- setBounds(initialBounds)
-    placedItems <- elementsPlacement(sizedItems.map(_.size.asPoint2d), initialBounds)
+    placedItems <- elementsPlacement(sizedItems.map(_.size.toPoint2d), initialBounds)
   yield Sized(
     sizedItems.zip(placedItems.coordinatesOfStarts).map(new Placed(_, _, MUN.zero)),
     new Rect(placedItems.coordinateOfEnd)

@@ -6,7 +6,7 @@ import common.effects.Place.given
 
 import catnip.ForeignFunctionInterface
 import catnip.syntax.applicative.given
-import catnip.syntax.list.orderedListProcessing
+import catnip.syntax.list.traverseListOrdered
 import catnip.syntax.zip.given
 import cats.*
 import cats.data.*
@@ -40,7 +40,7 @@ def linearContainer[IO[_] : {Monad, ForeignFunctionInterface}, Event] : LinearCo
     InfinityOr[Float],
     Float,
   ](
-    container = container([A : Order, B] => v => f => orderedListProcessing(v)(f)),
+    container = container([A : Order, B] => v => f => traverseListOrdered(v)(f)),
     getBounds = OuterPlace.getBounds,
     setBounds = OuterPlace.setBounds,
     cut = _.minus(_)

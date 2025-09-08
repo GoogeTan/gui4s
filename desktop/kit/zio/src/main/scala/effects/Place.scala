@@ -9,8 +9,9 @@ import catnip.{ForeignFunctionInterface, MapKCache}
 import cats.data.EitherT
 import cats.effect.IO
 import cats.{Functor, Monad, MonadThrow, ~>}
-import gui4s.desktop.kit.common.effects.Place.given
 import gui4s.core.widget.Path
+import gui4s.desktop.kit.common.*
+import gui4s.desktop.kit.common.effects.Place.given
 import gui4s.desktop.kit.common.effects.Place as GenericPlace
 import io.github.humbleui.skija.shaper.Shaper
 

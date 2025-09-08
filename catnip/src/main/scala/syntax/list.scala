@@ -16,7 +16,7 @@ object list:
    * @param list Список для обработки
    * @param f    Обработчик списка. Должен вернуть список той же длины, что и исходный
    */
-  def orderedListProcessing[F[_] : Functor, C[_] : {Applicative as A, Traverse, SemigroupK}, A : Order, B](list: C[A])(f: C[A] => F[C[B]]): F[C[B]] =
+  def traverseListOrdered[F[_] : Functor, C[_] : {Applicative as A, Traverse, SemigroupK}, A : Order, B](list: C[A])(f: C[A] => F[C[B]]): F[C[B]] =
     NonEmptyList.fromList(list.toList) match
       case Some(value) =>
         val indexed = value.zipWithIndex.sortBy((value, _) => value)
@@ -31,7 +31,7 @@ object list:
         )
       case None => 
         f(list)
-  end orderedListProcessing
+  end traverseListOrdered
   
   def traverseUntil[F[_] : Monad, G[_] : Traverse, A, B](original : G[A], main : A => F[(Boolean, B)], afterAll : A => F[B]) : F[G[B]] =
     original.traverse[[Value] =>> StateT[F, Boolean, Value], B](

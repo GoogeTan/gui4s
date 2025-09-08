@@ -33,7 +33,7 @@ def containerHandlesEvent[
 end containerHandlesEvent
 
 def childrenHandleEvent[
-  C[_] : Traverse,
+  Container[_] : Traverse,
   Update[_] : Monad as UM,
   Place[_] : Functor,
   Widget,
@@ -44,9 +44,9 @@ def childrenHandleEvent[
     widgetAsFree : AsFree[Widget, Place[Widget]],
     isEventConsumed : Update[Boolean],
     adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
-    updateListOrdered : [A : Order, B] => (list: C[A]) => (f: C[A] => Update[C[B]]) => Update[C[B]]
-) : HandlesEvent[C[(Widget, Meta)], HandlableEvent, Update[C[Place[Widget]]]] =
-  def updateChildren(children: C[(Widget, Meta)], pathToParent: Path, event: HandlableEvent): Update[C[Place[Widget]]] =
+    traverseContainerOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => Update[Container[B]]) => Update[Container[B]]
+) : HandlesEvent[Container[(Widget, Meta)], HandlableEvent, Update[Container[Place[Widget]]]] =
+  def updateChildren(children: Container[(Widget, Meta)], pathToParent: Path, event: HandlableEvent): Update[Container[Place[Widget]]] =
     traverseUntil(
       original = children,
       main = (currentChild, currentMeta) => UM.product(
@@ -57,9 +57,9 @@ def childrenHandleEvent[
     )
   end updateChildren
 
-  def updateChildrenOrdered(children : C[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[C[Place[Widget]]] =
+  def updateChildrenOrdered(children : Container[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[Container[Place[Widget]]] =
     given Order[(Widget, Meta)] = Order.by(_._2)
-    updateListOrdered(children)(
+    traverseContainerOrdered(children)(
       orderedChildren => updateChildren(orderedChildren, pathToParent, event)
     )
   end updateChildrenOrdered

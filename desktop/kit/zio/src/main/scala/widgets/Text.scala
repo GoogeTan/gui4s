@@ -4,6 +4,7 @@ package widgets
 import effects.{*, given}
 
 import gui4s.desktop.kit.common.widgets.{TextWidget, text}
+import gui4s.desktop.kit.common.*
 import io.github.humbleui.skija.shaper.Shaper
 import zio.*
 import zio.interop.catz.*

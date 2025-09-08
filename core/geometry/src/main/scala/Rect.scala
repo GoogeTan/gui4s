@@ -44,9 +44,9 @@ final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : Measur
     Rect(cut(this.width, width), cut(this.height, height))
   end cut
 
-  def asPoint2d : Point2d[MeasurementUnit] =
+  def toPoint2d : Point2d[MeasurementUnit] =
     Point2d(width, height)
-  end asPoint2d
+  end toPoint2d
 end Rect
 
 extension[MeasurementUnit : Numeric](value : Rect[MeasurementUnit])

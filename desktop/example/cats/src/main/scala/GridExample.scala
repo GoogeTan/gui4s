@@ -7,7 +7,7 @@ import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
-import gui4s.core.layout.rowcolumn.{ManyElementsPlacementStrategy, OneElementPlacementStrategy}
+import gui4s.core.layout.rowcolumn.*
 import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.OuterPlace.given
@@ -49,8 +49,8 @@ object GridExample extends IOApp:
 
   def main(preInit : PreInit) : DesktopWidget[ApplicationRequest] =
     def gridExample[Event](numbers : List[Int]) : DesktopWidget[Event] =
-      val spaceBetween : ManyElementsPlacementStrategy[OuterPlace, InfinityOr[Float], List, Float] = ManyElementsPlacementStrategy.ErrorIfInfinity(
-        ManyElementsPlacementStrategy.SpaceBetween[OuterPlace, List, Float],
+      val spaceBetween : PlacementStrategy[OuterPlace, InfinityOr[Float], List, Float] = PlacementStrategy.ErrorIfInfinity(
+        PlacementStrategy.SpaceBetween[OuterPlace, List, Float],
         ContainerPlacementError.English.withSpaceBetweenStrategy
       )
       val begin = OneElementPlacementStrategy.Begin[OuterPlace, InfinityOr[Float], Float]
