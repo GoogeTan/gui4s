@@ -64,12 +64,12 @@ object SkijaBackend:
     settings : WindowCreationSettings[Float],
     ffi: ForeignFunctionInterface[F],
     callbacks : GlfwCallbacks[F[Unit], Float],
+    unsafeRunF : F[Unit] => Unit
   ): Resource[F, SkijaBackend[F, Long, OglGlfwWindow, DownEvent]] =
     for
       skija <- Resource.eval(SkijaInitImpl(ffi))
-      dispatcher <- Dispatcher.sequential[F]
-      glfw: Glfw[F, Long, OglGlfwWindow] <- GlfwImpl[F](dispatcher)(using ffi)
-      given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(ffi, dispatcher.unsafeRunAndForget)
+      glfw: Glfw[F, Long, OglGlfwWindow] <- GlfwImpl[F]()(using ffi)
+      given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(ffi, unsafeRunF)
       res <- create(queue, glfw, skija, settings, callbacks)
     yield res
   end create
@@ -132,6 +132,7 @@ object SkijaBackend:
                                           newSize : Rect[Float]
                                         ): F[Unit] =
     cell.evalUpdate(state =>
+      println("It works!")
       skija.createRenderTarget(state.directContext, newSize.width, newSize.height)
     )
   end recreateRenderTarget

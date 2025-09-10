@@ -35,7 +35,7 @@ object ImageExample extends Gui4sZioApp:
 
   override val settings: WindowCreationSettings[Float] = WindowCreationSettings(
     title = "Gui4s image widget example",
-    size = Rect(620f, 480f),
+    size = Rect(620f, 200f),
     visible = true,
     resizeable = true,
     debugContext = true

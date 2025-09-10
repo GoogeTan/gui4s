@@ -101,7 +101,7 @@ final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends 
 end GlfwImpl
 
 object GlfwImpl:
-  def apply[F[_] : {ForeignFunctionInterface, Sync}](run : [A] => F[A] => A) : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : {ForeignFunctionInterface, Sync}]() : Resource[F, GlfwImpl[F]] =
     Resource.make(
       {
         val res = new GlfwImpl[F]()
@@ -110,14 +110,6 @@ object GlfwImpl:
     )(_.terminate).flatMap(impl =>
       impl.createPrintErrorCallback.as(impl)
     )
-  end apply
-  
-  def apply[F[_] : {ForeignFunctionInterface, Sync}](dispatcher : Dispatcher[F]) : Resource[F, GlfwImpl[F]] =
-    GlfwImpl[F]([A] => (effect : F[A]) => dispatcher.unsafeRunSync(effect))
-  end apply
-  
-  def apply[F[_] : {ForeignFunctionInterface, Async}]() : Resource[F, GlfwImpl[F]] =
-    Dispatcher.sequential[F].flatMap(GlfwImpl[F](_))
   end apply
 end GlfwImpl
 

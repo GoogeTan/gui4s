@@ -3,6 +3,7 @@ package gui4s.desktop.example.cats
 import catnip.ForeignFunctionInterface
 import catnip.effect.SyncForeignFunctionInterface
 import cats.*
+import cats.effect.std.Dispatcher
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
@@ -32,18 +33,22 @@ object GridExample extends IOApp:
   end preInit
 
   override def run(args: List[String]): IO[ExitCode] =
-    desktopApp(
-      preInit = preInit,
-      main = main,
-      updateLoopExecutionContext = this.runtime.compute,
-      drawLoopExecutionContext = MainThread,
-      settings = WindowCreationSettings(
-        title = "Gui4s nested containers example",
-        size = Rect(620f, 480f),
-        visible = true,
-        resizeable = true,
-        debugContext = true
-      ),
+    Dispatcher.sequential[IO].use(
+      dispatcher =>
+        desktopApp(
+          preInit = preInit,
+          main = main,
+          updateLoopExecutionContext = this.runtime.compute,
+          drawLoopExecutionContext = MainThread,
+          settings = WindowCreationSettings(
+            title = "Gui4s nested containers example",
+            size = Rect(620f, 480f),
+            visible = true,
+            resizeable = true,
+            debugContext = true
+          ),
+          unsafeRunF = dispatcher.unsafeRunAndForget
+        )
     )
   end run
 

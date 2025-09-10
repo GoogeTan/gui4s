@@ -26,7 +26,19 @@ trait Gui4sZioApp extends MainThreadApp:
       main,
       MainThreadApp.mainThread,
       ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(10)),
-      settings
+      settings,
+      valueToRun =>
+        Unsafe.unsafe { u =>
+          given u.type = u
+          Runtime.default.unsafe.run[Throwable, Unit](valueToRun) match
+            case Exit.Success(zioResult) =>
+              ()
+            case Exit.Failure(cause) =>
+              cause.defects.foreach { defect =>
+                defect.printStackTrace()
+              }
+              sys.exit(1)
+        }
     ).map(_.toZIO)
   end run
   

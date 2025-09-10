@@ -27,6 +27,7 @@ def desktopApp[
   drawLoopExecutionContext : ExecutionContext,
   updateLoopExecutionContext : ExecutionContext,
   settings : WindowCreationSettings[Float],
+  unsafeRunF : IO[Unit] => Unit,
 ) : IO[ExitCode] =
   gui4sApp[
     IO,
@@ -46,7 +47,8 @@ def desktopApp[
             queue,
             settings,
             ffi,
-            DownEvent.eventOfferingCallbacks(queue.offer)
+            DownEvent.eventOfferingCallbacks(queue.offer),
+            unsafeRunF
           )
         preInit <- preInit(backend)
       yield (preInit, backend),
