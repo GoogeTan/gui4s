@@ -5,6 +5,7 @@ import catnip.BiMonad
 import catnip.syntax.transformer.{*, given}
 import catnip.transformer.*
 import cats.*
+import cats.data.*
 import cats.kernel.Monoid
 
 type UpdateTransformer[State, Events, Error] =
@@ -69,12 +70,12 @@ object Update:
   def run[
     IO[_] : Monad,
     State,
-    Events,
+    Events : Monoid,
     Error
   ](
     initialState : State,
   ) : [T] => UpdateTransformer[State, Events, Error][IO, T] => IO[Either[Error, (Events, (State,  T))]] =
-    [T] => update =>
+    [T] => (update : StateT[WriterT[EitherT[IO, Error, *], Events, *], State, T]) =>
       update.run(initialState).run.value
   end run
 

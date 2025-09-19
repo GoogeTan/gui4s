@@ -17,7 +17,7 @@ def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.3"
 def fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.0")
 
 val zioLibs = List(
- "dev.zio" %% "zio" % "2.1.20",
+ "dev.zio" %% "zio" % "2.1.21",
  "dev.zio" %% "zio-interop-cats" % "23.1.0.5"
 )
 
@@ -65,12 +65,7 @@ val geometry = (project in file("core/geometry"))
 
 val catnip = (project in file("catnip"))
   .settings(commonSettings("catnip", "catnip"))
-  .settings(libraryDependencies ++= catsLibs ++ testLibs)
-
-val catnipCatsEffect = (project in file("catnip-cats-effect"))
-  .settings(commonSettings("catnip-cats-effect", "catnip.effect"))
   .settings(libraryDependencies ++= catsEffectLibs ++ testLibs)
-  .dependsOn(catnip)
 
 val catnipZio = (project in file("catnip-zio"))
   .settings(commonSettings("catnip-zio", "catnip.zio"))
@@ -90,7 +85,7 @@ lazy val widget = (project in file("core/widget"))
 lazy val glfw = (project in file("glfw"))
   .settings(commonSettings("glfw", s"$packagePrefix.glfw"))
   .settings(libraryDependencies ++= catsEffectLibs ++ testLibs ++ glfwLibs)
-  .dependsOn(catnip, catnipCatsEffect, geometry)// TODO Может стоит убрать кетс эффект.
+  .dependsOn(catnip, geometry)// TODO Может стоит убрать кетс эффект.
 
 lazy val desktopSkijaBindings = (project in file("desktop/skija"))
   .settings(commonSettings("desktop-skija-bindings", s"$packagePrefix.desktop.skija"))
@@ -123,8 +118,7 @@ lazy val desktopCommonDevKit = (project in file("desktop/kit/common"))
 lazy val desktopCatsDevKit = (project in file("desktop/kit/cats"))
   .settings(commonSettings("desktop-kit-cats", s"$packagePrefix.desktop.kit.cats"))
   .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
-  .dependsOn(desktopCommonDevKit)
-  .dependsOn(catnipCatsEffect)
+  .dependsOn(desktopCommonDevKit, catnip)
 
 lazy val desktopZioDevKit = (project in file("desktop/kit/zio"))
   .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit.zio"))

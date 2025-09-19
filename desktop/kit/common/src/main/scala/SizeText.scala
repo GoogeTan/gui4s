@@ -2,8 +2,9 @@ package gui4s.desktop.kit
 package common
 
 import catnip.syntax.all.*
-import catnip.{Cache, ForeignFunctionInterface}
+import catnip.Cache
 import cats.Monad
+import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import gui4s.core.layout.{Sized, SizedT}
 import gui4s.desktop.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
@@ -13,10 +14,9 @@ type SizeText[Place[_]] = (text: String, options: SkijaTextStyle) => Place[Skija
 type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
 
 def sizeTextFFI[
-  OuterPlace[_] : Monad
+  OuterPlace[_] : Sync
 ](
   getAvailablePlace : OuterPlace[Option[Float]],
-  ffi : ForeignFunctionInterface[OuterPlace],
   shaper: Shaper,
   cache : TextCache[OuterPlace],
 ) : SizeText[OuterPlace * SizedT[Float]] =
@@ -25,7 +25,7 @@ def sizeTextFFI[
       bounds =>
         cache.getOrPut(
           (text, options, bounds),
-          placeText(ffi = ffi,
+          placeText(
             shaper = shaper,
             text = text,
             style = options,

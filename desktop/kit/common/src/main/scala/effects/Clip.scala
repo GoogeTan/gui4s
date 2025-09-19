@@ -1,8 +1,9 @@
 package gui4s.desktop.kit
 package common.effects
 
-import catnip.ForeignFunctionInterface
+import Draw.given
 import cats.Monad
+import cats.effect.kernel.Sync
 import cats.kernel.Monoid
 import gui4s.core.geometry.Point3d
 import gui4s.desktop.skija.canvas.withClipedPath
@@ -30,7 +31,7 @@ object Clip:
     )
   end moveClipToPoint
 
-  def drawClipped[IO[_] : {Monad, ForeignFunctionInterface as ffi}](path: Clip, original: Draw[IO]): Draw[IO] =
+  def drawClipped[IO[_] : Sync](path: Clip, original: Draw[IO]): Draw[IO] =
     withClipedPath(path, original)
   end drawClipped
 end Clip

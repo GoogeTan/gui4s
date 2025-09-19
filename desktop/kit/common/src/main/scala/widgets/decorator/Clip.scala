@@ -5,13 +5,13 @@ import common.effects.*
 import common.effects.Clip.given 
 import common.widgets.DesktopWidget
 
-import catnip.ForeignFunctionInterface
 import cats.Monad
 import cats.syntax.all.*
 import gui4s.core.geometry.Rect
 import gui4s.desktop.widget.library.decorator.clipWidget
+import cats.effect.Sync
 
-extension[IO[_] : {Monad, ForeignFunctionInterface as ffi}, Event](value : DesktopWidget[IO, Event])
+extension[IO[_] : Sync, Event](value : DesktopWidget[IO, Event])
   def clip(path : Rect[Float] => Clip) : DesktopWidget[IO, Event] =
     clipWidget[
       UpdateC[IO, Event],

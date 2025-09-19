@@ -29,10 +29,4 @@ object monad:
       FM.flatTap(value)(f)
     end >>!
   end extension
-
-  extension [F[_] : FlatMap as FM, A](value: Resource[F, A])
-    def >>![B](f: A => F[B]): F[A] =
-      value.evalTap(f)
-    end >>!
-  end extension
 end monad

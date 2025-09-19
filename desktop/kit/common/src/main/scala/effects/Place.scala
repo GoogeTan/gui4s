@@ -6,12 +6,13 @@ import common.effects.OuterPlace.given
 import common.*
 
 import catnip.syntax.applicative.nestedFunctorsAreFunctors
-import catnip.{ForeignFunctionInterface, MapKCache}
+import catnip.MapKCache
 import cats.data.EitherT
 import cats.{Functor, Monad, MonadThrow, ~>}
 import gui4s.core.kit.effects.Place as GenericPlace
 import gui4s.core.widget.Path
 import io.github.humbleui.skija.shaper.Shaper
+import cats.effect.Sync
 
 import scala.reflect.Typeable
 
@@ -27,13 +28,12 @@ object Place:
     end new
   end run
   
-  def sizeText[IO[_] : {Monad, ForeignFunctionInterface as ffi}](
+  def sizeText[IO[_] : Sync](
     shaper : Shaper,
     cache : TextCache[IO],
   ) : SizeText[Place[IO, *]] =
     sizeTextFFI[OuterPlace[IO, *]](
       OuterPlace.getBounds.map(_.width.value),
-      ffi.mapK(OuterPlace.liftK),
       shaper,
       MapKCache(cache, OuterPlace.liftK),
     )

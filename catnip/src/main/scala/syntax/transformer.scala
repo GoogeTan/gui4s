@@ -1,11 +1,9 @@
 package catnip
 package syntax
 
-import syntax.state.given
-
 import catnip.transformer.*
 import cats.*
-import cats.data.{StateT, *}
+import cats.data.*
 import cats.syntax.all.*
 
 object transformer:
@@ -28,30 +26,6 @@ object transformer:
       ) 
     end handleErrorWith
   end monadErrorInstanceForTransformer
-  
-  given stateTInstance[S]: MonadTransformer[StateTransformer[S]] with
-    override def liftK[G[_] : Monad]: G ~> MyStateT[G, S, *] =
-      MyStateT.liftK[G, S]
-    end liftK
-
-    override def liftFunctionK[G[_] : Monad, K[_] : Monad](f: G ~> K): MyStateT[G, S, *] ~> MyStateT[K, S, *] =
-      MyStateT.liftFunctionK(f)
-    end liftFunctionK
-
-    override def innerTransform[G[_] : Monad as GM, K[_] : Monad as KM, A, B](original: MyStateT[G, S, A], f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]): MyStateT[K, S, B] =
-      MyStateT(state =>
-        given Monoid[S] with
-          override def empty: S = state
-          override def combine(x: S, y: S): S = state
-        end given
-        KM.map(
-          f[Writer[S, *]](GM.map(original.run(state))(Writer(_, _)))
-        )(_.run)
-      )
-    end innerTransform
-
-    override def monadInstance[IO[_] : Monad]: Monad[MyStateT[IO, S, *]] = summon
-  end stateTInstance
 
   given stateT2Instance[S]: MonadTransformer[[IO[_], T] =>> StateT[IO, S, T]] with
     override def liftK[G[_] : Monad]: G ~> StateT[G, S, *] =
@@ -59,7 +33,12 @@ object transformer:
     end liftK
 
     override def liftFunctionK[G[_] : Monad, K[_] : Monad](f: G ~> K): StateT[G, S, *] ~> StateT[K, S, *] =
-      StateT.lift(f)
+      new (StateT[G, S, *] ~> StateT[K, S, *]):
+        override def apply[A](fa: StateT[G, S, A]): StateT[K, S, A] =
+          StateT[K, S, A](
+            state =>
+              f(fa.run(state))
+          )
     end liftFunctionK
 
     override def innerTransform[G[_] : Monad as GM, K[_] : Monad as KM, A, B](original: StateT[G, S, A], f: [Inner[_] : Applicative] => G[Inner[A]] => K[Inner[B]]): StateT[K, S, B] =
@@ -75,7 +54,7 @@ object transformer:
       )
     end innerTransform
 
-    override def monadInstance[IO[_] : Monad]: Monad[MyStateT[IO, S, *]] = summon
+    override def monadInstance[IO[_] : Monad]: Monad[StateT[IO, S, *]] = summon
   end stateT2Instance
 
   given readerTInstance[C]: MonadTransformer[ReaderTransformer[C]] with

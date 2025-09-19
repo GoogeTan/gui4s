@@ -5,12 +5,11 @@ object all:
   export additional.{*, given}
   export list.{*, given}
   export typeable.{*, given}
-  export fail.{*, given}
   export applicative.{*, given}
   export monad.{*, given}
   export functionk.{*, given}
   export function.{*, given}
   export zip.{*, given}
-  export state.{*, given}
+  export resource.{*, given}
 end all
 

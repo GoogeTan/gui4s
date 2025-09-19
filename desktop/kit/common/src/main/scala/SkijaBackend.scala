@@ -1,7 +1,6 @@
 package gui4s.desktop.kit
 package common
 
-import catnip.ForeignFunctionInterface
 import catnip.syntax.all.given
 import cats.effect.*
 import cats.effect.std.{AtomicCell, Dispatcher, QueueSink}
@@ -9,6 +8,7 @@ import cats.syntax.all.*
 import cats.{Apply, Functor, Monad, Monoid}
 import gui4s.core.geometry.{Point2d, Rect}
 import gui4s.desktop.skija.*
+import gui4s.desktop.skija.DirectContext.flush
 import gui4s.glfw.*
 import gui4s.glfw.GlfwWindow.*
 import io.github.humbleui.skija.Canvas
@@ -27,7 +27,7 @@ final case class SkijaBackend[
 )(
   using val windowIsGlfwWindow : GlfwWindow[IO, Window, Monitor, Float]
 ):
-  def windowBounds(using Functor[IO]) : IO[Rect[Float]] =
+  def windowBounds : IO[Rect[Float]] =
     window.frameBufferSize
   end windowBounds
 
@@ -35,16 +35,16 @@ final case class SkijaBackend[
     window.currentMousePosition
   end mousePosition
 
-  def windowShouldNotClose(using M : Monad[IO]) : IO[Boolean] =
+  def windowShouldNotClose(using Functor[IO]) : IO[Boolean] =
     window.shouldNotClose
   end windowShouldNotClose
 
-  def drawFrame[T](using M : Monad[IO])(ffi : ForeignFunctionInterface[IO], f : Canvas => IO[T]) : IO[T] =
+  def drawFrame[T](using Sync[IO])(f : Canvas => IO[T]) : IO[T] =
     renderTargetCell.evalModify(
       renderTarget =>
         f(renderTarget.canvas)
           .map(result => (renderTarget, result))
-          <* ffi(renderTarget.directContext.flush())
+          <* flush(renderTarget.directContext)
           <* window.swapBuffers
           <* glfw.pollEvents
     )
@@ -62,14 +62,13 @@ object SkijaBackend:
   ](
     queue : QueueSink[F, DownEvent],
     settings : WindowCreationSettings[Float],
-    ffi: ForeignFunctionInterface[F],
     callbacks : GlfwCallbacks[F[Unit], Float],
     unsafeRunF : F[Unit] => Unit
   ): Resource[F, SkijaBackend[F, Long, OglGlfwWindow, DownEvent]] =
     for
-      skija <- Resource.eval(SkijaInitImpl(ffi))
-      glfw: Glfw[F, Long, OglGlfwWindow] <- GlfwImpl[F]()(using ffi)
-      given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(ffi, unsafeRunF)
+      skija <- Resource.pure(SkijaInitImpl())
+      glfw: Glfw[F, Long, OglGlfwWindow] <- GlfwImpl[F]()
+      given GlfwWindow[F, OglGlfwWindow, Long, Float] = OglWindowIsGlfwWindow(unsafeRunF)
       res <- create(queue, glfw, skija, settings, callbacks)
     yield res
   end create

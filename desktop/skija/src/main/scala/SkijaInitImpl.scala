@@ -1,6 +1,5 @@
 package gui4s.desktop.skija
 
-import catnip.ForeignFunctionInterface
 import cats.effect.{Async, Resource, Sync}
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 import cats.syntax.all.*
@@ -8,12 +7,11 @@ import io.github.humbleui.skija.shaper.Shaper
 
 /** Реализация интерфейса для работы с Skija.
  * @tparam F Эффект, в котором выполняются операции
- * @param ffi Оборачивает грязные эффекты. Должен гарантировать исполнение кода на том же поткое, где и был создан контекст OGL(вероятно, первый(на mac os только первый))
  */
-final class SkijaInitImpl[F[_]: Async](ffi : ForeignFunctionInterface[F]) extends SkijaInit[F]:
+final class SkijaInitImpl[F[_]: Async as S] extends SkijaInit[F]:
   override def createDirectContext: Resource[F, DirectContext] =
     Resource.fromAutoCloseable(
-      ffi.delay(DirectContext.makeGL())
+      S.delay(DirectContext.makeGL())
     )
   end createDirectContext
 
@@ -51,7 +49,7 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeignFunctionInterface[F]) extend
                               props: Option[SurfaceProps]
                             ): Resource[F, Surface] =
     Resource.fromAutoCloseable(
-      ffi.delay(
+      S.delay(
         Surface.wrapBackendRenderTarget(
           context,
           target,
@@ -65,7 +63,7 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeignFunctionInterface[F]) extend
   end createSurface
 
   override def getCanvas(surface: Surface): F[Canvas] =
-    ffi(surface.getCanvas)
+    S.delay(surface.getCanvas)
   end getCanvas
 
   override def createGLRenderTarget(
@@ -77,7 +75,7 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeignFunctionInterface[F]) extend
                                       fbFormat: Int
                                     ): Resource[F, BackendRenderTarget] =
     Resource.fromAutoCloseable(
-      ffi.delay:
+      S.delay:
         BackendRenderTarget.makeGL(
           width, height,
           samples,
@@ -89,18 +87,13 @@ final class SkijaInitImpl[F[_]: Async](ffi : ForeignFunctionInterface[F]) extend
   end createGLRenderTarget
 
   def closeRenderTarget(target: SkiaRenderTarget): F[Unit] =
-    ffi.delay:
+    S.delay:
       target.target.close()
       target.surface.close()
   end closeRenderTarget
 
   override def createShaper: Resource[F, Shaper] =
-    Resource.fromAutoCloseable(ffi.delay(Shaper.make()))
+    Resource.fromAutoCloseable(S.delay(Shaper.make()))
   end createShaper
 end SkijaInitImpl
 
-object SkijaInitImpl:
-  def apply[F[_]: Async](impure : ForeignFunctionInterface[F]): F[SkijaInitImpl[F]] =
-    Sync[F].delay(new SkijaInitImpl[F](impure))
-  end apply
-end SkijaInitImpl

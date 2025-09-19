@@ -3,18 +3,19 @@ package common.widgets
 
 import common.effects.*
 import common.effects.Place.given
-
-import catnip.ForeignFunctionInterface
+import common.effects.Draw.given
 import cats.*
+import cats.data.ReaderT
+import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
-import gui4s.desktop.skija.drawImage
+import gui4s.desktop.skija.canvas.drawImage
 import gui4s.desktop.widget.library.drawOnlyWidget
-import io.github.humbleui.skija.Image
+import io.github.humbleui.skija.{Canvas, Image}
 
 def image[
-  IO[_] : {Monad, ForeignFunctionInterface as ffi},
+  IO[_] : Sync,
   Event
 ](
   image: Image,
@@ -26,7 +27,7 @@ def image[
     RecompositionReaction[IO],
     DownEvent,
   ](
-    Sized(drawImage(ffi, image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace[IO, *]],
+    Sized(drawImage[ReaderT[IO, Canvas, *]](image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace[IO, *]],
     RecompositionReaction.empty[IO],
   )
 end image

@@ -1,6 +1,5 @@
 package gui4s.glfw
 
-import catnip.ForeignFunctionInterface
 import catnip.syntax.all.*
 import cats.effect.Sync
 import cats.syntax.all.*
@@ -11,14 +10,13 @@ import org.lwjgl.system.MemoryUtil
 final case class OglGlfwWindow(id: Long)
   
 // TODO Перейти на нормальную обработку ошибок
-final class OglWindowIsGlfwWindow[F[_] : Sync](
-                                                impure : ForeignFunctionInterface[F],
-                                                unsafeRunF: F[Unit] => Unit
-                                              ) extends GlfwWindow[F, OglGlfwWindow, Long, Float]:
+final class OglWindowIsGlfwWindow[F[_] : Sync as S](
+                                                      unsafeRunF: F[Unit] => Unit
+                                                    ) extends GlfwWindow[F, OglGlfwWindow, Long, Float]:
   override def center(window: OglGlfwWindow): F[Unit] =
     size(window).flatMap:
       case Rect(width, height) =>
-        impure.delay:
+        S.delay:
           val monitor = glfwGetPrimaryMonitor()
           val vidmode = glfwGetVideoMode(monitor) // TODO raise error on null
           glfwSetWindowPos(
@@ -29,24 +27,24 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   end center
 
   override def makeVisible(window: OglGlfwWindow): F[Unit] =
-    impure.delay:
+    S.delay:
       glfwShowWindow(window.id)
   end makeVisible
 
   override def shouldClose(window: OglGlfwWindow): F[Boolean] =
-    impure.delay:
+    S.delay:
       glfwWindowShouldClose(window.id)
   end shouldClose
 
   override def markForBeingClosed(window: OglGlfwWindow): F[Unit] =
-    impure.delay:
+    S.delay:
       glfwSetWindowShouldClose(window.id, true)
   end markForBeingClosed
 
   def getScale(window: OglGlfwWindow): F[(Float, Float)] =
-    stackPush(impure).use:
+    stackPush.use:
       stack =>
-        impure.delay:
+        S.delay:
           val width = stack.mallocFloat(1)
           val height = stack.mallocFloat(1)
           glfwGetWindowContentScale(window.id, width, height)
@@ -55,7 +53,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
 
   @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def frameBufferResizeCallback(window: OglGlfwWindow)(callback: Rect[Float] => F[Unit]): F[Unit] =
-    impure.delay:
+    S.delay:
       val old = glfwSetFramebufferSizeCallback(window.id, (_, width, height) =>
         unsafeRunF(callback(Rect(width, height)))
       )
@@ -66,14 +64,13 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
 
   @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def keyCallback(window: OglGlfwWindow)(callback: (key: Int, scanCode: Int, keyAction: KeyAction, keyModes: KeyModes) => F[Unit]): F[Unit] =
-    impure.delay:
+    S.delay:
       val old = glfwSetKeyCallback(window.id, (_, key, scancode, action, modes) =>
-        
         unsafeRunF(
           KeyAction
-           .fromCode(action)
-           .getOrRaise(new Exception("Invalid key action code got"))
-           .flatMap(callback(key, scancode, _, KeyModes.fromMask(modes)))
+            .fromCode(action)
+            .getOrRaise(new Exception("Invalid key action code got"))
+            .flatMap(callback(key, scancode, _, KeyModes.fromMask(modes)))
         )
       )
       if old != null then
@@ -82,15 +79,15 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   end keyCallback
 
   override def monitor(window: OglGlfwWindow): F[Long] = // TODO a typed error
-    impure.delay(glfwGetWindowMonitor(window.id)).ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
+    S.delay(glfwGetWindowMonitor(window.id)).ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end monitor
 
   override def size(window: OglGlfwWindow): F[Rect[Float]] =
     getScale(window).flatMap:
       (xScale, yScale) =>
-        stackPush(impure).use:
+        stackPush.use:
           stack =>
-            impure.delay({
+            S.delay({
               val width = stack.mallocInt(1)
               val height = stack.mallocInt(1)
               glfwGetWindowSize(window.id, width, height)
@@ -99,9 +96,9 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   end size
 
   override def frameBufferSize(window: OglGlfwWindow): F[Rect[Float]] =
-    stackPush(impure).use:
+    stackPush.use:
       stack =>
-        impure.delay:
+        S.delay:
           val width = stack.mallocInt(1)
           val height = stack.mallocInt(1)
           glfwGetFramebufferSize(window.id, width, height)
@@ -111,7 +108,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   //TODO проверить, правда ли это скрин координаты, а не пиксели.
   @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def scrollCallback(window: OglGlfwWindow)(callback: (xoffset: Float, yoffset: Float) => F[Unit]): F[Unit] =
-    impure.delay:
+    S.delay:
       val old = glfwSetScrollCallback(window.id,
         (_, xoffset, yoffset) =>
           unsafeRunF(
@@ -125,7 +122,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
 
   @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def cursorPosCallback(window: OglGlfwWindow)(callback: (newPos: Point2d[Float]) => F[Unit]): F[Unit] =
-    impure.delay:
+    S.delay:
       val old = glfwSetCursorPosCallback(window.id, (_, xCursorPosition, yCursorPosition) =>
         unsafeRunF(getScale(window).flatMap((scaleX, scaleY) => callback(Point2d(xCursorPosition.toFloat * scaleX, yCursorPosition.toFloat * scaleY))))
       )
@@ -136,7 +133,7 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   
   @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def mouseButtonCallback(window: OglGlfwWindow)(callback: (key: Int, action: KeyAction, mode: KeyModes) => F[Unit]): F[Unit] =
-    impure.delay:
+    S.delay:
       val old = glfwSetMouseButtonCallback(window.id, (_, key, action, modes) =>
         unsafeRunF(
           KeyAction
@@ -153,9 +150,9 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   override def currentMousePosition(window: OglGlfwWindow): F[Point2d[Float]] =
     getScale(window).flatMap:
       (scaleX, scaleY) =>
-        stackPush(impure).use:
+        stackPush.use:
           stack =>
-            impure.delay:
+            S.delay:
               val x = stack.mallocDouble(1)
               val y = stack.mallocDouble(1)
               glfwGetCursorPos(window.id, x, y)
@@ -163,12 +160,12 @@ final class OglWindowIsGlfwWindow[F[_] : Sync](
   end currentMousePosition
 
   override def swapBuffers(window: OglGlfwWindow): F[Unit] =
-    impure.delay:
+    S.delay:
       glfwSwapBuffers(window.id)
   end swapBuffers
 
   override def makeContextCurrent(window: OglGlfwWindow): F[Unit] =
-    impure.delay(
+    S.delay(
       glfwMakeContextCurrent(window.id)
     )
   end makeContextCurrent

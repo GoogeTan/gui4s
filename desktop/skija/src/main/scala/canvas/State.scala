@@ -3,20 +3,20 @@ package canvas
 
 import canvas.Canvased.applyCanvasFFI
 
-import catnip.ForeignFunctionInterface
 import cats.*
 import cats.data.*
+import cats.effect.Sync
 import cats.syntax.all.*
 
-def saveState[F[_] : {FlatMap, ForeignFunctionInterface, Canvased}](): F[Int] =
+def saveState[F[_] : {Sync, Canvased}](): F[Int] =
   applyCanvasFFI(_.save())
 end saveState
 
-def restoreState[F[_] : {FlatMap, ForeignFunctionInterface, Canvased}](state: Int): F[Unit] =
+def restoreState[F[_] : {Sync, Canvased}](state: Int): F[Unit] =
   applyCanvasFFI(_.restoreToCount(state))
 end restoreState
 
-def stateScoped[F[_] : {FlatMap, ForeignFunctionInterface, Canvased}, T](f: F[T]): F[T] =
+def stateScoped[F[_] : {Sync, Canvased}, T](f: F[T]): F[T] =
   for
     state <- saveState()
     result <- f

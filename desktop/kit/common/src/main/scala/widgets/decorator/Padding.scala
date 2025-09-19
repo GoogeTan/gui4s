@@ -1,16 +1,17 @@
 package gui4s.desktop.kit
 package common.widgets.decorator
 
-import catnip.ForeignFunctionInterface
-import catnip.syntax.functionk.given 
+import catnip.syntax.functionk.given
+import common.effects.Draw.given
 import cats.Monad
+import cats.effect.kernel.Sync
 import gui4s.core.geometry.Point3d
 import gui4s.desktop.kit.common.widgets.DesktopWidget
 import gui4s.desktop.kit.common.effects.*
-import gui4s.desktop.skija.drawAt
+import gui4s.desktop.skija.canvas.drawAt
 import gui4s.desktop.widget.library.decorator.{Paddings, gapPaddingWidget}
 
-extension[IO[_] : {Monad, ForeignFunctionInterface as ffi}, Event](value : DesktopWidget[IO, Event])
+extension[IO[_] : Sync, Event](value : DesktopWidget[IO, Event])
   def gapPadding(paddings: Paddings[Float]): DesktopWidget[IO, Event] =
     gapPaddingWidget[
       UpdateC[IO, Event],
@@ -28,7 +29,7 @@ extension[IO[_] : {Monad, ForeignFunctionInterface as ffi}, Event](value : Deskt
         ),
       paddings => update => (path, event) =>
         Update.withCornerCoordinates(update(path, event), _ + new Point3d(paddings.topLeftCornerShift)),
-      paddings => draw => drawAt(ffi, draw.value, paddings.left, paddings.top),
+      paddings => draw => drawAt(paddings.left, paddings.top, draw.value),
     )(paddings)(value)
   end gapPadding
 end extension

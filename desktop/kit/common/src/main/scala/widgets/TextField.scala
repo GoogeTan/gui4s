@@ -8,6 +8,7 @@ import widgets.*
 import catnip.*
 import catnip.syntax.all.given
 import cats.*
+import cats.effect.kernel.Async
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
@@ -32,7 +33,7 @@ def textField[
 end textField
 
 def basicTextFieldBody[
-  IO[_] : {MonadThrow, ForeignFunctionInterface},
+  IO[_] : Async,
   Event
 ](
   sizeText : SizeText[PlaceC[IO]],
@@ -44,9 +45,8 @@ def basicTextFieldBody[
     DesktopWidget[IO, Event],
     Sized[Float, Paragraph]
   ](
-    (text, callback) => Monad[OuterPlaceT[IO]].flatMap(sizeText(text, textStyle))(callback),
+    (state, callback) => ???, //Monad[OuterPlaceT[IO]].flatMap(sizeText(state, textStyle))(callback),
     systemEventCatcher,
-    text =>
-      placedText(text),
+    placedParagraph,
   )
 end basicTextFieldBody

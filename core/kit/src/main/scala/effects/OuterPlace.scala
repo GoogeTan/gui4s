@@ -49,7 +49,7 @@ object OuterPlace:
       OuterPlaceT[IO, Bounds, Error], EitherT[IO, Error, *]
     ]:
       override def apply[A](fa: OuterPlaceT[IO, Bounds, Error][A]): EitherT[IO, Error, A] =
-        EitherT.liftF(bounds).flatMap(fa.eval)
+        EitherT.liftF(bounds).flatMap(fa.runA)
       end apply
     end new
   end run

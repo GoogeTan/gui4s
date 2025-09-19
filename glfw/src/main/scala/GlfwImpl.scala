@@ -1,6 +1,5 @@
 package gui4s.glfw
 
-import catnip.ForeignFunctionInterface
 import cats.MonadError
 import cats.effect.std.Dispatcher
 import cats.effect.{Async, Resource, Sync}
@@ -11,14 +10,14 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.system.MemoryUtil
 
 // TODO Сделать типизированные ошибки, а не использовать MonadThrow из Sync.
-final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends Glfw[F, Long, OglGlfwWindow]:
+final class GlfwImpl[F[_] : Sync as S] extends Glfw[F, Long, OglGlfwWindow]:
   override def swapInterval(interval: Int): F[Unit] =
-    impure.delay:
+    S.delay:
       glfwSwapInterval(interval)
   end swapInterval
 
   override def primaryMonitor : F[Long] =
-    impure.delay(glfwGetPrimaryMonitor())
+    S.delay(glfwGetPrimaryMonitor())
       .ensure(RuntimeException("Monitor is null!!"))(_ != MemoryUtil.NULL)
   end primaryMonitor
 
@@ -28,15 +27,15 @@ final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends 
         _ <- windowHints(settings.visible, settings.resizeable, settings.debugContext)
         id <- createWindowId(settings.size.width.toInt, settings.size.height.toInt, settings.title, MemoryUtil.NULL /* TODO check if monitor should be passed */)
       yield OglGlfwWindow(id)
-    )(a => 
-        impure.delay:
+    )(a =>
+      S.delay:
           glfwFreeCallbacks(a.id)
           glfwDestroyWindow(a.id)
     )
   end createWindow
 
   def createWindowId(width : Int, height : Int, title : CharSequence, monitor : Long) : F[Long] =
-    impure.delay(
+    S.delay(
       glfwCreateWindow(width, height, title, monitor, MemoryUtil.NULL)
     ).ensure(
       RuntimeException("Failed to create GLFW window")
@@ -44,9 +43,9 @@ final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends 
   end createWindowId
 
   def monitorScale(monitor : Long): F[Float] =
-    stackPush(impure).use:
+    stackPush.use:
       s =>
-        impure.delay:
+        S.delay:
           val px = s.mallocFloat(1)
           val py = s.mallocFloat(1)
           glfwGetMonitorContentScale(monitor, px, py)
@@ -60,7 +59,7 @@ final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends 
   end primaryMonitorScale
 
   def windowHints(visible : Boolean, resizable : Boolean, debugContext : Boolean) : F[Unit] =
-    impure.delay:
+    S.delay:
       glfwDefaultWindowHints()
       glfwWindowHint(GLFW_VISIBLE, visible.toGlfwBoolean)
       glfwWindowHint(GLFW_RESIZABLE, resizable.toGlfwBoolean)
@@ -76,32 +75,33 @@ final class GlfwImpl[F[_] : {ForeignFunctionInterface as impure, Sync}] extends 
   @SuppressWarnings(Array("org.wartremover.warts.Null"))
   override def createPrintErrorCallback: Resource[F, GLFWErrorCallback] =
     Resource.make(
-      impure.delay(GLFWErrorCallback.createPrint.set())
+      S.delay(GLFWErrorCallback.createPrint.set())
     )(
       errorCallback =>
-        impure:
+        S.delay:
           glfwSetErrorCallback(null)
           errorCallback.free()
     )
   end createPrintErrorCallback
 
   override def pollEvents: F[Unit] =
-    impure.delay(glfwPollEvents())
+    S.delay(glfwPollEvents())
+  end pollEvents  
 
   def initGlfw: F[Unit] =
-    impure.delay(glfwInit()).ifM(
+    S.delay(glfwInit()).ifM(
       ().pure[F],
       MonadError[F, Throwable].raiseError(RuntimeException("Failed to create the GLFW"))
     )
   end initGlfw
   
   def terminate : F[Unit] =
-    impure.delay(glfwTerminate())
+    S.delay(glfwTerminate())
   end terminate
 end GlfwImpl
 
 object GlfwImpl:
-  def apply[F[_] : {ForeignFunctionInterface, Sync}]() : Resource[F, GlfwImpl[F]] =
+  def apply[F[_] : Sync]() : Resource[F, GlfwImpl[F]] =
     Resource.make(
       {
         val res = new GlfwImpl[F]()

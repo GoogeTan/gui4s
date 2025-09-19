@@ -1,8 +1,9 @@
 package gui4s.desktop.skija
 package canvas
 
-import catnip.{ForeignFunctionInterface, Get}
+import catnip.Get
 import cats.FlatMap
+import cats.effect.Sync
 import io.github.humbleui.skija.Canvas
 
 type Canvased[F[_]] = Get[F, Canvas]
@@ -12,7 +13,7 @@ object Canvased:
     FM.flatMap(C)(f)
   end applyCanvas
 
-  def applyCanvasFFI[F[_] : {FlatMap, ForeignFunctionInterface as ffi, Canvased}, T](f: Canvas => T): F[T] =
-    applyCanvas(canvas => ffi(f(canvas)))
+  def applyCanvasFFI[F[_] : {Sync as S, Canvased}, T](f: Canvas => T): F[T] =
+    applyCanvas(canvas => S.delay(f(canvas)))
   end applyCanvasFFI
 end Canvased

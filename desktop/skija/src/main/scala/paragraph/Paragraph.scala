@@ -9,7 +9,7 @@ import cats.effect.*
 import cats.syntax.all.*
 import io.github.humbleui.skija.paragraph.*
 
-def buildParagraph[F[_] : {Sync, ForeignFunctionInterface as ffi}](
+def buildParagraph[F[_] : Sync](
   list : List[(String, TextStyle)],
   style : ParagraphStyle,
   fontCollection : FontCollection
