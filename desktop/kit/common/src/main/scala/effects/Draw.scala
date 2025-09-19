@@ -20,15 +20,15 @@ object Draw:
   end monoidInstance
 
   def drawAt[IO[_] : Sync](whatToDraw : Draw[IO], x : Float, y : Float) : Draw[IO] =
-    drawAt(whatToDraw, x, y)
+    skija.canvas.drawAt(x, y, whatToDraw)
   end drawAt
 
   def drawImage[IO[_] : Sync](image : Image) : Draw[IO] =
-    drawImage(image)
+    skija.canvas.drawImage(image)
   end drawImage
 
   def drawText[IO[_] : Sync](text : skija.SkijaPlacedText) : Draw[IO] =
-    drawText(text)
+    skija.canvas.drawText(text)
   end drawText
 
   def drawClipped[IO[_] : Sync](path: Clip, original: Draw[IO]): Draw[IO] =
@@ -36,6 +36,6 @@ object Draw:
   end drawClipped
 
   def drawParagraph[IO[_] : Sync](paragraph : Paragraph) : Draw[IO] =
-    drawParagraph(paragraph)
+    skija.canvas.drawParagraph(paragraph)
   end drawParagraph
 end Draw
