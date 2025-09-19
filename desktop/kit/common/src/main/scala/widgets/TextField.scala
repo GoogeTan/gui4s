@@ -1,13 +1,19 @@
 package gui4s.desktop.kit.common
 package widgets
 
-import effects.Update
+import effects.*
 import effects.Update.given
+import widgets.*
 
-import cats.MonadThrow
+import catnip.*
+import catnip.syntax.all.given
+import cats.*
+import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
-import gui4s.desktop.widget.library.{TextFieldEvent, TextFieldState}
-import io.github.humbleui.skija.TextBlob
+import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
+import gui4s.desktop.skija.*
+import gui4s.desktop.widget.library.{TextFieldEvent, TextFieldState, TextRange}
+import io.github.humbleui.skija.paragraph.*
 
 def textField[
   IO[_] : MonadThrow,
@@ -26,20 +32,21 @@ def textField[
 end textField
 
 def basicTextFieldBody[
-  IO[_] : MonadThrow,
+  IO[_] : {MonadThrow, ForeignFunctionInterface},
   Event
 ](
-  textPlacer : (text : String, body : Sized[Float, TextBlob] => DesktopWidget[IO, Event]) => DesktopWidget[IO, Event],
+  sizeText : SizeText[PlaceC[IO]],
+  textStyle : TextStyle,
+  selectionStyle : TextStyle,
   systemEventCatcher : DesktopWidget[IO, Event] => DesktopWidget[IO, Event],
-  zIndexContainer : List[DesktopWidget[IO, Event]] => DesktopWidget[IO, Event],
-  text : Sized[Float, TextBlob] => DesktopWidget[IO, Event],
-  selection : (text : Sized[Float, TextBlob], selectionStart : Int, selectionEndPosition : Int) => DesktopWidget[IO, Event]
-) : TextFieldState =>  DesktopWidget[IO, Event] =
-  gui4s.desktop.widget.library.basicTextFieldBody(
-    textPlacer,
+) : TextFieldState => DesktopWidget[IO, Event] =
+  gui4s.desktop.widget.library.basicTextFieldBody[
+    DesktopWidget[IO, Event],
+    Sized[Float, Paragraph]
+  ](
+    (text, callback) => Monad[OuterPlaceT[IO]].flatMap(sizeText(text, textStyle))(callback),
     systemEventCatcher,
-    zIndexContainer,
-    text,
-    selection
+    text =>
+      placedText(text),
   )
 end basicTextFieldBody

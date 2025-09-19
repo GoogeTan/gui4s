@@ -132,7 +132,6 @@ object SkijaBackend:
                                           newSize : Rect[Float]
                                         ): F[Unit] =
     cell.evalUpdate(state =>
-      println("It works!")
       skija.createRenderTarget(state.directContext, newSize.width, newSize.height)
     )
   end recreateRenderTarget

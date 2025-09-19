@@ -5,31 +5,32 @@ import cats.*
 import cats.data.*
 import cats.syntax.all.*
 import gui4s.core.geometry.Rect
+import gui4s.desktop.widget.library.TextRange.replaceAt
 
-def replaceAt(str : String, position : Int, length : Int, newSubstring : String) : String =
-  str.substring(0, position) + newSubstring + str.substring(position + length)
-end replaceAt
 
-final case class TextFieldState(text : String, cursorPosition : Int, selectionEndPosition : Int):
-  def insertChar(char : Char) : TextFieldState =
+final case class TextFieldState(text : String, selection : TextRange):
+  def this(text : String) =
+    this(text, TextRange(0))
+  end this
+  
+  def insertText(textToInsert : String) : TextFieldState =
     TextFieldState(
-      text = replaceAt(text, cursorPosition, cursorPosition - selectionEndPosition, char.toString),
-      cursorPosition = cursorPosition + 1,
-      selectionEndPosition = cursorPosition + 1
+      text = text.replaceAt(selection, textToInsert ),
+      selection = TextRange(selection.beginning + 1)
     )
-  end insertChar
+  end insertText
 
   def moveCursorTo(position : Int) : TextFieldState =
-    TextFieldState(
-      text, position, position
+    copy(
+      selection = TextRange(position)
     )
   end moveCursorTo
 
   def moveSeletionTo(position : Int) : TextFieldState =
-    if position < cursorPosition then
-      copy(cursorPosition = position, selectionEndPosition = cursorPosition)
-    else
-      copy(selectionEndPosition = position)
+    copy(
+      selection = TextRange(selection.beginning, position)
+    )
+  end moveSeletionTo
 end TextFieldState
 
 enum TextFieldEvent:
@@ -53,12 +54,12 @@ def textField[
   given Monad[Update[Event, *]] = UBM()
   stateful[TextFieldState, Event, TextFieldEvent](
     name = name,
-    initialState = TextFieldState(text, 0, 0),
+    initialState = new TextFieldState(text),
     eventHandler = {
       case (state : TextFieldState, _, events : NonEmptyList[TextFieldEvent]) =>
         events.foldLeft(state) {
           case (currentState, TextFieldEvent.CharInput(newChar)) =>
-            state.insertChar(newChar)
+            state.insertText(newChar.toString)
           case (currentState, TextFieldEvent.LeftPressedAt(position)) =>
             currentState.moveCursorTo(position)
           case (state, TextFieldEvent.LeftReleasedAt(position)) =>
@@ -73,24 +74,17 @@ def basicTextFieldBody[
   Widget,
   PlacedText
 ](
-  textPlacer : (text : String, body : PlacedText => Widget) => Widget,
+  textPlacer : (state :TextFieldState, body : PlacedText => Widget) => Widget,
   systemEventCatcher : Widget => Widget,
-  zIndexContainer : List[Widget] => Widget,
   text : PlacedText => Widget,
-  selection : (text : PlacedText, selectionStart : Int, selectionEndPosition : Int) => Widget
 )(
   state : TextFieldState
 ) : Widget =
   textPlacer(
-    state.text,
+    state,
     placedText =>
       systemEventCatcher(
-        zIndexContainer(
-          List(
             text(placedText),
-            selection(placedText, state.cursorPosition, state.selectionEndPosition)
-          )
-        )
       )
   )
 end basicTextFieldBody

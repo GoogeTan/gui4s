@@ -8,6 +8,7 @@ import gui4s.desktop.kit.zio.*
 import gui4s.desktop.kit.zio.effects.{*, given}
 import gui4s.desktop.kit.zio.widgets.*
 import gui4s.desktop.kit.zio.widgets.decorator.*
+import gui4s.desktop.skija
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
@@ -16,13 +17,16 @@ import zio.*
 import zio.interop.catz.*
 
 object ClickabeExample extends Gui4sZioApp:
-  final case class PreInit(shaper: Shaper, globalTextCache: TextCache[Task], mousePosition: Task[Point2d[Float]])
+  final case class PreInit(shaper: Shaper, globalTextCache: TextCache[Task], mousePosition: Task[Point2d[Float]], style : SkijaTextStyle)
 
   override def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =
     for
       shaper <- Draw.makeShaper
       cache: TextCache[Task] <- ScalacacheCache()
-    yield PreInit(shaper, cache, backend.mousePosition)
+      typeface <- skija.typeface.defaultTypeface
+      font <- skija.font.makeFont(typeface, 24)
+      paint <- skija.paint.make.evalTap(skija.paint.setColor(0xFF8484A4))
+    yield PreInit(shaper, cache, backend.mousePosition, font)
   end preInit
 
   override val settings: WindowCreationSettings[Float] = WindowCreationSettings(
@@ -49,7 +53,7 @@ object ClickabeExample extends Gui4sZioApp:
           preInit.globalTextCache
         )(
           "test text " + state.toString,
-          SkijaTextStyle(new Font(Typeface.makeDefault(), 24), new Paint().setColor(0xFF8484A4))
+          preInit.style,
         ).onClick(())
     )
   end main

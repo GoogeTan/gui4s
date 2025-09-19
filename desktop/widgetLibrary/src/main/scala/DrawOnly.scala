@@ -1,7 +1,9 @@
 package gui4s.desktop.widget.library
 
+import catnip.syntax.all.{*, given}
 import cats.syntax.all.*
-import cats.{Functor, Monad}
+import cats.*
+import gui4s.core.layout.{*, given}
 import gui4s.core.widget.free.AsFree
 import gui4s.core.widget.handle.handlesNothing
 import gui4s.core.widget.merge.anyHasNothingToMerge
@@ -32,3 +34,24 @@ def drawOnlyWidget[
       )
   )
 end drawOnlyWidget
+
+def constanctSizeDrawOnlyWidget[
+  Update[_] : Monad as M,
+  OuterPlace[_] : Applicative,
+  InnerPlace[_] : Functor,
+  Draw,
+  RecompositionReaction,
+  HandleableEvent,
+](
+   toDraw : InnerPlace[Draw], 
+   emptyRecomposition : RecompositionReaction,
+) : OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]] =
+  given Functor[OuterPlace * InnerPlace] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]
+  drawOnlyWidget[
+    Update,
+    OuterPlace * InnerPlace,
+    Draw,
+    RecompositionReaction,
+    HandleableEvent,
+](toDraw.pure[OuterPlace], emptyRecomposition)
+end constanctSizeDrawOnlyWidget

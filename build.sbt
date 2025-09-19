@@ -94,7 +94,10 @@ lazy val glfw = (project in file("glfw"))
 
 lazy val desktopSkijaBindings = (project in file("desktop/skija"))
   .settings(commonSettings("desktop-skija-bindings", s"$packagePrefix.desktop.skija"))
-  .settings(libraryDependencies ++= catsEffectLibs ++ testLibs ++ skijaLibs)
+  .settings(
+    libraryDependencies ++= catsEffectLibs ++ testLibs ++ skijaLibs,
+    fork := true,
+  )
   .dependsOn(catnip, glfw, layout)
 
 lazy val loops = (project in file("core/loop"))

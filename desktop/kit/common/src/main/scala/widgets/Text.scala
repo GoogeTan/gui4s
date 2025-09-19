@@ -7,9 +7,12 @@ import common.effects.Place.given
 
 import catnip.ForeignFunctionInterface
 import cats.*
+import cats.syntax.all.*
 import gui4s.desktop.skija.*
-import gui4s.desktop.widget.library.text as genericText
+import gui4s.desktop.widget.library.{text as genericText, *}
+import gui4s.core.layout.*
 import io.github.humbleui.skija.shaper.Shaper
+import io.github.humbleui.skija.*
 
 type TextWidget[IO[_], Event] =(
   text : String,
@@ -35,3 +38,15 @@ def text[IO[_] : {Monad, ForeignFunctionInterface as ffi}, Event](
     )
 end text
 
+def placedText[IO[_] : {Monad, ForeignFunctionInterface}, Event](placedText : Sized[Float, SkijaPlacedText]) : DesktopWidget[IO, Event] =
+  drawOnlyWidget[
+      UpdateC[IO, Event],
+      PlaceC[IO],
+      SkijaDraw[IO],
+      RecompositionReaction[IO],
+      DownEvent,
+  ](
+      OuterPlace.liftF(placedText.mapValue(Draw.drawText).pure[IO]),
+      RecompositionReaction.empty
+  )
+end placedText

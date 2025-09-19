@@ -25,8 +25,6 @@ final case class MyStateT[F[_], S, A](run: S => F[(S, A)]):
   def exec(initial: S)(using F: Functor[F]): F[S] =
     F.map(run(initial))(_._1)
   end exec
-
-
 end MyStateT
 
 object MyStateT:
