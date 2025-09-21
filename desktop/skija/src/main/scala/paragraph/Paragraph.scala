@@ -1,13 +1,12 @@
 package gui4s.desktop.skija
 package paragraph
 
-import paragraph.ParagraphBuilding.{buildBuilderF, paragraphBuilder, given}
-
 import catnip.*
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
 import io.github.humbleui.skija.paragraph.*
+import gui4s.core.geometry.Rect
 
 def buildParagraph[F[_] : Sync](
   list : List[(String, TextStyle)],
@@ -17,7 +16,15 @@ def buildParagraph[F[_] : Sync](
   paragraphBuilder(style, fontCollection).flatMap(
     builder =>
       buildBuilderF(
-        list.foldMap(ParagraphBuilding.addStyledText).run(builder)
+        list.foldMap(addStyledText).run(builder)
       )
   )
 end buildParagraph
+
+def layout[F[_] : Sync as S](width : Float)(paragraph : Paragraph) : F[Unit] =
+  S.delay(paragraph.layout(width))
+end layout
+
+def size[F[_] : Sync as S](paragraph : Paragraph) : F[Rect[Float]] =
+  S.delay(Rect(paragraph.getMaxWidth, paragraph.getHeight))
+end size

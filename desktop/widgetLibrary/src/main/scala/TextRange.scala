@@ -1,6 +1,6 @@
 package gui4s.desktop.widget.library
 
-final case class TextRange private (beginning : Int, ending : Int)
+final case class TextRange private (start : Int, end : Int)
 
 object TextRange:
   def apply(a : Int, b: Int) : TextRange =
@@ -17,7 +17,7 @@ object TextRange:
 
   extension (str : String)
     def replaceAt(at : TextRange, newSubstring : String) : String =
-      str.substring(0, at.beginning) + newSubstring + str.substring(at.ending)
+      str.substring(0, at.start) + newSubstring + str.substring(at.end)
     end replaceAt
   end extension
 end TextRange

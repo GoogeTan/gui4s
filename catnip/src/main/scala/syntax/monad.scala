@@ -25,8 +25,8 @@ object monad:
   end readerMonad
 
   extension[F[_] : FlatMap as FM, A](value : F[A])
-    def >>![B](f : A => F[B]) : F[A] =
+    def <*<[B](f : A => F[B]) : F[A] =
       FM.flatTap(value)(f)
-    end >>!
+    end <*<
   end extension
 end monad

@@ -16,7 +16,7 @@ final case class TextFieldState(text : String, selection : TextRange):
   def insertText(textToInsert : String) : TextFieldState =
     TextFieldState(
       text = text.replaceAt(selection, textToInsert ),
-      selection = TextRange(selection.beginning + 1)
+      selection = TextRange(selection.start + 1)
     )
   end insertText
 
@@ -28,9 +28,21 @@ final case class TextFieldState(text : String, selection : TextRange):
 
   def moveSeletionTo(position : Int) : TextFieldState =
     copy(
-      selection = TextRange(selection.beginning, position)
+      selection = TextRange(selection.start, position)
     )
   end moveSeletionTo
+
+  def textBeforeSelection : String =
+    text.substring(0, selection.start)
+  end textBeforeSelection
+
+  def selectedText : String =
+    text.substring(selection.start, selection.end)
+  end selectedText
+
+  def textAfterSelection : String =
+    text.substring(selection.end)
+  end textAfterSelection
 end TextFieldState
 
 enum TextFieldEvent:

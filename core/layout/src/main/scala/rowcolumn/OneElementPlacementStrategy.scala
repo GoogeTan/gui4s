@@ -1,7 +1,6 @@
 package gui4s.core.layout
 package rowcolumn
 
-import catnip.Zip
 import cats.*
 import cats.syntax.all.*
 import gui4s.core.geometry.*

@@ -21,6 +21,12 @@ object OuterPlace:
     liftK(value)
   end liftF
 
+  def liftFunction[IO[_] : Monad, Value](value: Bounds => IO[Value]): OuterPlace[IO, Value] =
+    getBounds.flatMap(
+      bounds => liftF(value(bounds))
+    )
+  end liftFunction
+
   def getBounds[IO[_] : Monad]: Get[OuterPlaceT[IO], Bounds] =
     GenericOuterPlace.getBounds
   end getBounds
