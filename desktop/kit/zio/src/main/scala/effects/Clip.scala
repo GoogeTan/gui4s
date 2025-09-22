@@ -1,11 +1,9 @@
 package gui4s.desktop.kit.zio
 package effects
 
-import catnip.ForeignFunctionInterface
 import cats.Monad
 import cats.kernel.Monoid
 import gui4s.core.geometry.Point3d
-import gui4s.desktop.skija.{SkijaDraw, clipToPath}
 import io.github.humbleui.skija.{Path, PathFillMode, PathOp}
 import effects.given
 import zio.*

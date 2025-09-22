@@ -1,26 +1,22 @@
 package gui4s.desktop.example.cats
 
-import catnip.ForeignFunctionInterface
-import catnip.effect.SyncForeignFunctionInterface
 import catnip.syntax.all.given
 import cats.*
 import cats.effect.std.Dispatcher
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, UpdateC}
 import gui4s.desktop.kit.cats.widgets.*
 import gui4s.desktop.kit.cats.widgets.decorator.*
+import gui4s.desktop.kit.common.*
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 
 object ClickabeExample extends IOApp:
-  given ffi : ForeignFunctionInterface[IO] = SyncForeignFunctionInterface[IO]
-
   final case class PreInit(shaper : Shaper, globalTextCache : TextCache[IO], mousePosition : IO[Point2d[Float]])
 
   def preInit(backend : gui4s.desktop.kit.common.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =

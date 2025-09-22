@@ -1,18 +1,17 @@
 package gui4s.desktop.example.cats
 
-import catnip.ForeignFunctionInterface
-import catnip.effect.SyncForeignFunctionInterface
+import GridExample.MainThread
+
 import cats.*
 import cats.effect.std.{Dispatcher, Supervisor}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.desktop.example.cats.GridExample.MainThread
-import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.cats.*
 import gui4s.desktop.kit.cats.effects.{ApplicationRequest, DownEvent, Shapes}
 import gui4s.desktop.kit.cats.widgets.*
 import gui4s.desktop.kit.cats.widgets.decorator.*
+import gui4s.desktop.kit.common.*
 import gui4s.desktop.skija.*
 import gui4s.desktop.widget.library.decorator.Paddings
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}
@@ -24,8 +23,6 @@ import org.http4s.ember.client.*
 import scala.reflect.Typeable
 
 object ImageExample extends IOApp:
-  given ffi: ForeignFunctionInterface[IO] = SyncForeignFunctionInterface[IO]
-
   final case class PreInit(
                             dispatcher: Dispatcher[IO],
                             globalSupervisor: Supervisor[IO],

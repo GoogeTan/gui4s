@@ -1,6 +1,7 @@
 package gui4s.desktop.example.zio
 
 import catnip.syntax.all.given
+import catnip.zio.*
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.desktop.kit.common.*
@@ -23,10 +24,10 @@ object ClickabeExample extends Gui4sZioApp:
     for
       shaper <- Draw.makeShaper
       cache: TextCache[Task] <- ScalacacheCache()
-      typeface <- skija.typeface.defaultTypeface
-      font <- skija.font.makeFont(typeface, 24)
-      paint <- skija.paint.make.evalTap(skija.paint.setColor(0xFF8484A4))
-    yield PreInit(shaper, cache, backend.mousePosition, font)
+      typeface <- resourceToScoped(skija.typeface.defaultTypeface)
+      font <- resourceToScoped(skija.font.makeFont(typeface, 24))
+      paint <- resourceToScoped(skija.paint.make.evalTap(skija.paint.setColour(0xFF8484A4)))
+    yield PreInit(shaper, cache, backend.mousePosition, SkijaTextStyle(font, paint))
   end preInit
 
   override val settings: WindowCreationSettings[Float] = WindowCreationSettings(

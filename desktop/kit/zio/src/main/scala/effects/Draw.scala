@@ -1,11 +1,9 @@
 package gui4s.desktop.kit.zio
 package effects
 
-import catnip.ForeignFunctionInterface
 import catnip.syntax.all.given
 import cats.*
 import gui4s.desktop.skija
-import gui4s.desktop.skija.SkijaDraw
 import io.github.humbleui.skija.*
 import gui4s.desktop.kit.common.effects.Draw as GenericDraw
 import io.github.humbleui.skija.shaper.Shaper
@@ -36,15 +34,8 @@ object Draw:
   end drawClipped
   
   def makeShaper : RIO[Scope, Shaper] =
-    ZIO.acquireRelease(
-      ffi.delay(
-        Shaper.make()
-      )
-    )(
-      shaper =>
-        ffi.delay(
-          shaper.close()
-        ).orElseSucceed(())
+    catnip.zio.resourceToScoped(
+      gui4s.desktop.skija.shaper.createShaper
     )
   end makeShaper  
 end Draw

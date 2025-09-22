@@ -1,6 +1,5 @@
 package gui4s.desktop.example.zio
 
-import catnip.ForeignFunctionInterface
 import catnip.zio.*
 import gui4s.core.geometry.*
 import gui4s.desktop.kit.common.*

@@ -5,7 +5,7 @@ import effects.InnerPlace.given
 import effects.OuterPlace.given
 
 import catnip.syntax.applicative.nestedFunctorsAreFunctors
-import catnip.{ForeignFunctionInterface, MapKCache}
+import catnip.MapKCache
 import cats.data.EitherT
 import cats.effect.IO
 import cats.{Functor, Monad, MonadThrow, ~>}

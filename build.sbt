@@ -3,7 +3,7 @@ import sbtide.Keys.idePackagePrefix
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.6.2"
+ThisBuild / scalaVersion := "3.7.3"
 
 // for nix os
 ThisBuild / javaOptions ++= sys.env.get("LD_LIBRARY_PATH").map(p => Seq(s"-Djava.library.path=$p")).getOrElse(Seq())
@@ -11,10 +11,9 @@ ThisBuild / javaOptions ++= sys.env.get("LD_LIBRARY_PATH").map(p => Seq(s"-Djava
 
 Global / excludeLintKeys += idePackagePrefix
 
-  
 def catsLibs = List("org.typelevel" %% "cats-core" % "2.13.0")
 def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.3")
-def fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.0")
+def fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.2")
 
 val zioLibs = List(
  "dev.zio" %% "zio" % "2.1.21",
@@ -133,7 +132,6 @@ lazy val desktopCatsExample = (project in file("desktop/example/cats"))
     libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
       "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
-      "co.fs2" %% "fs2-core" % "3.12.0",
       "co.fs2" %% "fs2-io" % "3.12.0",
       "org.http4s" %% "http4s-ember-client" % "0.23.30",
       "org.http4s" %% "http4s-core" % "0.23.30"
@@ -153,9 +151,9 @@ lazy val desktopZioExample = (project in file("desktop/example/zio"))
     libraryDependencies ++= catsLibs ++ zioLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
       "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
-      "co.fs2" %% "fs2-core" % "3.12.0",
-      "co.fs2" %% "fs2-io" % "3.12.0",
-      "dev.zio" %% "zio-http" % "3.4.0"
+      "co.fs2" %% "fs2-core" % "3.12.2",
+      "co.fs2" %% "fs2-io" % "3.12.2",
+      "dev.zio" %% "zio-http" % "3.5.1"
     )
   )
   .dependsOn(widget, desktopSkijaBindings, layout, loops)
