@@ -22,17 +22,15 @@ object ImageExample extends Gui4sZioApp:
                             globalTextCache: TextCache[Task],
                             raiseEvent: DownEvent => Task[Unit],
                             supervisor : cats.effect.std.Supervisor[Task]
-                          )
-
-  override def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =
-    for
-      shaper <- Draw.makeShaper
+                          ) <- Draw.makeShaper
       cache: TextCache[Task] <- ScalacacheCache()
       supervisor <- CatsSupervisor
     yield PreInit(shaper, cache, backend.raiseEvent, supervisor)
   end preInit
 
-  override val settings: WindowCreationSettings[Float] = WindowCreationSettings(
+  override val override def preInit(backend: SkijaBackend[Task, Long, OglGlfwWindow, DownEvent]): ZIO[Scope, Throwable, PreInit] =
+    for
+      shaper: WindowCreationSettings[Float] = WindowCreationSettings(
     title = "Gui4s image widget example",
     size = Rect(620f, 200f),
     visible = true,
@@ -40,11 +38,8 @@ object ImageExample extends Gui4sZioApp:
     debugContext = true
   )
 
-  def main(preInit: PreInit): DesktopWidget[ApplicationRequest] =
-    @SuppressWarnings(Array("org.wartremover.warts.Any"))
-    def downloadImage(uri: String): ZIO[Any, Throwable, Image] =
-      for
-        parsedUrl <- ZIO.fromEither(URL.decode(uri)).mapError(new IllegalArgumentException("Invalid URL", _))
+  settings
+    def main(preInit: PreInit): DesktopWidget[ApplicationRequest] = <- ZIO.fromEither(URL.decode(uri)).mapError(new IllegalArgumentException("Invalid URL", _))
         request = Request.get(parsedUrl)
         response <- Client.batched(request).provide(Scope.default ++ Client.default)
         bytes <-
