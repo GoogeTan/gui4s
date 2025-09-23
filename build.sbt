@@ -40,10 +40,7 @@ lazy val os = Option(System.getProperty("os.name", ""))
 lazy val glfwLibs = List(
   "org.lwjgl" % "lwjgl-glfw" % lwjglVersion,
   "org.lwjgl" % "lwjgl"        % lwjglVersion
-) ++ List(
-  "org.lwjgl" % "lwjgl-glfw" % lwjglVersion classifier s"natives-macos-arm64",
-  "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-macos-arm64",
-)/*(if (arch == "x64")
+) ++ (if (arch == "x64")
   List(
     "org.lwjgl" % "lwjgl-glfw" % lwjglVersion classifier s"natives-$os",
     "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-$os",
@@ -53,7 +50,7 @@ else
     "org.lwjgl" % "lwjgl-glfw" % lwjglVersion classifier s"natives-$os-$arch",
     "org.lwjgl" % "lwjgl"        % lwjglVersion classifier s"natives-$os-$arch",
   )
-)*/
+)
 
 lazy val skijaLibs = List(
   "io.github.humbleui" % "skija-shared" % "0.116.4",
