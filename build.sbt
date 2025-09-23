@@ -12,16 +12,16 @@ ThisBuild / javaOptions ++=  Seq("-Dorg.lwjgl.util.Debug=true", "-Dorg.lwjgl.uti
 
 Global / excludeLintKeys += idePackagePrefix
 
-def catsLibs = List("org.typelevel" %% "cats-core" % "2.13.0")
-def catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.3")
-def fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.2")
+lazy val catsLibs = List("org.typelevel" %% "cats-core" % "2.13.0")
+lazy val catsEffectLibs = catsLibs ++ List("org.typelevel" %% "cats-effect" % "3.6.3")
+lazy val fs2Libs = List("co.fs2" %% "fs2-core" % "3.12.2")
 
-val zioLibs = List(
+lazy val zioLibs = List(
  "dev.zio" %% "zio" % "2.1.21",
  "dev.zio" %% "zio-interop-cats" % "23.1.0.5"
 )
 
-def testLibs = List(
+lazy val testLibs = List(
   "org.scalatest" %% "scalatest" % "3.2.19" % "test",
   "org.scalacheck" %% "scalacheck" % "1.19.0" % "test",
   "org.typelevel" %% "cats-laws" % "2.13.0" % Test,
@@ -67,11 +67,11 @@ def commonSettings(nameIn : String, pkg : String) =
 
 val packagePrefix = "gui4s"
 
-val geometry = (project in file("core/geometry"))
+lazy val geometry = (project in file("core/geometry"))
   .settings(commonSettings("geometry", packagePrefix + ".core.geometry"))
   .settings(libraryDependencies ++= catsLibs ++ testLibs)
 
-val catnip = (project in file("catnip"))
+lazy val catnip = (project in file("catnip"))
   .settings(commonSettings("catnip", "catnip"))
   .settings(libraryDependencies ++= catsEffectLibs ++ testLibs)
 
@@ -144,15 +144,10 @@ lazy val desktopCatsExample = (project in file("desktop/example/cats"))
       "co.fs2" %% "fs2-io" % "3.12.0",
       "org.http4s" %% "http4s-ember-client" % "0.23.30",
       "org.http4s" %% "http4s-core" % "0.23.30"
-    )
+    ),
+    fork := true,
+    javaOptions ++= Seq("-XstartOnFirstThread")
   ).dependsOn(desktopCatsDevKit)
-
-
-// for running glfw in sbt shell
-desktopCatsExample/run/fork := true
-desktopCatsExample/run/javaOptions ++= Seq("-XstartOnFirstThread")
-// end for sbt shell
-
 
 lazy val desktopZioExample = (project in file("desktop/example/zio"))
   .settings(commonSettings("desktop-example-zio", s"$packagePrefix.desktop.example.zio"))
@@ -163,14 +158,10 @@ lazy val desktopZioExample = (project in file("desktop/example/zio"))
       "co.fs2" %% "fs2-core" % "3.12.2",
       "co.fs2" %% "fs2-io" % "3.12.2",
       "dev.zio" %% "zio-http" % "3.5.1"
-    )
+    ),
+      fork := true,
+      javaOptions ++= Seq("-XstartOnFirstThread")
   )
   .dependsOn(widget, desktopSkijaBindings, layout, loops)
   .dependsOn(catnip, catnipZio, glfw, desktopWidgetLibrary, desktopZioDevKit)
-
-
-// for running glfw in sbt shell
-desktopZioExample/run/fork := true
-desktopZioExample/run/javaOptions ++= Seq("-XstartOnFirstThread")
-// end for sbt shell
 
