@@ -1,18 +1,15 @@
-// scala
-package me.katze.gui4s.layout
+package gui4s.core.layout
 
 import cats.instances.all.given
 import cats.kernel.Eq
 import cats.laws.discipline.ComonadTests
-import me.katze.gui4s.geometry.Rect
+import gui4s.core.geometry.Rect
 import org.scalacheck.{Arbitrary, Cogen}
 import org.scalatest.funsuite.AnyFunSuiteLike
 import org.scalatestplus.scalacheck.Checkers
 import org.typelevel.discipline.scalatest.FunSuiteDiscipline
 
-
 final class SizedComonadLawsSpec extends AnyFunSuiteLike with FunSuiteDiscipline with Checkers {
-
   // Arbitrary, Cogen, Eq для Rect
   given rectArbitrary[MU: Arbitrary]: Arbitrary[Rect[MU]] =
     Arbitrary(

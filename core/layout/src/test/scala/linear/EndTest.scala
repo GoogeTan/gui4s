@@ -1,4 +1,4 @@
-package me.katze.gui4s.layout
+package gui4s.core.layout
 package linear
 
 import org.scalatest.flatspec.AnyFlatSpec
@@ -8,7 +8,7 @@ class EndTest extends AnyFlatSpec:
     val widgets = List[Float](2, 5, 2)
     val freeSpace = minimalRequiredSpace(widgets) + 5
     val endBeginCoord = placeEnd(widgets.sum, freeSpace)
-    assert(placeEndMany(widgets, freeSpace) == placeBeginMany(widgets).map(_ .addCoordinateOfTheBeginning(endBeginCoord)))
+    assert(placeEndMany(widgets, freeSpace) === placeBeginMany(widgets).map(_ .addCoordinateOfTheBeginning(endBeginCoord)))
 
   "placeEndMany" should "keep space between zero" in:
     val widgets = List(2, 5, 2)

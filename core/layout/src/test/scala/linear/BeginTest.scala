@@ -1,11 +1,12 @@
-package me.katze.gui4s.layout
+package gui4s.core.layout
 package linear
 
 import org.scalatest.flatspec.*
 import org.scalatest.*
+import cats.syntax.all.*
 
 import scala.collection.immutable.List
-import me.katze.gui4s.geometry.*
+import gui4s.core.geometry.*
 
 class BeginTest extends AnyFlatSpec:
   "placeBegin" should "always return 0" in:
@@ -13,7 +14,7 @@ class BeginTest extends AnyFlatSpec:
     assert(placeBegin[Float] == 0f)
 
   "placeBeginMany" should "form prefix sums" in:
-    assert(placeBeginMany(List(2, 2, 2)) == List(0, 2, 4).map(Rect1dOnPoint1d(2, _)))
+    assert(placeBeginMany(List(2, 2, 2)) === List(0, 2, 4).map(Rect1dOnPoint1d(2, _)))
 
   "placeBeginMany" should "have zero space between" in:
     val widgets = List(2, 2, 2)
@@ -24,5 +25,5 @@ class BeginTest extends AnyFlatSpec:
     )
 
   "placeBeginMany with one element" should "be 0" in:
-    assert(placeBeginMany(List(2)) == List(Rect1dOnPoint1d(2, 0)))
+    assert(placeBeginMany(List(2)) === List(Rect1dOnPoint1d(2, 0)))
 end BeginTest

@@ -1,4 +1,4 @@
-package me.katze.gui4s.layout
+package gui4s.core.layout
 package linear
 
 import cats.data.NonEmptyList
@@ -9,7 +9,7 @@ class CenterTest extends AnyFlatSpec:
     val widgets = List[Float](2, 5, 2)
     val freeSpace = minimalRequiredSpace(widgets) + 5
     val centreBeginCoord = placeCenter(widgets.sum, freeSpace)
-    assert(placeCenterMany(widgets, freeSpace) == placeBeginMany(widgets).map(_.addCoordinateOfTheBeginning(centreBeginCoord)))
+    assert(placeCenterMany(widgets, freeSpace) === placeBeginMany(widgets).map(_.addCoordinateOfTheBeginning(centreBeginCoord)))
 
   "placeCenterMany" should "have same size in the beginning and the end" in:
     val widget = NonEmptyList.of[Float](2, 5, 2)

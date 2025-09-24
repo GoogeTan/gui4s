@@ -1,12 +1,11 @@
-package me.katze.gui4s.layout
+package gui4s.core.layout
 package rowcolumn
 
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
 import catnip.syntax.all.given 
-import me.katze.gui4s.geometry.{Axis, Point3d, Rect}
-import rowcolumn.*
+import gui4s.core.geometry.{Axis, Point3d, Rect}
 
 import org.scalatest.*
 import org.scalatest.flatspec.*
@@ -25,7 +24,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
     def rowColumnPlace[Widget](
                                 mainAxis : Axis,
                                 children : List[Place[Sized[MeasurementUnit, Widget]]],
-                                mainAxisStrategy : ManyElementsPlacementStrategy[Place, Float, List, MeasurementUnit],
+                                mainAxisStrategy : PlacementStrategy[Place, Float, List, MeasurementUnit],
                                 additionlAxisStrategy : OneElementPlacementStrategy[Place, Float, MeasurementUnit]
     ): Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, Widget]]]] =
         rowColumnLayoutPlacement[Place, List, Widget, Float, MeasurementUnit](
@@ -34,10 +33,10 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             _ - _,
             mainAxis,
             children,
-            ManyElementsPlacementStrategy.Zip(
+            PlacementStrategy.Zip(
                 mainAxis,
                 mainAxisStrategy,
-                ManyElementsPlacementStrategy.OneByOne(
+                PlacementStrategy.OneByOne(
                     additionlAxisStrategy,
                 )
             )
@@ -49,7 +48,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Vertical,
                 children,
-                ManyElementsPlacementStrategy.Begin[Place, Float, List, Float](0f),
+                PlacementStrategy.Begin[Place, Float, List, Float](0f),
                 OneElementPlacementStrategy.Begin[Place, Float, Float],
             ),
             Rect(0f, 0f) 
@@ -69,7 +68,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Horizontal,
                 innerChildren,
-                ManyElementsPlacementStrategy.SpaceBetween,
+                PlacementStrategy.SpaceBetween,
                 OneElementPlacementStrategy.Begin[Place, Float, Float],
             )
         )
@@ -93,7 +92,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             rowColumnPlace(
                 Axis.Vertical,
                 children,
-                ManyElementsPlacementStrategy.SpaceBetween,
+                PlacementStrategy.SpaceBetween,
                 OneElementPlacementStrategy.Begin[Place, Float, Float],
             ),
             bounds

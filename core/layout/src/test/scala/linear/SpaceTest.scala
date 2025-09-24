@@ -1,4 +1,4 @@
-package me.katze.gui4s.layout
+package gui4s.core.layout
 package linear
 
 import org.scalatest.flatspec.AnyFlatSpec
