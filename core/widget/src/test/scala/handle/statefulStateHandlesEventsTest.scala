@@ -1,11 +1,12 @@
-package me.katze.gui4s.widget
+package gui4s.core.widget
 package handle
 
+import handle.statefulStateHandlesEvents
+
 import cats.Id
-import me.katze.gui4s.widget.handle.statefulStateHandlesEvents
+import gui4s.core.widget.{Path, StatefulBehaviour}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import me.katze.gui4s.widget.{Path, StatefulBehaviour}
 
 final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
   val path = new Path("parent")
