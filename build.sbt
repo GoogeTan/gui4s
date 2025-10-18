@@ -39,7 +39,7 @@ lazy val skijaLibs = List(
 
 ThisBuild / resolvers += "gitverse" at "https://gitverse.ru/api/packages/daniilzemskov/maven"
 lazy val glfwLibs = List(
-  "glfw4s" % "core-jvm_3" % "0.1.7"
+  "glfw4s" % "glfw4s_3" % "0.1.10"
 )
 
 def commonSettings(nameIn : String, pkg : String) =

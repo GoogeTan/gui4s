@@ -21,34 +21,27 @@ import scala.concurrent.ExecutionContext
 
 def desktopApp[
   IO[_] : Async,
-  Resource[_] : Monad,
-  CallbackIO[_] : Concurrent,
   Monitor,
   Window,
   PreInit,
 ](
-  preInit : SkijaBackend[IO, Resource, CallbackIO, Monitor, Window, DownEvent] => Resource[PreInit],
+  preInit : SkijaBackend[IO, Monitor, Window, DownEvent] => Resource[IO, PreInit],
   main : PreInit => DesktopWidget[IO, ApplicationRequest],
   drawLoopExecutionContext : ExecutionContext,
   updateLoopExecutionContext : ExecutionContext,
   settings : WindowCreationSettings[Monitor, Window],
   unsafeRunF : IO[Unit] => Unit,
-  glfw : PostInit[IO, Resource, CallbackIO[Unit], Monitor, Window],
-  eval : IO ~> Resource,
-  fromAutoCloseable : [T <: AutoCloseable] => CallbackIO[T] => Resource[T],
-  liftIO: CallbackIO ~> IO
-)(using GenConcurrent[CallbackIO, ?]) : IO[ExitCode] =
+  glfw : PostInit[IO, IO[Unit], Monitor, Window],
+) : IO[ExitCode] =
   gui4sApp[
     IO,
-    CallbackIO,
-    Resource,
     Update[IO, ApplicationRequest, *],
     PlaceC[IO],
     Draw[IO],
     RecompositionReaction[IO],
     DownEvent,
     PreInit,
-    SkijaBackend[IO, Resource, CallbackIO, Monitor, Window, DownEvent],
+    SkijaBackend[IO, Monitor, Window, DownEvent],
     ExitCode
   ](
     queue =>
@@ -59,9 +52,6 @@ def desktopApp[
             glfw,
             settings,
             DownEvent.eventOfferingCallbacks(queue.offer),
-            eval,
-            fromAutoCloseable,
-            liftIO
           )
         preInit <- preInit(backend)
       yield (preInit, backend),
@@ -70,11 +60,10 @@ def desktopApp[
     runPlace = backend =>
       Place.run(backend.windowBounds.map(_.map(new InfinityOr(_))))
         .andThen(runEitherT[IO, Throwable]),
-    runDraw = (draw, backend) => backend.drawFrame((clear[ReaderT[CallbackIO, Canvas, *]](0xFFFFFFFF) |+| draw).run),
+    runDraw = (draw, backend) => backend.drawFrame(clear[ReaderT[IO, Canvas, *]](0xFFFFFFFF) |+| draw),
     runRecomposition = RecompositionReaction.run,
     drawLoopExecutionContext = drawLoopExecutionContext,
     updateLoopExecutionContext = updateLoopExecutionContext,
-    liftQueueIO = liftIO
   )
 end desktopApp
 

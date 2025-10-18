@@ -17,8 +17,6 @@ import scala.concurrent.ExecutionContext
 
 def gui4sApp[
   IO[_] : Async,
-  CallbackIO[_],
-  Resource[_],
   Update[_] : Monad,
   Place[_] : Functor,
   Draw,
@@ -28,7 +26,7 @@ def gui4sApp[
   Backend,
   ExitCode
 ](
-  createBackend : QueueSink[CallbackIO, DownEvent] => Resource[(PreInit, Backend)],
+  createBackend : QueueSink[IO, DownEvent] => Resource[IO, (PreInit, Backend)],
   main : PreInit => Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
   runUpdate : [T] => Update[T] => IO[Either[ExitCode, T]],
   runPlace : Backend => FunctionK[Place, IO],
@@ -36,14 +34,12 @@ def gui4sApp[
   runRecomposition : RecompositionReaction => IO[Unit],
   drawLoopExecutionContext : ExecutionContext,
   updateLoopExecutionContext : ExecutionContext,
-  liftQueueIO : CallbackIO ~> IO
-)(using GenConcurrent[CallbackIO, ?]) : IO[ExitCode] =
+) : IO[ExitCode] =
   type PlacedWidget = Widget[
     Update, Place, Draw, RecompositionReaction, DownEvent
   ]
   runApplicationLoopsWithBackend[
     IO,
-    CallbackIO,
     DownEvent,
     PlacedWidget,
     (PreInit, Backend),
@@ -91,7 +87,6 @@ def gui4sApp[
         runRecomposition,
         runPlace(backend).convert
       ),
-    liftQueueIO = liftQueueIO
   )
 end gui4sApp
 

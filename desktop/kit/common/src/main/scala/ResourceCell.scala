@@ -5,36 +5,32 @@ import cats.effect.std.*
 import cats.syntax.all.*
 import cats.*
 
-
-trait ResourceCell[IO[_], Resource[_], T]:
+trait ResourceCell[IO[_], T]:
   def get : IO[T]
-  def evalUpdate(f : T => Resource[T]) : IO[Unit]
+  def evalUpdate(f : T => Resource[IO, T]) : IO[Unit]
 
   def eval[G[_], B](f : T => G[B], g : IO ~> G)(using MonadCancel[G, Throwable]) : G[B]
 end ResourceCell
 
 object ResourceCell:
-  def atomic[IO[_] : Concurrent, Resource[_], T](
-                                                  initial : Resource[T],
-                                                  runResource : Resource[T] => IO[(T, IO[Unit])],
-                                                  makeResource : [U] => IO[(U, IO[Unit])] => Resource[U]
-                                                ) : Resource[ResourceCell[IO, Resource, T]] =
-    makeResource(
+  def atomic[IO[_] : Concurrent, T](initial : Resource[IO, T]) : Resource[IO, ResourceCell[IO, T]] =
+    Resource(
       for
-        ref : Ref[IO, (T, IO[Unit])] <- Ref[IO].of(runResource(initial))
+        initialValue <- initial.allocated
+        ref : Ref[IO, (T, IO[Unit])] <- Ref[IO].of(initialValue)
         mutex <- Mutex[IO]
       yield (
-        new ResourceCell[IO, Resource, T] {
+        new ResourceCell[IO, T] {
           override def get: IO[T] =
             mutex.lock.use(_ =>
               ref.get.map(_._1)
             )
           end get
 
-          override def evalUpdate(f: T => Resource[T]): IO[Unit] =
+          override def evalUpdate(f: T => Resource[IO, T]): IO[Unit] =
             mutex.lock.use(_ =>
               ref.get.flatMap((value, destructor) =>
-                runResource(f(value)) <* destructor
+                f(value).allocated <* destructor
               ).flatMap(ref.set)
             )
           end evalUpdate

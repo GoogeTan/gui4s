@@ -3,7 +3,7 @@ package effects
 
 import cats.effect.IO
 import gui4s.core.widget.Path
-import gui4s.glfw.GlfwCallbacks
+import gui4s.desktop.kit.common.GlfwCallbacks
 
 type DownEvent = gui4s.desktop.kit.common.effects.DownEvent
 

@@ -1,24 +1,22 @@
 package gui4s.desktop.skija
 
-import cats.effect.Sync
-import cats.syntax.all.*
-import cats.{Monad, ~>}
+import cats.effect.{Resource, Sync}
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 
 /** Реализация интерфейса для работы с Skija.
  * @tparam IO Эффект, в котором выполняются операции
  */
-final class SkijaInitImpl[IO[_]: Sync as S, Resource[_] : Monad](eval : IO ~> Resource, fromAutoCloseable : [T <: AutoCloseable] => IO[T] => Resource[T]) extends SkijaInit[IO, Resource]:
-  override def createDirectContext: Resource[DirectContext] =
-    fromAutoCloseable(S.delay(DirectContext.makeGL()))
+final class SkijaInitImpl[IO[_]: Sync as S] extends SkijaInit[IO]:
+  override def createDirectContext: Resource[IO, DirectContext] =
+    Resource.fromAutoCloseable(S.delay(DirectContext.makeGL()))
   end createDirectContext
 
   override def createRenderTarget(
                                     context: DirectContext,
                                     width: Float,
                                     height: Float,
-                                  ): Resource[SkiaRenderTarget] =
+                                  ): Resource[IO, SkiaRenderTarget] =
     for
       renderTarget <- createGLRenderTarget(
         width = width.toInt,
@@ -33,7 +31,7 @@ final class SkijaInitImpl[IO[_]: Sync as S, Resource[_] : Monad](eval : IO ~> Re
         Some(ColorSpace.getDisplayP3), // TODO load monitor profile
         Some(new SurfaceProps(PixelGeometry.RGB_H))
       )
-      canvas <- eval(getCanvas(surface))
+      canvas <- Resource.eval(getCanvas(surface))
     yield SkiaRenderTarget(context, renderTarget, surface, canvas)
   end createRenderTarget
 
@@ -45,8 +43,8 @@ final class SkijaInitImpl[IO[_]: Sync as S, Resource[_] : Monad](eval : IO ~> Re
                               colorFormat: SurfaceColorFormat,
                               colorSpace: Option[ColorSpace],
                               props: Option[SurfaceProps]
-                            ): Resource[Surface] =
-    fromAutoCloseable(
+                            ): Resource[IO, Surface] =
+    Resource.fromAutoCloseable(
       S.delay(
         Surface.wrapBackendRenderTarget(
           context,
@@ -71,8 +69,8 @@ final class SkijaInitImpl[IO[_]: Sync as S, Resource[_] : Monad](eval : IO ~> Re
                                       stencil: Int,
                                       fbId: Int,
                                       fbFormat: Int
-                                    ): Resource[BackendRenderTarget] =
-    fromAutoCloseable(
+                                    ): Resource[IO, BackendRenderTarget] =
+    Resource.fromAutoCloseable(
       S.delay:
         BackendRenderTarget.makeGL(
           width, height,
@@ -84,8 +82,8 @@ final class SkijaInitImpl[IO[_]: Sync as S, Resource[_] : Monad](eval : IO ~> Re
     )
   end createGLRenderTarget
 
-  override def createShaper: Resource[Shaper] =
-    fromAutoCloseable(S.delay(Shaper.make()))
+  override def createShaper: Resource[IO, Shaper] =
+    Resource.fromAutoCloseable(S.delay(Shaper.make()))
   end createShaper
 end SkijaInitImpl
 

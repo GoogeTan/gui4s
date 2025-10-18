@@ -5,23 +5,21 @@ import cats.effect.*
 import cats.effect.std.{Queue, QueueSink}
 import cats.syntax.all.*
 
+
 def runApplicationLoopsWithBackend[
   IO[_] : Async,
-  QueueIO[_],
   DownEvent,
   RootWidget,
   Backend,
   ExitCode
 ](
-   backend : QueueSink[QueueIO, DownEvent] => Resource[IO, Backend],
+   backend : QueueSink[IO, DownEvent] => Resource[IO, Backend],
    drawLoop : Backend => DrawLoop[IO, RootWidget, ExitCode],
    updateLoop : Backend => UpdateLoop[IO, RootWidget, DownEvent, ExitCode],
    rootWidget : Backend => IO[RootWidget],
-   liftQueueIO : QueueIO ~> IO
-)(using GenConcurrent[QueueIO, ?]) : IO[ExitCode] =
+) : IO[ExitCode] =
   runApplicationLoops[
     IO,
-    QueueIO,
     DownEvent,
     RootWidget,
     ExitCode
@@ -33,30 +31,27 @@ def runApplicationLoopsWithBackend[
         rootWidget(state)
       )
     ),
-    liftQueueIO
   )
 end runApplicationLoopsWithBackend
 
 def runApplicationLoops[
   IO[_] : Async,
-  QueueIO[_],
   DownEvent,
   RootWidget,
   ExitCode
 ](
-  loops: QueueSink[QueueIO, DownEvent] => Resource[IO, (
+  loops: QueueSink[IO, DownEvent] => Resource[IO, (
       DrawLoop[IO, RootWidget, ExitCode],
       UpdateLoop[IO, RootWidget, DownEvent, ExitCode],
       IO[RootWidget],
     )
   ],
-  liftQueueIO : QueueIO ~> IO
-)(using GenConcurrent[QueueIO, ?]) : IO[ExitCode] =
-  liftQueueIO(Queue.unbounded[QueueIO, DownEvent]).flatMap(eventBus =>
+) : IO[ExitCode] =
+  Queue.unbounded[IO, DownEvent].flatMap(eventBus =>
     loops(eventBus).use((drawLoop, updateLoop, freeRootWidget) =>
       freeRootWidget.flatMap(Ref[IO].of).flatMap(
         applicationLoop(
-          liftQueueIO(eventBus.take),
+          eventBus.take,
           _,
           drawLoop,
           updateLoop,
