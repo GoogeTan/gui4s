@@ -1,7 +1,6 @@
 package gui4s.desktop.skija
 package paragraph
 
-import catnip.*
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*

@@ -4,7 +4,6 @@ import catnip.BiMonad
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import gui4s.core.geometry.Rect
 import gui4s.desktop.widget.library.TextRange.replaceAt
 
 

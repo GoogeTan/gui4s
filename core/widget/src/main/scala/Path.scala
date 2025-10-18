@@ -1,7 +1,6 @@
 package gui4s.core.widget
 
 import cats.*
-import cats.syntax.all.*
 
 final case class Path(value : List[String]):
   def this(strings : String*) = this(strings.toList)

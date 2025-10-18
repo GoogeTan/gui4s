@@ -1,17 +1,16 @@
 package gui4s.desktop.skija
 
-import cats.effect.Resource
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.shaper.Shaper
 
-trait SkijaInit[F[_]]:
-  def createDirectContext: Resource[F, DirectContext]
+trait SkijaInit[IO[_], Resource[_]]:
+  def createDirectContext: Resource[DirectContext]
   
   def createRenderTarget(
     context: DirectContext, 
     width: Float, 
     height: Float, 
-  ): F[SkiaRenderTarget]
+  ): Resource[SkiaRenderTarget]
   
   def createSurface(
     context: DirectContext,
@@ -20,9 +19,9 @@ trait SkijaInit[F[_]]:
     colorFormat: SurfaceColorFormat,
     colorSpace: Option[ColorSpace] = None,
     props: Option[SurfaceProps] = None
-  ): Resource[F, Surface]
+  ): Resource[Surface]
   
-  def getCanvas(surface: Surface): F[Canvas]
+  def getCanvas(surface: Surface): IO[Canvas]
   
   def createGLRenderTarget(
     width: Int,
@@ -31,7 +30,7 @@ trait SkijaInit[F[_]]:
     stencil: Int = 8,
     fbId: Int = 0,
     fbFormat: Int
-  ): Resource[F, BackendRenderTarget]
+  ): Resource[BackendRenderTarget]
   
-  def createShaper : Resource[F, Shaper]
+  def createShaper : Resource[Shaper]
 end SkijaInit

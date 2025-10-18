@@ -5,7 +5,6 @@ import gui4s.core.geometry.*
 import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.zio.*
 import gui4s.desktop.kit.zio.effects.*
-import gui4s.desktop.kit.zio.effects.Update.given
 import gui4s.desktop.kit.zio.widgets.*
 import gui4s.desktop.kit.zio.widgets.decorator.*
 import gui4s.desktop.skija.*

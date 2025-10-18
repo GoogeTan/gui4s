@@ -1,7 +1,6 @@
 package gui4s.desktop.skija
 package canvas
 
-import cats.FlatMap
 import cats.effect.kernel.Sync
 import io.github.humbleui.skija.Path
 import cats.syntax.all.*

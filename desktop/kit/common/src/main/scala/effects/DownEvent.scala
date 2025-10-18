@@ -5,8 +5,9 @@ import cats.syntax.all.*
 import gui4s.core.geometry.Point2d
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
-import gui4s.glfw.KeyAction.{Press, given}
-import gui4s.glfw.{GlfwCallbacks, KeyAction, KeyModes}
+import glfw4s.core.KeyAction.{Press, given}
+import glfw4s.core.{KeyAction, KeyModes}
+import gui4s.desktop.kit.common.GlfwCallbacks
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum DownEvent:

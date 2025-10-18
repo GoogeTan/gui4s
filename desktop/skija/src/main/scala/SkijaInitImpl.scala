@@ -1,26 +1,25 @@
 package gui4s.desktop.skija
 
-import cats.effect.{Async, Resource, Sync}
-import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
+import cats.effect.Sync
 import cats.syntax.all.*
+import cats.{Monad, ~>}
 import io.github.humbleui.skija.shaper.Shaper
+import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 
 /** Реализация интерфейса для работы с Skija.
- * @tparam F Эффект, в котором выполняются операции
+ * @tparam IO Эффект, в котором выполняются операции
  */
-final class SkijaInitImpl[F[_]: Async as S] extends SkijaInit[F]:
-  override def createDirectContext: Resource[F, DirectContext] =
-    Resource.fromAutoCloseable(
-      S.delay(DirectContext.makeGL())
-    )
+final class SkijaInitImpl[IO[_]: Sync as S, Resource[_] : Monad](eval : IO ~> Resource, fromAutoCloseable : [T <: AutoCloseable] => IO[T] => Resource[T]) extends SkijaInit[IO, Resource]:
+  override def createDirectContext: Resource[DirectContext] =
+    fromAutoCloseable(S.delay(DirectContext.makeGL()))
   end createDirectContext
 
   override def createRenderTarget(
                                     context: DirectContext,
                                     width: Float,
                                     height: Float,
-                                  ): F[SkiaRenderTarget] =
-    val inner: Resource[F, SkiaRenderTarget] = for
+                                  ): Resource[SkiaRenderTarget] =
+    for
       renderTarget <- createGLRenderTarget(
         width = width.toInt,
         height = height.toInt,
@@ -34,9 +33,8 @@ final class SkijaInitImpl[F[_]: Async as S] extends SkijaInit[F]:
         Some(ColorSpace.getDisplayP3), // TODO load monitor profile
         Some(new SurfaceProps(PixelGeometry.RGB_H))
       )
-      canvas <- Resource.eval(getCanvas(surface))
+      canvas <- eval(getCanvas(surface))
     yield SkiaRenderTarget(context, renderTarget, surface, canvas)
-    inner.allocated.map((a, _) => a)
   end createRenderTarget
 
   @SuppressWarnings(Array("org.wartremover.warts.Null"))
@@ -47,8 +45,8 @@ final class SkijaInitImpl[F[_]: Async as S] extends SkijaInit[F]:
                               colorFormat: SurfaceColorFormat,
                               colorSpace: Option[ColorSpace],
                               props: Option[SurfaceProps]
-                            ): Resource[F, Surface] =
-    Resource.fromAutoCloseable(
+                            ): Resource[Surface] =
+    fromAutoCloseable(
       S.delay(
         Surface.wrapBackendRenderTarget(
           context,
@@ -62,7 +60,7 @@ final class SkijaInitImpl[F[_]: Async as S] extends SkijaInit[F]:
     )
   end createSurface
 
-  override def getCanvas(surface: Surface): F[Canvas] =
+  override def getCanvas(surface: Surface): IO[Canvas] =
     S.delay(surface.getCanvas)
   end getCanvas
 
@@ -73,8 +71,8 @@ final class SkijaInitImpl[F[_]: Async as S] extends SkijaInit[F]:
                                       stencil: Int,
                                       fbId: Int,
                                       fbFormat: Int
-                                    ): Resource[F, BackendRenderTarget] =
-    Resource.fromAutoCloseable(
+                                    ): Resource[BackendRenderTarget] =
+    fromAutoCloseable(
       S.delay:
         BackendRenderTarget.makeGL(
           width, height,
@@ -86,14 +84,8 @@ final class SkijaInitImpl[F[_]: Async as S] extends SkijaInit[F]:
     )
   end createGLRenderTarget
 
-  def closeRenderTarget(target: SkiaRenderTarget): F[Unit] =
-    S.delay:
-      target.target.close()
-      target.surface.close()
-  end closeRenderTarget
-
-  override def createShaper: Resource[F, Shaper] =
-    Resource.fromAutoCloseable(S.delay(Shaper.make()))
+  override def createShaper: Resource[Shaper] =
+    fromAutoCloseable(S.delay(Shaper.make()))
   end createShaper
 end SkijaInitImpl
 

@@ -4,7 +4,6 @@ package canvas
 import canvas.Canvased.applyCanvasFFI
 
 import cats.*
-import cats.data.*
 import cats.effect.Sync
 import cats.syntax.all.*
 

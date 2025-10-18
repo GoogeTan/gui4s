@@ -4,10 +4,10 @@ package common
 import catnip.syntax.all.given
 import cats.arrow.FunctionK
 import cats.effect.Async
-import cats.effect.kernel.Resource
+import cats.effect.kernel.{GenConcurrent, Resource}
 import cats.effect.std.QueueSink
 import cats.syntax.all.*
-import cats.{Functor, Monad}
+import cats.{Functor, Monad, ~>}
 import gui4s.core.loop.*
 import gui4s.core.widget.Path
 import gui4s.core.widget.draw.Drawable
@@ -17,6 +17,8 @@ import scala.concurrent.ExecutionContext
 
 def gui4sApp[
   IO[_] : Async,
+  CallbackIO[_],
+  Resource[_],
   Update[_] : Monad,
   Place[_] : Functor,
   Draw,
@@ -26,7 +28,7 @@ def gui4sApp[
   Backend,
   ExitCode
 ](
-  createBackend : QueueSink[IO, DownEvent] => Resource[IO, (PreInit, Backend)],
+  createBackend : QueueSink[CallbackIO, DownEvent] => Resource[(PreInit, Backend)],
   main : PreInit => Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
   runUpdate : [T] => Update[T] => IO[Either[ExitCode, T]],
   runPlace : Backend => FunctionK[Place, IO],
@@ -34,18 +36,20 @@ def gui4sApp[
   runRecomposition : RecompositionReaction => IO[Unit],
   drawLoopExecutionContext : ExecutionContext,
   updateLoopExecutionContext : ExecutionContext,
-) : IO[ExitCode] =
+  liftQueueIO : CallbackIO ~> IO
+)(using GenConcurrent[CallbackIO, ?]) : IO[ExitCode] =
   type PlacedWidget = Widget[
     Update, Place, Draw, RecompositionReaction, DownEvent
   ]
   runApplicationLoopsWithBackend[
     IO,
+    CallbackIO,
     DownEvent,
     PlacedWidget,
     (PreInit, Backend),
     ExitCode
   ](
-    backend = queue => createBackend(queue).evalOn(drawLoopExecutionContext),
+    backend = createBackend,
     drawLoop = (_, backend) =>
       runDrawLoopOnExecutionContext(
         drawableBasedDrawLoop[IO, Draw, PlacedWidget, ExitCode](
@@ -86,7 +90,8 @@ def gui4sApp[
         widgetReactsOnRecomposition,
         runRecomposition,
         runPlace(backend).convert
-      )
+      ),
+    liftQueueIO = liftQueueIO
   )
 end gui4sApp
 

@@ -3,7 +3,6 @@ package canvas
 
 import canvas.Canvased.applyCanvasFFI
 
-import cats.FlatMap
 import cats.effect.Sync
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.{Image, Paint, Path}

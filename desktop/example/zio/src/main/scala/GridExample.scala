@@ -1,6 +1,5 @@
 package gui4s.desktop.example.zio
 
-import catnip.zio.*
 import cats.MonadThrow
 import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
@@ -8,7 +7,7 @@ import gui4s.core.layout.rowcolumn.*
 import gui4s.desktop.kit.common.*
 import gui4s.desktop.kit.generic.ContainerPlacementError
 import gui4s.desktop.kit.zio.*
-import gui4s.desktop.kit.zio.effects.{*, given}
+import gui4s.desktop.kit.zio.effects.*
 import gui4s.desktop.kit.zio.widgets.*
 import gui4s.desktop.skija.*
 import gui4s.glfw.{OglGlfwWindow, WindowCreationSettings}

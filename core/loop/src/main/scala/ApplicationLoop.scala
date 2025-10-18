@@ -6,19 +6,22 @@ import cats.effect.std.{Queue, QueueSink}
 import cats.syntax.all.*
 
 def runApplicationLoopsWithBackend[
-  F[_] : Async,
+  IO[_] : Async,
+  QueueIO[_],
   DownEvent,
   RootWidget,
   Backend,
   ExitCode
 ](
-    backend : QueueSink[F, DownEvent] => Resource[F, Backend],
-    drawLoop : Backend => DrawLoop[F, RootWidget, ExitCode],
-    updateLoop : Backend => UpdateLoop[F, RootWidget, DownEvent, ExitCode],
-    rootWidget : Backend => F[RootWidget]
-) : F[ExitCode] =
+   backend : QueueSink[QueueIO, DownEvent] => Resource[IO, Backend],
+   drawLoop : Backend => DrawLoop[IO, RootWidget, ExitCode],
+   updateLoop : Backend => UpdateLoop[IO, RootWidget, DownEvent, ExitCode],
+   rootWidget : Backend => IO[RootWidget],
+   liftQueueIO : QueueIO ~> IO
+)(using GenConcurrent[QueueIO, ?]) : IO[ExitCode] =
   runApplicationLoops[
-    F,
+    IO,
+    QueueIO,
     DownEvent,
     RootWidget,
     ExitCode
@@ -29,28 +32,31 @@ def runApplicationLoopsWithBackend[
         updateLoop(state),
         rootWidget(state)
       )
-    )
+    ),
+    liftQueueIO
   )
 end runApplicationLoopsWithBackend
 
 def runApplicationLoops[
-  F[_] : Async,
+  IO[_] : Async,
+  QueueIO[_],
   DownEvent,
   RootWidget,
   ExitCode
 ](
-  loops: QueueSink[F, DownEvent] => Resource[F, (
-      DrawLoop[F, RootWidget, ExitCode],
-      UpdateLoop[F, RootWidget, DownEvent, ExitCode],
-      F[RootWidget],
+  loops: QueueSink[QueueIO, DownEvent] => Resource[IO, (
+      DrawLoop[IO, RootWidget, ExitCode],
+      UpdateLoop[IO, RootWidget, DownEvent, ExitCode],
+      IO[RootWidget],
     )
   ],
-) : F[ExitCode] =
-  Queue.unbounded[F, DownEvent].flatMap(eventBus =>
+  liftQueueIO : QueueIO ~> IO
+)(using GenConcurrent[QueueIO, ?]) : IO[ExitCode] =
+  liftQueueIO(Queue.unbounded[QueueIO, DownEvent]).flatMap(eventBus =>
     loops(eventBus).use((drawLoop, updateLoop, freeRootWidget) =>
-      freeRootWidget.flatMap(Ref[F].of).flatMap(
+      freeRootWidget.flatMap(Ref[IO].of).flatMap(
         applicationLoop(
-          eventBus.take,
+          liftQueueIO(eventBus.take),
           _,
           drawLoop,
           updateLoop,
@@ -64,20 +70,20 @@ end runApplicationLoops
  * Запускает в отдельных потоках обновление виджета и его отрисовку.
  */
 def applicationLoop[
-  F[_] : Concurrent,
+  IO[_] : Concurrent,
   DownEvent,
   Widget,
   ExitCode
 ](
-  eventSource  : F[DownEvent],
-  widgetCell   : Ref[F, Widget],
-  drawLoop     : DrawLoop[F, Widget, ExitCode],
-  updateLoop   : UpdateLoop[F, Widget, DownEvent, ExitCode]
-): F[ExitCode] =
+   eventSource  : IO[DownEvent],
+   widgetCell   : Ref[IO, Widget],
+   drawLoop     : DrawLoop[IO, Widget, ExitCode],
+   updateLoop   : UpdateLoop[IO, Widget, DownEvent, ExitCode]
+): IO[ExitCode] =
   for
     initialWidget <- widgetCell.get
     code <-
-      Concurrent[F]
+      Concurrent[IO]
         .race(
           updateLoop(initialWidget, widgetCell.set, eventSource),
           drawLoop(widgetCell.get)

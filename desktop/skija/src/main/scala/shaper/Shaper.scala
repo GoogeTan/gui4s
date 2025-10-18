@@ -1,7 +1,6 @@
 package gui4s.desktop.skija
 package shaper
 
-import cats.FlatMap
 import cats.effect.{Resource, Sync}
 import io.github.humbleui.skija.{Font, TextBlob}
 import io.github.humbleui.skija.shaper.Shaper
