@@ -5,6 +5,7 @@ object ClickabeExample extends IOApp
     yield PreInit(shaper, cache, backend.mousePosition)
   end preInit
 
+
   def preInit(backend : gui4s.desktop.kit.common.SkijaBackend[IO, Long, OglGlfwWindow, DownEvent]) : Resource[IO, PreInit] =
     for
       shaper
