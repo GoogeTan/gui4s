@@ -1,4 +1,4 @@
-package gui4s.desktop.kit.generic
+package gui4s.core.kit
 
 // TODO Переименовать поля
 final case class ContainerPlacementError[Error](

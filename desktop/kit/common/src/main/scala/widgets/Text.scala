@@ -13,7 +13,6 @@ import gui4s.desktop.skija.canvas.*
 import gui4s.desktop.widget.library.{text as genericText, *}
 import gui4s.core.layout.*
 import io.github.humbleui.skija.shaper.Shaper
-import io.github.humbleui.skija.*
 import io.github.humbleui.skija.paragraph.Paragraph
 
 type TextWidget[IO[_], Event] =(

@@ -5,17 +5,12 @@ import effects.*
 import effects.Update.given
 import widgets.*
 
-import catnip.*
-import catnip.syntax.all.{*, given}
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
-import gui4s.core.geometry.*
 import gui4s.core.layout.Sized
-import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.desktop.skija.*
 import gui4s.desktop.skija.paragraph.*
-import gui4s.desktop.widget.library.{TextFieldEvent, TextFieldState, TextRange}
+import gui4s.desktop.widget.library.{TextFieldEvent, TextFieldState}
 import io.github.humbleui.skija.paragraph.*
 
 def textField[

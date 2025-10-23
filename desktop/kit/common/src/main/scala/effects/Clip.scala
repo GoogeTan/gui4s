@@ -2,7 +2,6 @@ package gui4s.desktop.kit
 package common.effects
 
 import Draw.given
-import cats.Monad
 import cats.effect.kernel.Sync
 import cats.kernel.Monoid
 import gui4s.core.geometry.Point3d

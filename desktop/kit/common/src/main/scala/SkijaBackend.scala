@@ -1,31 +1,34 @@
 package gui4s.desktop.kit
 package common
 
-import catnip.syntax.all.given
+import cats.Monad
+import catnip.ResourceCell
+import catnip.resource.*
 import cats.arrow.FunctionK
 import cats.data.ReaderT
 import cats.effect.*
-import cats.effect.std.{AtomicCell, Dispatcher, QueueSink}
+import cats.effect.std.QueueSink
 import cats.syntax.all.*
-import cats.{Applicative, Apply, Functor, Monad, Monoid, ~>}
+import cats.{Apply, Functor, ~>}
+import glfw4s.core.pure.*
 import gui4s.core.geometry.{Point2d, Rect}
 import gui4s.desktop.skija.*
 import gui4s.desktop.skija.DirectContext.flush
-import glfw4s.core.*
-import glfw4s.core.pure.*
 import io.github.humbleui.skija.Canvas
 
 final case class SkijaBackend[
   IO[_],
+  Resource[_],
+  CallbackIO[_],
   Monitor,
   Window,
   DownEvent
 ](
-  queue : QueueSink[IO, DownEvent],
-  skija : SkijaInit[IO],
-  glfw : PostInit[IO, IO[Unit], Monitor, Window],
-  window: Window,
-  renderTargetCell : ResourceCell[IO, SkiaRenderTarget],
+   queue : QueueSink[CallbackIO, DownEvent],
+   glfw : PostInit[IO, Resource, CallbackIO[Unit], Monitor, Window],
+   window: Window,
+   renderTargetCell : ResourceCell[CallbackIO, Resource, SkiaRenderTarget],
+   liftToIO : CallbackIO ~> IO
 ):
   def windowBounds(using Functor[IO]) : IO[Rect[Float]] =
     glfw.getWindowSize(window).map(Rect(_, _))
@@ -46,7 +49,7 @@ final case class SkijaBackend[
           <* flush(renderTarget.directContext)
           <* glfw.swapBuffers(window)
           <* glfw.pollEvents(),
-      FunctionK.id
+      liftToIO
     )
   end drawFrame
 
@@ -54,97 +57,78 @@ final case class SkijaBackend[
     drawFrame(f.run)
   end drawFrame
 
-  def raiseEvent(event : DownEvent) : IO[Unit] =
+  def raiseEventInCallback(event: DownEvent): CallbackIO[Unit] =
     queue.offer(event)
+  end raiseEventInCallback
+
+  def raiseEvent(event : DownEvent) : IO[Unit] =
+    liftToIO(raiseEventInCallback(event))
   end raiseEvent
+
+  def recreateRenderTarget(newSize : Rect[Float])(using Sync[CallbackIO], Monad[Resource], SyncResource[Resource], Eval[Resource, CallbackIO]): CallbackIO[Unit] =
+    renderTargetCell.evalReplace(state =>
+      createRenderTarget[CallbackIO, Resource](state.directContext, newSize.width, newSize.height)
+    )
+  end recreateRenderTarget
 end SkijaBackend
 
 object SkijaBackend:
   def create[
     IO[_] : Async,
+    Resource[_] : {Monad, SyncResource, EvalC[CallbackIO], EvalC[IO]},
+    CallbackIO[_] : Async,
     Monitor,
     Window,
     DownEvent
   ](
-     queue : QueueSink[IO, DownEvent],
-     glfw : PostInit[IO, IO[Unit], Monitor, Window],
-     windowSettings : WindowCreationSettings[Monitor, Window],
-     callbacks : GlfwCallbacks[IO[Unit], Float],
-    ): Resource[IO, SkijaBackend[IO, Monitor, Window, DownEvent]] =
-    val skija = SkijaInitImpl[IO]
+     queue : QueueSink[CallbackIO, DownEvent],
+     glfw : PostInit[IO, Resource, CallbackIO[Unit], Monitor, Window],
+     createWindow : Resource[Window],
+     createRenderTarget : Window => Resource[ResourceCell[CallbackIO, Resource, SkiaRenderTarget]],
+     liftIO : CallbackIO ~> IO
+    ): Resource[SkijaBackend[IO, Resource, CallbackIO, Monitor, Window, DownEvent]] =
     for
-      window <- glfw.createWindow(windowSettings)
-      _ <- Resource.eval(glfw.makeContextCurrent(window))
-      canvasSize <- Resource.eval(glfw.getFramebufferSize(window))
-      renderTargetCell <- createRenderTarget[IO, Monitor, Window](skija, Rect(canvasSize._1, canvasSize._2))
-      _ <- Resource.eval(
-        registerCallbacks[IO, IO[Unit], Monitor, Window](
-          glfw,
-          window,
-          addRenderTargetRecreation[IO[Unit], Float](
-            callbacks,
-            recreateRenderTarget[IO](skija, renderTargetCell, _)
-          )
-        )
-      )
-    yield SkijaBackend[IO, Monitor, Window, DownEvent](queue, skija, glfw, window, renderTargetCell)
+      window <- createWindow
+      renderTargetCell <- createRenderTarget(window)
+      backend = SkijaBackend(queue, glfw, window, renderTargetCell, liftIO)
+      _ <- registerCallbacksForMaintainingRenderTarget(glfw, window, backend.recreateRenderTarget).eval
+    yield backend
   end create
 
-  def addRenderTargetRecreation[F : Monoid, MeasurementUnit](
-                                                              callbacks: GlfwCallbacks[F, MeasurementUnit],
-                                                              recreation : Rect[MeasurementUnit] => F
-                                                            ) : GlfwCallbacks[F, MeasurementUnit] =
-    callbacks.copy(
-      onWindowResized = newSize =>
-        recreation(newSize) |+| callbacks.onWindowResized(newSize)
-    )
-  end addRenderTargetRecreation
-
-
   def createRenderTarget[
-    IO[_] : Concurrent,
-    Monitor,
-    Window
+    IO[_] : Async,
+    Resource[_] : {Monad, MakeC[IO], AllocateC[IO], SyncResource, EvalC[IO]},
   ](
-     skija : SkijaInit[IO],
-     canvasSize : Rect[Float],
-    ) : Resource[IO, ResourceCell[IO, SkiaRenderTarget]] =
+    width : Int,
+    height : Int
+   ) : Resource[ResourceCell[IO, Resource, SkiaRenderTarget]] =
     for
-      context <- skija.createDirectContext
-      renderTargetCell <- ResourceCell.atomic(
-          skija.createRenderTarget(
+      context <- createDirectContext[Resource]
+      renderTargetCell <- ResourceCell.blocking[IO, Resource, SkiaRenderTarget](
+          gui4s.desktop.skija.createRenderTarget(
             context = context,
-            width = canvasSize.width,
-            height = canvasSize.height
+            width = width,
+            height = height
           ),
         )
     yield renderTargetCell
   end createRenderTarget
 
-  def recreateRenderTarget[IO[_]](
-                                    skija: SkijaInit[IO],
-                                    cell : ResourceCell[IO, SkiaRenderTarget],
-                                    newSize : Rect[Float]
-                                  ): IO[Unit] =
-    cell.evalUpdate(state =>
-      skija.createRenderTarget(state.directContext, newSize.width, newSize.height)
-    )
-  end recreateRenderTarget
 
-  def registerCallbacks[
+  def registerCallbacksForMaintainingRenderTarget[
     IO[_] : Apply,
+    Resource[_],
     CallbackResult,
     Monitor,
     Window,
   ](
-     glfw : PostInit[IO, CallbackResult, Monitor, Window],
+     glfw : PostInit[IO, Resource, CallbackResult, Monitor, Window],
      window: Window,
-     glfwCallbacks: GlfwCallbacks[CallbackResult, Float]
+     recreateRenderTarget : (size : Rect[Float]) => CallbackResult
     ): IO[Unit] =
-    glfw.setFramebufferSizeCallback(window, (window, width, height) => glfwCallbacks.onWindowResized(Rect(width, height)))
-      *> glfw.setMouseButtonCallback(window, (window, button, action, modes) => glfwCallbacks.onMouseClick(button, action, modes))
-      *> glfw.setKeyCallback(window, (window, key, code, action, modes) => glfwCallbacks.onKeyPress(key, code, action, modes))
-      *> glfw.setScrollCallback(window, (window, xoffset, yoffset) => glfwCallbacks.onScroll(xoffset.toFloat, yoffset.toFloat))
-  end registerCallbacks
+    glfw.setFramebufferSizeCallback(window,
+      (window, width, height) =>
+        recreateRenderTarget(Rect(width, height))
+    )
+  end registerCallbacksForMaintainingRenderTarget
 end SkijaBackend
-

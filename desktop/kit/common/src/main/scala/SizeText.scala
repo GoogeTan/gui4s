@@ -3,7 +3,6 @@ package common
 
 import catnip.syntax.all.*
 import catnip.Cache
-import cats.Monad
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import gui4s.core.layout.{Sized, SizedT}

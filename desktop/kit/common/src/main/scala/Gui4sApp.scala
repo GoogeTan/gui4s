@@ -1,13 +1,16 @@
 package gui4s.desktop.kit
 package common
 
+import catnip.resource.UseC
 import catnip.syntax.all.given
+import cats.*
 import cats.arrow.FunctionK
 import cats.effect.Async
-import cats.effect.kernel.{GenConcurrent, Resource}
+import cats.effect.kernel.Concurrent
 import cats.effect.std.QueueSink
 import cats.syntax.all.*
-import cats.{Functor, Monad, ~>}
+import cats.effect.syntax.all.*
+import cats.{Functor, Monad}
 import gui4s.core.loop.*
 import gui4s.core.widget.Path
 import gui4s.core.widget.draw.Drawable
@@ -17,6 +20,8 @@ import scala.concurrent.ExecutionContext
 
 def gui4sApp[
   IO[_] : Async,
+  Resource[_] : {Async, UseC[IO]},
+  CallbackIO[_] : Concurrent,
   Update[_] : Monad,
   Place[_] : Functor,
   Draw,
@@ -26,7 +31,7 @@ def gui4sApp[
   Backend,
   ExitCode
 ](
-  createBackend : QueueSink[IO, DownEvent] => Resource[IO, (PreInit, Backend)],
+  createBackend : QueueSink[CallbackIO, DownEvent] => Resource[(Backend, PreInit)],
   main : PreInit => Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
   runUpdate : [T] => Update[T] => IO[Either[ExitCode, T]],
   runPlace : Backend => FunctionK[Place, IO],
@@ -34,19 +39,22 @@ def gui4sApp[
   runRecomposition : RecompositionReaction => IO[Unit],
   drawLoopExecutionContext : ExecutionContext,
   updateLoopExecutionContext : ExecutionContext,
+  liftIO : CallbackIO ~> IO,
 ) : IO[ExitCode] =
   type PlacedWidget = Widget[
     Update, Place, Draw, RecompositionReaction, DownEvent
   ]
   runApplicationLoopsWithBackend[
     IO,
+    Resource,
+    CallbackIO,
     DownEvent,
     PlacedWidget,
-    (PreInit, Backend),
+    (Backend, PreInit),
     ExitCode
   ](
-    backend = createBackend,
-    drawLoop = (_, backend) =>
+    backend = queue => createBackend(queue).evalOn(drawLoopExecutionContext),
+    drawLoop = (backend, _) =>
       runDrawLoopOnExecutionContext(
         drawableBasedDrawLoop[IO, Draw, PlacedWidget, ExitCode](
           widgetIsDrawable[Update, Place, Draw, RecompositionReaction, DownEvent],
@@ -54,7 +62,7 @@ def gui4sApp[
         ),
         drawLoopExecutionContext
       ),
-    updateLoop = (_, backend) => runUpdateLoopOnExecutionContext[IO, PlacedWidget, DownEvent,ExitCode](
+    updateLoop = (backend, _) => runUpdateLoopOnExecutionContext[IO, PlacedWidget, DownEvent,ExitCode](
       updateLoop[IO, PlacedWidget, DownEvent, ExitCode](
         (widget, event) =>
           flattenRight(
@@ -79,7 +87,7 @@ def gui4sApp[
       ),
       updateLoopExecutionContext
     ),
-    rootWidget = (preInit, backend) =>
+    rootWidget = (backend, preInit) =>
       placeForTheFirstTime[IO, PlacedWidget, Place, RecompositionReaction](
         Path(Nil),
         main(preInit),
@@ -87,6 +95,7 @@ def gui4sApp[
         runRecomposition,
         runPlace(backend).convert
       ),
+    liftIO = liftIO,
   )
 end gui4sApp
 

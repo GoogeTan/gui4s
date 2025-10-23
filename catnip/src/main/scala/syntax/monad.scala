@@ -28,5 +28,12 @@ object monad:
     def <*<[B](f : A => F[B]) : F[A] =
       FM.flatTap(value)(f)
     end <*<
+
+    def sigmaProduct[B](f: A => F[B]): F[(A, B)] =
+      for
+        a <- value
+        b <- f(a)
+      yield (a, b)
+    end sigmaProduct
   end extension
 end monad
