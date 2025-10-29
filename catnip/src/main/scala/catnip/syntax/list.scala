@@ -3,7 +3,7 @@ package syntax
 
 import cats.data.{NonEmptyList, StateT}
 import cats.syntax.all.*
-import cats.{Applicative, Functor, Monad, Order, SemigroupK, Traverse}
+import cats.{Applicative, Foldable, Functor, Monad, Order, SemigroupK, Traverse}
 
 object list:
   def fromList[C[_] : {Applicative as A, SemigroupK as S}, T](c : NonEmptyList[T]) : C[T] =
@@ -15,7 +15,7 @@ object list:
    * @param list Список для обработки
    * @param f    Обработчик списка. Должен вернуть список той же длины, что и исходный
    */
-  def traverseListOrdered[F[_] : Functor, C[_] : {Applicative as A, Traverse, SemigroupK}, A : Order, B](list: C[A])(f: C[A] => F[C[B]]): F[C[B]] =
+  def traverseListOrdered[F[_] : Functor, C[_] : {Applicative as A, Foldable, SemigroupK}, A : Order, B](list: C[A])(f: C[A] => F[C[B]]): F[C[B]] =
     NonEmptyList.fromList(list.toList) match
       case Some(value) =>
         val indexed = value.zipWithIndex.sortBy((value, _) => value)

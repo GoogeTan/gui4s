@@ -3,14 +3,13 @@ package widgets
 
 import cats.*
 import cats.effect.kernel.Sync
-import cats.syntax.all.*
 import gui4s.core.layout.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.skija.*
 import gui4s.desktop.skija.canvas.*
-import gui4s.desktop.widget.library.{text as genericText, *}
+import gui4s.desktop.widget.library.text as genericText
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.shaper.Shaper
 
@@ -39,27 +38,13 @@ def text[IO[_] : Sync](
 end text
 
 def placedText[IO[_] : Sync, Event](placedText : Sized[Float, SkijaPlacedText]) : DesktopWidget[IO, Event] =
-  drawOnlyWidget[
-      UpdateC[IO, Event],
-      PlaceC[IO],
-      Draw[IO],
-      RecompositionReaction[IO],
-      DownEvent,
-  ](
-      OuterPlace.liftF(placedText.mapValue(Draw.drawText).pure[IO]),
-      RecompositionReaction.empty
+  constSizedDrawOnlyWidget(
+    placedText.mapValue(Draw.drawText)
   )
 end placedText
 
-def placedParagraph[IO[_] : Sync, Event](placedText : Sized[Float, Paragraph]) : DesktopWidget[IO, Event] =
-  drawOnlyWidget[
-    UpdateC[IO, Event],
-    PlaceC[IO],
-    Draw[IO],
-    RecompositionReaction[IO],
-    DownEvent,
-  ](
-    OuterPlace.liftF(placedText.mapValue(Draw.drawParagraph).pure[IO]),
-    RecompositionReaction.empty
+def placedParagraph[IO[_] : Sync as S, Event](placedText : Sized[Float, Paragraph]) : DesktopWidget[IO, Event] =
+  constSizedDrawOnlyWidget(
+    placedText.mapValue(Draw.drawParagraph)
   )
 end placedParagraph

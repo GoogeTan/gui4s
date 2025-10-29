@@ -3,7 +3,6 @@ package linear
 
 import org.scalatest.flatspec.*
 import org.scalatest.*
-import cats.syntax.all.*
 
 import scala.collection.immutable.List
 import gui4s.core.geometry.*

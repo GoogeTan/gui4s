@@ -25,6 +25,14 @@ object Place:
       end apply
     end new
   end run
+
+  def withBoundsK[IO[_] : Sync](f : Bounds => Bounds) : Place[IO, *] ~> Place[IO, *] =
+    new ~>[Place[IO, *], Place[IO, *]]:
+      override def apply[A](fa : Place[IO, A]) : Place[IO, A] =
+        OuterPlace.withBoundsK(f)(fa)
+      end apply
+    end new
+  end withBoundsK
   
   def sizeText[IO[_] : Sync](
     shaper : Shaper,
@@ -41,5 +49,7 @@ object Place:
     GenericPlace.typecheck[OuterPlace[IO, *], InnerPlace, Throwable, U](error)
   end typecheck
 
-  given functorInstance[IO[_] : Monad] : Functor[Place[IO, *]] = nestedFunctorsAreFunctors[OuterPlace[IO, *], InnerPlace]
+  given functorInstance[IO[_] : Monad] : Functor[Place[IO, *]] =
+    nestedFunctorsAreFunctors[OuterPlace[IO, *], InnerPlace]
+  end functorInstance
 end Place

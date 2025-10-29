@@ -1,5 +1,6 @@
 package build.desktop.kit
 
+import coursier.Repository
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
@@ -11,25 +12,28 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   def scalaVersion = "3.7.3"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
-    "-Xkind-projector"
+    "-Xkind-projector",
+    "-Vprofile",
   )
 
-  def repositoriesTask = Task.Anon {
+  def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() ++ Seq(
       coursier.maven
         .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++ Agg(
+  def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
     ivy"glfw4s:core-jvm_3:0.1.30",
     ivy"org.typelevel::cats-core:2.13.0",
-    ivy"org.typelevel::cats-effect:3.6.3"
+    ivy"org.typelevel::cats-effect:3.6.3",
+    ivy"com.github.cb372::scalacache-caffeine:1.0.0-M6",
+    ivy"com.github.cb372::scalacache-core:1.0.0-M6",
   )
 
-  def moduleDeps = super.moduleDeps ++ Agg(
+  def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Agg(
     build.catnip,
     build.core.kit,
     build.core.layout,
@@ -39,13 +43,13 @@ object `package` extends RootModule with SbtModule with PublishModule {
     build.desktop.widgetLibrary
   )
 
-  def pomSettings = PomSettings(
-    "desktop-kit",
-    "desktop-kit",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
+  def pomSettings: T[PomSettings] = PomSettings(
+    description = "desktop-kit",
+    organization = "desktop-kit",
+    url = "",
+    licenses = Seq(),
+    versionControl = VersionControl(None, None, None, None),
+    developers = Seq()
   )
 
   def publishVersion = "0.1.0-SNAPSHOT"

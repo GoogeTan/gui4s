@@ -1,7 +1,7 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Comonad, Functor}
 import gui4s.desktop.widget.library.decorator.Decorator
@@ -16,6 +16,7 @@ def drawDecorator[
 ](
   toDraw : InnerPlace[Draw] => Draw
 ) : Decorator[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
+  given Functor[Place * InnerPlace] = nestedFunctorsAreFunctors[Place, InnerPlace]
   original =>
     PF.map(
       original

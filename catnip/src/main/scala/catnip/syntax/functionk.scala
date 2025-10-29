@@ -6,18 +6,6 @@ import cats.syntax.all.*
 import cats.{FlatMap, Functor, MonadError, ~>}
 
 object functionk:
-  given asGenericFunction[F[_], G[_]]: Conversion[F ~> G, [T] => F[T] => G[T]] =
-    f => [T] => a => f(a)
-
-  given asFunctionK[F[_], G[_]]: Conversion[[T] => F[T] => G[T], F ~> G] =
-    (f : [T] => F[T] => G[T]) =>
-      new ~>[F, G]:
-        override def apply[A](fa: F[A]): G[A] =
-          f(fa)
-        end apply
-      end new
-  end asFunctionK
-
   def runEitherTK[F[_], Error](using AE: MonadError[F, Error]) : EitherT[F, Error, *] ~> F =
     new ~>[EitherT[F, Error, *], F]:
       override def apply[A](fa: EitherT[F, Error, A]): F[A] =

@@ -1,6 +1,6 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.*
 import cats.*
 import cats.syntax.all.*
 import gui4s.core.widget.free.AsFree

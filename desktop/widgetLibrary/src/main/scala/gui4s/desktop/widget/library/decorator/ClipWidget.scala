@@ -1,7 +1,7 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Comonad, Functor, Monad}
 

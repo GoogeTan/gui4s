@@ -19,7 +19,7 @@ object applicative:
     end combine
   end applicativesAreMonoids
   
-  given nestedFunctorsAreFunctors[F[_] : Functor, G[_] : Functor] : Functor[[Value] =>> F[G[Value]]] with
+  class nestedFunctorsAreFunctors[F[_] : Functor, G[_] : Functor] extends Functor[[Value] =>> F[G[Value]]]:
     override def map[A, B](fa: F[G[A]])(f: A => B): F[G[B]] =
       fa.map(_.map(f))
     end map

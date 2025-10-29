@@ -13,7 +13,7 @@ type PlaceT[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, Measureme
 
 object Place:
   def typecheck[
-    OuterPlace[_] : MonadErrorT[PlaceError],
+    OuterPlace[_] : MonadErrorC[PlaceError],
     InnerPlace[_],
     PlaceError,
     U : Typeable

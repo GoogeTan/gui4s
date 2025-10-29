@@ -1,4 +1,4 @@
-package gui4s.desktop.example
+package gui4s.desktop.kit
 
 import catnip.syntax.all.{*, given}
 import cats.*

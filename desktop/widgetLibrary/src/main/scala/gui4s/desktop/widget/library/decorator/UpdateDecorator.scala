@@ -1,7 +1,7 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Comonad, Functor}
 import gui4s.core.widget.Path
@@ -49,6 +49,7 @@ def updateDecoratorWithRect[
   InnerPlace[Widget[Update, [Value] =>> OuterPlace[InnerPlace[Value]], Draw, RecompositionReaction, HandleableEvent]],
   HandleableEvent
 ] =
+  given Functor[OuterPlace * InnerPlace] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]
   decorator => original => PF.map(original)(_.coflatMap(
       sizedWidget =>
         Widget.ValueWrapper[

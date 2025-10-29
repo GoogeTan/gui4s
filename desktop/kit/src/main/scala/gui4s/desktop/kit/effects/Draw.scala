@@ -1,11 +1,9 @@
 package gui4s.desktop.kit
 package effects
 
-import catnip.syntax.all.given
 import cats.*
 import cats.data.ReaderT
 import cats.effect.Sync
-import gui4s.desktop.skija.*
 import gui4s.desktop.skija
 import gui4s.desktop.skija.canvas.*
 import io.github.humbleui.skija.*
@@ -17,7 +15,7 @@ object Draw:
   given[IO[_] : Applicative]: Canvased[ReaderT[IO, Canvas, *]] = Canvased.given_Canvased_ReaderT
 
   given monoidInstance[IO[_] : Monad] : Monoid[Draw[IO]] =
-    summon
+    catnip.syntax.all.applicativesAreMonoids[ReaderT[IO, Canvas, *]]
   end monoidInstance
 
   def drawAt[IO[_] : Sync](whatToDraw : Draw[IO], x : Float, y : Float) : Draw[IO] =

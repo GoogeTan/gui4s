@@ -1,7 +1,7 @@
 package gui4s.desktop.widget.library
 
 import catnip.syntax.additional.*
-import catnip.syntax.applicative.given
+import catnip.syntax.applicative.nestedFunctorsAreFunctors
 import cats.*
 import cats.syntax.all.*
 import gui4s.core.geometry.*

@@ -1,7 +1,6 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.additional.*
-import catnip.syntax.all.given
+import catnip.syntax.all.{*, given}
 import cats.*
 import cats.arrow.Strong
 import cats.syntax.all.*

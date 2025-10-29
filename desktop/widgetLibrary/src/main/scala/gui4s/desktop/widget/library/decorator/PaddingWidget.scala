@@ -1,9 +1,8 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.additional.*
-import catnip.syntax.all.given
-import catnip.syntax.monad.MonadErrorT
+import catnip.syntax.all.*
+import catnip.syntax.monad.MonadErrorC
 import cats.syntax.all.*
 import cats.{Applicative, Comonad, Functor, Id, ~>}
 import gui4s.core.geometry.*
@@ -64,7 +63,7 @@ end paddingLayoutPlacementStrategy
 
 def paddingWidget[
   Update[_],
-  OuterPlace[_] : MonadErrorT[PlaceError],
+  OuterPlace[_] : MonadErrorC[PlaceError],
   Place[_],
   Draw,
   RecompositionReaction,

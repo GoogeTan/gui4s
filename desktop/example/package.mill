@@ -13,7 +13,8 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
-    "-Xkind-projector"
+    "-Xkind-projector",
+    //"-Vprofile",
   )
 
   def repositoriesTask = Task.Anon {
@@ -24,8 +25,6 @@ object `package` extends RootModule with SbtModule with PublishModule {
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy"co.fs2::fs2-core:3.12.2",
-    ivy"co.fs2::fs2-io:3.12.2",
     ivy"com.github.cb372::scalacache-caffeine:1.0.0-M6",
     ivy"com.github.cb372::scalacache-core:1.0.0-M6",
     ivy"glfw4s:core-jvm_3:0.1.30",
