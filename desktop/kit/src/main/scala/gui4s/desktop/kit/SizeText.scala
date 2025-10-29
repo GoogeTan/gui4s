@@ -4,7 +4,7 @@ import catnip.Cache
 import catnip.syntax.all.*
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
-import gui4s.core.layout.{Sized, SizedT}
+import gui4s.core.layout.{Sized, SizedC}
 import gui4s.desktop.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
 import io.github.humbleui.skija.shaper.Shaper
 
@@ -17,7 +17,7 @@ def sizeTextFFI[
   getAvailablePlace : OuterPlace[Option[Float]],
   shaper: Shaper,
   cache : TextCache[OuterPlace],
-) : SizeText[OuterPlace * SizedT[Float]] =
+) : SizeText[OuterPlace * SizedC[Float]] =
   (text: String, options: SkijaTextStyle) =>
     getAvailablePlace.flatMap:
       bounds =>

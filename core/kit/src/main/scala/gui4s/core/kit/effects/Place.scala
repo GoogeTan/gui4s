@@ -8,8 +8,8 @@ import gui4s.core.widget.Path
 
 import scala.reflect.Typeable
 
-type Place[IO[_], Bounds, MeasurementUnit, Error, Value] = OuterPlaceT[IO, Bounds, Error][Sized[MeasurementUnit, Value]]
-type PlaceT[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, MeasurementUnit, Error, *]
+type Place[IO[_], Bounds, MeasurementUnit, Error, Value] = OuterPlace[IO, Bounds, Error, Sized[MeasurementUnit, Value]]
+type PlaceC[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, MeasurementUnit, Error, *]
 
 object Place:
   def typecheck[

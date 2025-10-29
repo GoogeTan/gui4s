@@ -3,7 +3,7 @@ package gui4s.core.layout
 import cats.{Comonad, Eq}
 import gui4s.core.geometry.{Axis, Rect}
 
-type SizedT[MeasurementUnit] = [Value] =>> Sized[MeasurementUnit, Value]
+type SizedC[MeasurementUnit] = [Value] =>> Sized[MeasurementUnit, Value]
 
 final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementUnit]):
   def this(value : T, x : MeasurementUnit, y : MeasurementUnit) =
@@ -37,7 +37,7 @@ object Sized:
     Eq.by(x => (x.value, x.size))
   end sizedEq
 
-  given[MeasurementUnit]: Comonad[SizedT[MeasurementUnit]] with
+  given[MeasurementUnit]: Comonad[SizedC[MeasurementUnit]] with
     override def coflatMap[A, B](fa: Sized[MeasurementUnit, A])(f: Sized[MeasurementUnit, A] => B): Sized[MeasurementUnit, B] =
       fa.mapValue(_ => f(fa))
     end coflatMap

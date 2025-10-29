@@ -32,11 +32,11 @@ object EventsTransformer:
     IO[_] : Monad,
     Events : Monoid,
     NewEvents : Monoid,
-    T
+    Value
   ](
-    original: EventsTransformer[Events][IO, T]
-  ): EventsTransformer[NewEvents][IO, (T, Events)] =
-    WriterTransformer.extract_[IO, Events, NewEvents, T](original)
+    original: EventsTransformer[Events][IO, Value]
+  ): EventsTransformer[NewEvents][IO, (Value, Events)] =
+    WriterTransformer.extract_[IO, Events, NewEvents, Value](original)
   end catchEvents_
 
   def catchEvents[
@@ -44,24 +44,24 @@ object EventsTransformer:
     IO[_] : Monad,
     Events : Monoid,
     NewEvents : Monoid,
-    T
+    Value
   ](
-    original: (F <> EventsTransformer[Events])[IO, T]
-  ): (F <> EventsTransformer[NewEvents])[IO, (T, Events)] =
-    WriterTransformer.extract[F, IO, Events, NewEvents, T](original)
+    original: (F <> EventsTransformer[Events])[IO, Value]
+  ): (F <> EventsTransformer[NewEvents])[IO, (Value, Events)] =
+    WriterTransformer.extract[F, IO, Events, NewEvents, Value](original)
   end catchEvents
 
   def mapEvents_[
     IO[_] : Monad,
     Events : Monoid,
     NewEvents : Monoid,
-    T
+    Value
   ](
-    original: EventsTransformer[Events][IO, T],
-    f : Events => NewEvents
-  ): EventsTransformer[NewEvents][IO, T] =
+     original: EventsTransformer[Events][IO, Value],
+     f : Events => NewEvents
+  ): EventsTransformer[NewEvents][IO, Value] =
     for
-      tmp <- catchEvents_[IO, Events, NewEvents, T](original)
+      tmp <- catchEvents_[IO, Events, NewEvents, Value](original)
       (value, events) = tmp
       _ <- raiseEvents_(f(events))
     yield value 
@@ -72,13 +72,13 @@ object EventsTransformer:
     IO[_] : Monad,
     Events : Monoid,
     NewEvents : Monoid,
-    T
+    Value
   ](
-    original: (F <> EventsTransformer[Events])[IO, T],
-    f : Events => NewEvents
-  ): (F <> EventsTransformer[NewEvents])[IO, T] =
+     original: (F <> EventsTransformer[Events])[IO, Value],
+     f : Events => NewEvents
+  ): (F <> EventsTransformer[NewEvents])[IO, Value] =
     for
-      tmp <- catchEvents[F, IO, Events, NewEvents, T](original)
+      tmp <- catchEvents[F, IO, Events, NewEvents, Value](original)
       (value, events) = tmp
       _ <- raiseEvents(f(events))
     yield value  

@@ -14,13 +14,13 @@ given[Bounds, Error]: MonadTransformer[OuterPlaceTansformer[Bounds, Error]] =
 
 type OuterPlace[IO[_], Bounds, Error, Value] = OuterPlaceTansformer[Bounds, Error][IO, Value]
 
-type OuterPlaceT[IO[_], Bounds, Error] = OuterPlace[IO, Bounds, Error, *]
+type OuterPlaceC[IO[_], Bounds, Error] = OuterPlace[IO, Bounds, Error, *]
 
 object OuterPlace:
-  given monadInstance[IO[_] : Monad, Bounds, Error] : MonadError[OuterPlaceT[IO, Bounds, Error], Error] =
+  given monadInstance[IO[_] : Monad, Bounds, Error] : MonadError[OuterPlaceC[IO, Bounds, Error], Error] =
     summon
 
-  def liftK[IO[_] : Monad, Bounds, Error] : IO ~> OuterPlaceT[IO, Bounds, Error] =
+  def liftK[IO[_] : Monad, Bounds, Error] : IO ~> OuterPlaceC[IO, Bounds, Error] =
     MonadTransformer[OuterPlaceTansformer[Bounds, Error]].liftK
   end liftK
 
@@ -44,11 +44,11 @@ object OuterPlace:
     ErrorTransformer.raiseError[StateTransformer[Bounds], IO, Error, Value](error)
   end raiseError
 
-  def run[IO[_] : Monad, Bounds, Error](bounds : IO[Bounds]) : OuterPlaceT[IO, Bounds, Error] ~> EitherT[IO, Error, *] =
+  def run[IO[_] : Monad, Bounds, Error](bounds : IO[Bounds]) : OuterPlaceC[IO, Bounds, Error] ~> EitherT[IO, Error, *] =
     new ~>[
-      OuterPlaceT[IO, Bounds, Error], EitherT[IO, Error, *]
+      OuterPlaceC[IO, Bounds, Error], EitherT[IO, Error, *]
     ]:
-      override def apply[A](fa: OuterPlaceT[IO, Bounds, Error][A]): EitherT[IO, Error, A] =
+      override def apply[A](fa: OuterPlaceC[IO, Bounds, Error][A]): EitherT[IO, Error, A] =
         EitherT.liftF(bounds).flatMap(fa.runA)
       end apply
     end new

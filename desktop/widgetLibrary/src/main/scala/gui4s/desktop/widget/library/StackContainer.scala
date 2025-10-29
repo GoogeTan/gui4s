@@ -6,7 +6,7 @@ import cats.*
 import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.rowcolumn.*
-import gui4s.core.layout.{Sized, SizedT}
+import gui4s.core.layout.{Sized, SizedC}
 
 @FunctionalInterface
 trait StackContainer[Widget]:
@@ -29,14 +29,14 @@ def stackContainer[
   isEventConsumed : Update[Boolean],
   getBounds : OuterPlace[Bounds],
 )(
-  children : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedT[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
-  xyPlacementStrategy : PlacementStrategy[OuterPlace, Bounds, List, Point2d[MeasurementUnit]],
-) : OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedT[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]] =
-  given Functor[OuterPlace * SizedT[MeasurementUnit]] = nestedFunctorsAreFunctors[OuterPlace, SizedT[MeasurementUnit]]
+   children : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
+   xyPlacementStrategy : PlacementStrategy[OuterPlace, Bounds, List, Point2d[MeasurementUnit]],
+) : OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]] =
+  given Functor[OuterPlace * SizedC[MeasurementUnit]] = nestedFunctorsAreFunctors[OuterPlace, SizedC[MeasurementUnit]]
   given Order[(Point2d[MeasurementUnit], Int)] = Order.by(_._2)
   container[
     Update,
-    OuterPlace * SizedT[MeasurementUnit],
+    OuterPlace * SizedC[MeasurementUnit],
     List,
     Draw,
     RecompositionReaction,
@@ -52,7 +52,7 @@ def stackContainer[
     children,
     freeChildren =>
       for
-        sizedChilden <- freeChildren.traverse[OuterPlace, Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedT[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]](identity)
+        sizedChilden <- freeChildren.traverse[OuterPlace, Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]](identity)
         childrenSizes = sizedChilden.map(_.size.toPoint2d)
         children = sizedChilden.map(_.value)
         bounds <- getBounds
