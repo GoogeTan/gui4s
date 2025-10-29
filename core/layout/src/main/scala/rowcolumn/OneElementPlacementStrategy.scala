@@ -14,12 +14,8 @@ object OneElementPlacementStrategy:
         (itemLength, _) => ElementPlacementResult[Id, MeasurementUnit](whereToPlace + itemLength, whereToPlace).pure[Place]
     end Const
 
-    def Begin[Place[_] : Applicative, BoundsUnit, MeasurementUnit : Numeric] : OneElementPlacementStrategy[Place, BoundsUnit, MeasurementUnit] =
-        (itemLength, _) =>
-            ElementPlacementResult[Id, MeasurementUnit](
-                coordinatesOfStarts = placeBegin[MeasurementUnit],
-                coordinateOfEnd = itemLength
-            ).pure[Place]
+    def Begin[Place[_] : Applicative, BoundsUnit, MeasurementUnit : Numeric as N] : OneElementPlacementStrategy[Place, BoundsUnit, MeasurementUnit] =
+      PlacementStrategy.Begin[Place, BoundsUnit, Id, MeasurementUnit](N.zero)
     end Begin
 
     def Center[

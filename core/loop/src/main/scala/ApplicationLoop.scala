@@ -2,20 +2,18 @@ package gui4s.core.loop
 
 import cats.*
 import cats.effect.*
-import cats.effect.std.{Queue, QueueSink}
+import cats.effect.std.Queue
 import cats.syntax.all.*
-import catnip.resource.UseC
 
 def runApplicationLoopsWithBackend[
   IO[_] : Async,
-  Resource[_] : {Functor, UseC[IO]},
   QueueIO[_] : Concurrent,
   DownEvent,
   RootWidget,
   Backend,
   ExitCode
 ](
-   backend : QueueSink[QueueIO, DownEvent] => Resource[Backend],
+   backend : Queue[QueueIO, DownEvent] => Resource[IO, Backend],
    drawLoop : Backend => DrawLoop[IO, RootWidget, ExitCode],
    updateLoop : Backend => UpdateLoop[IO, RootWidget, DownEvent, ExitCode],
    rootWidget : Backend => IO[RootWidget],
@@ -23,7 +21,6 @@ def runApplicationLoopsWithBackend[
 ) : IO[ExitCode] =
   runApplicationLoops[
     IO,
-    Resource,
     QueueIO,
     DownEvent,
     RootWidget,
@@ -42,13 +39,12 @@ end runApplicationLoopsWithBackend
 
 def runApplicationLoops[
   IO[_] : Async,
-  Resource[_] : UseC[IO],
   QueueIO[_] : Concurrent,
   DownEvent,
   RootWidget,
   ExitCode
 ](
-  loops: QueueSink[QueueIO, DownEvent] => Resource[(
+  loops: Queue[QueueIO, DownEvent] => Resource[IO, (
       DrawLoop[IO, RootWidget, ExitCode],
       UpdateLoop[IO, RootWidget, DownEvent, ExitCode],
       IO[RootWidget],

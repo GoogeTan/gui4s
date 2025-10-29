@@ -18,27 +18,35 @@ object functionk:
       end new
   end asFunctionK
 
-  def runEitherT[F[_], Error](using AE: MonadError[F, Error]) : EitherT[F, Error, *] ~> F =
+  def runEitherTK[F[_], Error](using AE: MonadError[F, Error]) : EitherT[F, Error, *] ~> F =
     new ~>[EitherT[F, Error, *], F]:
       override def apply[A](fa: EitherT[F, Error, A]): F[A] =
         fa.value.flatMap(AE.fromEither)
       end apply
     end new
-  end runEitherT
+  end runEitherTK
 
-  def eitherTMapError[F[_] : Functor, Error1, Error2](f : Error1 => Error2) : EitherT[F, Error1, *] ~> EitherT[F, Error2, *] =
+  def mapErrorK[F[_] : Functor, Error1, Error2](f : Error1 => Error2) : EitherT[F, Error1, *] ~> EitherT[F, Error2, *] =
     new ~>[EitherT[F, Error1, *], EitherT[F, Error2, *]]:
       override def apply[A](fa: EitherT[F, Error1, A]): EitherT[F, Error2, A] =
         fa.leftMap(f)
       end apply
     end new
-  end eitherTMapError
+  end mapErrorK
 
   def runStateT[IO[_] : FlatMap, State](bounds : IO[State]) : StateT[IO, State, *] ~> IO =
     new ~>[StateT[IO, State, *], IO]:
-      override def apply[A](fa: StateT[IO, State, *][A]): IO[A] =
+      override def apply[A](fa: StateT[IO, State, A]): IO[A] =
         bounds.flatMap(fa.runA)
       end apply
     end new
   end runStateT
+
+  def flattenEitherTK[F[_] : Functor, Error] : EitherT[EitherT[F, Error, *], Error, *] ~> EitherT[F, Error, *] =
+    new ~>[EitherT[EitherT[F, Error, *], Error, *], EitherT[F, Error, *]]:
+      override def apply[A](fa: EitherT[EitherT[F, Error, *], Error, A]): EitherT[F, Error, A] =
+        EitherT(fa.value.value.map(_.flatten))
+      end apply
+    end new
+  end flattenEitherTK
 end functionk

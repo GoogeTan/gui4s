@@ -1,24 +1,21 @@
 package gui4s.desktop.skija
 
-import catnip.resource.{EvalC, SyncResource}
-import cats.Monad
-import cats.syntax.all.*
+import catnip.syntax.all.given
 import cats.effect.{Resource, Sync}
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 
-def createDirectContext[Resource[_] : SyncResource as S]: Resource[DirectContext] =
-  S.fromAutoCloseable(() => DirectContext.makeGL())
+def createDirectContext[IO[_] : Sync as S]: Resource[IO, DirectContext] =
+  Resource.fromAutoCloseable(S.delay(DirectContext.makeGL()))
 end createDirectContext
 
 def createRenderTarget[
   IO[_] : Sync as S,
-  Resource[_] : {Monad, SyncResource, EvalC[IO]}
 ](
   context: DirectContext,
   width: Float,
   height: Float,
-): Resource[SkiaRenderTarget] =
+): Resource[IO, SkiaRenderTarget] =
   for
     renderTarget <- createGLRenderTarget(
       width = width.toInt,
@@ -39,7 +36,7 @@ end createRenderTarget
 
 @SuppressWarnings(Array("org.wartremover.warts.Null"))
 def createSurface[
-  Resource[_] : SyncResource as S
+  IO[_] : Sync as S,
 ](
   context: DirectContext,
   target: BackendRenderTarget,
@@ -47,15 +44,17 @@ def createSurface[
   colorFormat: SurfaceColorFormat,
   colorSpace: Option[ColorSpace],
   props: Option[SurfaceProps]
-): Resource[Surface] =
-  S.fromAutoCloseable(() =>
-    Surface.wrapBackendRenderTarget(
-      context,
-      target,
-      origin,
-      colorFormat,
-      colorSpace.orNull,
-      props.orNull
+): Resource[IO, Surface] =
+  Resource.fromAutoCloseable(
+    S.delay(
+      Surface.wrapBackendRenderTarget(
+        context,
+        target,
+        origin,
+        colorFormat,
+        colorSpace.orNull,
+        props.orNull
+      )
     )
   )
 end createSurface
@@ -65,7 +64,7 @@ def getCanvas[IO[_] : Sync as S](surface: Surface): IO[Canvas] =
 end getCanvas
 
 def createGLRenderTarget[
-  Resource[_] : SyncResource as S
+  IO[_] : Sync as S,
 ](
   width: Int,
   height: Int,
@@ -73,9 +72,9 @@ def createGLRenderTarget[
   stencil: Int = 8,
   fbId: Int = 0,
   fbFormat: Int
-): Resource[BackendRenderTarget] =
-  S.fromAutoCloseable(
-    () =>
+): Resource[IO, BackendRenderTarget] =
+  Resource.fromAutoCloseable(
+    S.delay(
       BackendRenderTarget.makeGL(
         width, height,
         samples,
@@ -83,6 +82,7 @@ def createGLRenderTarget[
         fbId,
         fbFormat
       )
+    )
   )
 end createGLRenderTarget
 

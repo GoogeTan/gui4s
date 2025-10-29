@@ -17,7 +17,7 @@ def placeForTheFirstTime[
   widget : Place[Widget],
   widgetReactsToRecomposition : ReactsOnRecomposition[Widget, Recomposition],
   runRecomposition : Recomposition => IO[Unit],
-  runPlacement: [Value] => Place[Value] => IO[Value]
+  runPlacement: Place ~> IO
 ) : IO[Widget] =
 
   runPlacement(widget).flatMap(newPlacedWidget =>
@@ -39,7 +39,7 @@ def processEvent[
     widgetHandlesEvent : HandlesEvent[Widget, DownEvent, Update[Place[Widget]]],
     widgetReactsToRecomposition : ReactsOnRecomposition[Widget, Recomposition],
     widgetHasInnerState : HasInnerStates[Widget, Recomposition],
-    runPlacement: [Value] => Place[Value] => IO[Value]
+    runPlacement: Place ~> IO
 )(
   placedWidget: Widget,
   event: DownEvent

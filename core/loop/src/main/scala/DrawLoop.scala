@@ -18,7 +18,7 @@ end runDrawLoopOnExecutionContext
 def drawLoop[
   F[_] : Monad as M,
   ExitCode
-] : DrawLoop[F, Unit, ExitCode] =
+](success : ExitCode) : DrawLoop[F, Boolean, ExitCode] =
   draw =>
-    M.iterateForeverM(draw)(draw => draw.as(draw))
+    M.iterateWhile(draw)(identity).as(success)
 end drawLoop

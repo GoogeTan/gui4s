@@ -26,7 +26,6 @@ lazy val testLibs = List(
   "org.typelevel" %% "discipline-core" % "1.7.0" % Test,
   "org.typelevel" %% "discipline-scalatest" % "2.3.0" % Test
 )
-lazy val lwjglVersion = "3.3.6"
 lazy val arch = if (System.getProperty("os.arch").contains("aarch64")) "arm64" else "x64"
 lazy val os = Option(System.getProperty("os.name", ""))
   .map(_.substring(0, 3).toLowerCase) match {
@@ -42,10 +41,8 @@ lazy val skijaLibs = List(
 
 ThisBuild / resolvers += "gitverse" at "https://gitverse.ru/api/packages/daniilzemskov/maven"
 
-val glfw4sVersion = "0.1.19"
-
 lazy val glfwLibs = List(
-  "glfw4s" % "core_3" % glfw4sVersion
+  "glfw4s" % "core-jvm_3" % "0.1.30"
 )
 
 def commonSettings(nameIn : String, pkg : String) =
@@ -66,11 +63,6 @@ lazy val catnip = (project in file("catnip"))
   .settings(commonSettings("catnip", "catnip"))
   .settings(libraryDependencies ++= catsEffectLibs ++ testLibs)
 
-val catnipZio = (project in file("catnip-zio"))
-  .settings(commonSettings("catnip-zio", "catnip.zio"))
-  .settings(libraryDependencies ++= zioLibs ++ testLibs)
-  .dependsOn(catnip)
-
 lazy val layout = (project in file("core/layout"))
   .settings(commonSettings("layout", s"$packagePrefix.core.layout"))
   .settings(libraryDependencies ++= catsLibs ++ testLibs)
@@ -83,10 +75,7 @@ lazy val widget = (project in file("core/widget"))
 
 lazy val desktopSkijaBindings = (project in file("desktop/skija"))
   .settings(commonSettings("desktop-skija-bindings", s"$packagePrefix.desktop.skija"))
-  .settings(
-    libraryDependencies ++= catsEffectLibs ++ testLibs ++ skijaLibs ++ glfwLibs,
-    fork := true,
-  )
+  .settings(libraryDependencies ++= catsEffectLibs ++ testLibs ++ skijaLibs)
   .dependsOn(catnip, layout)
 
 lazy val loops = (project in file("core/loop"))
@@ -97,36 +86,20 @@ lazy val loops = (project in file("core/loop"))
 lazy val desktopWidgetLibrary = (project in file("desktop/widgetLibrary"))
   .settings(commonSettings("desktop-widget-library", s"$packagePrefix.desktop.widget.library"))
   .settings(libraryDependencies ++= catsLibs ++ testLibs)
-  .dependsOn(catnip, widget, layout, geometry)
+  .dependsOn(catnip, widget, layout, geometry, loops)
 
 lazy val commonDevKit = (project in file("core/kit"))
   .settings(commonSettings("core-kit", s"$packagePrefix.core.kit"))
-  .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs)
+  .settings(libraryDependencies ++= catsEffectLibs ++ testLibs)
   .dependsOn(widget, layout, loops, catnip)
 
-lazy val desktopCommonDevKit = (project in file("desktop/kit/common"))
-  .settings(commonSettings("desktop-kit-common", s"$packagePrefix.desktop.kit.common"))
-  .settings(libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs ++ glfwLibs)
+lazy val desktopDevKit = (project in file("desktop/kit"))
+  .settings(commonSettings("desktop-kit", s"$packagePrefix.desktop.kit"))
+  .settings(libraryDependencies ++= catsEffectLibs ++ testLibs ++ glfwLibs)
   .dependsOn(widget, desktopSkijaBindings, layout, loops, catnip, desktopWidgetLibrary, commonDevKit)
 
-lazy val desktopZioDevKit = (project in file("desktop/kit/zio"))
-  .settings(commonSettings("desktop-kit-zio", s"$packagePrefix.desktop.kit.zio"))
-  .settings(
-    libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs ++ zioLibs,
-    libraryDependencies += "glfw4s" % "zio_3" % glfw4sVersion,
-    wartremoverErrors := Warts.allBut(Wart.ListAppend, Wart.Overloading, Wart.Nothing, Wart.DefaultArguments, Wart.Any)
-  ).dependsOn(desktopCommonDevKit, catnipZio)
-
-lazy val desktopCatsDevKit = (project in file("desktop/kit/cats"))
-  .settings(commonSettings("desktop-kit-cats", s"$packagePrefix.desktop.kit.cats"))
-  .settings(
-    libraryDependencies ++= catsEffectLibs ++ fs2Libs ++ testLibs,
-    libraryDependencies += "glfw4s" % "cats_3" % glfw4sVersion,
-  )
-  .dependsOn(desktopCommonDevKit, catnip)
-
-lazy val desktopCatsExample = (project in file("desktop/example/cats"))
-  .settings(commonSettings("desktop-example-cats", s"$packagePrefix.desktop.example.cats"))
+lazy val desktopExample = (project in file("desktop/example"))
+  .settings(commonSettings("desktop-example-cats", s"$packagePrefix.desktop.example"))
   .settings(
     libraryDependencies ++= catsLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
       "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
@@ -134,27 +107,10 @@ lazy val desktopCatsExample = (project in file("desktop/example/cats"))
       "co.fs2" %% "fs2-io" % "3.12.2",
       "org.http4s" %% "http4s-ember-client" % "0.23.32",
       "org.http4s" %% "http4s-core" % "0.23.32"
-    ),
+    ) ++ glfwLibs,
     fork := true,
     javaOptions ++= Seq("-XstartOnFirstThread")
-  ).dependsOn(desktopCatsDevKit)
-
-
-lazy val desktopZioExample = (project in file("desktop/example/zio"))
-  .settings(commonSettings("desktop-example-zio", s"$packagePrefix.desktop.example.zio"))
-  .settings(
-    libraryDependencies ++= catsLibs ++ zioLibs ++ fs2Libs ++ testLibs ++ skijaLibs ++ List(
-      "com.github.cb372" %% "scalacache-core" % "1.0.0-M6",
-      "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
-      "co.fs2" %% "fs2-core" % "3.12.2",
-      "co.fs2" %% "fs2-io" % "3.12.2",
-      "dev.zio" %% "zio-http" % "3.5.1"
-    ),
-    fork := true,
-    javaOptions ++= Seq("-XstartOnFirstThread")
-  )
-  .dependsOn(widget, desktopSkijaBindings, layout, loops)
-  .dependsOn(catnip, catnipZio, desktopWidgetLibrary, desktopZioDevKit)
+  ).dependsOn(desktopDevKit)
 
 
 

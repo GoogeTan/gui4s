@@ -50,7 +50,7 @@ object PlacementStrategy:
 
     def SpaceAround[
         Place[_] : Applicative,
-        Container[_] : {Traverse, Applicative as A, SemigroupK},
+        Container[_] : {Applicative, Traverse as A, SemigroupK},
         MeasurementUnit : Fractional,
     ] : PlacementStrategy[Place, MeasurementUnit, Container, MeasurementUnit] =
         (children, maxSpace) =>
