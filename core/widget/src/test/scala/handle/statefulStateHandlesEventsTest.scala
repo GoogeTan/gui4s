@@ -43,7 +43,7 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
     val initial = StatefulBehaviour(
       "test",
       StatefulState(TestState(0), TestState(0)),
-      "draw",
+      "gui4s/core/widget/draw",
       handler,
       "destructor"
     )
