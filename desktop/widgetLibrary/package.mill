@@ -1,0 +1,47 @@
+package build.desktop.widgetLibrary
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+
+object `package` extends RootModule with SbtModule with PublishModule {
+
+  def artifactName = "desktop-widget-library"
+
+  def scalaVersion = "3.7.3"
+
+  def scalacOptions = super.scalacOptions() ++ Seq(
+    "-Wunused:imports",
+    "-Xkind-projector"
+  )
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven
+        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
+    )
+  }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.typelevel::cats-core:2.13.0")
+
+  def moduleDeps = super.moduleDeps ++ Agg(
+    build.catnip,
+    build.core.geometry,
+    build.core.layout,
+    build.core.loop,
+    build.core.widget
+  )
+
+  def pomSettings = PomSettings(
+    "desktop-widget-library",
+    "desktop-widget-library",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+}

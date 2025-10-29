@@ -1,0 +1,33 @@
+package build
+
+import $packages._
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+
+object `package` extends RootModule with SbtModule with PublishModule {
+
+  def artifactName = "gui4s"
+
+  def scalaVersion = "3.7.3"
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven
+        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
+    )
+  }
+
+  def pomSettings = PomSettings(
+    "gui4s",
+    "default",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+}

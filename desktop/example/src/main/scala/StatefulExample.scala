@@ -12,10 +12,9 @@ import gui4s.core.geometry.*
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.kit.widgets.{DesktopWidget, TextWidget, statefulWidget, text}
+import gui4s.desktop.kit.widgets.{DesktopWidget, statefulWidget, text}
 import gui4s.desktop.skija.*
 import io.github.humbleui.skija.*
-import io.github.humbleui.skija.shaper.*
 
 object StatefulExample extends UIApp:
   override val settings = WindowCreationSettings(

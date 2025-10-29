@@ -1,0 +1,52 @@
+package build.core.layout
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+
+object `package` extends RootModule with SbtModule with PublishModule {
+
+  def scalaVersion = "3.7.3"
+
+  def scalacOptions = super.scalacOptions() ++ Seq(
+    "-Wunused:imports",
+    "-Xkind-projector"
+  )
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven
+        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
+    )
+  }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.typelevel::cats-core:2.13.0")
+
+  def moduleDeps = super.moduleDeps ++ Agg(build.catnip, build.core.geometry)
+
+  def pomSettings = PomSettings(
+    "layout",
+    "layout",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+  object test extends SbtTests with TestModule.ScalaTest {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"org.scalacheck::scalacheck:1.19.0",
+      ivy"org.scalatest::scalatest:3.2.19",
+      ivy"org.typelevel::cats-laws:2.13.0",
+      ivy"org.typelevel::discipline-core:1.7.0",
+      ivy"org.typelevel::discipline-scalatest:2.3.0"
+    )
+
+    def testSandboxWorkingDir = false
+    def testEnableWorkStealing = false
+  }
+}

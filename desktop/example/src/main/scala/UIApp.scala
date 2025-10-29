@@ -1,29 +1,28 @@
 package gui4s.desktop.example
 
-import cats.data.{EitherT, Kleisli, ReaderT}
+import catnip.syntax.all.{*, given}
 import cats.*
+import cats.data.{EitherT, ReaderT}
 import cats.effect.*
 import cats.effect.std.*
-import cats.syntax.all.*
 import cats.effect.unsafe.IORuntime
-import glfw4s.core.CatsPostInit
-import glfw4s.core.WindowCreationSettings
-import glfw4s.core.types.GlfwError
+import cats.syntax.all.*
+import glfw4s.core.{CatsPostInit, WindowCreationSettings}
 import glfw4s.core.impure.SafeImpurePostInit
+import glfw4s.core.pure.*
+import glfw4s.core.types.GlfwError
 import glfw4s.jna.bindings.types.{GLFWmonitor, GLFWwindow}
 import glfw4s.jvm.{JvmImpurePostInit, JvmImpurePreInit}
+import gui4s.core.geometry.*
+import gui4s.core.widget.*
+import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.*
-import catnip.syntax.all.{*, given}
-import gui4s.desktop.widget.library.*
-import gui4s.core.widget.*
 import gui4s.desktop.skija.DirectContext.*
-import io.github.humbleui.skija.Canvas
-import glfw4s.core.pure.*
-import gui4s.core.geometry.*
 import gui4s.desktop.skija.canvas.clear
+import gui4s.desktop.widget.library.*
+import io.github.humbleui.skija.Canvas
 
 enum UIAppError:
   case InitError(glfwError : GlfwError)

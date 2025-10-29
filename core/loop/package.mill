@@ -1,0 +1,43 @@
+package build.core.loop
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+
+object `package` extends RootModule with SbtModule with PublishModule {
+
+  def scalaVersion = "3.7.3"
+
+  def scalacOptions = super.scalacOptions() ++ Seq(
+    "-Wunused:imports",
+    "-Xkind-projector"
+  )
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven
+        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
+    )
+  }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    ivy"co.fs2::fs2-core:3.12.2",
+    ivy"org.typelevel::cats-core:2.13.0",
+    ivy"org.typelevel::cats-effect:3.6.3"
+  )
+
+  def moduleDeps = super.moduleDeps ++ Agg(build.catnip)
+
+  def pomSettings = PomSettings(
+    "loop",
+    "loop",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+}

@@ -9,12 +9,10 @@ import gui4s.desktop.kit.widgets.decorator.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.effects.*
 import io.github.humbleui.skija.*
-import io.github.humbleui.skija.shaper.*
 import gui4s.desktop.skija.*
 import glfw4s.core.*
 import glfw4s.core.pure.PostInit
 import glfw4s.jna.bindings.types.*
-import gui4s.desktop.example.ImageExample.liftCallbackIOToAppIO
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.Uri
 
