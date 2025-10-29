@@ -1,11 +1,14 @@
 package build.desktop.skija
 
 import mill._
+import mill.api.JarManifest
 import mill.javalib._
 import mill.javalib.publish._
-import mill.scalalib.SbtModule
+import mill.scalalib.{AssemblyModule, SbtModule}
 
-object `package` extends RootModule with SbtModule with PublishModule {
+import java.util.jar.Attributes.Name
+
+object `package` extends RootModule with SbtModule with PublishModule with AssemblyModule {
 
   def artifactName = "desktop-skija-bindings"
 
@@ -24,8 +27,9 @@ object `package` extends RootModule with SbtModule with PublishModule {
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy"io.github.humbleui:skija-macos-arm64:0.116.4",
-    ivy"io.github.humbleui:skija-shared:0.116.8",
+    ivy"io.github.humbleui:skija-macos-arm64:0.123.0",
+    ivy"io.github.humbleui:skija-windows-x64:0.123.0",
+    ivy"io.github.humbleui:skija-shared:0.123.0",
     ivy"org.typelevel::cats-core:2.13.0",
     ivy"org.typelevel::cats-effect:3.6.3"
   )
@@ -42,5 +46,4 @@ object `package` extends RootModule with SbtModule with PublishModule {
   )
 
   def publishVersion = "0.1.0-SNAPSHOT"
-
 }

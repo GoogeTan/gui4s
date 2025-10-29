@@ -1,15 +1,16 @@
 package catnip
 package syntax
 
+import catnip.syntax.monad.MonadErrorC
 import cats.data.{EitherT, StateT}
 import cats.syntax.all.*
-import cats.{FlatMap, Functor, MonadError, ~>}
+import cats.{FlatMap, Functor, ~>}
 
 object functionk:
-  def runEitherTK[F[_], Error](using AE: MonadError[F, Error]) : EitherT[F, Error, *] ~> F =
+  def runEitherTK[F[_] : MonadErrorC[Error] as ME, Error] : EitherT[F, Error, *] ~> F =
     new ~>[EitherT[F, Error, *], F]:
       override def apply[A](fa: EitherT[F, Error, A]): F[A] =
-        fa.value.flatMap(AE.fromEither)
+        fa.value.flatMap(ME.fromEither)
       end apply
     end new
   end runEitherTK

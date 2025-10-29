@@ -9,12 +9,14 @@ import glfw4s.core.*
 import glfw4s.core.pure.PostInit
 import glfw4s.jna.bindings.types.*
 import gui4s.core.geometry.*
+import gui4s.desktop.example.ImageExample.AppIO
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.decorator.*
 import gui4s.desktop.kit.widgets.{DesktopWidget, statefulWidget, text}
 import gui4s.desktop.skija.*
 import io.github.humbleui.skija.*
+import gui4s.desktop.skija.typeface.*
 
 object StatefulExample extends UIApp:
   override val settings = WindowCreationSettings(
@@ -38,6 +40,7 @@ object StatefulExample extends UIApp:
       shaper <- createShaper[AppIO]
       cache : TextCache[AppIO] <- ScalacacheCache()
       textWidget = text(shaper, cache)
+      typeface <- defaultTypeface[AppIO]
     yield statefulWidget[AppIO][Int, ApplicationRequest, Unit](
       name = "state",
       initialState = 0,
@@ -45,7 +48,7 @@ object StatefulExample extends UIApp:
       body = state =>
         textWidget(
           "test text " + state.toString,
-          SkijaTextStyle(new Font(Typeface.makeDefault(), 24), new Paint().setColor(0xFF8484A4))
+          SkijaTextStyle(new Font(typeface, 24), new Paint().setColor(0xFF8484A4))
         ).onClick(())
     )
   end main

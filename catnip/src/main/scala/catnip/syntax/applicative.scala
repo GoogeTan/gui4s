@@ -7,7 +7,7 @@ import cats.syntax.all.*
 import cats.{Applicative, ApplicativeError, Functor}
 
 object applicative:
-  type ApplicativeErrorT[T] = [F[_]] =>> ApplicativeError[F, T]
+  type ApplicativeErrorC[Error] = [F[_]] =>> ApplicativeError[F, Error]
   
   given applicativesAreMonoids[F[_] : Applicative as A] : Monoid[F[Unit]] with
     override def empty: F[Unit] =
@@ -18,12 +18,6 @@ object applicative:
       x *> y
     end combine
   end applicativesAreMonoids
-  
-  class nestedFunctorsAreFunctors[F[_] : Functor, G[_] : Functor] extends Functor[[Value] =>> F[G[Value]]]:
-    override def map[A, B](fa: F[G[A]])(f: A => B): F[G[B]] =
-      fa.map(_.map(f))
-    end map
-  end nestedFunctorsAreFunctors
   
   extension[T](value : Option[T])
     def getOrRaise[F[_], Error](using A : ApplicativeError[F, Error])(error : Error) : F[T] =

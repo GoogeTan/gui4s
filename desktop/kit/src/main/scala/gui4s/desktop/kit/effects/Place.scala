@@ -2,7 +2,7 @@ package gui4s.desktop.kit
 package effects
 
 import catnip.MapKCache
-import catnip.syntax.applicative.nestedFunctorsAreFunctors
+import catnip.syntax.functor.nestedFunctorsAreFunctors
 import cats.data.EitherT
 import cats.effect.Sync
 import cats.{Functor, Monad, MonadThrow, ~>}

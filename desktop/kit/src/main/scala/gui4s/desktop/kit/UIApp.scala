@@ -24,6 +24,8 @@ import gui4s.desktop.skija.canvas.clear
 import gui4s.desktop.widget.library.*
 import io.github.humbleui.skija.Canvas
 
+import scala.reflect.Typeable
+
 enum UIAppError:
   case InitError(glfwError : GlfwError)
   case PlaceError(exception : Throwable)
@@ -37,6 +39,15 @@ end UIAppError
 
 trait UIApp extends IOApp:
   final type AppIO[T] = EitherT[IO, UIAppError, T]
+
+  final given Typeable[AppIO[Unit]] = (a : Any) =>
+    a match
+      case _ : EitherT[io, b, c] =>
+        Some(a.asInstanceOf[EitherT[IO, UIAppError, Unit] & a.type])
+      case _ => None
+    end match
+  end given
+
   final type CallbackIO[T] = IO[T]
   final val liftCallbackIOToAppIO : (CallbackIO ~> AppIO) = EitherT.liftK
 
@@ -92,7 +103,6 @@ trait UIApp extends IOApp:
       widgetCell <- main(glfw, window, eventBus).evalMap(freeMainWidget =>
         Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK))
       )
-      _ <- Console[AppIO].println("Starting the main loop").eval
       exitCode <- desktopWidgetLoops[AppIO, CallbackIO](
         runDraw =  runDrawK,
         runPlace = runPlaceK,

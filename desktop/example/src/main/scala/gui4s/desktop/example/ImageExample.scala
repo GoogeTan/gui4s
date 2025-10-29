@@ -6,6 +6,7 @@ import cats.effect.std.*
 import glfw4s.core.*
 import glfw4s.core.pure.PostInit
 import glfw4s.jna.bindings.types.*
+import gui4s.desktop.example.GridExample.AppIO
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
@@ -16,6 +17,7 @@ import io.github.humbleui.skija.*
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
 
+import gui4s.desktop.skija.typeface.*
 import scala.reflect.Typeable
 
 object ImageExample extends UIApp:
@@ -57,11 +59,14 @@ object ImageExample extends UIApp:
       end clip
     end extension
 
+    println("Test")
+
     for
       dispatcher <- Dispatcher.sequential[AppIO]
       supervisor <- Supervisor[AppIO]
       shaper <- createShaper[AppIO]
       cache: TextCache[AppIO] <- ScalacacheCache()
+      typeface <- defaultTypeface[AppIO]
     yield gapPadding(
       initWidget(
         supervisor = supervisor,
@@ -70,7 +75,7 @@ object ImageExample extends UIApp:
         name = "image",
         imageSource = downloadImage("https://4pda.to/s/qirtdz1qChDeJB8Bcsz2XUtscYQoC8Vfk3E2i62x51wPrcI3rKcz0Gz1z0BWwKe.png"),
         imageWidget = data => image[AppIO, ApplicationRequest](data).clip(Shapes.round),
-        placeholder = text(shaper, cache)("Wait.", SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))),
+        placeholder = text(shaper, cache)("Wait.", SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))),
       )
     )(
       Paddings(10f, 10f, 10f, 10f)

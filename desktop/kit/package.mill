@@ -15,7 +15,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
   def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector",
-    "-Vprofile",
+    //"-Vprofile",
   )
 
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
@@ -26,7 +26,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
   }
 
   def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
-    ivy"glfw4s:core-jvm_3:0.1.30",
+    ivy"glfw4s:core-jvm_3:0.1.33",
     ivy"org.typelevel::cats-core:2.13.0",
     ivy"org.typelevel::cats-effect:3.6.3",
     ivy"com.github.cb372::scalacache-caffeine:1.0.0-M6",

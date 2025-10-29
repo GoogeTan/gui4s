@@ -1,7 +1,6 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.additional.*
-import catnip.syntax.applicative.*
+import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Comonad, Functor, Monad}
 import gui4s.core.widget.merge.Mergable

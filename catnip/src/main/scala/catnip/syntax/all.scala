@@ -9,6 +9,7 @@ object all:
   export monad.{*, given}
   export functionk.{*, given}
   export function.{*, given}
+  export functor.{*, given}
   export zip.{*, given}
   export resource.{*, given}
 end all

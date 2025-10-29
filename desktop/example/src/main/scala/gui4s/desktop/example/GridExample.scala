@@ -12,6 +12,7 @@ import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.skija.*
+import gui4s.desktop.skija.typeface.*
 import io.github.humbleui.skija.*
 
 object GridExample extends UIApp:
@@ -29,6 +30,7 @@ object GridExample extends UIApp:
     for
       shaper <- createShaper[AppIO]
       cache : TextCache[AppIO] <- ScalacacheCache()
+      typeface <- defaultTypeface[AppIO]
       spaceBetween: PlacementStrategy[AppIO, InfinityOr[Float], List, Float] =
         PlacementStrategy.SpaceBetween(ContainerPlacementError.English)
       begin : OneElementPlacementStrategy[AppIO, InfinityOr[Float], Float] =
@@ -52,7 +54,7 @@ object GridExample extends UIApp:
                     lineJindex =>
                       textWidget(
                         lineIndex.toString + ":" + lineJindex.toString,
-                        SkijaTextStyle(new Font(Typeface.makeDefault(), 28), new Paint().setColor(0xFF8484A4))
+                        SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
                       )
               )
       )

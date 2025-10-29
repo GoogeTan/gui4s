@@ -1,6 +1,7 @@
 package catnip
 package syntax
 
+import cats.effect.*
 import cats.syntax.all.*
 import cats.{FlatMap, MonadError}
 
@@ -8,7 +9,8 @@ object monad:
   /**
    * Каррированная версия MonadError.
    */
-  type MonadErrorC[T] = [F[_]] =>> MonadError[F, T]
+  type MonadErrorC[Error] = [F[_]] =>> MonadError[F, Error]
+  type MonadCancelC[Error] = [F[_]] =>> MonadCancel[F, Error]
 
   extension[F[_] : FlatMap as FM, A](value : F[A])
     def <*<[B](f : A => F[B]) : F[A] =
