@@ -66,23 +66,24 @@ object PlacementStrategy:
             ElementPlacementResult(maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)).pure[Place]
     end SpaceBetween
 
-    def OneByOne[
+    def PlaceIndependently[
         Place[_] : Applicative,
         BoundsUnit,
         Container[_] : Traverse,
-        MeasurementUnit : Numeric as measurementUnitsAreNumbers,
+        MeasurementUnit : Ordering
     ](
         oneElementPlacementStrategy : OneElementPlacementStrategy[Place, BoundsUnit, MeasurementUnit],
+        zeroSize : MeasurementUnit
     ) : PlacementStrategy[Place, BoundsUnit, Container, MeasurementUnit] =
         (elements, bounds) =>
             elements.traverse(oneElementPlacementStrategy(_, bounds)).map(
                 placedElements =>
                     ElementPlacementResult(
-                        placedElements.map(_.coordinateOfEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(measurementUnitsAreNumbers.zero),
+                        placedElements.map(_.coordinateOfEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(zeroSize),
                         placedElements.map(_.coordinatesOfStarts),
                     )
             )
-    end OneByOne
+    end PlaceIndependently
 
     def Zip[
         Place[_] : Applicative,

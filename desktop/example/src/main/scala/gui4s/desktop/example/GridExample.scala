@@ -31,30 +31,28 @@ object GridExample extends UIApp:
       shaper <- createShaper[AppIO]
       cache : TextCache[AppIO] <- ScalacacheCache()
       typeface <- defaultTypeface[AppIO]
-      spaceBetween: PlacementStrategy[AppIO, InfinityOr[Float], List, Float] =
+      spaceBetween: PlacementStrategy[AppIO, List] =
         PlacementStrategy.SpaceBetween(ContainerPlacementError.English)
-      begin : OneElementPlacementStrategy[AppIO, InfinityOr[Float], Float] =
+      begin : OneElementPlacementStrategy[AppIO] =
         PlacementStrategy.Begin(0f)
       numbers = (1 to 10).toList
       textWidget = text(shaper, cache)
     yield
-      linearContainer[AppIO, ApplicationRequest](
-        mainAxis = Axis.Vertical,
-        mainAxisStrategy = spaceBetween,
-        additionalAxisStrategy = begin,
+      column[AppIO](
+        verticalPlacementStrategy = spaceBetween,
+        horizontalPlacementStrategy = begin,
         children =
           numbers.map:
-            lineIndex =>
-              linearContainer[AppIO, ApplicationRequest](
-                mainAxis = Axis.Horizontal,
-                mainAxisStrategy = spaceBetween,
-                additionalAxisStrategy = begin,
+            columnIndex =>
+             row[AppIO](
+                horizontalPlacementStrategy = spaceBetween,
+                verticalPlacementStrategy = begin,
                 children =
                   numbers.map:
-                    lineJindex =>
+                    rowIndex =>
                       textWidget(
-                        lineIndex.toString + ":" + lineJindex.toString,
-                        SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
+                        text = columnIndex.toString + ":" + rowIndex.toString,
+                        style = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
                       )
               )
       )

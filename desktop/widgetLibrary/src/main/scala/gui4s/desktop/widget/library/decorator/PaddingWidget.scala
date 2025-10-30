@@ -68,7 +68,7 @@ def paddingWidget[
   Draw,
   RecompositionReaction,
   HandleableEvent,
-  MeasurementUnit : Fractional,
+  MeasurementUnit : Fractional as MUF,
   PlaceError
 ](
   innerGaps : PaddingWidget[
@@ -96,7 +96,7 @@ def paddingWidget[
     layout(       
       innerGaps(paddings.map(_.gapOrZero))(widget),
       Axis.Vertical,
-      PlacementStrategy.OneByOne(placementStrategy),
+      PlacementStrategy.PlaceIndependently(placementStrategy, MUF.zero),
       placementStrategy
     )
 end paddingWidget

@@ -30,8 +30,6 @@ def container[
   )
 end container
 
-def zIndexContainer[IO[_] : Sync, Event] = ()
-
 def linearContainer[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     DesktopPlacedWidget[IO, Event],
@@ -46,3 +44,32 @@ def linearContainer[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Eve
     cut = _.minus(_)
   )
 end linearContainer
+
+def row[IO[_] : Sync] : [Event] => (
+  children                    : List[DesktopWidget[IO, Event]],
+  horizontalPlacementStrategy : PlacementStrategy[IO, List],
+  verticalPlacementStrategy   : OneElementPlacementStrategy[IO],
+) => DesktopWidget[IO, Event] =
+  [Event] => (children, mainAxisStrategy, additionalAxisStrategy) =>
+    linearContainer[IO, Event](
+      children,
+      Axis.Horizontal,
+      mainAxisStrategy,
+      additionalAxisStrategy
+    )
+end row
+
+
+def column[IO[_] : Sync] : [Event] => (
+  children                    : List[DesktopWidget[IO, Event]],
+  verticalPlacementStrategy   : PlacementStrategy[IO, List],
+  horizontalPlacementStrategy : OneElementPlacementStrategy[IO],
+) => DesktopWidget[IO, Event] =
+  [Event] => (children, mainAxisStrategy, additionalAxisStrategy) =>
+    linearContainer[IO, Event](
+      children,
+      Axis.Vertical,
+      mainAxisStrategy,
+      additionalAxisStrategy
+    )
+end column 

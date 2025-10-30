@@ -30,7 +30,7 @@ def linearContainer[
   Place[_] : Monad,
   Container[_] : {Applicative as A, Traverse, Zip},
   BoundUnit,
-  MeasurementUnit : Numeric,
+  MeasurementUnit : Numeric as N,
 ](
   container : ContainerWidget[PlacedWidget, Container, Place * Sized[MeasurementUnit, *], Point3d[MeasurementUnit]],
   getBounds: Get[Place, Rect[BoundUnit]],
@@ -52,8 +52,9 @@ def linearContainer[
           PlacementStrategy.Zip(
             mainAxis,
             mainAxisStrategy,
-            PlacementStrategy.OneByOne(
-              additionalAxisStrategy
+            PlacementStrategy.PlaceIndependently(
+              additionalAxisStrategy,
+              N.zero
             )
           ),
         ).map(_.mapValue(elements => A.map(elements)(placedElementAsLayoutMetadata)))
