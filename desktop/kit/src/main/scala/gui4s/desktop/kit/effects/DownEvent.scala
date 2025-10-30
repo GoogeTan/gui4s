@@ -2,9 +2,6 @@ package gui4s.desktop.kit
 package effects
 
 import cats.syntax.all.*
-import glfw4s.core.KeyAction.{Press, given}
-import glfw4s.core.{KeyAction, KeyModes}
-import gui4s.core.geometry.Point2d
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
 

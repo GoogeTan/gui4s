@@ -1,23 +1,35 @@
 package gui4s.core.widget.library
 
-final case class TextRange private (start : Int, end : Int)
+import cats.implicits.catsSyntaxOrder
+
+import scala.math.Ordering.Implicits.infixOrderingOps
+
+final case class TextPosition(line : Int, column : Int) extends Ordered[TextPosition]:
+  def compare(that : TextPosition) : Int =
+    (line, column).compare(that.line, that.column)
+  end compare
+end TextPosition
+
+object TextPosition:
+  val Zero : TextPosition = TextPosition(0, 0)
+end TextPosition
+
+final case class TextRange(start : TextPosition, end : TextPosition):
+  def isCursor  : Boolean =
+    start == end
+  end isCursor
+
+  def min : TextPosition =
+    start.min(end)
+  end min
+
+  def max : TextPosition =
+    start.max(end)
+  end max
+end TextRange
 
 object TextRange:
-  def apply(a : Int, b: Int) : TextRange =
-    if a < b then
-      new TextRange(a, b)
-    else
-      new TextRange(b, a)
-    end if
-  end apply
-
-  def apply(a : Int) : TextRange =
+  def apply(a : TextPosition) : TextRange =
     new TextRange(a, a)
   end apply
-
-  extension (str : String)
-    def replaceAt(at : TextRange, newSubstring : String) : String =
-      str.substring(0, at.start) + newSubstring + str.substring(at.end)
-    end replaceAt
-  end extension
 end TextRange

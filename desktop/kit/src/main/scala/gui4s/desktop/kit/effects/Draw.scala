@@ -37,4 +37,43 @@ object Draw:
   def drawParagraph[IO[_] : Sync](paragraph : Paragraph) : Draw[IO] =
     skija.canvas.drawParagraph(paragraph)
   end drawParagraph
+
+  def drawCursor[IO[_] : Sync](
+                                paragraph: Paragraph,
+                                cursorPos : Int,
+                                cursorPaint: Paint
+                              ) : Draw[IO] =
+    Canvased.applyCanvasFFI(canvas =>
+      // Честно говоря, я не знаю почему это так, но без этого не работает.
+      // Если брать только первое, то на ненулевой позиции будет пустой массив, если только второе,
+      // то будет пустой массив на нулевой позиции
+      val (x0, y0, x1, y1) =
+        val rects = paragraph.getRectsForRange(
+          cursorPos,
+          cursorPos + 1,
+          RectHeightMode.MAX,
+          RectWidthMode.TIGHT
+        )
+        if rects.nonEmpty then
+          val cursorRect = rects.last.getRect
+          val cursorX = cursorRect.getLeft + cursorPaint.getStrokeWidth / 2
+          val topY = cursorRect.getTop
+          val bottomY = cursorRect.getBottom
+          (cursorX, topY, cursorX, bottomY)
+        else
+          val rects = paragraph.getRectsForRange(
+            cursorPos - 1,
+            cursorPos,
+            RectHeightMode.MAX,
+            RectWidthMode.TIGHT
+          )
+          val cursorRect = rects.last.getRect
+          val cursorX = cursorRect.getRight + cursorPaint.getStrokeWidth / 2
+          val topY = cursorRect.getTop
+          val bottomY = cursorRect.getBottom
+          (cursorX, topY, cursorX, bottomY)
+        end if
+      canvas.drawLine(x0, y0, x1, y1, cursorPaint)
+    )
+  end drawCursor
 end Draw

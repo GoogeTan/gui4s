@@ -10,6 +10,7 @@ import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.skija.*
 import gui4s.desktop.skija.canvas.*
 import gui4s.desktop.widget.library.text as genericText
+import io.github.humbleui.skija.Paint
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.shaper.Shaper
 
@@ -43,8 +44,21 @@ def placedText[IO[_] : Sync, Event](placedText : Sized[Float, SkijaPlacedText]) 
   )
 end placedText
 
+def paragraph[IO[_] : Sync, Event](paragraph : Paragraph) : DesktopWidget[IO, Event] =
+  OuterPlace.liftFunction(bounds =>
+    sizeParagraph(paragraph, bounds.width.value)
+  )
+  .flatMap(placedParagraph)
+end paragraph
+
 def placedParagraph[IO[_] : Sync as S, Event](placedText : Sized[Float, Paragraph]) : DesktopWidget[IO, Event] =
   constSizedDrawOnlyWidget(
     placedText.mapValue(Draw.drawParagraph)
   )
 end placedParagraph
+
+def drawCursor[IO[_] : Sync, Event](paragraph: Sized[Float, Paragraph], cursor: Int, cursorPaint : Paint) : DesktopWidget[IO, Event] =
+  constSizedDrawOnlyWidget(
+     paragraph.mapValue(Draw.drawCursor(_, cursor, cursorPaint))
+  )
+end drawCursor

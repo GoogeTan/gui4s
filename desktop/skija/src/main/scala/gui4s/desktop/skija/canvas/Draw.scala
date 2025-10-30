@@ -24,5 +24,5 @@ def drawPath[IO[_] : {Sync, Canvased}](path : Path, paint: Paint) : IO[Unit] =
 end drawPath
 
 def drawParagraph[F[_] : {Sync, Canvased}](paragraph: Paragraph): F[Unit] =
-  gui4s.desktop.skija.canvas.Canvased.applyCanvasFFI(paragraph.paint(_, 0f, 0f))
+  applyCanvasFFI(paragraph.paint(_, 0f, 0f))
 end drawParagraph

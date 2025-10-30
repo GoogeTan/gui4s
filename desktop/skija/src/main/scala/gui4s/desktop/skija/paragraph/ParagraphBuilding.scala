@@ -13,8 +13,8 @@ type ParagraphBuilding[F[_]] = Kleisli[F, ParagraphBuilder, ParagraphBuilder]
 def paragraphBuilder[F[_] : Sync as S](
                                     style : ParagraphStyle,
                                     fontCollection : FontCollection
-                                  ) : Resource[F, ParagraphBuilder] =
-  Resource.fromAutoCloseable(S.delay(new ParagraphBuilder(style, fontCollection)))
+                                  ) : F[ParagraphBuilder] =
+  S.delay(new ParagraphBuilder(style, fontCollection))
 end paragraphBuilder
 
 // TODO я не знаю, почему эта инстанция не создается сама
@@ -28,14 +28,20 @@ def addText[F[_] : Sync as S](text: String): Kleisli[F, ParagraphBuilder, Paragr
   Kleisli(builder => S.delay(builder.addText(text)))
 end addText
 
+def addStyledTexts[F[_] : Sync](texts: List[(String, TextStyle)]): Kleisli[F, ParagraphBuilder, ParagraphBuilder] =
+  texts
+    .map(addStyledText)
+    .foldLeft(Kleisli.ask)(_.andThen(_))
+end addStyledTexts
+
 def addStyledText[F[_] : Sync](text: String, style: TextStyle): Kleisli[F, ParagraphBuilder, ParagraphBuilder] =
   pushStyle(style).andThen(addText(text))
 end addStyledText
 
-def buildBuilder[F[_] : Sync as S](builder: ParagraphBuilder): Resource[F, Paragraph] =
-  Resource.fromAutoCloseable(S.delay(builder.build))
+def buildBuilder[F[_] : Sync as S](builder: ParagraphBuilder): F[Paragraph] =
+  S.delay(builder.build)
 end buildBuilder
 
-def buildBuilderF[F[_] : Sync](builder: F[ParagraphBuilder]): Resource[F, Paragraph] =
-  Resource.eval(builder) >>= buildBuilder
+def buildBuilderF[F[_] : Sync](builder: F[ParagraphBuilder]): F[Paragraph] =
+  builder >>= buildBuilder
 end buildBuilderF

@@ -11,11 +11,11 @@ def buildParagraph[F[_] : Sync](
   list : List[(String, TextStyle)],
   style : ParagraphStyle,
   fontCollection : FontCollection
-) : Resource[F, Paragraph] =
+) : F[Paragraph] =
   paragraphBuilder(style, fontCollection).flatMap(
     builder =>
       buildBuilderF(
-        list.foldMap(addStyledText).run(builder)
+        addStyledTexts(list).run(builder)
       )
   )
 end buildParagraph

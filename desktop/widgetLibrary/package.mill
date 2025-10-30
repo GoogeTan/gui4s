@@ -25,7 +25,7 @@ object `package` extends SbtModule with PublishModule {
 
   def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.typelevel::cats-core:2.13.0")
 
-  def moduleDeps = super.moduleDeps ++ Seq(
+  def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
     build.catnip,
     build.core.geometry,
     build.core.layout,
@@ -35,7 +35,7 @@ object `package` extends SbtModule with PublishModule {
     build.core.widgetLibrary
   )
 
-  def pomSettings = PomSettings(
+  def pomSettings: T[PomSettings] = PomSettings(
     "desktop-widget-library",
     "desktop-widget-library",
     "",
@@ -46,4 +46,13 @@ object `package` extends SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
+  object test extends SbtTests with TestModule.ScalaTest {
+
+    def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+      mvn"org.scalacheck::scalacheck:1.19.0",
+      mvn"org.scalatest::scalatest:3.2.19",
+    )
+
+    def testSandboxWorkingDir = false
+  }
 }
