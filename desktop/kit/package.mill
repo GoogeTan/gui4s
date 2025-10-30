@@ -1,5 +1,6 @@
 package build.desktop.kit
 
+import mill.main.RootModule
 import coursier.Repository
 import mill._
 import mill.javalib._
