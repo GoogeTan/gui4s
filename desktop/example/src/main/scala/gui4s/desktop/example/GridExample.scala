@@ -37,14 +37,16 @@ object GridExample extends UIApp:
         PlacementStrategy.Begin(0f)
       numbers = (1 to 10).toList
       textWidget = text(shaper, cache)
+      rowWidget = row[AppIO]
+      columnWidget = column[AppIO]
     yield
-      column[AppIO][ApplicationRequest](
+      columnWidget(
         verticalPlacementStrategy = spaceBetween,
         horizontalPlacementStrategy = begin,
         children =
           numbers.map:
             columnIndex =>
-             row[AppIO][ApplicationRequest](
+             rowWidget(
                 horizontalPlacementStrategy = spaceBetween,
                 verticalPlacementStrategy = begin,
                 children =

@@ -59,7 +59,6 @@ def row[IO[_] : Sync] : [Event] => (
     )
 end row
 
-
 def column[IO[_] : Sync] : [Event] => (
   children                    : List[DesktopWidget[IO, Event]],
   verticalPlacementStrategy   : PlacementStrategy[IO, List],
@@ -72,4 +71,4 @@ def column[IO[_] : Sync] : [Event] => (
       mainAxisStrategy,
       additionalAxisStrategy
     )
-end column 
+end column
