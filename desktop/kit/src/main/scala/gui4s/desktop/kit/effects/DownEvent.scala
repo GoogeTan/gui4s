@@ -10,23 +10,13 @@ import gui4s.core.widget.Path.given
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum DownEvent:
-  case WindowResized
-  case MouseClick(button: Int, action: KeyAction, mods: KeyModes)
-  case MouseMove(position: Point2d[Float])
-  case KeyPress(key: Int, scancode: Int, action: KeyAction, mods: KeyModes)
-  case Scrolled(xoffset: Float, yoffset: Float)
+  case WindowShouldBeRedrawn
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   case ExternalEventForWidget(destination: Path, event: Any)
+  case UserEvent(event: Any)
 end DownEvent
 
 object DownEvent:
-  def extractMouseClickEvent(downEvent : DownEvent) : Option[Unit] =
-    downEvent match
-      case DownEvent.MouseClick(_, action, _) if action === Press =>
-        Some(()) // TODO ClickHandlerDownEvent(button, action, mods))
-      case _ => None
-  end extractMouseClickEvent
-  
   def catchExternalEvent(expectedPath : Path, event : DownEvent) : Option[Any] =
     event match 
       case DownEvent.ExternalEventForWidget(taskPath, event : Any) if taskPath === expectedPath =>

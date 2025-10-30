@@ -1,19 +1,34 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats.Monad
+import cats.{Applicative, Monad}
 import cats.syntax.all.*
+import cats.effect.Resource
+import cats.effect.std.Queue
+import glfw4s.core.{KeyAction, KeyModes}
+import glfw4s.core.pure.PostInit
 import gui4s.core.geometry.{Point2d, RectAtPoint2d}
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.widget.library.decorator.{Decorator, clickCatcher as genericClickCatcher}
 
-def clickCatcher[IO[_] : Monad, Event](mousePosition : IO[Point2d[Float]], eventOnClick : Event) : Decorator[DesktopWidget[IO, Event]] =
+final case class MouseEvent(keyCode: Int, action : KeyAction, modes: KeyModes)
+
+type ClickEventSource = DownEvent => Option[MouseEvent]
+
+def clickCatcher[IO[_] : Monad, Event](
+                                        mousePosition : IO[Point2d[Float]],
+                                        eventOnClick : Event,
+                                        extractEvent : DownEvent => Option[MouseEvent]
+                                      ) : Decorator[DesktopWidget[IO, Event]] =
   genericClickCatcher(
     eventCatcherWithRect = eventCatcher,
     currentMousePosition = Update.liftK[IO, Event](mousePosition),
-    approprieteEvent = DownEvent.extractMouseClickEvent,
-    onClick = (_, _) => Update.emitEvents(List(eventOnClick)).as(true),
+    appropriateEvent = extractEvent,
+    onClick = {
+      case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents(List(eventOnClick)).as(true)
+      case _ => false.pure[UpdateC[IO,  Event]]
+    },
     isIn = point => shape =>
       Update.getCornerCoordinates.map(
         coordinatesOfTopLeftCornet =>
@@ -21,3 +36,26 @@ def clickCatcher[IO[_] : Monad, Event](mousePosition : IO[Point2d[Float]], event
       )
   )
 end clickCatcher
+
+final case class ClickCatcherEvent(mouseEvent: MouseEvent)
+
+def clickEventSource[
+  IO[_] : Applicative,
+  CallbackEffect[_],
+  Monitor,
+  Window
+](
+  window: Window,
+  glfw : PostInit[IO, CallbackEffect[Unit], Monitor, Window],
+  queue: Queue[CallbackEffect, DownEvent]
+) : IO[ClickEventSource] =
+  glfw.addMouseButtonCallback(
+    window,
+    (window, button, action, mods) =>
+      queue.offer(DownEvent.UserEvent(ClickCatcherEvent(MouseEvent(button, action, mods))))
+  ).as({
+    case DownEvent.UserEvent(ClickCatcherEvent(mouseEvent)) =>
+      Some(mouseEvent) 
+    case _ => None
+  })
+end clickEventSource

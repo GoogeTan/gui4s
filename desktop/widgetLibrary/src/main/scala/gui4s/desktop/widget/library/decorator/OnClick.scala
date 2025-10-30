@@ -13,18 +13,18 @@ def clickCatcher[
   Point,
   WidgetBoundingBox
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], WidgetBoundingBox, HandleableEvent],
-  currentMousePosition : Update[Point],
-  approprieteEvent: HandleableEvent => Option[MouseClick],
-  onClick : (Path, MouseClick) => Update[Boolean],
-  isIn : Point => WidgetBoundingBox => Update[Boolean]
+   eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], WidgetBoundingBox, HandleableEvent],
+   currentMousePosition : Update[Point],
+   appropriateEvent: HandleableEvent => Option[MouseClick],
+   onClick : (Path, MouseClick) => Update[Boolean],
+   isIn : Point => WidgetBoundingBox => Update[Boolean]
 ) : Decorator[Widget] =
   eventCatcherWithRect:
     (path, widgetBoundingBox, event) =>
       currentMousePosition.flatMap:
         mousePosition =>
           isIn(mousePosition)(widgetBoundingBox).ifM(
-            ifTrue = approprieteEvent(event) match
+            ifTrue = appropriateEvent(event) match
                 case Some(click) =>
                   onClick(path, click)
                 case _ =>

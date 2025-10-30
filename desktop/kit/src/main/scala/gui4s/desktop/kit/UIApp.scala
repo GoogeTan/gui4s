@@ -79,7 +79,7 @@ trait UIApp extends IOApp:
         window,
         (_ : GLFWwindow, w : Int, h : Int) =>
           surface.recreateRenderTarget(Rect(w, h))
-            *> eventBus.offer(DownEvent.WindowResized)
+            *> eventBus.offer(DownEvent.WindowShouldBeRedrawn)
       ).eval
 
       runPlaceK : (PlaceC[AppIO] ~> AppIO) =
