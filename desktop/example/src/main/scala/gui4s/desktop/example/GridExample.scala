@@ -38,13 +38,13 @@ object GridExample extends UIApp:
       numbers = (1 to 10).toList
       textWidget = text(shaper, cache)
     yield
-      column[AppIO](
+      column[AppIO][ApplicationRequest](
         verticalPlacementStrategy = spaceBetween,
         horizontalPlacementStrategy = begin,
         children =
           numbers.map:
             columnIndex =>
-             row[AppIO](
+             row[AppIO][ApplicationRequest](
                 horizontalPlacementStrategy = spaceBetween,
                 verticalPlacementStrategy = begin,
                 children =

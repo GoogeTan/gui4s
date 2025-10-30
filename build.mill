@@ -1,7 +1,7 @@
 //| mill-version: 0.12.11
 package build
 
-import mill.main.RootModule
+import $packages._
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
