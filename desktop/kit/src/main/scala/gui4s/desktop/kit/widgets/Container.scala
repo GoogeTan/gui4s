@@ -45,30 +45,28 @@ def linearContainer[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Eve
   )
 end linearContainer
 
-def row[IO[_] : Sync] : [Event] => (
+def row[IO[_] : Sync, Event](
   children                    : List[DesktopWidget[IO, Event]],
   horizontalPlacementStrategy : PlacementStrategy[IO, List],
   verticalPlacementStrategy   : OneElementPlacementStrategy[IO],
-) => DesktopWidget[IO, Event] =
-  [Event] => (children, mainAxisStrategy, additionalAxisStrategy) =>
+) : DesktopWidget[IO, Event] =
     linearContainer[IO, Event](
       children,
       Axis.Horizontal,
-      mainAxisStrategy,
-      additionalAxisStrategy
+      horizontalPlacementStrategy,
+      verticalPlacementStrategy
     )
 end row
 
-def column[IO[_] : Sync] : [Event] => (
+def column[IO[_] : Sync, Event](
   children                    : List[DesktopWidget[IO, Event]],
   verticalPlacementStrategy   : PlacementStrategy[IO, List],
   horizontalPlacementStrategy : OneElementPlacementStrategy[IO],
-) => DesktopWidget[IO, Event] =
-  [Event] => (children, mainAxisStrategy, additionalAxisStrategy) =>
+) : DesktopWidget[IO, Event] =
     linearContainer[IO, Event](
       children,
       Axis.Vertical,
-      mainAxisStrategy,
-      additionalAxisStrategy
+      verticalPlacementStrategy,
+      horizontalPlacementStrategy
     )
 end column

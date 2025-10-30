@@ -1,5 +1,6 @@
 package gui4s.desktop.example
 
+import cats.Id
 import cats.data.EitherT
 import cats.effect.*
 import cats.effect.std.Queue
@@ -31,32 +32,38 @@ object GridExample extends UIApp:
       shaper <- createShaper[AppIO]
       cache : TextCache[AppIO] <- ScalacacheCache()
       typeface <- defaultTypeface[AppIO]
-      spaceBetween: PlacementStrategy[AppIO, List] =
-        PlacementStrategy.SpaceBetween(ContainerPlacementError.English)
-      begin : OneElementPlacementStrategy[AppIO] =
-        PlacementStrategy.Begin(0f)
       numbers = (1 to 10).toList
       textWidget = text(shaper, cache)
-      rowWidget = row[AppIO]
-      columnWidget = column[AppIO]
+      textStyle = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
     yield
-      columnWidget(
-        verticalPlacementStrategy = spaceBetween,
-        horizontalPlacementStrategy = begin,
-        children =
-          numbers.map:
-            columnIndex =>
-             rowWidget(
-                horizontalPlacementStrategy = spaceBetween,
-                verticalPlacementStrategy = begin,
-                children =
-                  numbers.map:
-                    rowIndex =>
-                      textWidget(
-                        text = columnIndex.toString + ":" + rowIndex.toString,
-                        style = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
-                      )
-              )
+      grid(numbers, numbers)(
+        gridCell(textWidget[ApplicationRequest](_, textStyle))
       )
   end main
+
+  def grid[A, B, Event](as: List[A], bs: List[B])(f: (A, B) => DesktopWidget[AppIO, Event]) : DesktopWidget[AppIO, Event] =
+    val spaceBetween: PlacementStrategy[AppIO, List] =
+      PlacementStrategy.SpaceBetween[AppIO, List](ContainerPlacementError.English)
+    val begin : OneElementPlacementStrategy[AppIO] =
+      PlacementStrategy.Begin[AppIO, Id](0f)
+    column[AppIO, Event](
+      verticalPlacementStrategy = spaceBetween,
+      horizontalPlacementStrategy = begin,
+      children =
+        as.map:
+          columnElement =>
+            row[AppIO, Event](
+              horizontalPlacementStrategy = spaceBetween,
+              verticalPlacementStrategy = begin,
+              children =
+                bs.map:
+                  rowElement =>
+                    f(columnElement, rowElement)
+            )
+    )
+  end grid
+
+  def gridCell[Event](textWidget: String => DesktopWidget[AppIO, Event])(row : Int, column : Int) : DesktopWidget[AppIO, Event] =
+    textWidget(column.toString + ":" + row.toString)
+  end gridCell
 end GridExample
