@@ -6,7 +6,6 @@ import cats.effect.std.*
 import glfw4s.core.*
 import glfw4s.core.pure.PostInit
 import glfw4s.jna.bindings.types.*
-import gui4s.desktop.example.GridExample.AppIO
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*

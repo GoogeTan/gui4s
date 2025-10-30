@@ -53,13 +53,6 @@ object `package` extends RootModule with SbtModule with PublishModule  with Asse
 
   def mainClass = Some("gui4s.desktop.example.ImageExample")
 
-  def assemblyRules = Seq(
-    // all application.conf files will be concatenated into single file
-    Rule.Append("MANIFEST.MF"),
-    Rule.Append("META-INF/MANIFEST.MF"),
-    Rule.Append("application.conf"),
-  )
-
   override def manifest : T[JarManifest] = T {
     super.manifest().add(("Multi-Release" -> "true"))
   }

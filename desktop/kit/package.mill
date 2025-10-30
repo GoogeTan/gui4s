@@ -7,7 +7,6 @@ import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
 object `package` extends RootModule with SbtModule with PublishModule {
-
   def artifactName = "desktop-kit"
 
   def scalaVersion = "3.7.3"
@@ -44,8 +43,8 @@ object `package` extends RootModule with SbtModule with PublishModule {
   )
 
   def pomSettings: T[PomSettings] = PomSettings(
-    description = "desktop-kit",
-    organization = "desktop-kit",
+    description = "gui4s dev kit for desktop",
+    organization = "gui4s",
     url = "",
     licenses = Seq(),
     versionControl = VersionControl(None, None, None, None),

@@ -1,12 +1,9 @@
 package build.desktop.skija
 
 import mill._
-import mill.api.JarManifest
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.{AssemblyModule, SbtModule}
-
-import java.util.jar.Attributes.Name
 
 object `package` extends RootModule with SbtModule with PublishModule with AssemblyModule {
 
