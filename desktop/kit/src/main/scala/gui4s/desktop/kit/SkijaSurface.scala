@@ -7,6 +7,7 @@ import cats.~>
 import glfw4s.core.pure.*
 import gui4s.core.geometry.Rect
 import gui4s.desktop.skija.*
+import gui4s.desktop.skija.DirectContext.createDirectContext
 
 final case class SkijaSurface[
   IO[_]

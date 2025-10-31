@@ -5,10 +5,6 @@ import cats.effect.{Resource, Sync}
 import io.github.humbleui.skija.shaper.Shaper
 import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceColorFormat, SurfaceOrigin, SurfaceProps}
 
-def createDirectContext[IO[_] : Sync as S]: Resource[IO, DirectContext] =
-  Resource.fromAutoCloseable(S.delay(DirectContext.makeGL()))
-end createDirectContext
-
 def createRenderTarget[
   IO[_] : Sync as S,
 ](
@@ -45,7 +41,7 @@ def createSurface[
   colorSpace: Option[ColorSpace],
   props: Option[SurfaceProps]
 ): Resource[IO, Surface] =
-  Resource.fromAutoCloseable(
+  Resource.eval(
     S.delay(
       Surface.wrapBackendRenderTarget(
         context,

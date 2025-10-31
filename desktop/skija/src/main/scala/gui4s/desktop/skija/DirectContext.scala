@@ -9,7 +9,7 @@ object DirectContext:
   end flush
 
   def createDirectContext[F[_] : Sync as S]: Resource[F, DirectContext] =
-    Resource.fromAutoCloseable(
+    Resource.eval(
       S.delay(io.github.humbleui.skija.DirectContext.makeGL())
     )
   end createDirectContext
