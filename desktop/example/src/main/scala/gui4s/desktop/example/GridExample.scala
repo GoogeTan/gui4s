@@ -42,10 +42,10 @@ object GridExample extends UIApp:
   end main
 
   def grid[A, B, Event](as: List[A], bs: List[B])(f: (A, B) => DesktopWidget[AppIO, Event]) : DesktopWidget[AppIO, Event] =
-    val spaceBetween: PlacementStrategy[AppIO, List] =
-      PlacementStrategy.SpaceBetween[AppIO, List](ContainerPlacementError.English)
-    val begin : OneElementPlacementStrategy[AppIO] =
-      PlacementStrategy.Begin[AppIO, Id](0f)
+    val spaceBetween: LinearContainerPlacementStrategy[AppIO, List] =
+      LinearContainerPlacementStrategy.SpaceBetween[AppIO, List](ContainerPlacementError.English)
+    val begin : OneElementLinearContainerPlacementStrategy[AppIO] =
+      LinearContainerPlacementStrategy.Begin[AppIO, Id](0f)
     column[AppIO, Event](
       verticalPlacementStrategy = spaceBetween,
       horizontalPlacementStrategy = begin,

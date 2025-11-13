@@ -4,6 +4,7 @@ package widgets
 import catnip.syntax.applicative.given
 import catnip.syntax.list.traverseListOrdered
 import catnip.syntax.zip.given
+import catnip.Zip
 import cats.*
 import cats.data.*
 import cats.effect.kernel.Sync
@@ -30,27 +31,39 @@ def container[
   )
 end container
 
-def linearContainer[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
+def linearContainer[
+  IO[_] : Sync,
+  Event,
+  Container[_] : {Applicative, Traverse, Zip}
+](
+  updateListOrdered : [A : Order, B] => (list: Container[A]) => (f: Container[A] => Update[IO, Event, Container[B]]) => Update[IO, Event, Container[B]]
+) : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], Container, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     DesktopPlacedWidget[IO, Event],
     OuterPlace[IO, *],
-    List,
+    Container,
     InfinityOr[Float],
     Float,
   ](
-    container = container([A : Order, B] => v => f => traverseListOrdered(v)(f)),
+    container = container(updateListOrdered),
     getBounds = OuterPlace.getBounds,
     setBounds = OuterPlace.setBounds,
     cut = _.minus(_)
   )
 end linearContainer
 
+def linearListContainer[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
+  linearContainer(
+    [A : Order, B] => v => f => traverseListOrdered(v)(f)
+  )
+end linearListContainer
+
 def row[IO[_] : Sync, Event](
   children                    : List[DesktopWidget[IO, Event]],
-  horizontalPlacementStrategy : PlacementStrategy[IO, List],
-  verticalPlacementStrategy   : OneElementPlacementStrategy[IO],
+  horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List],
+  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO],
 ) : DesktopWidget[IO, Event] =
-    linearContainer[IO, Event](
+    linearListContainer[IO, Event](
       children,
       Axis.Horizontal,
       horizontalPlacementStrategy,
@@ -60,10 +73,10 @@ end row
 
 def column[IO[_] : Sync, Event](
   children                    : List[DesktopWidget[IO, Event]],
-  verticalPlacementStrategy   : PlacementStrategy[IO, List],
-  horizontalPlacementStrategy : OneElementPlacementStrategy[IO],
+  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List],
+  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
 ) : DesktopWidget[IO, Event] =
-    linearContainer[IO, Event](
+    linearListContainer[IO, Event](
       children,
       Axis.Vertical,
       verticalPlacementStrategy,
