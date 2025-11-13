@@ -31,6 +31,10 @@ final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
 end Point3d
 
 object Point3d:
+  def Zero[MeasurementUnit : Numeric as N] : Point3d[MeasurementUnit] =
+    Point3d(N.zero, N.zero, N.zero)
+  end Zero
+
   given[MeasurementUnit : Group] : Group[Point3d[MeasurementUnit]] with
     override def combine(x: Point3d[MeasurementUnit], y: Point3d[MeasurementUnit]): Point3d[MeasurementUnit] =
       Point3d(x.x |+| y.x, x.y |+| y.y, x.z |+| y.z)
