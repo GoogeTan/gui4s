@@ -1,6 +1,7 @@
 package gui4s.core.widget
 package recomposition
 
+// TODO добавить тесты на добавление имен
 def statefulReactsOnRecomposition[
   Widget,
   State,
@@ -11,7 +12,7 @@ def statefulReactsOnRecomposition[
   (self, pathToParent, states) =>
     widgetReactsOnRecomposition(
       self.child,
-      pathToParent.appendLast(self.name),
+      pathToParent / self.name,
       states.get(self.name).map(_.childrenStates).getOrElse(Map())
     )
 end statefulReactsOnRecomposition

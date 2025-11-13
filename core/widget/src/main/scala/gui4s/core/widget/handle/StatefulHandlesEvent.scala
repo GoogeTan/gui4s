@@ -1,6 +1,7 @@
 package gui4s.core.widget
 package handle
 
+import cats.*
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.{Functor, Monad}
@@ -9,6 +10,7 @@ import gui4s.core.widget.merge.Mergable
 
 import scala.collection.immutable.List
 
+// TODO добавить тесты на добавление имен
 def statefulHandlesEvent[
   Update[_] : Monad,
   Place[_] : Functor,
@@ -34,15 +36,17 @@ def statefulHandlesEvent[
     for
       (newChildWidget, events) <- childWidgetHandlesEvent(
         self.child,
-        pathToParent.appendLast(self.name),
+        pathToParent / self.name,
         event
       )
-      newState : Option[State] <- NonEmptyList.fromList(events).traverse(stateHandlesEvents(self.stateBehaviour, pathToParent.appendLast(self.name), _))
+      newState : Option[State] <-
+        NonEmptyList.fromList(events)
+          .traverse(stateHandlesEvents(self.stateBehaviour, pathToParent / self.name, _))
     yield newState
       .filterNot(stateEquiality.equiv(_, self.stateBehaviour))
       .map(newState =>
         widgetsAreMergable.merge(
-          pathToParent.appendLast(self.name),
+          pathToParent / self.name,
           newChildWidget,
           drawStateIntoWidget(newState)
         ).map(newChild =>

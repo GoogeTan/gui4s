@@ -3,11 +3,11 @@ package gui4s.desktop.widget.library
 import catnip.syntax.function.andThen
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import cats.{Functor, Monad, Monoid}
+import cats.{Functor, Monad, Monoid, ~>}
 import gui4s.core.widget
 import gui4s.core.widget.*
 import gui4s.core.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
-import gui4s.core.widget.handle.{HandlesEventF, statefulHandlesEvent, statefulStateHandlesEvents}
+import gui4s.core.widget.handle.*
 import gui4s.core.widget.merge.{Mergable, statefulMergesWithOldStates}
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates
@@ -61,7 +61,8 @@ def stateful[
 ](
   widgetsAreMergeable : Mergable[Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]]],
   typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
-  liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])]
+  liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])],
+  addNameToPath : String => Place ~> Place
 )(
   name : String,
   initialState : State,
@@ -77,7 +78,7 @@ def stateful[
     HandlableEvent
   ]
 ] =
-  render(initialState).map(initialChild =>
+  addNameToPath(name)(render(initialState)).map(initialChild =>
     type ChildWidget = Widget[
       ChildUpdate,
       Place,
@@ -99,7 +100,7 @@ def stateful[
           initialState = initialState,
           currentState = initialState,
         ),
-        draw = render,
+        draw = (state : State) => addNameToPath(name)(render(state)),
         handleEvents = handleEvent,
         destructor = destructor
       ),
@@ -113,7 +114,12 @@ def stateful[
       valueHandlesEvent = statefulHandlesEvent(
         stateHandlesEvents = statefulStateHandlesEvents,
         drawStateIntoWidget = statefulStateDrawsIntoWidget,
-        childWidgetHandlesEvent = widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent].andThen(liftUpdate(_)),
+        childWidgetHandlesEvent =
+          mapEventHandle(
+            widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]
+          )(
+            _.map(addNameToPath(name)[ChildWidget](_))
+          ).andThen(liftUpdate(_)),
         widgetsAreMergable = widgetsAreMergeable,
       ),
       valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree),

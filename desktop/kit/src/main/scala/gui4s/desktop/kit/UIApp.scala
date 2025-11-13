@@ -83,7 +83,7 @@ trait UIApp extends IOApp:
       ).eval
 
       runPlaceK : (PlaceC[AppIO] ~> AppIO) =
-        Place.run[AppIO](windowBounds(window, glfw))
+        Place.run[AppIO](Path(Nil), windowBounds(window, glfw))
           .andThen(mapErrorK(UIAppError.PlaceError(_)))
           .andThen(flattenEitherTK)
 

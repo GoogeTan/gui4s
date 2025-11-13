@@ -1,7 +1,7 @@
 package gui4s.core.kit
 package effects
 
-import _root_.cats.MonadError
+import cats.*
 import catnip.syntax.all.*
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
@@ -24,5 +24,14 @@ object Place:
         case _ => MonadError[OuterPlace, PlaceError].raiseError(error(value, path))
       end match
   end typecheck
+
+  def addNameToPath[IO[_] : Monad, Bounds, MeasurementUnit, Error](name : String)
+    : PlaceC[IO, Bounds, MeasurementUnit, Error] ~> PlaceC[IO, Bounds, MeasurementUnit, Error] =
+    new (PlaceC[IO, Bounds, MeasurementUnit, Error] ~> PlaceC[IO, Bounds, MeasurementUnit, Error]):
+      override def apply[A](p: Place[IO, Bounds, MeasurementUnit, Error, A]) : Place[IO, Bounds, MeasurementUnit, Error, A] =
+        OuterPlace.addNameToPath[IO, Bounds, Error](name)[Sized[MeasurementUnit, A]](p)
+      end apply
+    end new
+  end addNameToPath
 end Place
 

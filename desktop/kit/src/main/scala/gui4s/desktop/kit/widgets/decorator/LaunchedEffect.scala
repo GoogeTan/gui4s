@@ -30,6 +30,7 @@ def launchedEffect[IO[_] : MonadThrow as MT, Event, Key : Typeable](supervisor :
     (valueFound : Any) => RecompositionReaction.lift[IO, Any](
       MT.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
     ),
+    Place.addNameToPath[IO]
   )
   (name, child, key, task) =>
     lew(name, child, key, path =>

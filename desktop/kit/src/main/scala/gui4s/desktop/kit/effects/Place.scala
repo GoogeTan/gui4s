@@ -18,10 +18,10 @@ type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, Throwable, T]
 type PlaceC[IO[_]] = [Value] =>> Place[IO, Value]
 
 object Place:
-  def run[IO[_] : Monad](bounds : IO[Bounds]) : Place[IO, *] ~> EitherT[IO, Throwable, *] =
+  def run[IO[_] : Monad](path : Path, bounds : IO[Bounds]) : Place[IO, *] ~> EitherT[IO, Throwable, *] =
     new ~>[Place[IO, *], EitherT[IO, Throwable, *]]:
       override def apply[A](fa : Place[IO, A]) : EitherT[IO, Throwable, A] =
-        OuterPlace.run(bounds)(fa.map(_.value))
+        OuterPlace.run(path, bounds)(fa.map(_.value))
       end apply
     end new
   end run
@@ -52,4 +52,8 @@ object Place:
   given functorInstance[IO[_] : Monad] : Functor[Place[IO, *]] =
     nestedFunctorsAreFunctors[OuterPlace[IO, *], InnerPlace]
   end functorInstance
+
+  def addNameToPath[IO[_] : Monad](name : String) : Place[IO, *] ~> Place[IO, *] =
+    GenericPlace.addNameToPath(name)
+  end addNameToPath
 end Place

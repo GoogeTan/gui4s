@@ -4,8 +4,11 @@ import cats.*
 
 final case class Path(value : List[String]):
   def this(strings : String*) = this(strings.toList)
-  
-  def appendLast(s : String) : Path = Path(s :: value)
+
+  def /(s : String) : Path =
+    Path(s :: value)
+  end /
+
   def appendFirst(s : String) : Path = Path(value ++ List(s))
 
   override def toString: String =

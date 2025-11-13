@@ -22,7 +22,7 @@ def launchedEffectMergesWithOldState[Key, Place[_], Recomposition, Task, Widget]
       case Some(key : Key) =>
         widgetMergesWithOldState(widgetSelf, pathToParent, oldStates).map(placedWidget => (launchedEffectSelf.copy(key = key), placedWidget))
       case Some(valueFound) =>
-        keyTypeError(pathToParent.appendLast(launchedEffectSelf.name), valueFound)
+        keyTypeError(pathToParent / launchedEffectSelf.name, valueFound)
       case None =>
         widgetMergesWithOldState(widgetSelf, pathToParent, oldStates).map(placedWidget => (launchedEffectSelf, placedWidget))
 end launchedEffectMergesWithOldState

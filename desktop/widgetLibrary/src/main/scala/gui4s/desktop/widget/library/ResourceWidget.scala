@@ -38,7 +38,7 @@ def resourceWidget[
             eventHandler = {
               case (None, _, NonEmptyList(event, Nil)) =>
                 updateBiMonad[Event]().pure(Some(event))
-              case (_, path, _) => doubleAllocError(path.appendLast(name))
+              case (_, path, _) => doubleAllocError(path)
             },
             body = state =>
               launchedEffect[(Value, IO[Unit])](

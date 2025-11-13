@@ -24,9 +24,9 @@ def launchedEvent[
       name,
       eventCatcher(
         (path, _, handleableEvent) =>
-          catchEvent(path.appendLast(name), handleableEvent)
+          catchEvent(path, handleableEvent)
       )(widget),
       key,
-      path => task.flatMap(pushEvent(path.appendLast(name), _))
+      path => task.flatMap(pushEvent(path, _))
     )
 end launchedEvent

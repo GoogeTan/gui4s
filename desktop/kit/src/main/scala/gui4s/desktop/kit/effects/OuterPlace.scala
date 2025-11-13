@@ -6,6 +6,7 @@ import cats.*
 import cats.data.EitherT
 import gui4s.core.kit.effects.OuterPlace as GenericOuterPlace
 import gui4s.core.layout.Sized
+import gui4s.core.widget.Path
 
 type OuterPlace[IO[_], T] = GenericOuterPlace[IO, Bounds, Throwable, T]
 type OuterPlaceC[IO[_]] = [Value] =>> OuterPlace[IO, Value]
@@ -56,7 +57,15 @@ object OuterPlace:
     GenericOuterPlace.raiseError(error)
   end raiseError
 
-  def run[IO[_] : Monad](bounds: IO[Bounds]): OuterPlaceC[IO] ~> EitherT[IO, Throwable, *] =
-    GenericOuterPlace.run[IO, Bounds, Throwable](bounds)
+  def run[IO[_] : Monad](path : Path, bounds: IO[Bounds]): OuterPlaceC[IO] ~> EitherT[IO, Throwable, *] =
+    GenericOuterPlace.run[IO, Bounds, Throwable](path, bounds)
   end run
+
+  def addNameToPath[IO[_] : Monad](name: String): OuterPlaceC[IO] ~> OuterPlaceC[IO] =
+    GenericOuterPlace.addNameToPath(name)
+  end addNameToPath
+
+  def currentPath[IO[_] : Monad]: OuterPlace[IO, Path]  =
+    GenericOuterPlace.currentPath
+  end currentPath
 end OuterPlace

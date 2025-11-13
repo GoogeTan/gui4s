@@ -52,7 +52,8 @@ def statefulWidget[IO[_] : MonadThrow] : StatefulWidget[DesktopWidget[IO, *], Up
           DownEvent
         ],
         typeCheckState = Place.typecheck[IO, StatefulState[State]]((value : Any, path : Path) => new Exception("Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]")),
-        liftUpdate = Update.catchEvents[IO, ChildEvent, Event]
+        liftUpdate = Update.catchEvents[IO, ChildEvent, Event],
+        addNameToPath = Place.addNameToPath
       )(
         name = name,
         initialState = initialState,
