@@ -10,7 +10,7 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
   def minus[T >: MeasurementUnit](amount : T)(using N: Numeric[T]) : InfinityOr[T] =
     value match
       case Some(value) =>
-        if N.compare(value, amount) == 1 then
+        if N.gteq(amount, value) then
           InfinityOr(Option(N.zero))
         else
           InfinityOr(Option(N.minus(value, amount)))
