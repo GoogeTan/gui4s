@@ -12,6 +12,13 @@ def defaultTypeface[F[_] : Sync as S] : Resource[F, Typeface] =
   )
 end defaultTypeface
 
+def typefaceFromFile[F[_] : Sync as S](name: String) : Resource[F, Typeface] =
+    Resource.fromAutoCloseable(
+        S.delay(
+            FontMgr.getDefault.makeFromFile(name)
+        )
+    )
+end typefaceFromFile
 
 
 
