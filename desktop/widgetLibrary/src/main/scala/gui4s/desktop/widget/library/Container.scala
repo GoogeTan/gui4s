@@ -2,6 +2,7 @@ package gui4s.desktop.widget.library
 
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid, Order, Traverse}
+import catnip.syntax.all.*
 import gui4s.core.widget.Container
 import gui4s.core.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
 import gui4s.core.widget.free.containerAsFree
@@ -25,7 +26,7 @@ def container[
   adjustDrawToMeta : (Draw, Meta) => Draw,
   adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
   isEventConsumed : Update[Boolean],
-  traverseContainerOrdered : [A : Order, B] => (list: C[A]) => (f: C[A] => Update[C[B]]) => Update[C[B]]
+  traverseContainerOrdered : TraverseOrdered[Update, C]
 ) : ContainerWidget[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent], C, Place, Meta] =
   type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]
   given Order[(PlacedWidget, Meta)] = Order.by(_._2)

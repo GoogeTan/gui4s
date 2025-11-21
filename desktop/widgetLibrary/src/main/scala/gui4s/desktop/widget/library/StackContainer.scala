@@ -26,29 +26,20 @@ def stackContainer[
   Bounds,
   MeasurementUnit : Numeric as MUN
 ](
-  isEventConsumed : Update[Boolean],
   getBounds : OuterPlace[Bounds],
+  container : ContainerWidget[
+    Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent],
+    List,
+    OuterPlace * SizedC[MeasurementUnit],
+    Point3d[MeasurementUnit]
+  ],
 )(
    children : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
    xyPlacementStrategy : PlacementStrategy[OuterPlace, Bounds, List, Point2d[MeasurementUnit]],
 ) : OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]] =
   given Functor[OuterPlace * SizedC[MeasurementUnit]] = nestedFunctorsAreFunctors[OuterPlace, SizedC[MeasurementUnit]]
   given Order[(Point2d[MeasurementUnit], Int)] = Order.by(_._2)
-  container[
-    Update,
-    OuterPlace * SizedC[MeasurementUnit],
-    List,
-    Draw,
-    RecompositionReaction,
-    HandleableEvent,
-    (Point2d[MeasurementUnit], Int)
-  ](
-    (draw, _) => draw,
-    [T] => (update, _) => update,
-    isEventConsumed,
-    [A, B] => (children : List[A]) =>
-      catnip.syntax.list.traverseListOrdered[Update, List, A, B](children)
-  )(
+  container(
     children,
     freeChildren =>
       for
@@ -57,6 +48,13 @@ def stackContainer[
         children = sizedChilden.map(_.value)
         bounds <- getBounds
         placedChildren <- xyPlacementStrategy(childrenSizes, bounds)
-      yield Sized(children.zip(placedChildren.coordinatesOfStarts.zipWithIndex), placedChildren.coordinateOfEnd.toRect)
+      yield Sized(
+        children.zip(
+          placedChildren
+            .coordinatesOfStarts
+            .zipWithIndex.map((coordinate2d, index) => new Point3d(coordinate2d, MUN.fromInt(index)))
+        ), 
+        placedChildren.coordinateOfEnd.toRect
+      )
   )
 end stackContainer

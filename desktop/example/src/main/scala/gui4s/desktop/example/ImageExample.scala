@@ -66,7 +66,9 @@ object ImageExample extends UIApp:
       shaper <- createShaper[AppIO]
       cache: TextCache[AppIO] <- ScalacacheCache()
       typeface <- defaultTypeface[AppIO]
-    yield gapPadding(
+    yield gapPadding[AppIO, ApplicationRequest](
+      Paddings(10f, 10f, 10f, 10f)
+    )(
       initWidget(
         supervisor = supervisor,
         raiseExternalEvent = eventBus.offer.andThen(liftCallbackIOToAppIO(_))
@@ -76,8 +78,6 @@ object ImageExample extends UIApp:
         imageWidget = data => image[AppIO, ApplicationRequest](data).clip(Shapes.round),
         placeholder = text(shaper, cache)("Wait.", SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))),
       )
-    )(
-      Paddings(10f, 10f, 10f, 10f)
     )
   end main
 end ImageExample
