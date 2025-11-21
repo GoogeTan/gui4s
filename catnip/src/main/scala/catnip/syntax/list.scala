@@ -51,6 +51,12 @@ object list:
         )
     ).runA(false)
   end traverseUntil
+
+  extension[A](value: A)
+    def one: List[A] =
+      List(value)
+    end one
+  end extension
 end list
 
   
