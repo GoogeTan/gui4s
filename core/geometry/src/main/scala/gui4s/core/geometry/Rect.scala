@@ -4,6 +4,7 @@ import cats.*
 import cats.syntax.all.*
 
 import scala.math.Numeric.Implicits.*
+import scala.math.Ordered.orderingToOrdered
 
 @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
 final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : MeasurementUnit):
@@ -48,6 +49,18 @@ final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : Measur
   def toPoint2d : Point2d[MeasurementUnit] =
     Point2d(width, height)
   end toPoint2d
+  
+  def contains[T >: MeasurementUnit](point : Point2d[T])(using N : Numeric[T]) : Boolean =
+      point.x >= N.zero && point.x <= width && point.y >= N.zero && point.y <= height
+  end contains
+  
+  def +[T >: MeasurementUnit](another : Rect[T])(using N : Numeric[T]) : Rect[T] =
+      Rect(N.plus(width, another.width), N.plus(height, another.height))
+  end +
+  
+  def +[T >: MeasurementUnit](point : Point2d[T])(using N : Numeric[T]) : Rect[T] =
+    this + point.toRect
+  end +  
 end Rect
 
 extension[MeasurementUnit : Numeric](value : Rect[MeasurementUnit])

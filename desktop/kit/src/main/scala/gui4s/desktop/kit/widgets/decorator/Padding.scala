@@ -1,28 +1,40 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
+import catnip.syntax.list.traverseOne
+import cats.*
 import cats.effect.kernel.Sync
+import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
+import gui4s.core.layout.Sized
 import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Draw.given
-import gui4s.desktop.kit.widgets.DesktopWidget
-import gui4s.desktop.skija.canvas.drawAt
-import gui4s.desktop.widget.library.decorator.{Paddings, gapPaddingWidget}
+import gui4s.desktop.kit.effects.OuterPlace.given
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.widget.library.decorator.{Decorator, Paddings}
 
-def gapPadding[IO[_] : Sync, Event](value : DesktopWidget[IO, Event])(paddings: Paddings[Float]): DesktopWidget[IO, Event] =
-  gapPaddingWidget[
-    UpdateC[IO, Event],
-    OuterPlace[IO, *],
-    InnerPlace,
-    Draw[IO],
-    RecompositionReaction[IO],
-    DownEvent,
-    Paddings[Float],
-  ](
-    paddings =>
-      Place.withBoundsK(_.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_))),
-    paddings => update => (path, event) =>
-      Update.withCornerCoordinates(update(path, event), _ + new Point3d(paddings.topLeftCornerShift)),
-    paddings => draw => drawAt(paddings.left, paddings.top, draw.value),
-  )(paddings)(value)
+def gapPadding[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[DesktopWidget[IO, Event]] =
+  // TODO заменить на контейнер
+  original =>
+    container[
+      IO,
+      Id,
+      Event,
+    ](
+      traverseOne
+    )(
+      original,
+      child =>
+        OuterPlace.withBounds[IO, Sized[Float, DesktopPlacedWidget[IO, Event]]](
+          child,
+          originalBounds => originalBounds.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_))
+        ).map(sizedChild =>
+            Sized(
+              (
+                sizedChild.value,
+                Point3d(paddings.left, paddings.top, 0f)
+              ),
+              sizedChild.size + paddings.addedBoundsRect
+            )
+        )
+    )
 end gapPadding
