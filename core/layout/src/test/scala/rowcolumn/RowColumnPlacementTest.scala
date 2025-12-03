@@ -38,6 +38,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
                 mainAxisStrategy,
                 PlacementStrategy.PlaceIndependently(
                     additionlAxisStrategy,
+                    0f
                 )
             )
         )
