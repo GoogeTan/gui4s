@@ -5,6 +5,7 @@ import catnip.syntax.functor.nestedFunctorsAreFunctors
 import cats.*
 import cats.syntax.all.*
 import gui4s.core.geometry.*
+import gui4s.core.kit.widget.*
 import gui4s.core.layout.rowcolumn.*
 import gui4s.core.layout.{Sized, SizedC}
 

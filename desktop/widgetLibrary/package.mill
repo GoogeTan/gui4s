@@ -30,7 +30,8 @@ object `package` extends SbtModule with PublishModule {
     build.core.geometry,
     build.core.layout,
     build.core.loop,
-    build.core.widget
+    build.core.widget,
+    build.core.kit
   )
 
   def pomSettings = PomSettings(

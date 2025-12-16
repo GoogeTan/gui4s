@@ -6,6 +6,7 @@ import catnip.syntax.monad.MonadErrorC
 import cats.syntax.all.*
 import cats.{Applicative, Comonad, Functor, Id, ~>}
 import gui4s.core.geometry.*
+import gui4s.core.kit.widget.*
 import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
 import gui4s.desktop.widget.library.decorator.Decorator
 import gui4s.desktop.widget.library.decorator.Decorator.given

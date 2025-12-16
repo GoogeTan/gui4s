@@ -10,11 +10,13 @@ import cats.syntax.all.*
 import cats.data.*
 import cats.effect.kernel.Sync
 import gui4s.core.geometry.{Axis, InfinityOr, Point2d, Point3d}
+import gui4s.core.kit.widget.*
+import gui4s.core.kit.widget.{ linearContainer as genericLinearContainer}
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.skija.canvas.drawAt
-import gui4s.desktop.widget.library.{ContainerWidget, LinearContainer, container as genericContainer, linearContainer as genericLinearContainer}
+import gui4s.desktop.widget.library.{container as genericContainer}
 
 def container[
   IO[_] : Sync,

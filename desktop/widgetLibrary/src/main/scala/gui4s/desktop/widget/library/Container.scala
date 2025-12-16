@@ -1,8 +1,9 @@
 package gui4s.desktop.widget.library
 
+import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid, Order, Traverse}
-import catnip.syntax.all.*
+import gui4s.core.kit.widget.*
 import gui4s.core.widget.Container
 import gui4s.core.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
 import gui4s.core.widget.free.containerAsFree
@@ -10,9 +11,6 @@ import gui4s.core.widget.handle.{Layout, childrenHandleEvent, containerHandlesEv
 import gui4s.core.widget.merge.containerMergesWithOldStates
 import gui4s.core.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
 import gui4s.core.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}
-
-type ContainerWidget[PlacedWidget, Container[_], Place[_], Meta] =
-  (children : Container[Place[PlacedWidget]], layout : Layout[Place, Container, PlacedWidget, Meta]) => Place[PlacedWidget]
 
 def container[
   Update[_] : Monad,

@@ -53,3 +53,4 @@ build/
 /.bloop/
 /project/**/.bloop
 project/**/metals.sbt
+./failed_revisions.txt
