@@ -1,4 +1,4 @@
-package gui4s.core.kit.widget
+package gui4s.core.widget.library
 
 import catnip.syntax.additional.*
 import catnip.{Get, Set, Zip}

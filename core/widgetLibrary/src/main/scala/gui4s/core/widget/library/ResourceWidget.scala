@@ -1,9 +1,10 @@
-package gui4s.desktop.widget.library
+package gui4s.core.widget.library
 
 import catnip.BiMonad
 import cats.Functor
 import cats.data.*
 import gui4s.core.widget.Path
+import gui4s.core.widget.library.{TransitiveStatefulWidget, WithContext}
 
 import scala.reflect.Typeable
 

@@ -1,11 +1,11 @@
-package gui4s.desktop.widget.library
+package gui4s.core.widget.library
 
 import catnip.BiMonad
 import cats.*
 import cats.data.NonEmptyList
 import gui4s.core.widget.Path
 import gui4s.core.widget.handle.HandlesEventF
-import gui4s.desktop.widget.library.decorator.{EventCatcherWithRect, MapEvent}
+import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
 import scala.reflect.Typeable
 

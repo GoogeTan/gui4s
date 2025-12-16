@@ -9,7 +9,7 @@ import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.skija.paragraph.*
-import gui4s.desktop.widget.library.{TextFieldEvent, TextFieldState}
+import gui4s.core.widget.library.{TextFieldEvent, TextFieldState}
 import io.github.humbleui.skija.paragraph.*
 
 def textField[
@@ -22,7 +22,7 @@ def textField[
   text : String,
   onChange : String => Event
 ) : DesktopWidget[IO, Event] =
-  gui4s.desktop.widget.library.textField(
+  gui4s.core.widget.library.textField(
     statefulWidget[IO],
     body
   )(name, text, onChange)
@@ -35,7 +35,7 @@ def basicTextFieldBody[
     placeText : TextFieldState => Place[IO, Paragraph],
     systemEventCatcher : DesktopWidget[IO, Event] => DesktopWidget[IO, Event],
 ) : TextFieldState => DesktopWidget[IO, Event] =
-  gui4s.desktop.widget.library.basicTextFieldBody[
+  gui4s.core.widget.library.basicTextFieldBody[
     DesktopWidget[IO, Event],
     Sized[Float, Paragraph]
   ](

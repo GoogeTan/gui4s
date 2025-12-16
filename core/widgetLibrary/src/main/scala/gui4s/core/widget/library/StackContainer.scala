@@ -1,13 +1,13 @@
-package gui4s.desktop.widget.library
+package gui4s.core.widget.library
 
 import catnip.syntax.additional.*
 import catnip.syntax.functor.nestedFunctorsAreFunctors
 import cats.*
 import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.core.kit.widget.*
 import gui4s.core.layout.rowcolumn.*
 import gui4s.core.layout.{Sized, SizedC}
+import gui4s.core.widget.library.ContainerWidget
 
 @FunctionalInterface
 trait StackContainer[Widget]:
@@ -19,32 +19,29 @@ trait StackContainer[Widget]:
 end StackContainer
 
 def stackContainer[
-  Update[_] : Monad,
+  Widget,
   OuterPlace[_] : Monad as OPA,
-  Draw : Monoid,
-  RecompositionReaction : Monoid,
-  HandleableEvent,
   Bounds,
   MeasurementUnit : Numeric as MUN
 ](
   getBounds : OuterPlace[Bounds],
   container : ContainerWidget[
-    Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent],
+    Widget,
     List,
     OuterPlace * SizedC[MeasurementUnit],
     Point3d[MeasurementUnit]
   ],
 )(
-   children : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
+   children : List[OuterPlace[Sized[MeasurementUnit, Widget]]],
    xyPlacementStrategy : PlacementStrategy[OuterPlace, Bounds, List, Point2d[MeasurementUnit]],
-) : OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]] =
+) : OuterPlace[Sized[MeasurementUnit, Widget]] =
   given Functor[OuterPlace * SizedC[MeasurementUnit]] = nestedFunctorsAreFunctors[OuterPlace, SizedC[MeasurementUnit]]
   given Order[(Point2d[MeasurementUnit], Int)] = Order.by(_._2)
   container(
     children,
     freeChildren =>
       for
-        sizedChilden <- freeChildren.traverse[OuterPlace, Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]](identity)
+        sizedChilden <- freeChildren.traverse[OuterPlace, Sized[MeasurementUnit, Widget]](identity)
         childrenSizes = sizedChilden.map(_.size.toPoint2d)
         children = sizedChilden.map(_.value)
         bounds <- getBounds

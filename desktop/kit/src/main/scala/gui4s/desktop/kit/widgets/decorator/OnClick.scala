@@ -1,16 +1,15 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats.{Applicative, Monad}
-import cats.syntax.all.*
-import cats.effect.Resource
 import cats.effect.std.Queue
-import glfw4s.core.{KeyAction, KeyModes}
+import cats.syntax.all.*
+import cats.{Applicative, Monad}
 import glfw4s.core.pure.PostInit
+import glfw4s.core.{KeyAction, KeyModes}
 import gui4s.core.geometry.{Point2d, RectAtPoint2d}
+import gui4s.core.widget.library.decorator.{Decorator, clickCatcher as genericClickCatcher}
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopWidget
-import gui4s.desktop.widget.library.decorator.{Decorator, clickCatcher as genericClickCatcher}
 
 final case class MouseEvent(keyCode: Int, action : KeyAction, modes: KeyModes)
 

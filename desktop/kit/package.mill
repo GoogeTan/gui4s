@@ -38,6 +38,7 @@ object `package` extends SbtModule with PublishModule {
     build.core.layout,
     build.core.loop,
     build.core.widget,
+    build.core.widgetLibrary,
     build.desktop.skija,
     build.desktop.widgetLibrary
   )

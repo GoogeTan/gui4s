@@ -6,7 +6,7 @@ import cats.effect.std.Supervisor
 import cats.syntax.all.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.{DesktopPlacedWidget, DesktopWidget}
-import gui4s.desktop.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
+import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
 
 import scala.reflect.Typeable
 

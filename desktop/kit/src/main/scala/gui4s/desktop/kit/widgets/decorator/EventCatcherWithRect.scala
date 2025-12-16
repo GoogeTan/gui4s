@@ -6,7 +6,8 @@ import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.kit.widgets.DesktopPlacedWidget
 import gui4s.desktop.widget.library.*
-import gui4s.desktop.widget.library.decorator.{EventCatcherWithRect, eventCatcherWithRect}
+import gui4s.desktop.widget.library.decorator.eventCatcherWithRect
+import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
 def eventCatcher[IO[_] : Monad, Event]: EventCatcherWithRect[
   OuterPlace[IO, InnerPlace[DesktopPlacedWidget[IO, Event]]],

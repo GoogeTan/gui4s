@@ -4,7 +4,7 @@ package decorator
 import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Comonad, Functor}
-import gui4s.desktop.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.Decorator
 
 def drawDecorator[
   Update[_] : Functor,

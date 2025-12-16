@@ -1,4 +1,4 @@
-package gui4s.desktop.widget.library
+package gui4s.core.widget.library
 
 import cats.data.NonEmptyList
 import gui4s.core.widget.handle.HandlesEventF

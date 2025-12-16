@@ -4,7 +4,6 @@ package decorator
 import cats.syntax.all.*
 import cats.{Functor, Monad, ~>}
 
-type MapEvent[Widget[_]] = [A, B] => (A => B) => Widget[A] => Widget[B] 
 
 def mapUpdate[
   OldUpdate[_] : Monad,
@@ -20,6 +19,7 @@ def mapUpdate[
   Place[Widget[NewUpdate, Place, Draw, RecompositionReaction, HandleableEvent]] =
   original.map(
     placedWidget =>
+      // TODO Переписать с использованием UpdateDecorator или написать здесь, почему это невозможно
       final case class MapEvent(currentWidget: Widget[OldUpdate, Place, Draw, RecompositionReaction, HandleableEvent])
       Widget.ValueWrapper(
         valueToDecorate = MapEvent(placedWidget),

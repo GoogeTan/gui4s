@@ -1,14 +1,11 @@
-package build.desktop.widgetLibrary
-
+ package build.core.widgetLibrary
+ 
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
 object `package` extends SbtModule with PublishModule {
-
-  def artifactName = "desktop-widget-library"
-
   def scalaVersion = "3.7.3"
 
   def scalacOptions = super.scalacOptions() ++ Seq(
@@ -27,17 +24,13 @@ object `package` extends SbtModule with PublishModule {
 
   def moduleDeps = super.moduleDeps ++ Seq(
     build.catnip,
-    build.core.geometry,
-    build.core.layout,
-    build.core.loop,
     build.core.widget,
-    build.core.kit,
-    build.core.widgetLibrary
+    build.core.layout
   )
 
   def pomSettings = PomSettings(
-    "desktop-widget-library",
-    "desktop-widget-library",
+    "widget-library",
+    "widget-library",
     "",
     Seq(),
     VersionControl(None, None, None, None),
@@ -46,4 +39,16 @@ object `package` extends SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
+  object test extends SbtTests with TestModule.ScalaTest {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.scalacheck::scalacheck:1.19.0",
+      mvn"org.scalatest::scalatest:3.2.19",
+      mvn"org.typelevel::cats-laws:2.13.0",
+      mvn"org.typelevel::discipline-core:1.7.0",
+      mvn"org.typelevel::discipline-scalatest:2.3.0"
+    )
+
+    def testSandboxWorkingDir = false
+  }
 }

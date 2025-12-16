@@ -1,10 +1,11 @@
-package gui4s.desktop.widget.library
+package gui4s.core.widget.library
 
 import catnip.BiMonad
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.library.StatefulWidget
 
 import scala.reflect.Typeable
 

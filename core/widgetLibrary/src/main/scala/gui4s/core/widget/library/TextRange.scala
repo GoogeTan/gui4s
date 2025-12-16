@@ -1,4 +1,4 @@
-package gui4s.desktop.widget.library
+package gui4s.core.widget.library
 
 final case class TextRange private (start : Int, end : Int)
 

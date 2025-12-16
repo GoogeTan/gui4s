@@ -8,7 +8,7 @@ import gui4s.core.widget.Path
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.widgets.decorator.launchedEvent
-import gui4s.desktop.widget.library.{ResourceWidget, WithContext, resourceWidget as genericResourceWidget}
+import gui4s.core.widget.library.{ResourceWidget, WithContext, resourceWidget as genericResourceWidget}
 
 import scala.reflect.Typeable
 

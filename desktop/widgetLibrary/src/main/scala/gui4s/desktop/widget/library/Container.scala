@@ -3,8 +3,9 @@ package gui4s.desktop.widget.library
 import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Functor, Monad, Monoid, Order, Traverse}
-import gui4s.core.kit.widget.*
+import gui4s.core.widget.library.*
 import gui4s.core.widget.Container
+import gui4s.core.widget.library.*
 import gui4s.core.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
 import gui4s.core.widget.free.containerAsFree
 import gui4s.core.widget.handle.{Layout, childrenHandleEvent, containerHandlesEvent}

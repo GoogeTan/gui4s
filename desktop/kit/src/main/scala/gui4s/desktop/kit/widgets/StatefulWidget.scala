@@ -6,6 +6,7 @@ import cats.*
 import cats.data.*
 import gui4s.core.layout.Sized.given
 import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.library.StatefulWidget
 import gui4s.core.widget.{Path, StatefulState, given}
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Place.given

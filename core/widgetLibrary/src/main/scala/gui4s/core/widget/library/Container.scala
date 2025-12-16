@@ -1,4 +1,4 @@
-package gui4s.core.kit.widget
+package gui4s.core.widget.library
 
 import gui4s.core.widget.handle.Layout
 

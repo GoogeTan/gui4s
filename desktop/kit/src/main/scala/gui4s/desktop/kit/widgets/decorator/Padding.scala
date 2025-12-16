@@ -7,10 +7,10 @@ import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
 import gui4s.core.layout.Sized
+import gui4s.core.widget.library.decorator.{Decorator, Paddings}
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.OuterPlace.given
 import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.widget.library.decorator.{Decorator, Paddings}
 
 def gapPadding[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[DesktopWidget[IO, Event]] =
   // TODO заменить на контейнер

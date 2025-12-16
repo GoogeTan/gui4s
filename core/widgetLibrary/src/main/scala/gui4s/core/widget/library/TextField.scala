@@ -1,11 +1,11 @@
-package gui4s.desktop.widget.library
+package gui4s.core.widget.library
 
 import catnip.BiMonad
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import gui4s.desktop.widget.library.TextRange.replaceAt
-
+import gui4s.core.widget.library.StatefulWidget
+import TextRange.replaceAt
 
 final case class TextFieldState(text : String, selection : TextRange):
   def this(text : String) =

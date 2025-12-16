@@ -6,7 +6,7 @@ import cats.syntax.all.*
 import cats.{Comonad, Functor}
 import gui4s.core.widget.Path
 import gui4s.core.widget.handle.HandlesEventF
-import gui4s.desktop.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.Decorator
 
 
 type UpdateDecorator[Update[_], OuterPlace[_], Widget, HandleableEvent] = HandlesEventF[Widget, HandleableEvent, Update * OuterPlace] => Decorator[OuterPlace[Widget]]

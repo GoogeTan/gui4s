@@ -4,7 +4,9 @@ package decorator
 import catnip.syntax.all.*
 import cats.syntax.all.*
 import cats.{Comonad, Functor, Monad}
+import gui4s.core.widget.library.decorator.Decorator
 
+//TODO Выразить через DrawDecorator или показать, что это невозможно
 def clipWidget[
   Update[_] : Monad as UM,
   OuterPlace[_] : Functor as PF,

@@ -2,9 +2,10 @@ package gui4s.desktop.kit
 package widgets
 
 import cats.Monad
+import gui4s.core.widget.library.MapEvent
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Place.given
-import gui4s.desktop.widget.library.decorator.{MapEvent, mapUpdate as genericMapUpdate}
+import gui4s.desktop.widget.library.decorator.mapUpdate as genericMapUpdate
 
 def mapEventWidget[IO[_] : Monad] : MapEvent[DesktopWidget[IO, *]] =
   [Event, NewEvent] => f => original =>

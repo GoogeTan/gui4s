@@ -1,5 +1,4 @@
-package gui4s.desktop.widget.library
-package decorator
+package gui4s.core.widget.library.decorator
 
 import gui4s.core.geometry.{Point2d, Rect}
 

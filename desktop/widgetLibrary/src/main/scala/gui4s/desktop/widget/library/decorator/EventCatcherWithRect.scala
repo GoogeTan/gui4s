@@ -7,10 +7,8 @@ import cats.{Comonad, Monad}
 import gui4s.core.widget.Path
 import gui4s.core.widget.free.AsFreeF
 import gui4s.core.widget.handle.HandlesEventF
-import gui4s.desktop.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.{Decorator, EventCatcherWithRect}
 
-type EventCatcherWithRect[Widget, Update, Rect, HandlableEvent] =
-  ((Path, Rect, HandlableEvent) => Update) => Decorator[Widget]
 
 def eventCatcherWithRect[
   PlaceWidget,
