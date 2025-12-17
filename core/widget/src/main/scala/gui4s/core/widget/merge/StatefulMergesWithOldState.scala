@@ -1,48 +1,34 @@
 package gui4s.core.widget
 package merge
 
-import cats.Functor
-import gui4s.core.widget.free.AsFreeF
+import gui4s.core.widget.free.{AsFree, AsFreeF}
 
+//TODO дать более общее имя, соответсвующее сути дела
 def statefulMergesWithOldStates[
-  Place[_] : Functor,
-  State: Equiv as EQ,
-  Widget,
-  Draw,
-  EventHandler,
+  Place[_],
+  WidgetState,
+  SavedState,
   RecompositionReaction
 ](
-    typeCheckState: [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
-    stateAsFree : AsFreeF[
-      Stateful[
-        Widget,
-        StatefulBehaviour[State, Draw, EventHandler, State => RecompositionReaction],
-      ],
-      Place
-    ]
+   typeCheckState: [T] => (Any, Path, SavedState => Place[T]) => Place[T],
+   mergeStates : (Path, SavedState, WidgetState) => Place[WidgetState],
+   stateName : WidgetState => String,
+    widgetStateAsFree : AsFreeF[WidgetState, Place]
 ) : MergesWithOldStates[
-  Stateful[
-    Widget,
-    StatefulBehaviour[State, Draw, EventHandler, State => RecompositionReaction],
-  ],
+  WidgetState,
   RecompositionReaction,
   Place[
-    Stateful[
-      Widget,
-      StatefulBehaviour[State, Draw, EventHandler, State => RecompositionReaction],
-    ]
+    WidgetState
   ],
 ] =
   (self, path, innerStates) =>
-    typeCheckState(
-      innerStates(self.name).state,
-      path,
-      oldState =>
-        stateAsFree(
-          if EQ.equiv(oldState.initialState, self.stateBehaviour.state.initialState) then
-            self.copy(stateBehaviour = self.stateBehaviour.withNewState(oldState.currentState)) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
-          else
-            self
-        )
+    innerStates.get(stateName(self)).fold(
+      widgetStateAsFree(self)
+    )(oldState =>
+      typeCheckState(
+        oldState.state,//TODO проверить, что происходит, если раньше состояния не было.
+        path,
+        mergeStates(path, _, self)
+      )
     )
 end statefulMergesWithOldStates

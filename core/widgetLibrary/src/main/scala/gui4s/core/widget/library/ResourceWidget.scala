@@ -20,10 +20,11 @@ given destructableIsTypeable[T: Typeable, IO: Typeable]: Typeable[(T, IO)] = x =
 def resourceWidget[
   Widget[_],
   Update[_, _] : BiMonad as updateBiMonad,
+  Place[_],
   IO[_] : Functor,
   Event,
 ](
-    transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update],
+    transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
     launchedEffect : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
     doubleAllocError : [T] => Path => Update[Event, T]
 )(using Typeable[IO[Unit]]) : ResourceWidget[Widget[Event], IO] =

@@ -55,7 +55,7 @@ def textField[
   Update[E, V] : BiMonad as UBM,
   Event
 ](
-  stateful : StatefulWidget[Widget, Update, Nothing],
+  stateful : StatefulWidget[Widget, Update, Nothing, Nothing],
   body : TextFieldState => Widget[TextFieldEvent]
 )(
   name : String,

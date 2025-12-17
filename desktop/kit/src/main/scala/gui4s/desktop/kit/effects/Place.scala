@@ -45,8 +45,8 @@ object Place:
     )
   end sizeText
 
-  def typecheck[IO[_] : MonadThrow, U : Typeable](error : (Any, Path) => Throwable) : [T] => (Any, Path, U => Place[IO, T]) => Place[IO, T] =
-    GenericPlace.typecheck[OuterPlace[IO, *], InnerPlace, Throwable, U](error)
+  def typecheck[IO[_] : MonadThrow, TypeToCheck : Typeable](error : (Any, Path) => Throwable) : [Res] => (Any, Path, TypeToCheck => Place[IO, Res]) => Place[IO, Res] =
+    GenericPlace.typecheck[OuterPlace[IO, *], InnerPlace, Throwable, TypeToCheck](error)
   end typecheck
 
   given functorInstance[IO[_] : Monad] : Functor[Place[IO, *]] =

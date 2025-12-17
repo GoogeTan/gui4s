@@ -29,7 +29,7 @@ def eventMemory[
   T
 ](
   eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], Rect, HandlableEvent],
-  statefulWidget: TransitiveStatefulWidget[Widget, Update],
+  statefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
   mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,
@@ -64,7 +64,7 @@ def rememberLastEventOfTheType[
   T
 ](
   eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], Rect, HandlableEvent],
-  statefulWidget: TransitiveStatefulWidget[Widget, Update],
+  statefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
   mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,

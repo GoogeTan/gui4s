@@ -8,6 +8,7 @@ import gui4s.core.widget
 import gui4s.core.widget.*
 import gui4s.core.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import gui4s.core.widget.handle.*
+import gui4s.core.widget.library.{MergeStates, StatefulWidget}
 import gui4s.core.widget.merge.{Mergable, statefulMergesWithOldStates}
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates
@@ -16,9 +17,9 @@ import gui4s.core.widget.state.statefulHasInnerStates
  * Виджет с состоянием
  *
  * @tparam State Тип хранимого состояния
- * @tparam ParentEvent Тип порождаемых событий верхнего уровня
  * @tparam ChildEvent Тип порождаемых событий дочерних виджетов
  * @tparam Update Эффект обновления виджета.
+ * @tparam ChildUpdate Эффект обновления дочернего виджета.
  * @tparam Place Эффект установки виджета на экран.(см. TODO ссылка)
  * @tparam Draw Эффект отрисовки
  * @tparam RecompositionReaction Реакция на рекомпозицию(см. документацию по композиции TODO ссылка).
@@ -52,11 +53,11 @@ import gui4s.core.widget.state.statefulHasInnerStates
 def stateful[
   Update[_] : Monad,
   ChildUpdate[_] : Functor,
-  Place[_] : Functor,
+  Place[_] : Functor as PF,
   Draw,
   RecompositionReaction : Monoid as M,
   HandlableEvent,
-  State : Equiv,
+  State,
   ChildEvent
 ](
   widgetsAreMergeable : Mergable[Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]]],
@@ -69,6 +70,7 @@ def stateful[
   handleEvent : HandlesEventF[State, NonEmptyList[ChildEvent], Update],
   render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]],
   destructor : State => RecompositionReaction,
+  mergeStates : MergeStates[Place, State]
 ) : Place[
   Widget[
     Update,
@@ -122,7 +124,34 @@ def stateful[
           ).andThen(liftUpdate(_)),
         widgetsAreMergable = widgetsAreMergeable,
       ),
-      valueMergesWithOldState = statefulMergesWithOldStates(typeCheckState, statefulAsFree),
+      valueMergesWithOldState = statefulMergesWithOldStates[
+        Place,
+        Stateful[
+          ChildWidget,
+          StState,
+        ],
+        StatefulState[State],
+        RecompositionReaction
+      ](
+        typeCheckState = typeCheckState,
+        mergeStates = (path, savedState, newState) =>
+          mergeStates(
+            savedState,
+            newState.stateBehaviour.state,
+            newStState =>
+              widgetsAreMergeable.merge(path, widgetAsFree(using PF)(newState.child), render(newStState.currentState)).map(
+                newChild =>
+                  newState.copy(
+                    stateBehaviour = newState.stateBehaviour.copy(
+                      state = newStState
+                    ),
+                    child = newChild
+                  )
+              )
+          ),
+        stateName = _.name,
+        widgetStateAsFree = statefulAsFree
+      ),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
         widgetReactsOnRecomposition[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]
       ),

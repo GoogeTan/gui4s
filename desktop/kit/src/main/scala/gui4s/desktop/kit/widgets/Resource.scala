@@ -19,12 +19,13 @@ def resource[IO[_] : MonadThrow, Event](
   genericResourceWidget[
     DesktopWidget[IO, *],
     Update[IO, *, *],
+    PlaceC[IO],
     IO,
     Event
   ](
     transitiveStatefulWidget = transitiveStatefulWidget[IO],
     launchedEffect =
-      [TaskEvent : Typeable as TET] => (name, child, task) =>
+      [TaskEvent : Typeable as TET] => (name : String, child : DesktopWidget[IO, Event], task : IO[TaskEvent]) =>
         launchedEvent[IO, Either[TaskEvent, Event], Unit](
           supervisor, 
           raiseExternalEvent,
