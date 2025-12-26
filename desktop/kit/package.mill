@@ -1,13 +1,12 @@
 package build.desktop.kit
 
-import mill.main.RootModule
 import coursier.Repository
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
-object `package` extends RootModule with SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule {
   def artifactName = "desktop-kit"
 
   def scalaVersion = "3.7.3"
@@ -25,15 +24,15 @@ object `package` extends RootModule with SbtModule with PublishModule {
     )
   }
 
-  def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
-    ivy"glfw4s:core-jvm_3:0.1.33",
-    ivy"org.typelevel::cats-core:2.13.0",
-    ivy"org.typelevel::cats-effect:3.6.3",
-    ivy"com.github.cb372::scalacache-caffeine:1.0.0-M6",
-    ivy"com.github.cb372::scalacache-core:1.0.0-M6",
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"glfw4s:core-jvm_3:0.1.33",
+    mvn"org.typelevel::cats-core:2.13.0",
+    mvn"org.typelevel::cats-effect:3.6.3",
+    mvn"com.github.cb372::scalacache-caffeine:1.0.0-M6",
+    mvn"com.github.cb372::scalacache-core:1.0.0-M6",
   )
 
-  def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Agg(
+  def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
     build.catnip,
     build.core.kit,
     build.core.layout,

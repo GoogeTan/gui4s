@@ -1,6 +1,5 @@
 package build.core
 
 import mill._
-import mill.main.RootModule
 
-object `package` extends RootModule with Module {}
+object `package` extends Module {}

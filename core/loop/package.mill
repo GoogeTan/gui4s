@@ -1,12 +1,11 @@
 package build.core.loop
 
-import mill.main.RootModule
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
-object `package` extends RootModule with SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule {
 
   def scalaVersion = "3.7.3"
 
@@ -22,12 +21,12 @@ object `package` extends RootModule with SbtModule with PublishModule {
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy"org.typelevel::cats-core:2.13.0",
-    ivy"org.typelevel::cats-effect:3.6.3"
+  def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"org.typelevel::cats-core:2.13.0",
+    mvn"org.typelevel::cats-effect:3.6.3"
   )
 
-  def moduleDeps = super.moduleDeps ++ Agg(build.catnip)
+  def moduleDeps = super.moduleDeps ++ Seq(build.catnip)
 
   def pomSettings = PomSettings(
     "loop",

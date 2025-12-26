@@ -1,13 +1,12 @@
 //| mill-version: 0.12.11
 package build
 
-import $packages._
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
-object `package` extends RootModule with SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule {
 
   def artifactName = "gui4s"
 
