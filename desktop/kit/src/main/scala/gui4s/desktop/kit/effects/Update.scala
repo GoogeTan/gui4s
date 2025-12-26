@@ -3,6 +3,7 @@ package effects
 
 import catnip.BiMonad
 import cats.*
+import cats.data.NonEmptyList
 import cats.effect.ExitCode
 import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
@@ -15,6 +16,10 @@ type UpdateC[IO[_], Event] = Update[IO, Event, *]
 object Update:
   given biMonadInstance[IO[_] : Monad] : BiMonad[[A, B] =>> Update[IO, A, B]] =
     generic_effects.Update.biMonadInstance
+
+  def pure[IO[_] : Monad, Event, A](a : A) : Update[IO, Event, A] =
+    biMonadInstance[IO]().pure(a)
+  end pure
 
   def liftK[IO[_] : Monad, Event] : IO ~> UpdateC[IO, Event] =
     generic_effects.Update.liftK
@@ -34,6 +39,10 @@ object Update:
 
   def emitEvents[IO[_] : Monad, Event](events : List[Event]): Update[IO, Event, Unit] =
     generic_effects.Update.emitEvents(events)
+  end emitEvents
+
+  def emitEvents[IO[_] : Monad, Event](events : NonEmptyList[Event]): Update[IO, Event, Unit] =
+    generic_effects.Update.emitEvents(events.toList)
   end emitEvents
 
   def catchEvents[IO[_] : Monad, Event, NewEvent]: [T] => Update[IO, Event, T] => Update[IO, NewEvent, (T, List[Event])] =
