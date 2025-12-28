@@ -15,7 +15,8 @@ object `package` extends SbtModule with PublishModule  with AssemblyModule {
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector",
-    //"-Vprofile",
+    //"-Ximplicit-search-limit", "10",
+    "-Vprofile",
   )
 
   def repositoriesTask = Task.Anon {
@@ -26,8 +27,10 @@ object `package` extends SbtModule with PublishModule  with AssemblyModule {
   }
 
   def mvnDeps = super.mvnDeps() ++ Seq(
-    mvn"org.http4s::http4s-core:0.23.32",
-    mvn"org.http4s::http4s-ember-client:0.23.32",
+    mvn"org.http4s::http4s-core:1.0.0-M45",
+    mvn"org.http4s::http4s-ember-client:1.0.0-M45",
+    mvn"org.typelevel::log4cats-slf4j:2.7.1",
+    mvn"org.slf4j:slf4j-reload4j:2.0.17",
   )
 
   def forkArgs = Seq(

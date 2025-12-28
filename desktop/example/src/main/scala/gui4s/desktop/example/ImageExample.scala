@@ -17,10 +17,15 @@ import io.github.humbleui.skija.*
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
 import gui4s.desktop.skija.typeface.*
+import org.typelevel.log4cats.slf4j.Slf4jFactory
+import org.typelevel.log4cats.{LoggerFactory, SelfAwareStructuredLogger}
 
 import scala.reflect.Typeable
 
 object ImageExample extends UIApp:
+  given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+  given logger: SelfAwareStructuredLogger[IO] = logging.getLogger
+
   val settings = WindowCreationSettings(
     title = "Gui4s image example",
     width = 620,
