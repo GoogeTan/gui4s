@@ -83,7 +83,7 @@ end Widget
 
 def widgetAsFree[
   Update[_],
-  Place[_] : Functor,
+  Place[_],
   Draw,
   RecompositionReaction,
   HandleableEvent
@@ -108,8 +108,8 @@ def widgetIsDrawable[
 end widgetIsDrawable
 
 def widgetHandlesEvent[
-  Update[_] : Functor,
-  Place[_] : Functor,
+  Update[_],
+  Place[_],
   Draw,
   RecompositionReaction,
   HandleableEvent
@@ -123,7 +123,7 @@ end widgetHandlesEvent
 
 def widgetMergesWithOldState[
   Update[_],
-  Place[_] : Functor,
+  Place[_],
   Draw,
   RecompositionReaction,
   HandleableEvent

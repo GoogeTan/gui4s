@@ -8,7 +8,7 @@ import gui4s.core.widget
 import gui4s.core.widget.*
 import gui4s.core.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import gui4s.core.widget.handle.*
-import gui4s.core.widget.library.{MergeStates, StatefulWidget}
+import gui4s.core.widget.library.MergeStates
 import gui4s.core.widget.merge.{Mergable, statefulMergesWithOldStates}
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates
@@ -139,7 +139,7 @@ def stateful[
             savedState,
             newState.stateBehaviour.state,
             newStState =>
-              widgetsAreMergeable.merge(path, widgetAsFree(using PF)(newState.child), render(newStState.currentState)).map(
+              widgetsAreMergeable.merge(path, widgetAsFree(newState.child), render(newStState.currentState)).map(
                 newChild =>
                   newState.copy(
                     stateBehaviour = newState.stateBehaviour.copy(

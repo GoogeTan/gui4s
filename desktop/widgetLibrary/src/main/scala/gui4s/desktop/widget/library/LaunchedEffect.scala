@@ -47,13 +47,13 @@ def launchedEffect[
           HandlableEvent
         ](
           valueToDecorate = (LaunchedEffect(name, key, task), child),
-          valueAsFree = Strong[[A, B] =>> A => Place[B]].second(widgetAsFree(using PF)),
+          valueAsFree = Strong[[A, B] =>> A => Place[B]].second(widgetAsFree),
           valueIsDrawable = Contravariant[[A] =>> A => Draw].contramap(widgetIsDrawable)(_._2),
           valueHandlesEvent =
             handlesEventFIsStrong[Update * Place, HandlableEvent](using nestedFunctorsAreFunctors[Update, Place])
               .second(
                 mapEventHandle(
-                  widgetHandlesEvent(using UA, PF)
+                  widgetHandlesEvent
                 )(_.map(addNameToPath(name)(_)))
               ),
           valueMergesWithOldState = launchedEffectMergesWithOldState(using KT, PF)(keyTypeError, widgetMergesWithOldState),
