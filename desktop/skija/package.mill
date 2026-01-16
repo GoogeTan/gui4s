@@ -4,6 +4,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.{AssemblyModule, SbtModule}
+import build.catsEffectDeps
 
 object `package` extends SbtModule with PublishModule with AssemblyModule {
 
@@ -27,9 +28,7 @@ object `package` extends SbtModule with PublishModule with AssemblyModule {
     mvn"io.github.humbleui:skija-macos-arm64:0.123.0",
     mvn"io.github.humbleui:skija-windows-x64:0.123.0",
     mvn"io.github.humbleui:skija-shared:0.123.0",
-    mvn"org.typelevel::cats-core:2.13.0",
-    mvn"org.typelevel::cats-effect:3.6.3"
-  )
+  ) ++ catsEffectDeps
 
   def moduleDeps = super.moduleDeps ++ Seq(build.catnip, build.core.layout)
 

@@ -6,11 +6,19 @@ import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
-object `package` extends SbtModule with PublishModule {
+
+object `package` extends SbtModule with PublishModule  {
+  def catsDeps = Seq(
+    mvn"org.typelevel::cats-core:2.13.0"
+  )
+
+  def catsEffectDeps = catsDeps ++ Seq(
+    mvn"org.typelevel::cats-effect:3.6.3"
+  )
 
   def artifactName = "gui4s"
 
-  def scalaVersion = "3.7.3"
+  def scalaVersion = "3.8.1-RC1-bin-SNAPSHOT"
 
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++ Seq(

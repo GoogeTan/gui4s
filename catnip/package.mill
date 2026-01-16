@@ -4,6 +4,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
+import build.catsEffectDeps
 
 object `package` extends SbtModule with PublishModule {
 
@@ -21,10 +22,7 @@ object `package` extends SbtModule with PublishModule {
     )
   }
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
-    mvn"org.typelevel::cats-core:2.13.0",
-    mvn"org.typelevel::cats-effect:3.6.3"
-  )
+  def mvnDeps = super.mvnDeps() ++ catsEffectDeps
 
   def pomSettings = PomSettings(
     "catnip",

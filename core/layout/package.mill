@@ -21,7 +21,7 @@ object `package` extends SbtModule with PublishModule {
     )
   }
 
-  def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.typelevel::cats-core:2.13.0")
+  def mvnDeps = super.mvnDeps() ++ build.catsDeps
 
   def moduleDeps = super.moduleDeps ++ Seq(build.catnip, build.core.geometry)
 

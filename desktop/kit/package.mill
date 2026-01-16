@@ -5,6 +5,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
+import build.catsEffectDeps
 
 object `package` extends SbtModule with PublishModule {
   def artifactName = "desktop-kit"
@@ -24,10 +25,8 @@ object `package` extends SbtModule with PublishModule {
     )
   }
 
-  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffectDeps ++ Seq(
     mvn"glfw4s:core-jvm_3:0.1.42",
-    mvn"org.typelevel::cats-core:2.13.0",
-    mvn"org.typelevel::cats-effect:3.6.3",
     mvn"com.github.cb372::scalacache-caffeine:1.0.0-M6",
     mvn"com.github.cb372::scalacache-core:1.0.0-M6",
   )
