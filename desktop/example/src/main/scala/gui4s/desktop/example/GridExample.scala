@@ -5,9 +5,8 @@ import cats.data.EitherT
 import cats.effect.*
 import cats.effect.std.Queue
 import glfw4s.core.*
-import glfw4s.core.pure.PostInit
+import glfw4s.core.pure.*
 import glfw4s.jna.bindings.types.*
-import gui4s.core.geometry.*
 import gui4s.core.kit.ContainerPlacementError
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
@@ -24,7 +23,7 @@ object GridExample extends UIApp:
   )
 
   def main(
-            glfw: PostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow],
+            glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
           ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =

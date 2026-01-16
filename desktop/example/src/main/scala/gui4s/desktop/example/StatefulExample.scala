@@ -7,7 +7,7 @@ import cats.effect.*
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import glfw4s.core.*
-import glfw4s.core.pure.PostInit
+import glfw4s.core.pure.*
 import glfw4s.jna.bindings.types.*
 import gui4s.core.geometry.*
 import gui4s.desktop.kit.*
@@ -26,17 +26,18 @@ object StatefulExample extends UIApp:
   )
 
   override def main(
-                      glfw: PostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow],
-                      window: GLFWwindow,
-                      eventBus: Queue[IO, DownEvent],
-                    ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
+                     glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+                     window: GLFWwindow,
+                     eventBus: Queue[IO, DownEvent],
+                   ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
     for
       shaper <- createShaper[AppIO]
       cache : TextCache[AppIO] <- ScalacacheCache()
       textWidget = text(shaper, cache)
       typeface <- defaultTypeface[AppIO]
-      clickSource <- clickEventSource[AppIO, IO, GLFWmonitor, GLFWwindow](window, glfw, eventBus).eval
-      onClick = [Event] => (event : Event) => clickCatcher(glfw.cursorPos(window).map(Point2d(_, _)), event, clickSource)
+      clickSource <- clickEventSource[AppIO, IO, GLFWmonitor, GLFWwindow, GLFWcursor, Int](window, glfw, eventBus).eval
+      onClick = [Event] => (event : Event) =>
+        clickCatcher(glfw.getCursorPos(window).map((x, y) => Point2d(x.toFloat, y.toFloat)), event, clickSource)
     yield statefulWidget[AppIO][Int, ApplicationRequest, Unit](
       name = "state",
       initialState = 0,

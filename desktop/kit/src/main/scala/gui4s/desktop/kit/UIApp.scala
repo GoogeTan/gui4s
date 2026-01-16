@@ -11,8 +11,9 @@ import glfw4s.core.impure.SafeImpurePostInit
 import glfw4s.core.pure.*
 import glfw4s.core.types.GlfwError
 import glfw4s.core.{CatsPostInit, WindowCreationSettings}
+import glfw4s.jna.bindings.structs.GLFWcursor
 import glfw4s.jna.bindings.types.{GLFWmonitor, GLFWwindow}
-import glfw4s.jvm.{JvmImpurePostInit, JvmImpurePreInit}
+import glfw4s.jvm.CatsJvmPostInit
 import gui4s.core.geometry.*
 import gui4s.core.widget.*
 import gui4s.desktop.kit.*
@@ -65,15 +66,13 @@ trait UIApp extends IOApp:
   final def runResourced : Resource[AppIO, ExitCode] =
     given IORuntime = runtime
     for
-      glfw <- CatsPostInit(
-        JvmImpurePreInit,
-        SafeImpurePostInit(JvmImpurePostInit),
+      glfw <- CatsJvmPostInit(
         MainThread,
         error => EitherT.leftT[CallbackIO, Unit](UIAppError.InitError(error))
       )()
       eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval
       window <- glfw.createWindow(settings)
-      _ <- glfw.makeContextCurrent(window).eval
+      _ <- glfw.makeContextCurrent(Some(window)).eval
       surface <- SkijaSurface.create(window, glfw, liftCallbackIOToAppIO).evalOn(MainThread)
       _ <- glfw.addFramebufferSizeCallback(
         window,
@@ -95,10 +94,10 @@ trait UIApp extends IOApp:
               _ <- draw.run(sur.canvas)
               _ <- flush[AppIO](sur.directContext)
               _ <- glfw.swapBuffers(window)
-              _ <- glfw.pollEvents()
+              _ <- glfw.pollEvents
             yield (),
             liftCallbackIOToAppIO
-          ) *> glfw.shouldNotWindowClose(window)
+          ) *> glfw.windowShouldClose(window).map(!_)
 
       widgetCell <- main(glfw, window, eventBus).evalMap(freeMainWidget =>
         Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK))
@@ -114,7 +113,7 @@ trait UIApp extends IOApp:
     yield exitCode
   end runResourced
 
-  def windowBounds(window: GLFWwindow, glfw : PostInit[AppIO, CallbackIO[Unit], GLFWmonitor, GLFWwindow]): AppIO[Bounds] =
+  def windowBounds(window: GLFWwindow, glfw : PureWindow[AppIO, CallbackIO[Unit], GLFWmonitor, GLFWwindow]): AppIO[Bounds] =
     glfw.getFramebufferSize(window).map((w, h) => Rect(new InfinityOr(w.toFloat), new InfinityOr(h.toFloat)))
   end windowBounds
 
@@ -138,7 +137,7 @@ trait UIApp extends IOApp:
   end runWidgetForTheFirstTime
 
   def main(
-            glfw: PostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow],
+            glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
   ): Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]]

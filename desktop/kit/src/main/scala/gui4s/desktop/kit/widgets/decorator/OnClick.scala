@@ -4,8 +4,11 @@ package widgets.decorator
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import cats.{Applicative, Monad}
-import glfw4s.core.pure.PostInit
+import cats.syntax.all.*
+import cats.effect.Resource
+import cats.effect.std.Queue
 import glfw4s.core.{KeyAction, KeyModes}
+import glfw4s.core.pure.PureInput
 import gui4s.core.geometry.{Point2d, RectAtPoint2d}
 import gui4s.core.widget.library.decorator.{Decorator, clickCatcher as genericClickCatcher}
 import gui4s.desktop.kit.effects.*
@@ -42,10 +45,12 @@ def clickEventSource[
   IO[_] : Applicative,
   CallbackEffect[_],
   Monitor,
-  Window
+  Window,
+  Cursor,
+  Joystick
 ](
   window: Window,
-  glfw : PostInit[IO, CallbackEffect[Unit], Monitor, Window],
+  glfw : PureInput[IO, CallbackEffect[Unit], Window, Cursor, Joystick],
   queue: Queue[CallbackEffect, DownEvent]
 ) : IO[ClickEventSource] =
   glfw.addMouseButtonCallback(

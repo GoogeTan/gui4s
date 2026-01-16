@@ -7,7 +7,7 @@ import cats.effect.*
 import cats.effect.std.*
 import cats.syntax.all.*
 import glfw4s.core.*
-import glfw4s.core.pure.PostInit
+import glfw4s.core.pure.*
 import glfw4s.jna.bindings.types.*
 import gui4s.core.geometry.Point2d
 import gui4s.core.widget.LaunchedEffect
@@ -72,7 +72,7 @@ object AnimationExample extends UIApp:
   end downloadImage
 
   def main(
-    glfw: PostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow],
+    glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
     window: GLFWwindow,
     eventBus: Queue[IO, DownEvent],
   ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
@@ -89,8 +89,9 @@ object AnimationExample extends UIApp:
       cache: TextCache[AppIO] <- ScalacacheCache()
       typeface <- defaultTypeface[AppIO]
       stateful = statefulWidget[AppIO]
-      clickSource <- clickEventSource[AppIO, IO, GLFWmonitor, GLFWwindow](window, glfw, eventBus).eval
-      onClick = [Event] => (event : Event) => clickCatcher(glfw.cursorPos(window).map(Point2d(_, _)), event, clickSource)
+      clickSource <- clickEventSource(window, glfw, eventBus).eval
+      onClick = [Event] => (event : Event) =>
+        clickCatcher(glfw.getCursorPos(window).map((x, y) => Point2d(x.toFloat, y.toFloat)), event, clickSource)
       animation = animationWidget[AppIO, Unit, Float]()
       _ <- supervisor.supervise(
         liftCallbackIOToAppIO(

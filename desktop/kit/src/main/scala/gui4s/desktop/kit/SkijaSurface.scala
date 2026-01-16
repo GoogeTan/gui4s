@@ -5,6 +5,7 @@ import cats.data.Kleisli
 import cats.effect.*
 import cats.~>
 import glfw4s.core.pure.*
+import glfw4s.core.pure.PurePostInit
 import gui4s.core.geometry.Rect
 import gui4s.desktop.skija.*
 import gui4s.desktop.skija.DirectContext.createDirectContext
@@ -63,9 +64,11 @@ object SkijaSurface:
     CallbackIO[_] : Async,
     Monitor,
     Window,
+    Cursor,
+    Joystick
   ](
      window  : Window,
-     glfw : PostInit[IO, CallbackIO[Unit], Monitor, Window],
+     glfw : PurePostInit[IO, CallbackIO[Unit], Monitor, Window, Cursor, Joystick],
      liftToIO : CallbackIO ~> IO
     ) : Resource[IO, SkijaSurface[CallbackIO]] =
     Resource.eval(glfw.getFramebufferSize(window))
