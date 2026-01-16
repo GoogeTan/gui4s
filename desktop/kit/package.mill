@@ -9,7 +9,7 @@ import mill.scalalib.SbtModule
 object `package` extends SbtModule with PublishModule {
   def artifactName = "desktop-kit"
 
-  def scalaVersion = "3.7.3"
+  def scalaVersion = build.scalaVersion
 
   def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
     "-Wunused:imports",

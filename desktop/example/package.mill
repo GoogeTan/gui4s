@@ -10,7 +10,7 @@ object `package` extends SbtModule with PublishModule  with AssemblyModule {
 
   def artifactName = "desktop-example-cats"
 
-  def scalaVersion = "3.7.3"
+  def scalaVersion = build.scalaVersion
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",

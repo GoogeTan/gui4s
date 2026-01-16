@@ -6,7 +6,7 @@ import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
 object `package` extends SbtModule with PublishModule {
-  def scalaVersion = "3.7.3"
+  def scalaVersion = build.scalaVersion
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",

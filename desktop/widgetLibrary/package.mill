@@ -9,7 +9,7 @@ object `package` extends SbtModule with PublishModule {
 
   def artifactName = "desktop-widget-library"
 
-  def scalaVersion = "3.7.3"
+  def scalaVersion = build.scalaVersion 
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
