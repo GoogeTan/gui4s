@@ -1,0 +1,29 @@
+package build.android.kit
+
+import mill.*
+import mill.scalalib.*
+import build.android.*
+import mill.javalib.Dep
+
+object `package` extends AndroidLibScalaModule with Gui4sAndroidPublishModule:
+  override def androidLibPackage : String = "gui4s.android.kit"
+  override def publishVersion = "0.1.0"
+
+  def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
+    "-Wunused:imports",
+    "-Xkind-projector",
+    "-Yimports:java.lang,scala,scala.Predef,cats,cats.data,cats.effect,cats.syntax.all,catnip,catnip.syntax.all,cats.effect.std,cats.effect.syntax.all"
+  )
+
+  override def mvnDeps: T[Seq[Dep]] = Seq(
+    mvn"com.github.cb372::scalacache-caffeine:1.0.0-M6",
+    mvn"com.github.cb372::scalacache-core:1.0.0-M6",
+  )
+
+  override def moduleDeps = Seq(
+    build.android.skia,
+    build.core.kit,
+    build.desktop.widgetLibrary,
+    build.catnip
+  )
+end `package`

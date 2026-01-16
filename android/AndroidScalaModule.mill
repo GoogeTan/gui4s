@@ -1,0 +1,15 @@
+package build.android
+
+import mill.*
+import androidlib.*
+import mill.api.Task
+import scalalib.*
+import build.android.*
+
+trait AndroidScalaModule extends ScalaModule with AndroidModule:
+  override def sources: T[Seq[PathRef]] = Task.Sources("src/main/scala")
+end AndroidScalaModule
+
+trait AndroidAppScalaModule extends AndroidScalaModule with AndroidAppModule
+
+trait AndroidLibScalaModule extends AndroidScalaModule with AndroidLibModule

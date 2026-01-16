@@ -1,0 +1,10 @@
+package build.android
+
+import mill.*
+import mill.androidlib.AndroidSdkModule
+
+object `package` extends Module {
+  object androidSdkModule0 extends AndroidSdkModule {
+    def buildToolsVersion = "35.0.0"
+  }
+}

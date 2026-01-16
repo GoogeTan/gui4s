@@ -13,7 +13,7 @@ object `package` extends SbtModule with PublishModule  {
   )
 
   def catsEffectDeps = catsDeps ++ Seq(
-    mvn"org.typelevel::cats-effect:3.6.3"
+    mvn"org.typelevel::cats-effect:3.7-822a6d2-20260115T101917Z-SNAPSHOT"
   )
 
   def artifactName = "gui4s"

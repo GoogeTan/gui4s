@@ -1,0 +1,27 @@
+package build.android
+
+
+import mill.*
+import androidlib.*
+import mill.api.Task
+import scalalib.*
+import build.android.*
+import mill.javalib.publish.*
+
+trait Gui4sAndroidModule extends AndroidModule with ScalaModule:
+  final override def scalaVersion = build.scalaVersion
+  final override def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  final override def androidMinSdk = 33
+  final override def androidCompileSdk = 35
+end Gui4sAndroidModule
+
+trait Gui4sAndroidPublishModule extends Gui4sAndroidModule with PublishModule:
+  override def pomSettings = PomSettings(
+    description = "TODO",
+    organization = "gui4s",
+    url = "https://github.com/GoogeTan/gui4s",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl(None, None, None, None),
+    developers = Seq()
+  )
+end Gui4sAndroidPublishModule
