@@ -16,14 +16,12 @@ import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*
 import gui4s.desktop.skija.image.makeDeferredImageFromEncodedBytes
 import gui4s.desktop.skija.shaper.*
-import gui4s.desktop.skija.{Font, Image, Paint, SkijaTextStyle, typeface}
+import gui4s.desktop.skija.{Font, Image, Paint, SkijaTextStyle, Typeface, typeface}
 import io.github.humbleui.skija.BlendMode
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 import org.typelevel.log4cats.{LoggerFactory, SelfAwareStructuredLogger}
-
-import scala.reflect.Typeable
 
 object ImageExample extends UIApp:
   given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
@@ -31,14 +29,9 @@ object ImageExample extends UIApp:
 
   val settings = WindowCreationSettings(
     title = "Gui4s image example",
-    width = 620,
-    height = 480,
+    width = 736/2,//TODO исправить то, что задается в пикселях, а не экранных координатах
+    height = 920/2,
   )
-
-  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
-  given Typeable[IO[Unit]] = a => a match
-    case b: IO[t] => Some(b.as(()).asInstanceOf[IO[Unit] & a.type])
-    case _ => None
 
   def downloadImage(uri: String): AppIO[Image] =
     EitherT.liftF(
@@ -56,23 +49,27 @@ object ImageExample extends UIApp:
     )
   end downloadImage
 
+  def inverseColorPaint : Paint =
+    val inverseColor = new Paint
+    inverseColor.setColor(0xFFAAAAAA)
+    inverseColor.setBlendMode(BlendMode.DIFFERENCE)
+    inverseColor.setAntiAlias(true)
+    inverseColor
+  end inverseColorPaint
+
+  def headerTextStyle(typeface : Typeface): SkijaTextStyle =
+    SkijaTextStyle(new Font(typeface, 72 * 2), inverseColorPaint)
+  end headerTextStyle
+
+  def pleaseWaitTextStyle(typeface : Typeface): SkijaTextStyle =
+    SkijaTextStyle(new Font(typeface, 72 * 2), inverseColorPaint)
+  end pleaseWaitTextStyle
+
   def main(
             glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
           ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
-    extension[Event](value : DesktopWidget[AppIO, Event])
-      def clip(shape : gui4s.core.geometry.Rect[Float] => Clip) : DesktopWidget[AppIO, Event] =
-        gui4s.desktop.kit.widgets.decorator.clip(value)(shape)
-      end clip
-    end extension
-
-    val inverseColor = new Paint
-    inverseColor.setColor(0xFFAAAAAA) // White for inversion
-
-    inverseColor.setBlendMode(BlendMode.DIFFERENCE)
-    inverseColor.setAntiAlias(true)
-
     given Ordering[Point2d[Float]] = Ordering.by[Point2d[Float], Float](_.x).orElse(Ordering.by[Point2d[Float], Float](_.y))
 
     for
@@ -80,32 +77,44 @@ object ImageExample extends UIApp:
       supervisor <- Supervisor[AppIO]
       shaper <- createShaper[AppIO]
       cache: TextCache[AppIO] <- ScalacacheCache()
+      text = TextWidget[AppIO](shaper, cache)
+      resource = ResourceWidget(supervisor, eventBus.offer.andThen(liftCallbackIOToAppIO(_)))
+      initialization = InitializationWidget(resource)
+
       typeface <- typeface.typefaceFromFile[AppIO]("OptimusPrinceps")
+
+      centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[OuterPlaceC[AppIO], Float]
+      beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[OuterPlaceC[AppIO], Float, Float]
+
+      textPlacement = rowcolumn.PlacementStrategy.PlaceIndependently[OuterPlaceC[AppIO], Rect[Float], List, Point2d[Float]](
+        rowcolumn.PlacementStrategy.Zip[OuterPlaceC[AppIO], Float, Id, Float](
+          Axis.Vertical,
+          beginPlacement,
+          beginPlacement
+        ),
+        Point2d(0f, 0f),
+      )
+
+      pleaseWaitPlacement =
+        rowcolumn.PlacementStrategy.Zip[OuterPlaceC[AppIO], Float, Id, Float](
+          Axis.Vertical,
+          centerPlacement,
+          centerPlacement
+        )
     yield
-      initWidget[AppIO, ApplicationRequest, Image](
-        supervisor = supervisor,
-        raiseExternalEvent = eventBus.offer.andThen(liftCallbackIOToAppIO(_))
-      )(
+      initialization(
         name = "image",
-        imageSource = downloadImage("https://i.pinimg.com/736x/c6/f2/41/c6f241cff25453bca4c861009e32d141.jpg"),
-        imageWidget = data =>
-          layersWidget[AppIO, ApplicationRequest](
-            Nil,
-            List(
-              text[AppIO](shaper, cache)[ApplicationRequest]("Princess Mononoke", SkijaTextStyle(new Font(typeface, 72 * 2), inverseColor))
+        effectToRun = downloadImage("https://i.pinimg.com/736x/c6/f2/41/c6f241cff25453bca4c861009e32d141.jpg"),
+        body = image =>
+          imageWidget[AppIO, ApplicationRequest](image)
+            .withForeground(
+              foreground = text("Princess Mononoke", headerTextStyle(typeface)),
+              placement = textPlacement
             ),
-            rowcolumn.PlacementStrategy.PlaceIndependently[OuterPlaceC[AppIO], Rect[Float], List, Point2d[Float]](
-              rowcolumn.PlacementStrategy.Zip[OuterPlaceC[AppIO], Float, Id, Float](
-                Axis.Vertical,
-                rowcolumn.OneElementPlacementStrategy.Begin[OuterPlaceC[AppIO], Float, Float],
-                rowcolumn.OneElementPlacementStrategy.Begin[OuterPlaceC[AppIO], Float, Float],
-              ),
-              Point2d(0f, 0f),
-            )
-          )(
-            gui4s.desktop.kit.widgets.image[AppIO, ApplicationRequest](data)
-          ),
-        placeholder = text[AppIO](shaper, cache)[ApplicationRequest]("Wait.", SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))),
+        placeholder = text(
+          "Please wait...",
+          pleaseWaitTextStyle(typeface)
+        )
       )
   end main
 end ImageExample

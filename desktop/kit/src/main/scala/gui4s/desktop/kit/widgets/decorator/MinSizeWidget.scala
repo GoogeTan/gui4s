@@ -25,7 +25,7 @@ def minSizeWidget[IO[_] : Sync, Event](
     Rect[Float],
     Point3d[Float]
   ](
-    container(traverseOne),
+    containerWidget(traverseOne),
     {
       case (Sized(widget, size), minSize) =>
         if size.width < minSize.width || size.height < minSize.height then

@@ -89,7 +89,7 @@ object TextInputExample extends UIApp:
         Rect(100, 30)
       )(_ : String, _ : String, identity)
     yield
-        column[AppIO, ApplicationRequest](
+        columnWidget[AppIO, ApplicationRequest](
           (0 until 2).toList.map(i =>
               stateful[String, ApplicationRequest, String](
                 name = "basic-state-" + i.toString,
@@ -97,7 +97,7 @@ object TextInputExample extends UIApp:
                 eventHandler = (_, _, newString) => newString.last.pure[UpdateC[AppIO, ApplicationRequest]],
                 body =
                   state =>
-                    gapPadding[AppIO, String](Paddings(12f, 12f, 12f, 12f))(using Sync[AppIO])(
+                    gapPaddingWidget[AppIO, String](Paddings(12f, 12f, 12f, 12f))(using Sync[AppIO])(
                       textFieldWidget("text-field", state)
                     )
               )

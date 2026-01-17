@@ -12,10 +12,9 @@ import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.OuterPlace.given
 import gui4s.desktop.kit.widgets.*
 
-def gapPadding[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[DesktopWidget[IO, Event]] =
-  // TODO заменить на контейнер
+def gapPaddingWidget[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[DesktopWidget[IO, Event]] =
   original =>
-    container[
+    containerWidget[
       IO,
       Id,
       Event,
@@ -37,4 +36,11 @@ def gapPadding[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[Deskto
             )
         )
     )
-end gapPadding
+end gapPaddingWidget
+
+extension[IO[_], Event](widget: DesktopWidget[IO, Event])
+  def padding(paddings: Paddings[Float])(using Sync[IO]): DesktopWidget[IO, Event] =
+    gapPaddingWidget(paddings)(widget)
+  end padding
+end extension
+

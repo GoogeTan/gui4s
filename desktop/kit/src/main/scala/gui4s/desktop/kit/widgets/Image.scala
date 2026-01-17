@@ -14,7 +14,7 @@ import gui4s.desktop.skija.canvas.drawImage
 import gui4s.desktop.widget.library.drawOnlyWidget
 import gui4s.desktop.skija.{Canvas, Image}
 
-def image[
+def imageWidget[
   IO[_] : Sync,
   Event
 ](
@@ -30,4 +30,4 @@ def image[
     Sized(drawImage[ReaderT[IO, Canvas, *]](image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace[IO, *]],
     RecompositionReaction.empty[IO],
   )
-end image
+end imageWidget

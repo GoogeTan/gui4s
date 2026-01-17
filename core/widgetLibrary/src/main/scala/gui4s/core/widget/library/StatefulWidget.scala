@@ -12,6 +12,7 @@ type MergeStates2[Place[_], State] =
   (StatefulState[State], StatefulState[State]) => ContT[Place, StatefulState[State]]
 
 
+// TODO remove me
 trait StatefulWidget[Widget[_], Update[Event, Value], -Destructor[_], -MergeStates[_]]:
   def apply[
     State : {Equiv, Typeable},

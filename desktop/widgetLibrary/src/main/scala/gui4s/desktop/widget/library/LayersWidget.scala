@@ -1,7 +1,6 @@
 package gui4s.desktop.widget.library
 
 import catnip.syntax.additional.*
-import cats.syntax.all.*
 import cats.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.rowcolumn.PlacementStrategy
@@ -30,21 +29,5 @@ def layersWidget[
 ) : Decorator[
   OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]
 ] =
-  original =>
-    container(
-      background ++ (original :: foreground),
-      elements =>
-        for
-          sizedElements <- elements.traverse(identity)
-          originalSized = sizedElements(background.size)
-          backgroundSizes = sizedElements.take(background.size).map(_.size.toPoint2d)
-          foregroundSizes = sizedElements.takeRight(foreground.size).map(_.size.toPoint2d)
-          placedElements <- decorationsPlacementStrategy(backgroundSizes ++ foregroundSizes, originalSized.size)
-          elementsCoodinates = placedElements.coordinatesOfStarts
-          shifts = (
-            elementsCoodinates.take(background.size)
-              ++ (Point2d(MUN.zero, MUN.zero) :: elementsCoodinates.takeRight(foreground.size))
-          ).mapWithIndex((point, index) => new Point3d(point, MUN.fromInt(index)))
-        yield Sized(sizedElements.map(_.value).zip(shifts), originalSized.size)
-    )
+  gui4s.core.widget.library.layersWidget(container)(background, foreground, decorationsPlacementStrategy)
 end layersWidget

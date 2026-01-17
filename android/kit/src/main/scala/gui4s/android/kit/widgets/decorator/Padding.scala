@@ -6,10 +6,9 @@ import gui4s.core.widget.library.decorator.{Decorator, Paddings}
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
 
-def gapPadding[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[AndroidWidget[IO, Event]] =
-  // TODO заменить на контейнер
+def gapPaddingWidget[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[AndroidWidget[IO, Event]] =
   original =>
-    container[
+    containerWidget[
       IO,
       Id,
       Event,
@@ -31,4 +30,11 @@ def gapPadding[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[Androi
             )
         )
     )
-end gapPadding
+end gapPaddingWidget
+
+extension[IO[_], Event](widget: AndroidWidget[IO, Event])
+  def padding(paddings: Paddings[Float])(using Sync[IO]): AndroidWidget[IO, Event] =
+    gapPaddingWidget(paddings)(widget)
+  end padding
+end extension
+

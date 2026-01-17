@@ -14,29 +14,36 @@ import io.github.humbleui.skija.Paint
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.shaper.Shaper
 
-type TextWidget[IO[_]] = [Event] => (
-  text : String,
-  style : SkijaTextStyle
-) => DesktopWidget[IO, Event]
+trait TextWidget[IO[_]]:
+  def apply[Event](
+    text : String,
+    style : SkijaTextStyle
+  ) : DesktopWidget[IO, Event]
+end TextWidget
 
-def text[IO[_] : Sync](
-  shaper : Shaper,
-  textCache : TextCache[IO],
-) : TextWidget[IO] =
-  [Event] => (text : String, style : SkijaTextStyle) =>
-    genericText[
-      UpdateC[IO, Event],
-      PlaceC[IO],
-      Draw[IO],
-      RecompositionReaction[IO],
-      DownEvent,
-      SkijaPlacedText
-    ](
-      Place.sizeText(shaper, textCache)(text, style),
-      drawText,
-      RecompositionReaction.empty,
-    )
-end text
+object TextWidget:
+  def apply[IO[_] : Sync](
+    shaper : Shaper,
+    textCache : TextCache[IO],
+  ) : TextWidget[IO] =
+    new TextWidget[IO]:
+      override def apply[Event](text : String, style : SkijaTextStyle) : DesktopWidget[IO, Event] =
+        genericText[
+          UpdateC[IO, Event],
+          PlaceC[IO],
+          Draw[IO],
+          RecompositionReaction[IO],
+          DownEvent,
+          SkijaPlacedText
+        ](
+          Place.sizeText(shaper, textCache)(text, style),
+          drawText,
+          RecompositionReaction.empty,
+        )
+      end apply
+    end new
+  end apply
+end TextWidget
 
 def placedText[IO[_] : Sync, Event](placedText : Sized[Float, SkijaPlacedText]) : DesktopWidget[IO, Event] =
   constSizedDrawOnlyWidget(

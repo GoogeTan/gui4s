@@ -26,6 +26,22 @@ def layersWidget[IO[_] : Sync, Event](
    DownEvent,
    Float
  ](
-   container[IO, List, Event](traverseOrdered)(using Sync[IO], Traverse[List])
+   containerWidget[IO, List, Event](traverseOrdered)(using Sync[IO], Traverse[List])
  )(background, foreground, placementStrategy)
 end layersWidget
+
+extension[IO[_], Event](value : DesktopWidget[IO, Event])
+  def withBackground(
+    background : DesktopWidget[IO, Event],
+    placement: PlacementStrategy[OuterPlaceC[IO], Rect[Float], List, Point2d[Float]]
+  )(using Sync[IO]) : DesktopWidget[IO, Event] =
+     layersWidget[IO, Event](background.one, Nil, placement)(value)
+  end withBackground
+
+  def withForeground(
+    foreground : DesktopWidget[IO, Event],
+    placement: PlacementStrategy[OuterPlaceC[IO], Rect[Float], List, Point2d[Float]]
+  )(using Sync[IO]) : DesktopWidget[IO, Event] =
+     layersWidget[IO, Event](Nil, foreground.one, placement)(value)
+  end withForeground
+end extension

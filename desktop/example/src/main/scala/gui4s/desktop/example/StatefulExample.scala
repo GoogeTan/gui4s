@@ -13,7 +13,7 @@ import gui4s.core.geometry.*
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.kit.widgets.{DesktopWidget, statefulWidget, text}
+import gui4s.desktop.kit.widgets.{DesktopWidget, statefulWidget, TextWidget}
 import gui4s.desktop.skija.*
 import gui4s.desktop.skija.typeface.*
 import io.github.humbleui.skija.*
@@ -33,7 +33,7 @@ object StatefulExample extends UIApp:
     for
       shaper <- createShaper[AppIO]
       cache : TextCache[AppIO] <- ScalacacheCache()
-      textWidget = text(shaper, cache)
+      text = TextWidget(shaper, cache)
       typeface <- defaultTypeface[AppIO]
       clickSource <- clickEventSource[AppIO, IO, GLFWmonitor, GLFWwindow, GLFWcursor, Int](window, glfw, eventBus).eval
       onClick = [Event] => (event : Event) =>
@@ -44,7 +44,7 @@ object StatefulExample extends UIApp:
       eventHandler = (state, _, _) => (state + 1).pure[UpdateC[AppIO, ApplicationRequest]],
       body = state =>
         onClick(())(
-          textWidget(
+          text(
             "test text " + state.toString,
             SkijaTextStyle(new Font(typeface, 24), new Paint().setColor(0xFF8484A4))
           )

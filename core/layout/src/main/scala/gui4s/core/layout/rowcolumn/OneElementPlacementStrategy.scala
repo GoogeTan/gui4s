@@ -19,6 +19,7 @@ object OneElementPlacementStrategy:
       PlacementStrategy.Begin[Place, BoundsUnit, Id, MeasurementUnit](N.zero)
     end Begin
 
+    //TODO оно не работает вообще, исправить
     def Center[
         Place[_] : Applicative,
         MeasurementUnit : Fractional,

@@ -4,10 +4,11 @@ import gui4s.core.geometry.Rect
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Clip.given
 import gui4s.android.kit.widgets.AndroidWidget
-import gui4s.desktop.widget.library.decorator.clipWidget
 
-def clip[IO[_] : Sync, Event](value : AndroidWidget[IO, Event])(path : Rect[Float] => Clip) : AndroidWidget[IO, Event] =
-  clipWidget[
+import scala.annotation.targetName
+
+def clipWidget[IO[_] : Sync, Event](value : AndroidWidget[IO, Event], path : Rect[Float] => Clip) : AndroidWidget[IO, Event] =
+  gui4s.desktop.widget.library.decorator.clipWidget[
     UpdateC[IO, Event],
     OuterPlace[IO, *],
     InnerPlace,
@@ -25,4 +26,10 @@ def clip[IO[_] : Sync, Event](value : AndroidWidget[IO, Event])(path : Rect[Floa
     Clip.drawClipped,
     place => path(place.size),
   )(value)
-end clip
+end clipWidget
+
+extension[IO[_], Event](value : AndroidWidget[IO, Event])
+  def clip(path : Rect[Float] => Clip)(using Sync[IO]) : AndroidWidget[IO, Event] =
+    clipWidget[IO, Event](value, path)
+  end clip
+end extension

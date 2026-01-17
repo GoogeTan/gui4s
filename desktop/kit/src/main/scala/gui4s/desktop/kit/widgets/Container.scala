@@ -19,7 +19,7 @@ import gui4s.desktop.skija.canvas.drawAt
 import gui4s.desktop.widget.library.container as genericContainer
 import gui4s.core.widget.library.{ContainerWidget, LinearContainer, linearContainer as genericLinearContainer}
 
-def container[
+def containerWidget[
   IO[_] : Sync,
   Container[_] : Traverse,
   Event
@@ -33,12 +33,12 @@ def container[
     Update.isEventHandled,
     updateContainerOrdered
   )
-end container
+end containerWidget
 
-def linearContainer[
-  IO[_] : Sync as IOS,
+def linearContainerWidget[
+  IO[_] : Sync,
   Event,
-  Container[_] : {Applicative, Traverse as CT, Zip}
+  Container[_] : {Applicative, Traverse, Zip}
 ](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Container]) : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], Container, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     DesktopPlacedWidget[IO, Event],
@@ -47,52 +47,52 @@ def linearContainer[
     InfinityOr[Float],
     Float,
   ](
-    container = container[IO, Container, Event](traverseOrdered),
+    container = containerWidget[IO, Container, Event](traverseOrdered),
     getBounds = OuterPlace.getBounds,
     setBounds = OuterPlace.setBounds,
     cut = _.minus(_)
   )
-end linearContainer
+end linearContainerWidget
 
-def linearListContainer[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
-  linearContainer(traverseOrdered)
-end linearListContainer
+def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
+  linearContainerWidget(traverseOrdered)
+end linearListContainerWidget
 
-def row[IO[_] : Sync, Event](
-                              children                    : List[DesktopWidget[IO, Event]],
-                              horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List],
-                              verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO],
+def rowWidget[IO[_] : Sync, Event](
+  children                    : List[DesktopWidget[IO, Event]],
+  horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List],
+  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO],
 ) : DesktopWidget[IO, Event] =
-  linearListContainer(
+  linearListContainerWidget(
     children,
     Axis.Horizontal,
     horizontalPlacementStrategy,
     verticalPlacementStrategy
   )
-end row
+end rowWidget
 
-def column[IO[_] : Sync, Event](
-                                 children                    : List[DesktopWidget[IO, Event]],
-                                 verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List],
-                                 horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
+def columnWidget[IO[_] : Sync, Event](
+  children                    : List[DesktopWidget[IO, Event]],
+  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List],
+  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
 ) : DesktopWidget[IO, Event] =
-  linearListContainer(
+  linearListContainerWidget(
       children,
       Axis.Vertical,
       verticalPlacementStrategy,
       horizontalPlacementStrategy
     )
-end column
+end columnWidget
 
-def single[IO[_] : Sync, Event](
-                                  child : DesktopWidget[IO, Event],
-                                  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
-                                  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO]
-                              ) : DesktopWidget[IO, Event] =
-  linearContainer[IO, Event, Id](traverseOne)(
+def boxWidget[IO[_] : Sync, Event](
+  child : DesktopWidget[IO, Event],
+  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
+  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO]
+) : DesktopWidget[IO, Event] =
+  linearContainerWidget[IO, Event, Id](traverseOne)(
     child,
     Axis.Vertical,
     verticalPlacementStrategy,
     horizontalPlacementStrategy
   )
-end single
+end boxWidget

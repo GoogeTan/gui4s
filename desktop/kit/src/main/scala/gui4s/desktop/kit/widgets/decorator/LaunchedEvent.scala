@@ -10,37 +10,48 @@ import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as generic
 
 import scala.reflect.Typeable
 
-@SuppressWarnings(Array("org.wartremover.warts.ToString"))
-def launchedEvent[
-  IO[_] : MonadThrow,
-  Event,
-  Key : Typeable
-](
-  supervisor: Supervisor[IO],
-  raiseExternalEvent : DownEvent => IO[Unit],
-  eventFromAny : Any => Option[Event]
-) : LaunchedEffectWidget[DesktopWidget[IO, Event], Key, IO[Event]] =
-  genericLaunchedEvent[
-    IO,
-    DesktopWidget[IO, Event],
-    Key,
-    Update[IO, *, *],
-    InnerPlace[DesktopPlacedWidget[IO, Event]],
-    DownEvent,
-    Event
+trait LaunchedEvent[IO[_]]:
+  def apply[Key : Typeable, Event](
+                                     name : String,
+                                     key: Key,
+                                     task : IO[Event],
+                                     body : DesktopWidget[IO, Event]
+                                   ) : DesktopWidget[IO, Event]
+end LaunchedEvent
+
+object LaunchedEvent:
+  def apply[
+    IO[_] : MonadThrow,
+    Event,
+    Key : Typeable
   ](
-    launchedEffectWidget = launchedEffect(supervisor),
-    eventCatcher = eventCatcher,
-    pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
-    catchEvent = (path, event) =>
-      DownEvent.catchExternalEvent(path, event) match
-        case None =>
-          false.pure[UpdateC[IO, Event]]
-        case Some[Any](valueFound : Any) =>
-          eventFromAny(valueFound).fold(
-            Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
-          )(
-            event => Update.emitEvents(List(event)).as(true)
-          )
-  )
-end launchedEvent
+    supervisor: Supervisor[IO],
+    raiseExternalEvent : DownEvent => IO[Unit],
+    eventFromAny : Any => Option[Event]
+  ) : LaunchedEffectWidget[DesktopWidget[IO, Event], Key, IO[Event]] =
+    genericLaunchedEvent[
+      IO,
+      DesktopWidget[IO, Event],
+      Key,
+      Update[IO, *, *],
+      InnerPlace[DesktopPlacedWidget[IO, Event]],
+      DownEvent,
+      Event
+    ](
+      launchedEffectWidget = launchedEffect(supervisor),
+      eventCatcher = eventCatcher,
+      pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
+      catchEvent = (path, event) =>
+        DownEvent.catchExternalEvent(path, event) match
+          case None =>
+            false.pure[UpdateC[IO, Event]]
+          case Some[Any](valueFound : Any) =>
+            eventFromAny(valueFound).fold(
+              Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+            )(
+              event => Update.emitEvents(List(event)).as(true)
+            )
+    )
+  end apply
+end LaunchedEvent
+

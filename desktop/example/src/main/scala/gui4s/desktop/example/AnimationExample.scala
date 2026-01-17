@@ -76,12 +76,6 @@ object AnimationExample extends UIApp:
     window: GLFWwindow,
     eventBus: Queue[IO, DownEvent],
   ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
-    extension[Event](value : DesktopWidget[AppIO, Event])
-      def clip(shape : gui4s.core.geometry.Rect[Float] => Clip) : DesktopWidget[AppIO, Event] =
-        gui4s.desktop.kit.widgets.decorator.clip(value)(shape)
-      end clip
-    end extension
-
     for
       dispatcher <- Dispatcher.sequential[AppIO]
       supervisor <- Supervisor[AppIO]
@@ -104,33 +98,34 @@ object AnimationExample extends UIApp:
         easing = Easing.Linear,//TODO fix me
         duration = Duration(300, TimeUnit.MILLISECONDS)
       )
-    yield gapPadding[AppIO, ApplicationRequest](
-      Paddings(10f, 10f, 10f, 10f)
-    )(
-      initWidget(
+      resource = ResourceWidget(
         supervisor = supervisor,
         raiseExternalEvent = eventBus.offer.andThen(liftCallbackIOToAppIO(_))
-      )(
-        name = "image",
-        imageSource = downloadImage("https://4pda.to/s/qirtdz1qChDeJB8Bcsz2XUtscYQoC8Vfk3E2i62x51wPrcI3rKcz0Gz1z0BWwKe.png"),
-        imageWidget = data =>
-          stateful[Int, ApplicationRequest, Unit](
-            name = "counter",
-            initialState = 0,
-            eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[AppIO, ApplicationRequest]],
-            body = count =>
-              animation(
-                name = "animation",
-                targetValue = count.toFloat * 50,
-                animation = floatAnimation,
-                body = cornerRadius =>
-                  onClick(())(
-                    gui4s.desktop.kit.widgets.image[AppIO, Unit](data).clip(Shapes.roundedCorners(cornerRadius))
-                  )
-              ),
-          ),
-        placeholder = text(shaper, cache)("Wait.", SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))),
       )
+      initialization = InitializationWidget(resource)
+      text = TextWidget(shaper, cache)
+    yield initialization(
+      name = "image",
+      effectToRun = downloadImage("https://4pda.to/s/qirtdz1qChDeJB8Bcsz2XUtscYQoC8Vfk3E2i62x51wPrcI3rKcz0Gz1z0BWwKe.png"),
+      body = data =>
+        stateful[Int, ApplicationRequest, Unit](
+          name = "counter",
+          initialState = 0,
+          eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[AppIO, ApplicationRequest]],
+          body = count =>
+            animation(
+              name = "animation",
+              targetValue = count.toFloat * 50,
+              animation = floatAnimation,
+              body = cornerRadius =>
+                onClick(())(
+                  imageWidget[AppIO, Unit](data).clip(Shapes.roundedCorners(cornerRadius))
+                )
+            ),
+        ),
+      placeholder = text("Please, wait.", SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))),
+    ).padding(
+      Paddings(10f, 10f, 10f, 10f)
     )
   end main
 end AnimationExample

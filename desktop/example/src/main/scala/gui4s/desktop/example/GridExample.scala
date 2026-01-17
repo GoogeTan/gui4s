@@ -31,11 +31,11 @@ object GridExample extends UIApp:
       cache : TextCache[AppIO] <- ScalacacheCache()
       typeface <- defaultTypeface[AppIO]
       numbers = (1 to 10).toList
-      textWidget = text(shaper, cache)
+      text = TextWidget(shaper, cache)
       textStyle = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
     yield
       grid(numbers, numbers)(
-        gridCell(textWidget[ApplicationRequest](_, textStyle))
+        gridCell(text[ApplicationRequest](_, textStyle))
       )
   end main
 
@@ -44,13 +44,13 @@ object GridExample extends UIApp:
       LinearContainerPlacementStrategy.SpaceBetween[AppIO, List](ContainerPlacementError.English)
     val begin : OneElementLinearContainerPlacementStrategy[AppIO] =
       LinearContainerPlacementStrategy.Begin[AppIO, Id](0f)
-    column[AppIO, Event](
+    columnWidget[AppIO, Event](
       verticalPlacementStrategy = spaceBetween,
       horizontalPlacementStrategy = begin,
       children =
         as.map:
           columnElement =>
-            row[AppIO, Event](
+            rowWidget[AppIO, Event](
               horizontalPlacementStrategy = spaceBetween,
               verticalPlacementStrategy = begin,
               children =

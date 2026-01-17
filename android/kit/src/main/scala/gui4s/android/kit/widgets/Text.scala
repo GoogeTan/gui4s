@@ -16,7 +16,7 @@ type TextWidget[IO[_]] = [Event] => (
   style : SkijaTextStyle
 ) => AndroidWidget[IO, Event]
 
-def text[IO[_] : Async](
+def textWidget[IO[_] : Async](
   shaper : Shaper,
   textCache : gui4s.android.kit.TextCache[IO],
 ) : TextWidget[IO] =
@@ -33,7 +33,7 @@ def text[IO[_] : Async](
       drawText,
       RecompositionReaction.empty,
     )
-end text
+end textWidget
 
 def placedText[IO[_] : Sync, Event](placedText : Sized[Float, SkijaPlacedText]) : AndroidWidget[IO, Event] =
   constSizedDrawOnlyWidget(

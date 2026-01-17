@@ -18,7 +18,7 @@ def stackContainer[IO[_] : Sync as S, Event](
     Float,
   ](
     getBounds = OuterPlace.getBounds[IO],
-    container = container[IO, List, Event](traverseOrdered)
+    container = containerWidget[IO, List, Event](traverseOrdered)
   )(
     children,
     GenericPlacementStrategy.PlaceIndependently(

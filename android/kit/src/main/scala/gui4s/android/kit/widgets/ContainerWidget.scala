@@ -8,7 +8,7 @@ import gui4s.android.kit.effects.Place.given
 import gui4s.android.skia.canvas.drawAt
 import gui4s.desktop.widget.library.container as genericContainer
 
-def container[
+def containerWidget[
   IO[_] : Sync,
   Container[_] : Traverse,
   Event
@@ -22,9 +22,9 @@ def container[
     Update.isEventHandled,
     updateContainerOrdered
   )
-end container
+end containerWidget
 
-def linearContainer[
+def linearContainerWidget[
   IO[_] : Sync as IOS,
   Event,
   Container[_] : {Applicative, Traverse as CT, Zip}
@@ -36,52 +36,52 @@ def linearContainer[
     InfinityOr[Float],
     Float,
   ](
-    container = container[IO, Container, Event](traverseOrdered),
+    container = containerWidget[IO, Container, Event](traverseOrdered),
     getBounds = OuterPlace.getBounds,
     setBounds = OuterPlace.setBounds,
     cut = _.minus(_)
   )
-end linearContainer
+end linearContainerWidget
 
-def linearListContainer[IO[_] : Sync, Event] : LinearContainer[AndroidWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
-  linearContainer(traverseOrdered)
-end linearListContainer
+def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[AndroidWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
+  linearContainerWidget(traverseOrdered)
+end linearListContainerWidget
 
-def row[IO[_] : Sync, Event](
+def rowWidget[IO[_] : Sync, Event](
                               children                    : List[AndroidWidget[IO, Event]],
                               horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List],
                               verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO],
 ) : AndroidWidget[IO, Event] =
-  linearListContainer(
+  linearListContainerWidget(
     children,
     Axis.Horizontal,
     horizontalPlacementStrategy,
     verticalPlacementStrategy
   )
-end row
+end rowWidget
 
-def column[IO[_] : Sync, Event](
+def columnWidget[IO[_] : Sync, Event](
                                  children                    : List[AndroidWidget[IO, Event]],
                                  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List],
                                  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
 ) : AndroidWidget[IO, Event] =
-  linearListContainer(
+  linearListContainerWidget(
       children,
       Axis.Vertical,
       verticalPlacementStrategy,
       horizontalPlacementStrategy
     )
-end column
+end columnWidget
 
-def single[IO[_] : Sync, Event](
+def boxWidget[IO[_] : Sync, Event](
                                   child : AndroidWidget[IO, Event],
                                   horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
                                   verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO]
                               ) : AndroidWidget[IO, Event] =
-  linearContainer[IO, Event, Id](traverseOne)(
+  linearContainerWidget[IO, Event, Id](traverseOne)(
     child,
     Axis.Vertical,
     verticalPlacementStrategy,
     horizontalPlacementStrategy
   )
-end single
+end boxWidget

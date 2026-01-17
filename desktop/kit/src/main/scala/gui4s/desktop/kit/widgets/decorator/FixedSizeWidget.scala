@@ -8,7 +8,7 @@ import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Place.given
 
 import gui4s.desktop.kit.widgets.DesktopWidget
-import gui4s.desktop.kit.widgets.linearContainer
+import gui4s.desktop.kit.widgets.linearContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 
 def fixedSizeWidget[
@@ -23,7 +23,7 @@ def fixedSizeWidget[
       Place.withBoundsK(
         _ => size.map(new InfinityOr(_))
       ),
-    linearContainer[
+    linearContainerWidget[
       IO,
       Event,
       Id,
