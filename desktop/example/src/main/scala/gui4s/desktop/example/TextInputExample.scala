@@ -51,7 +51,7 @@ object TextInputExample extends UIApp:
                      glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                      window: GLFWwindow,
                      eventBus: Queue[IO, DownEvent]
-                   ): Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
+                   ): Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
     val fontCollection = new FontCollection
     fontCollection.setDefaultFontManager(FontMgr.getDefault)
     val paint = new Paint().setColor(0xFF454649)
@@ -89,12 +89,12 @@ object TextInputExample extends UIApp:
         Rect(100, 30)
       )(_ : String, _ : String, identity)
     yield
-        columnWidget[AppIO, ApplicationRequest](
+        columnWidget[AppIO, Nothing](
           (0 until 2).toList.map(i =>
-              stateful[String, ApplicationRequest, String](
+              stateful[String, Nothing, String](
                 name = "basic-state-" + i.toString,
                 initialState = "A",
-                eventHandler = (_, _, newString) => newString.last.pure[UpdateC[AppIO, ApplicationRequest]],
+                eventHandler = (_, _, newString) => newString.last.pure[UpdateC[AppIO, Nothing]],
                 body =
                   state =>
                     gapPaddingWidget[AppIO, String](Paddings(12f, 12f, 12f, 12f))(using Sync[AppIO])(

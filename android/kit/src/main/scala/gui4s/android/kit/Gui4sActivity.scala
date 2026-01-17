@@ -23,7 +23,7 @@ import gui4s.desktop.widget.library.*
 final case class AppState[AppIO[_], CallbackIO[_]](
   dispatcher: Dispatcher[AppIO],
   eventBus : Queue[CallbackIO, DownEvent],
-  widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, ApplicationRequest]]
+  widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]]
 )
 
 enum UIAppError:
@@ -66,14 +66,14 @@ trait Gui4sActivity extends Activity:
               .andThen(mapErrorK(UIAppError.PlaceError(_)))
               .andThen(flattenEitherTK)
           _ = Log.e("Gui4sActivity", "onCreate created base")
-          widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, ApplicationRequest]] <- main(eventBus).evalMap(freeMainWidget =>
+          widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]] <- main(eventBus).evalMap(freeMainWidget =>
             Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK))
           )
           _ = Log.e("Gui4sActivity", "onCreate created widget")
           _ <- supervisor.supervise(
             widgetRef.get.flatMap(
-              androidWidgetLoops[AppIO](
-                Update.handleApplicationRequests[AppIO](MonadThrow[AppIO].raiseError),
+              androidWidgetLoops[AppIO, Nothing](
+                Update.runUpdate[AppIO, Nothing],
                 runPlaceK,
               )(_, newWidget => widgetRef.update(_ => newWidget), liftCallbackIOToAppIO(eventBus.take))
             )
@@ -144,17 +144,18 @@ trait Gui4sActivity extends Activity:
 
   def main(
     eventBus: Queue[IO, DownEvent],
-  ): Resource[AppIO, AndroidWidget[AppIO, ApplicationRequest]]
+  ): Resource[AppIO, AndroidWidget[AppIO, Nothing]]
 
-  final def runWidgetForTheFirstTime(
-    widget: AndroidWidget[AppIO, ApplicationRequest],
+  //TODO вынести в общий модуль
+  final def runWidgetForTheFirstTime[Event](
+    widget: AndroidWidget[AppIO, Event],
     runPlace: PlaceC[AppIO] ~> AppIO,
-  ): AppIO[AndroidPlacedWidget[AppIO, ApplicationRequest]] =
-    placeForTheFirstTime[AppIO, AndroidPlacedWidget[AppIO, ApplicationRequest], PlaceC[AppIO], RecompositionReaction[AppIO]](
+  ): AppIO[AndroidPlacedWidget[AppIO, Event]] =
+    placeForTheFirstTime[AppIO, AndroidPlacedWidget[AppIO, Event], PlaceC[AppIO], RecompositionReaction[AppIO]](
       Path(Nil),
       widget,
       widgetReactsOnRecomposition[
-        UpdateC[AppIO, ApplicationRequest],
+        UpdateC[AppIO, Event],
         PlaceC[AppIO],
         Draw[AppIO],
         RecompositionReaction[AppIO],

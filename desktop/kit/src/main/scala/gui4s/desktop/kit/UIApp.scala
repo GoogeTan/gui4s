@@ -102,7 +102,7 @@ trait UIApp extends IOApp:
       widgetCell <- main(glfw, window, eventBus).evalMap(freeMainWidget =>
         Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK))
       )
-      exitCode <- desktopWidgetLoops[AppIO, CallbackIO](
+      exitCode <- desktopWidgetLoops[AppIO, CallbackIO, Nothing](
         runDraw =  runDrawK,
         runPlace = runPlaceK,
         waitForTheNextEvent = liftCallbackIOToAppIO(eventBus.take),
@@ -117,15 +117,15 @@ trait UIApp extends IOApp:
     glfw.getFramebufferSize(window).map((w, h) => Rect(new InfinityOr(w.toFloat), new InfinityOr(h.toFloat)))
   end windowBounds
 
-  final def runWidgetForTheFirstTime(
-                                      widget: DesktopWidget[AppIO, ApplicationRequest],
+  final def runWidgetForTheFirstTime[Event](
+                                      widget: DesktopWidget[AppIO, Event],
                                       runPlace : PlaceC[AppIO] ~> AppIO,
-                                    ): AppIO[DesktopPlacedWidget[AppIO, ApplicationRequest]] =
-    placeForTheFirstTime[AppIO, DesktopPlacedWidget[AppIO, ApplicationRequest], PlaceC[AppIO], RecompositionReaction[AppIO]](
+                                    ): AppIO[DesktopPlacedWidget[AppIO, Event]] =
+    placeForTheFirstTime[AppIO, DesktopPlacedWidget[AppIO, Event], PlaceC[AppIO], RecompositionReaction[AppIO]](
       Path(Nil),
       widget,
       widgetReactsOnRecomposition[
-        UpdateC[AppIO, ApplicationRequest],
+        UpdateC[AppIO, Event],
         PlaceC[AppIO],
         Draw[AppIO],
         RecompositionReaction[AppIO],
@@ -140,5 +140,5 @@ trait UIApp extends IOApp:
             glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-  ): Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]]
+  ): Resource[AppIO, DesktopWidget[AppIO, Nothing]]
 end UIApp

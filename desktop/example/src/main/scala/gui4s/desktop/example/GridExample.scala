@@ -25,7 +25,7 @@ object GridExample extends UIApp:
             glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-          ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
+          ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
     for
       shaper <- createShaper[AppIO]
       cache : TextCache[AppIO] <- ScalacacheCache()
@@ -35,7 +35,7 @@ object GridExample extends UIApp:
       textStyle = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
     yield
       grid(numbers, numbers)(
-        gridCell(text[ApplicationRequest](_, textStyle))
+        gridCell(text[Nothing](_, textStyle))
       )
   end main
 

@@ -16,40 +16,41 @@ import gui4s.core.widget.draw.Drawable
 
 def androidWidgetLoops[
   IO[_] : Async,
+  Event,
 ](
-  runUpdate : [T] => Update[IO, ApplicationRequest, T] => IO[Either[ExitCode, T]],
+  runUpdate : [T] => Update[IO, Event, T] => IO[Either[ExitCode, T]],
   runPlace : PlaceC[IO] ~> IO,
-) : UpdateLoop[IO, AndroidPlacedWidget[IO, ApplicationRequest], DownEvent, ExitCode] =
-  updateLoop[IO, AndroidPlacedWidget[IO, ApplicationRequest], DownEvent, ExitCode](
+) : UpdateLoop[IO, AndroidPlacedWidget[IO, Event], DownEvent, ExitCode] =
+  updateLoop[IO, AndroidPlacedWidget[IO, Event], DownEvent, ExitCode](
     (widget, event) =>
       flattenRight(
-        runUpdate[IO[AndroidPlacedWidget[IO, ApplicationRequest]]](
+        runUpdate[IO[AndroidPlacedWidget[IO, Event]]](
           processEvent[
             IO,
-            AndroidPlacedWidget[IO, ApplicationRequest],
+            AndroidPlacedWidget[IO, Event],
             PlaceC[IO],
-            Update[IO, ApplicationRequest, *],
+            Update[IO, Event, *],
             RecompositionReaction[IO],
             DownEvent
           ](
             Path(Nil),
             RecompositionReaction.run[IO],
             widgetHandlesEvent[
-              Update[IO, ApplicationRequest, *],
+              Update[IO, Event, *],
               PlaceC[IO],
               Draw[IO],
               RecompositionReaction[IO],
               DownEvent
             ],
             widgetReactsOnRecomposition[
-              Update[IO, ApplicationRequest, *],
+              Update[IO, Event, *],
               PlaceC[IO],
               Draw[IO],
               RecompositionReaction[IO],
               DownEvent
             ],
             widgetHasInnerStates[
-              Update[IO, ApplicationRequest, *],
+              Update[IO, Event, *],
               PlaceC[IO],
               Draw[IO],
               RecompositionReaction[IO],

@@ -69,7 +69,7 @@ object ImageExample extends UIApp:
             glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-          ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
+          ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
     given Ordering[Point2d[Float]] = Ordering.by[Point2d[Float], Float](_.x).orElse(Ordering.by[Point2d[Float], Float](_.y))
 
     for
@@ -106,7 +106,7 @@ object ImageExample extends UIApp:
         name = "image",
         effectToRun = downloadImage("https://i.pinimg.com/736x/c6/f2/41/c6f241cff25453bca4c861009e32d141.jpg"),
         body = image =>
-          imageWidget[AppIO, ApplicationRequest](image)
+          imageWidget[AppIO, Nothing](image)
             .withForeground(
               foreground = text("Princess Mononoke", headerTextStyle(typeface)),
               placement = textPlacement

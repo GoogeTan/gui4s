@@ -105,17 +105,12 @@ object Update:
   end withClip
 
 
-  def handleApplicationRequests[IO[_] : MonadThrow](updateErrorAsExitCode : Throwable => IO[ExitCode]): [T] => Update[IO, ApplicationRequest, T] => IO[Either[ExitCode, T]] =
+  def runUpdate[IO[_] : MonadThrow, Event]: [T] => Update[IO, Event, T] => IO[Either[ExitCode, T]] =
+    import Clip.given
     [T] => update =>
-      import Clip.given
-      run[IO, ApplicationRequest](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
-        case Right((events, (_, widget))) =>
-          events.foldM[IO, Either[ExitCode, T]](Right(widget))((_, request) =>
-            request match
-              case ApplicationRequest.CloseApp(code) => Left(code).pure[IO]
-          )
-        case Left(error) =>
-          updateErrorAsExitCode(error).map(Left(_))
+      run[IO, Event](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
+        case Right((_, (_, widget))) => Right(widget).pure[IO]
+        case Left(error) => error.raiseError.as(Left(ExitCode.Error))
       }
-  end handleApplicationRequests
+  end runUpdate
 end Update

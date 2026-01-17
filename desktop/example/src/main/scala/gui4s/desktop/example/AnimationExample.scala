@@ -75,7 +75,7 @@ object AnimationExample extends UIApp:
     glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
     window: GLFWwindow,
     eventBus: Queue[IO, DownEvent],
-  ) : Resource[AppIO, DesktopWidget[AppIO, ApplicationRequest]] =
+  ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
     for
       dispatcher <- Dispatcher.sequential[AppIO]
       supervisor <- Supervisor[AppIO]
@@ -108,10 +108,10 @@ object AnimationExample extends UIApp:
       name = "image",
       effectToRun = downloadImage("https://4pda.to/s/qirtdz1qChDeJB8Bcsz2XUtscYQoC8Vfk3E2i62x51wPrcI3rKcz0Gz1z0BWwKe.png"),
       body = data =>
-        stateful[Int, ApplicationRequest, Unit](
+        stateful[Int, Nothing, Unit](
           name = "counter",
           initialState = 0,
-          eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[AppIO, ApplicationRequest]],
+          eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[AppIO, Nothing]],
           body = count =>
             animation(
               name = "animation",

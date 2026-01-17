@@ -30,7 +30,7 @@ class MainActivity extends Gui4sActivity:
     )
   end downloadImage
 
-  override def main(eventBus: Queue[IO, DownEvent]): Resource[AppIO, AndroidWidget[AppIO, ApplicationRequest]] =
+  override def main(eventBus: Queue[IO, DownEvent]): Resource[AppIO, AndroidWidget[AppIO, Nothing]] =
     for
       supervisor <- Supervisor[AppIO]
       shaper <- createShaper[AppIO]
@@ -46,10 +46,10 @@ class MainActivity extends Gui4sActivity:
       initialization = InitializationWidget[AppIO](resource)
       text = textWidget[AppIO](shaper, cache)
     yield
-       initialization[Image, ApplicationRequest](
+      initialization[Image, Nothing](
         name = "image",
         effectToRun = downloadImage,
-        body = data => image[AppIO, ApplicationRequest](data).clip(Shapes.round),
+        body = data => image[AppIO, Nothing](data).clip(Shapes.round),
         placeholder = text("Wait.", SkijaTextStyle(new Font(Typeface.Companion.makeEmpty(), 28), paint)),
       ).padding(
         Paddings(10f, 10f, 10f, 10f)

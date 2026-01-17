@@ -13,18 +13,19 @@ import scala.concurrent.ExecutionContext
 def desktopWidgetLoops[
   IO[_] : Async,
   CallbackIO[_] : Async,
+  Event,
 ](
    runDraw : Draw[IO] => IO[Boolean],
    runPlace : PlaceC[IO] ~> IO,
    waitForTheNextEvent : IO[DownEvent],
    drawLoopExecutionContext : ExecutionContext,
    updateLoopExecutionContext : ExecutionContext,
-   widget : Ref[IO, DesktopPlacedWidget[IO, ApplicationRequest]],
+   widget : Ref[IO, DesktopPlacedWidget[IO, Event]],
 ) : IO[ExitCode] =
   widgetLoops[
     IO,
     CallbackIO,
-    UpdateC[IO, ApplicationRequest],
+    UpdateC[IO, Event],
     PlaceC[IO],
     Draw[IO],
     RecompositionReaction[IO],
@@ -33,7 +34,7 @@ def desktopWidgetLoops[
   ](
     waitForTheNextEvent = waitForTheNextEvent,
     widget = widget,
-    runUpdate = Update.handleApplicationRequests(MonadThrow[IO].raiseError),
+    runUpdate = Update.runUpdate[IO, Event],
     runPlace = runPlace,
     runDraw = runDraw,
     runRecomposition = RecompositionReaction.run,
