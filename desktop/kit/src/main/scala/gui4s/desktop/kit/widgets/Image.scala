@@ -12,7 +12,7 @@ import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.skija.canvas.drawImage
 import gui4s.desktop.widget.library.drawOnlyWidget
-import io.github.humbleui.skija.{Canvas, Image}
+import gui4s.desktop.skija.{Canvas, Image}
 
 def image[
   IO[_] : Sync,

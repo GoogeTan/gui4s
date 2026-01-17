@@ -11,8 +11,8 @@ import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.skija.paragraph.*
 import gui4s.core.widget.library.{TextFieldEvent, TextFieldState}
-import io.github.humbleui.skija.Paint
-import io.github.humbleui.skija.paragraph.*
+import gui4s.desktop.skija.*
+import gui4s.desktop.skija.paragraph.*
 
 def textField[
   IO[_] : MonadThrow,

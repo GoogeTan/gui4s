@@ -125,7 +125,7 @@ object AnimationExample extends UIApp:
                 animation = floatAnimation,
                 body = cornerRadius =>
                   onClick(())(
-                    image[AppIO, Unit](data).clip(Shapes.roundedCorners(cornerRadius))
+                    gui4s.desktop.kit.widgets.image[AppIO, Unit](data).clip(Shapes.roundedCorners(cornerRadius))
                   )
               ),
           ),

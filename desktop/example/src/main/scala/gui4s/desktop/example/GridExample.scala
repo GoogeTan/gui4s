@@ -13,7 +13,6 @@ import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.skija.*
 import gui4s.desktop.skija.typeface.*
-import io.github.humbleui.skija.*
 
 object GridExample extends UIApp:
   val settings = WindowCreationSettings(

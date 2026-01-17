@@ -6,7 +6,7 @@ import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import gui4s.core.layout.{Sized, SizedC}
 import gui4s.desktop.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
-import io.github.humbleui.skija.shaper.Shaper
+import gui4s.desktop.skija.shaper.*
 
 type SizeText[Place[_]] = (text: String, options: SkijaTextStyle) => Place[SkijaPlacedText]
 type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]

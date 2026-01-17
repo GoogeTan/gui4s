@@ -10,7 +10,7 @@ import gui4s.core.kit.effects.Place as GenericPlace
 import gui4s.core.widget.Path
 import gui4s.desktop.kit.effects.InnerPlace.given
 import gui4s.desktop.kit.effects.OuterPlace.given
-import io.github.humbleui.skija.shaper.Shaper
+import gui4s.desktop.skija.shaper.Shaper
 
 import scala.reflect.Typeable
 

@@ -5,27 +5,23 @@ import cats.Id
 import cats.data.EitherT
 import cats.effect.*
 import cats.effect.std.*
-import catnip.syntax.all.{*, given}
 import glfw4s.core.*
 import glfw4s.core.pure.*
 import glfw4s.jna.bindings.types.*
-import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.geometry.*
 import gui4s.core.layout.rowcolumn
 import gui4s.desktop.kit.*
-import gui4s.core.geometry.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.skija.*
-import io.github.humbleui.skija.*
+import gui4s.desktop.skija.image.makeDeferredImageFromEncodedBytes
+import gui4s.desktop.skija.shaper.*
+import gui4s.desktop.skija.{Font, Image, Paint, SkijaTextStyle, typeface}
+import io.github.humbleui.skija.BlendMode
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
-import gui4s.desktop.skija.typeface.*
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 import org.typelevel.log4cats.{LoggerFactory, SelfAwareStructuredLogger}
-import gui4s.core.layout.rowcolumn
-import gui4s.desktop.skija.typeface
 
 import scala.reflect.Typeable
 
@@ -55,7 +51,7 @@ object ImageExample extends UIApp:
             Uri.fromString(uri)
           ).flatMap(
             client.expect[Array[Byte]]
-          ).map(Image.makeDeferredFromEncodedBytes)
+          ).map(makeDeferredImageFromEncodedBytes)
       )
     )
   end downloadImage
@@ -107,7 +103,7 @@ object ImageExample extends UIApp:
               Point2d(0f, 0f),
             )
           )(
-            image[AppIO, ApplicationRequest](data)
+            gui4s.desktop.kit.widgets.image[AppIO, ApplicationRequest](data)
           ),
         placeholder = text[AppIO](shaper, cache)[ApplicationRequest]("Wait.", SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))),
       )
