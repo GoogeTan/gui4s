@@ -1,11 +1,11 @@
 package gui4s.desktop.skija
 package canvas
 
-import canvas.Canvased.applyCanvasFFI
-
-import cats.*
+import cats._
 import cats.effect.Sync
-import cats.syntax.all.*
+import cats.syntax.all._
+
+import gui4s.desktop.skija.canvas.Canvased.applyCanvasFFI
 
 def saveState[F[_] : {Sync, Canvased}](): F[Int] =
   applyCanvasFFI(_.save())

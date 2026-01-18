@@ -2,8 +2,9 @@ package gui4s.core.widget
 package handle
 
 import cats.Functor
-import cats.arrow.{Arrow, Strong}
-import cats.syntax.all.*
+import cats.arrow.Arrow
+import cats.arrow.Strong
+import cats.syntax.all._
 
 type HandlesEvent[-T, -HandleableEvent, +UpdatedWidget] = (self : T, pathToParent : Path, event : HandleableEvent) => UpdatedWidget
 type HandlesEventF[T, -HandleableEvent, +Update[_]] = HandlesEvent[T, HandleableEvent, Update[T]]

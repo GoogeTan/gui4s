@@ -1,11 +1,13 @@
 package gui4s.core.widget.library
 
-import cats.*
+import cats._
 import cats.syntax.all.given
+
+import gui4s.core.widget.Path
+import gui4s.core.widget.collectQuitCompositionReactions
 import gui4s.core.widget.handle.HandlesEvent
 import gui4s.core.widget.recomposition.ReactsOnRecomposition
 import gui4s.core.widget.state.HasInnerStates
-import gui4s.core.widget.{Path, collectQuitCompositionReactions}
 
 def placeForTheFirstTime[
   IO[_] : Monad,

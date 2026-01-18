@@ -1,7 +1,7 @@
 package gui4s.core.widget
 package merge
 
-import gui4s.core.widget.free.{AsFree, AsFreeF}
+import gui4s.core.widget.free.AsFreeF
 
 //TODO дать более общее имя, соответсвующее сути дела
 def statefulMergesWithOldStates[

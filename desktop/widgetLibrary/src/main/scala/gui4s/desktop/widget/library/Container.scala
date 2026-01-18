@@ -1,17 +1,26 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.*
-import cats.syntax.all.*
-import cats.{Functor, Monad, Monoid, Order, Traverse}
-import gui4s.core.widget.library.*
+import catnip.syntax.all._
+import cats.Functor
+import cats.Monad
+import cats.Monoid
+import cats.Order
+import cats.Traverse
+import cats.syntax.all._
+
 import gui4s.core.widget.Container
-import gui4s.core.widget.library.*
-import gui4s.core.widget.draw.{drawContainer, widgetWithMetaIsDrawable}
+import gui4s.core.widget.draw.drawContainer
+import gui4s.core.widget.draw.widgetWithMetaIsDrawable
 import gui4s.core.widget.free.containerAsFree
-import gui4s.core.widget.handle.{Layout, childrenHandleEvent, containerHandlesEvent}
+import gui4s.core.widget.handle.Layout
+import gui4s.core.widget.handle.childrenHandleEvent
+import gui4s.core.widget.handle.containerHandlesEvent
+import gui4s.core.widget.library._
 import gui4s.core.widget.merge.containerMergesWithOldStates
-import gui4s.core.widget.recomposition.{containerReactsOnRecomposition, widgetWithMetaReactsOnRecomposition}
-import gui4s.core.widget.state.{containerHasInnerStates, widgetWithMetaHasInnerStates}
+import gui4s.core.widget.recomposition.containerReactsOnRecomposition
+import gui4s.core.widget.recomposition.widgetWithMetaReactsOnRecomposition
+import gui4s.core.widget.state.containerHasInnerStates
+import gui4s.core.widget.state.widgetWithMetaHasInnerStates
 
 def container[
   Update[_] : Monad,

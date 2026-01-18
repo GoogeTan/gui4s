@@ -1,7 +1,9 @@
 package catnip
 
-import cats.{Applicative, FlatMap, Monad}
-import cats.syntax.all.*
+import cats.Applicative
+import cats.FlatMap
+import cats.Monad
+import cats.syntax.all._
 
 final case class ContT[F[_], A](f : [T] => (A => F[T]) => F[T]):
   def run[T](k : A => F[T]) : F[T] =

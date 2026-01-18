@@ -1,8 +1,8 @@
 package gui4s.core.widget.library
 
-import cats.implicits.catsSyntaxOrder
-
 import scala.math.Ordering.Implicits.infixOrderingOps
+
+import cats.implicits.catsSyntaxOrder
 
 final case class TextPosition(line : Int, column : Int) extends Ordered[TextPosition]:
   def compare(that : TextPosition) : Int =

@@ -1,5 +1,6 @@
 package gui4s.android.kit.effects
 
+import catnip.{Get, Set}
 import gui4s.core.kit.effects.OuterPlace as GenericOuterPlace
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path

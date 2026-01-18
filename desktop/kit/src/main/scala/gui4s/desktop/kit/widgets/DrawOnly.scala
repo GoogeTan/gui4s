@@ -1,10 +1,12 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats.*
-import gui4s.core.layout.*
-import gui4s.desktop.kit.effects.*
+import cats._
+
+import gui4s.core.layout._
+
 import gui4s.desktop.kit.effects.Place.given
+import gui4s.desktop.kit.effects._
 
 def drawOnlyWidget[IO[_] : Monad, Event](
   draw : Place[IO, Draw[IO]]

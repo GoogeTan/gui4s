@@ -1,12 +1,15 @@
 package gui4s.core.layout
 package rowcolumn
 
-import catnip.Set.*
+import catnip.Set._
 import catnip.Zip
 import catnip.Zip.zip
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, Point2d, Rect}
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
 
 def rowColumnLayoutPlacement[
   Place[_] : Monad,

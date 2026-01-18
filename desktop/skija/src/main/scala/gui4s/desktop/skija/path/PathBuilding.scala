@@ -3,9 +3,12 @@ package path
 
 import cats.data.Kleisli
 import cats.effect.Sync
-import gui4s.core.geometry.{Point2d, RRect}
 import io.github.humbleui.skija.Path
-import io.github.humbleui.types.{RRect as SkRRect, Rect as SkRect}
+import io.github.humbleui.types.{RRect => SkRRect}
+import io.github.humbleui.types.{Rect => SkRect}
+
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.RRect
 
 type PathBuilding[F[_]] = Kleisli[F, Path, Path]
 

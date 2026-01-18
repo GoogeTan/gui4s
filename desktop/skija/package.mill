@@ -4,42 +4,25 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.{AssemblyModule, SbtModule}
-import build.catsEffectDeps
+import build.dependencies.catsEffect
+import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule with AssemblyModule {
+object `package` extends SbtModule with PublishModule with AssemblyModule with ScalafixModule:
 
   def artifactName = "desktop-skija-bindings"
 
-  def scalaVersion = build.scalaVersion
+  def scalaVersion = build.versions.scala
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector"
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven
-        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
-    )
-  }
-
-  def mvnDeps = super.mvnDeps() ++ Seq(
-    mvn"io.github.humbleui:skija-macos-arm64:0.123.0",
-    mvn"io.github.humbleui:skija-windows-x64:0.123.0",
-    mvn"io.github.humbleui:skija-shared:0.123.0",
-  ) ++ catsEffectDeps
+  def mvnDeps = super.mvnDeps() ++ build.dependencies.skija ++ catsEffect
 
   def moduleDeps = super.moduleDeps ++ Seq(build.catnip, build.core.layout)
 
-  def pomSettings = PomSettings(
-    "desktop-skija-bindings",
-    "desktop-skija-bindings",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
+  def pomSettings = build.pomSettings("desktop-skija-bindings")
 
-  def publishVersion = "0.1.0-SNAPSHOT"
-}
+  def publishVersion = build.publishVersion
+end `package`

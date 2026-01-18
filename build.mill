@@ -1,41 +1,117 @@
-//| mill-version: 0.12.11
+//| mvnDeps:
+//| - com.goyeau::mill-scalafix::0.6.0
 package build
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import coursier.maven.MavenRepository
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
 import mill.scalalib.SbtModule
 
+object `package` extends Module:
+  object versions:
+    def cats = "2.13.0"
+    def catsEffect = "3.6.3"//"3.7-822a6d2-20260115T101917Z-SNAPSHOT"
+    def scala = "3.7.3"///"3.8.1-RC1-bin-SNAPSHOT"
+    def http4s = "1.0.0-M45"
+    def log4cats = "2.7.1"
+    def slf4jReload4j = "2.0.17"
+    def skija = "0.123.0"
+    def scalaCache = "1.0.0-M6"
+    def glfw4s = "0.1.42"
+    def scalaCheck = "1.19.0"
+    def scalaTest = "3.2.19"
+    def disciplineCore = "1.7.0"
+    def disciplineScalatest = "2.3.0"
+    def androidJunit = "1.2.1"
+    def androidRunner = "1.6.2"
+    def androidEspresso = "3.5.1"
+    def junit = "4.13.2"
+    def skikoAndroid = "0.99-SNAPSHOT"
+    def kotlin = "2.0.0"
+    def androidBuildTools = "35.0.0"
+  end versions
 
-object `package` extends SbtModule with PublishModule  {
-  def catsDeps = Seq(
-    mvn"org.typelevel::cats-core:2.13.0"
-  )
-
-  def catsEffectDeps = catsDeps ++ Seq(
-    mvn"org.typelevel::cats-effect:3.7-822a6d2-20260115T101917Z-SNAPSHOT"
-  )
-
-  def artifactName = "gui4s"
-
-  def scalaVersion = "3.8.1-RC1-bin-SNAPSHOT"
-
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven
-        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
+  object dependencies:
+    def cats = Seq(mvn"org.typelevel::cats-core:${versions.cats}")
+    def catsEffectModule = Seq(mvn"org.typelevel::cats-effect:${versions.catsEffect}")
+    def catsEffect = cats ++ catsEffectModule
+    
+    def http4s = Seq(
+      mvn"org.http4s::http4s-core:${versions.http4s}",
+      mvn"org.http4s::http4s-ember-client:${versions.http4s}"
     )
-  }
+    
+    def logging = Seq(
+      mvn"org.typelevel::log4cats-slf4j:${versions.log4cats}",
+      mvn"org.slf4j:slf4j-reload4j:${versions.slf4jReload4j}"
+    )
+    
+    def skija = Seq(
+      mvn"io.github.humbleui:skija-macos-arm64:${versions.skija}",
+      mvn"io.github.humbleui:skija-windows-x64:${versions.skija}",
+      mvn"io.github.humbleui:skija-shared:${versions.skija}"
+    )
+    
+    def scalaCache = Seq(
+      mvn"com.github.cb372::scalacache-caffeine:${versions.scalaCache}",
+      mvn"com.github.cb372::scalacache-core:${versions.scalaCache}"
+    )
+    
+    def glfw4s = Seq(
+      mvn"glfw4s:core-jvm_3:${versions.glfw4s}"
+    )
+    
+    def test = Seq(
+      mvn"org.scalacheck::scalacheck:${versions.scalaCheck}",
+      mvn"org.scalatest::scalatest:${versions.scalaTest}",
+      mvn"org.typelevel::cats-laws:${versions.cats}",
+      mvn"org.typelevel::discipline-core:${versions.disciplineCore}",
+      mvn"org.typelevel::discipline-scalatest:${versions.disciplineScalatest}"
+    )
+    
+    def androidTest = Seq(
+      mvn"androidx.test.ext:junit:${versions.androidJunit}",
+      mvn"androidx.test:runner:${versions.androidRunner}",
+      mvn"androidx.test.espresso:espresso-core:${versions.androidEspresso}",
+      mvn"junit:junit:${versions.junit}"
+    )
+    
+    def skikoAndroid = Seq(
+      mvn"org.jetbrains.skiko:skiko-android:${versions.skikoAndroid}",
+      mvn"org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}",
+      mvn"org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}",
+      mvn"org.jetbrains.skiko:skiko-android-runtime-arm64:${versions.skikoAndroid}".exclude("*" -> "*")
+    )
+  end dependencies
 
-  def pomSettings = PomSettings(
-    "gui4s",
-    "default",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
+  object imports:
+    def cats = "cats,cats.data,cats.arrow,cats.effect,cats.syntax.all,catnip,catnip.syntax.all"
+    def catsEffect = "cats.effect,cats.effect.syntax.all,cats.effect.std"
+    def catnip = "catnip,catnip.syntax.all"
+    def default = "java.lang,scala,scala.Predef"
+  end imports
+
+  object androidConfig:
+    def minSdk: Int = 33
+    def compileSdk: Int = 35
+    def targetSdk: Int = 35
+  end androidConfig
+
+  def myMavenRepository: MavenRepository = coursier.maven.MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
+
+  def pomSettings(description: String) = PomSettings(
+    description = description,
+    organization = "gui4s",
+    url = "https://github.com/GoogeTan/gui4s",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl(
+      browsableRepository = Some("https://github.com/GoogeTan/gui4s"),
+      connection = None,
+      developerConnection = None,
+      tag = None
+    ),
+    developers = Seq()
   )
 
-  def publishVersion = "0.1.0-SNAPSHOT"
-
-}
+  def publishVersion : String = "0.1.0-SNAPSHOT"

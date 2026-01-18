@@ -2,20 +2,22 @@ package gui4s.desktop.example
 
 import cats.Id
 import cats.data.EitherT
-import cats.effect.*
+import cats.effect._
 import cats.effect.std.Queue
-import glfw4s.core.*
-import glfw4s.core.pure.*
-import glfw4s.jna.bindings.types.*
+import glfw4s.core._
+import glfw4s.core.pure._
+import glfw4s.jna.bindings.types._
+
 import gui4s.core.kit.ContainerPlacementError
-import gui4s.desktop.kit.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.skija.*
-import gui4s.desktop.skija.typeface.*
+
+import gui4s.desktop.kit._
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
+import gui4s.desktop.skija._
+import gui4s.desktop.skija.typeface._
 
 object GridExample extends UIApp:
-  val settings = WindowCreationSettings(
+  val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
     title = "Gui4s nested containers example example",
     width = 620,
     height = 480,

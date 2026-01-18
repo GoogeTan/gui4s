@@ -1,13 +1,14 @@
 package gui4s.desktop.kit
 package effects
 
-import cats.*
+import cats._
 import cats.data.ReaderT
 import cats.effect.Sync
+import io.github.humbleui.skija._
+import io.github.humbleui.skija.paragraph._
+
 import gui4s.desktop.skija
-import gui4s.desktop.skija.canvas.*
-import io.github.humbleui.skija.*
-import io.github.humbleui.skija.paragraph.*
+import gui4s.desktop.skija.canvas._
 
 type Draw[IO[_]] = ReaderT[IO, Canvas, Unit]
 

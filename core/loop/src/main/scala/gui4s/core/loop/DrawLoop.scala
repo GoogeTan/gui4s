@@ -1,11 +1,11 @@
 package gui4s.core.loop
 
+import scala.concurrent.ExecutionContext
+
 import cats.Monad
 import cats.effect.Async
-import cats.effect.syntax.all.*
-import cats.syntax.all.*
-
-import scala.concurrent.ExecutionContext
+import cats.effect.syntax.all._
+import cats.syntax.all._
 
 /**
  * Принимает способ получить нынешнее дерево виджетов и возвращает бесконечный цикл отрисовки. Завершается только в случае ошибки.

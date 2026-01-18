@@ -1,10 +1,10 @@
 package gui4s.core.kit
 
-import catnip.syntax.transformer.{*, given}
-import catnip.transformer.*
+import catnip.syntax.transformer.{_, given}
+import catnip.transformer._
 import cats.Monad
 import cats.kernel.Monoid
-import cats.syntax.all.*
+import cats.syntax.all._
 
 type EventsTransformer[Events] = WriterTransformer[Events]
 

@@ -1,7 +1,8 @@
 package gui4s.desktop
 
 import cats.kernel.Monoid
-import io.github.humbleui.skija.{PathFillMode, PathOp}
+import io.github.humbleui.skija.PathFillMode
+import io.github.humbleui.skija.PathOp
 
 package object skija {
   type Canvas = io.github.humbleui.skija.Canvas

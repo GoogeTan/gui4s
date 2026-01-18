@@ -1,8 +1,8 @@
 package gui4s.core.widget
 
-import cats.syntax.all.*
-
 import scala.reflect.Typeable
+
+import cats.syntax.all._
 
 final case class StatefulState[State](initialState : State, currentState : State):
   override def toString: String =

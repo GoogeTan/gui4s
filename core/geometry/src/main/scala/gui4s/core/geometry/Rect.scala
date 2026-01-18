@@ -1,10 +1,10 @@
 package gui4s.core.geometry
 
-import cats.*
-import cats.syntax.all.*
-
-import scala.math.Numeric.Implicits.*
+import scala.math.Numeric.Implicits._
 import scala.math.Ordered.orderingToOrdered
+
+import cats._
+import cats.syntax.all._
 
 @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
 final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : MeasurementUnit):

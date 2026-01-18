@@ -3,10 +3,14 @@ package rowcolumn
 
 import catnip.Zip
 import catnip.Zip.zip
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, InfinityOr, Point2d, Rect}
-import gui4s.core.layout.linear.* 
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.linear._ 
 
 final case class ElementPlacementResult[Container[_], Point](coordinateOfEnd : Point, coordinatesOfStarts : Container[Point])
 

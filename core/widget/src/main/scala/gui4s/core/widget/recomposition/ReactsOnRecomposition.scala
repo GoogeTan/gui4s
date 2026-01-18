@@ -1,8 +1,10 @@
 package gui4s.core.widget
 package recomposition
 
-import cats.syntax.all.*
-import cats.{Contravariant, ContravariantMonoidal, Monoid}
+import cats.Contravariant
+import cats.ContravariantMonoidal
+import cats.Monoid
+import cats.syntax.all._
 
 type ReactsOnRecomposition[-Self, Recomposition] =
   (self : Self, pathToParent : Path, states : Map[String, StateTree[Recomposition]]) => Recomposition

@@ -1,7 +1,8 @@
 package gui4s.core.widget.library.animation
 
-import cats.{Group, Order}
-import cats.syntax.all.*
+import cats.Group
+import cats.Order
+import cats.syntax.all._
 
 final case class AnimationWidgetState[
   AnimatedValue,

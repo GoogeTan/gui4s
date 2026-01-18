@@ -1,7 +1,7 @@
 package gui4s.core.widget.library.animation
 
-import scala.math.abs
-import scala.Numeric.Implicits.given 
+import scala.Numeric.Implicits.given
+import scala.math.abs 
 
 trait NormedVectorSpace[A]:
   def zero: A

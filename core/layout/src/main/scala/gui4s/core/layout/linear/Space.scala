@@ -1,12 +1,13 @@
 package gui4s.core.layout
 package linear
 
-import cats.*
-import cats.data.*
-import cats.syntax.all.*
-import gui4s.core.geometry.*
+import scala.math.Numeric.Implicits._
 
-import scala.math.Numeric.Implicits.*
+import cats._
+import cats.data._
+import cats.syntax.all._
+
+import gui4s.core.geometry._
 
 /**
  * Считает расстояние между элементами. Предполагается, что они расположены в порядке отдаления от начала координат в положительную строну.

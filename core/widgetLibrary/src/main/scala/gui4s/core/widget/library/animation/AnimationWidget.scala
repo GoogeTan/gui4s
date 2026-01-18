@@ -1,8 +1,12 @@
 package gui4s.core.widget.library.animation
 
+import cats.Applicative
+import cats.Eq
+import cats.Group
+import cats.Order
 import cats.data.NonEmptyList
-import cats.syntax.all.*
-import cats.{Applicative, Eq, Group, Order}
+import cats.syntax.all._
+
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.MergeStates

@@ -1,10 +1,13 @@
 package gui4s.desktop.kit
 package effects
 
-import cats.*
+import cats._
+
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.kit.ContainerPlacementError
-import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy as GenericOneElementPlacementStrategy, PlacementStrategy as GenericPlacementStrategy}
+import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy => GenericOneElementPlacementStrategy}
+import gui4s.core.layout.rowcolumn.{PlacementStrategy => GenericPlacementStrategy}
+
 import gui4s.desktop.kit.effects.OuterPlace.given
 
 type LinearContainerPlacementStrategy[IO[_], Container[_]]

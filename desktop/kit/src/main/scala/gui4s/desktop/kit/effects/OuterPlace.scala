@@ -1,10 +1,12 @@
 package gui4s.desktop.kit
 package effects
 
-import catnip.{Get, Set}
-import cats.*
+import catnip.Get
+import catnip.Set
+import cats._
 import cats.data.EitherT
-import gui4s.core.kit.effects.OuterPlace as GenericOuterPlace
+
+import gui4s.core.kit.effects.{OuterPlace => GenericOuterPlace}
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 

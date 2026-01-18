@@ -1,11 +1,12 @@
 package gui4s.core.layout
 package linear
 
-import cats.Traverse
-import cats.syntax.all.*
-import gui4s.core.geometry.*
-
 import scala.math.Numeric.Implicits.infixNumericOps
+
+import cats.Traverse
+import cats.syntax.all._
+
+import gui4s.core.geometry._
 
 def placeEnd[MeasurementUnit : Numeric](size : MeasurementUnit, space : MeasurementUnit) : MeasurementUnit = space - size
 

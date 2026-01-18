@@ -1,9 +1,11 @@
 package gui4s.desktop.skija
 package paragraph
 
-import cats.effect.{Resource, Sync}
+import cats.effect.Resource
+import cats.effect.Sync
+import io.github.humbleui.skija.Paint
+import io.github.humbleui.skija.Typeface
 import io.github.humbleui.skija.paragraph.TextStyle
-import io.github.humbleui.skija.{Paint, Typeface}
 
 def makeTextStyle[F[_] : Sync as S] : Resource[F, TextStyle] =
   Resource.fromAutoCloseable(

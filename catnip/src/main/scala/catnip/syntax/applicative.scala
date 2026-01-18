@@ -1,10 +1,12 @@
 package catnip
 package syntax
 
+import cats.Applicative
+import cats.ApplicativeError
+import cats.Functor
 import cats.arrow.Strong
 import cats.kernel.Monoid
-import cats.syntax.all.*
-import cats.{Applicative, ApplicativeError, Functor}
+import cats.syntax.all._
 
 object applicative:
   type ApplicativeErrorC[Error] = [F[_]] =>> ApplicativeError[F, Error]

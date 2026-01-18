@@ -8,66 +8,60 @@ import build.android.*
 import mill.api.Task.Simple as T
 import os.Path
 
-object `package` extends AndroidAppScalaModule with Gui4sAndroidModule {
+object `package` extends AndroidAppScalaModule with Gui4sAndroidModule:
   def androidApplicationId = "gui4s.android.example"
   def androidApplicationNamespace = "gui4s.android.example"
 
   def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector",
-    "-Yimports:java.lang,scala,scala.Predef,cats,cats.data,cats.effect,cats.syntax.all,catnip,catnip.syntax.all,cats.effect.std"
+    s"-Yimports:${build.imports.default},${build.imports.cats},${build.imports.catsEffect}"
   )
 
-  def androidBuildSettings = Task {
+  def androidBuildSettings = Task:
     AndroidBuildTypeSettings(
       enableDesugaring = true,
       isMinifyEnabled = false
     )
-  }
 
-  override def mvnDeps = Seq(
-    mvn"org.http4s::http4s-core:1.0.0-M45",
-    mvn"org.http4s::http4s-ember-client:1.0.0-M45",
-    mvn"org.typelevel::log4cats-slf4j:2.7.1",
-    //mvn"org.slf4j:slf4j-reload4j:2.0.17",
-  )
+  override def mvnDeps = build.dependencies.http4s ++ build.dependencies.logging
 
   override def moduleDeps = Seq(
     build.android.kit,
     build.android.skia,
   )
 
-  override def androidVirtualDevice: T[AndroidVirtualDevice] = Task {
+  override def androidVirtualDevice: T[AndroidVirtualDevice] = Task:
     AndroidVirtualDevice(
       deviceId = "medium_phone",
-      apiVersion = "android-35",
+      apiVersion = s"android-${build.androidConfig.targetSdk}",
       architecture = "arm64-v8a",
       systemImageSource = "google_apis_playstore"
     )
-  }
 
-  def jniFiles = Task.Input {
+  def jniFiles = Task.Input:
     val jniLibsDir = millSourcePath0 / "src" / "main" / "jniLibs"
     val soFiles = os.walk(jniLibsDir).filter(_.toString.endsWith("so"))
-    soFiles.map { path =>
-      AndroidPackageableExtraFile(
-        source = PathRef(path),
-        destination = os.RelPath("lib") / path.relativeTo(jniLibsDir)
-      )
+    soFiles.map {
+      path =>
+        AndroidPackageableExtraFile(
+          source = PathRef(path),
+          destination = os.RelPath("lib") / path.relativeTo(jniLibsDir)
+        )
     }
-  }
+
   /*
   override def androidKnownProguardRules: T[String] = Task {
     super.androidKnownProguardRules() ++ "\n" ++ Seq(
       "-keep class cats.effect.std.Dispatcher** { *; }",
       "--keep class cats.effect.kernel.** { *; }",
-      "-dontwarn cats.effect.std.Dispatcher\\$\\$\\$ExternalSyntheticLambda**"
+      "-dontwarn cats.effect.std.Dispatcher\\\\$\$\$ExternalSyntheticLambda**"
     ).mkString("\n")
   }*/
 
-  override def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+  override def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] = Task:
     super.androidPackageableExtraFiles() ++ jniFiles()
-  }
+
   /**
    * Configuration for ReleaseKey
    * WARNING: Replace these default values with secure and private credentials before using in production.
@@ -79,20 +73,15 @@ object `package` extends AndroidAppScalaModule with Gui4sAndroidModule {
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  object test extends AndroidAppTests, TestModule.Junit4 {
-    def junit4Version = "4.13.2"
-  }
+  object test extends AndroidAppTests, TestModule.Junit4:
+    def junit4Version = build.versions.junit
+  end test
 
-  object it extends AndroidAppInstrumentedTests {
+  object it extends AndroidAppInstrumentedTests:
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
-    def mvnDeps = Seq(
-      mvn"androidx.test.ext:junit:1.2.1",
-      mvn"androidx.test:runner:1.6.2",
-      mvn"androidx.test.espresso:espresso-core:3.5.1",
-      mvn"junit:junit:4.13.2"
-    )
-  }
+    def mvnDeps = build.dependencies.androidTest
+  end it
 
-}
+end `package`

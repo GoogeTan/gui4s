@@ -1,6 +1,8 @@
 package gui4s.desktop.widget.library
 
-import cats.{~>, Monad}
+import cats.Monad
+import cats.~>
+
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.placeForTheFirstTime
 

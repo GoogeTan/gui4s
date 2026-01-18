@@ -1,14 +1,15 @@
 package gui4s.desktop.kit
 
-import cats.*
-import cats.data.*
-import cats.effect.*
-import gui4s.desktop.kit.effects.*
+import scala.concurrent.ExecutionContext
+
+import cats._
+import cats.data._
+import cats.effect._
+
 import gui4s.desktop.kit.effects.Place.given
+import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets.DesktopPlacedWidget
 import gui4s.desktop.widget.library.widgetLoops
-
-import scala.concurrent.ExecutionContext
 
 def desktopWidgetLoops[
   IO[_] : Async,

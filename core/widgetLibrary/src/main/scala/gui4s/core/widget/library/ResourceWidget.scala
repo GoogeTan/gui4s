@@ -1,12 +1,14 @@
 package gui4s.core.widget.library
 
+import scala.reflect.Typeable
+
 import catnip.BiMonad
 import cats.Functor
-import cats.data.*
-import gui4s.core.widget.Path
-import gui4s.core.widget.library.{TransitiveStatefulWidget, WithContext}
+import cats.data._
 
-import scala.reflect.Typeable
+import gui4s.core.widget.Path
+import gui4s.core.widget.library.TransitiveStatefulWidget
+import gui4s.core.widget.library.WithContext
 
 type ResourceWidget[Widget, F[_]] = [T : Typeable] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
 

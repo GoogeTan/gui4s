@@ -1,12 +1,15 @@
 package gui4s.core.widget.library.decorator
 
-import cats.*
-import cats.syntax.all.*
-import Decorator.given
 import catnip.syntax.monad.MonadErrorC
-import gui4s.core.geometry.{Axis, InfinityOr}
-import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
+import gui4s.core.layout.rowcolumn.PlacementStrategy
 import gui4s.core.widget.library.LinearContainer
+import gui4s.core.widget.library.decorator.Decorator$package.Decorator.given
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 

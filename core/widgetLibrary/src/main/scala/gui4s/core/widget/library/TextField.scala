@@ -1,12 +1,13 @@
 package gui4s.core.widget.library
 
-import catnip.BiMonad
-import cats.*
-import cats.data.*
-import cats.syntax.all.*
-import gui4s.core.widget.Path
-
 import scala.math.min
+
+import catnip.BiMonad
+import cats._
+import cats.data._
+import cats.syntax.all._
+
+import gui4s.core.widget.Path
 
 final case class TextFieldState(
                                  lines: List[String] = Nil,

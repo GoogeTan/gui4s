@@ -1,6 +1,6 @@
 package gui4s.core.geometry
 
-import scala.math.Numeric.Implicits.*
+import scala.math.Numeric.Implicits._
 
 final case class Rect1dOnPoint1d[T](length: T, coordinateOfTheBeginning: T):
   def coordinateOfTheEnd(using n : Numeric[T]): T = length + coordinateOfTheBeginning

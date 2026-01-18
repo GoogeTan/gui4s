@@ -1,11 +1,12 @@
 package gui4s.core.widget.library
 
+import scala.reflect.Typeable
+
 import catnip.ContT
 import cats.data.NonEmptyList
+
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
-
-import scala.reflect.Typeable
 
 type MergeStates[Place[_], State] = [T] => (StatefulState[State], StatefulState[State], StatefulState[State] => Place[T]) => Place[T]
 type MergeStates2[Place[_], State] =

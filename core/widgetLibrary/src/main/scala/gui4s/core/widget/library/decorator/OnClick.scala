@@ -1,9 +1,11 @@
 package gui4s.core.widget.library.decorator
 
-import cats.*
-import cats.syntax.all.*
+import cats._
+import cats.syntax.all._
+
 import gui4s.core.widget.Path
-import gui4s.core.widget.library.decorator.{Decorator, EventCatcherWithRect}
+import gui4s.core.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
 def clickCatcher[
   Widget,

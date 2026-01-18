@@ -2,8 +2,9 @@ package gui4s.core.widget
 package merge
 
 import cats.Functor
-import cats.arrow.{CommutativeArrow, Strong}
-import cats.syntax.all.*
+import cats.arrow.CommutativeArrow
+import cats.arrow.Strong
+import cats.syntax.all._
 
 type MergesWithOldStates[-Self, -RecompositionAction, +UpdatedSelf] =
   (self : Self, pathToParent : Path, oldInnerStates : Map[String, StateTree[RecompositionAction]]) => UpdatedSelf

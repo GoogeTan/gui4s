@@ -4,11 +4,11 @@ import mill.*
 import mill.scalalib.*
 import build.android.*
 import coursier.maven.MavenRepository
-import build.catsEffectDeps
+import build.dependencies.catsEffect
 
 object `package` extends AndroidLibScalaModule with Gui4sAndroidPublishModule:
   override def androidLibPackage : String = "gui4s.android.skia"
-  override def publishVersion = "0.1.0"
+  override def publishVersion = build.publishVersion
 
   override def repositoriesTask = Task.Anon:
     super.repositoriesTask() ++ Seq(
@@ -19,16 +19,11 @@ object `package` extends AndroidLibScalaModule with Gui4sAndroidPublishModule:
 
   def moduleDeps = super.moduleDeps ++ Seq(build.catnip, build.core.layout)
 
-  override def mvnDeps = Seq(
-    mvn"org.jetbrains.skiko:skiko-android:0.99-SNAPSHOT",
-    mvn"org.jetbrains.kotlin:kotlin-stdlib:2.0.0",
-    mvn"org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0",
-    mvn"org.jetbrains.skiko:skiko-android-runtime-arm64:0.99-SNAPSHOT".exclude("*" -> "*")
-  ) ++ catsEffectDeps
+  override def mvnDeps = build.dependencies.skikoAndroid ++ catsEffect
 
   def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector",
-    "-Yimports:java.lang,scala,scala.Predef,cats,cats.data,cats.arrow,cats.effect,cats.syntax.all,catnip,catnip.syntax.all,cats.effect.std"
+    s"-Yimports:${build.imports.default},${build.imports.cats},${build.imports.catsEffect}"
   )
 end `package`

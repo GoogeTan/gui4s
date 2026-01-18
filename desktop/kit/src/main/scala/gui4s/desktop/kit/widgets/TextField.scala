@@ -1,18 +1,19 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats.*
-import cats.effect.*
-import cats.syntax.all.*
+import cats._
+import cats.effect._
+import cats.syntax.all._
+
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
+import gui4s.core.widget.library.TextFieldEvent
+import gui4s.core.widget.library.TextFieldState
+
 import gui4s.desktop.kit.effects.Update.given
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.skija.paragraph.*
-import gui4s.core.widget.library.{TextFieldEvent, TextFieldState}
-import gui4s.desktop.skija.*
-import gui4s.desktop.skija.paragraph.*
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
+import gui4s.desktop.skija.paragraph._
 
 def textField[
   IO[_] : MonadThrow,

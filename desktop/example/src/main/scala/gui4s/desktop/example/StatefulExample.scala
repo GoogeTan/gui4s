@@ -1,25 +1,28 @@
 package gui4s.desktop.example
 
 import catnip.syntax.all.given
-import cats.*
-import cats.data.*
-import cats.effect.*
+import cats._
+import cats.data._
+import cats.effect._
 import cats.effect.std.Queue
-import cats.syntax.all.*
-import glfw4s.core.*
-import glfw4s.core.pure.*
-import glfw4s.jna.bindings.types.*
-import gui4s.core.geometry.*
-import gui4s.desktop.kit.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.kit.widgets.{DesktopWidget, statefulWidget, TextWidget}
-import gui4s.desktop.skija.*
-import gui4s.desktop.skija.typeface.*
-import io.github.humbleui.skija.*
+import cats.syntax.all._
+import glfw4s.core._
+import glfw4s.core.pure._
+import glfw4s.jna.bindings.types._
+
+import gui4s.core.geometry._
+
+import gui4s.desktop.kit._
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets.DesktopWidget
+import gui4s.desktop.kit.widgets.TextWidget
+import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.kit.widgets.statefulWidget
+import gui4s.desktop.skija._
+import gui4s.desktop.skija.typeface._
 
 object StatefulExample extends UIApp:
-  override val settings = WindowCreationSettings(
+  override val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
     title = "Gui4s clickable example",
     width = 620,
     height = 480,

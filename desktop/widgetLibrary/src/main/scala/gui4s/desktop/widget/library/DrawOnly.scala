@@ -1,8 +1,9 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.*
-import cats.*
-import cats.syntax.all.*
+import catnip.syntax.all._
+import cats._
+import cats.syntax.all._
+
 import gui4s.core.widget.free.AsFree
 import gui4s.core.widget.handle.handlesNothing
 import gui4s.core.widget.merge.anyHasNothingToMerge

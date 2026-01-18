@@ -2,15 +2,16 @@ package gui4s.desktop.kit
 package widgets.decorator
 
 import catnip.syntax.list.traverseOne
-import cats.*
+import cats._
 import cats.effect.kernel.Sync
-import cats.syntax.all.*
+
 import gui4s.core.geometry.Point3d
 import gui4s.core.layout.Sized
-import gui4s.core.widget.library.decorator.{Decorator, Paddings}
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.OuterPlace.given
-import gui4s.desktop.kit.widgets.*
+import gui4s.core.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.Paddings
+
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
 
 def gapPaddingWidget[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[DesktopWidget[IO, Event]] =
   original =>

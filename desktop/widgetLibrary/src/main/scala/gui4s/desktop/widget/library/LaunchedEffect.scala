@@ -1,16 +1,18 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.{*, given}
-import cats.*
-import cats.arrow.Strong
-import cats.syntax.all.*
-import gui4s.core.widget.handle.{*, given}
-import gui4s.core.widget.merge.launchedEffectMergesWithOldState
-import gui4s.core.widget.recomposition.{*, given}
-import gui4s.core.widget.state.{*, given}
-import gui4s.core.widget.{LaunchedEffect, Path}
-
 import scala.reflect.Typeable
+
+import catnip.syntax.all.{_, given}
+import cats._
+import cats.arrow.Strong
+import cats.syntax.all._
+
+import gui4s.core.widget.LaunchedEffect
+import gui4s.core.widget.Path
+import gui4s.core.widget.handle.{_, given}
+import gui4s.core.widget.merge.launchedEffectMergesWithOldState
+import gui4s.core.widget.recomposition.{_, given}
+import gui4s.core.widget.state.{_, given}
 
 type LaunchedEffectWidget[Widget, Key, Task] = (name : String, child : Widget, key : Key, task : Task) => Widget
 

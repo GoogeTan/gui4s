@@ -1,10 +1,10 @@
 package catnip
 package syntax
 
-import catnip.transformer.*
-import cats.*
-import cats.data.*
-import cats.syntax.all.*
+import catnip.transformer._
+import cats._
+import cats.data._
+import cats.syntax.all._
 
 object transformer:
   type <>[F[_[_], _], G[_[_], _]] = [IO[_], T] =>> F[G[IO, *], T]

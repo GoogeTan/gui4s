@@ -2,10 +2,10 @@ package gui4s.core.kit
 package effects
 
 import catnip.BiMonad
-import catnip.syntax.transformer.{*, given}
-import catnip.transformer.*
-import cats.*
-import cats.data.*
+import catnip.syntax.transformer.{_, given}
+import catnip.transformer._
+import cats._
+import cats.data._
 import cats.kernel.Monoid
 
 type UpdateTransformer[State, Events, Error] =

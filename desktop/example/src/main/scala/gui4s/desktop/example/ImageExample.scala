@@ -1,33 +1,42 @@
 package gui4s.desktop.example
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.given
 import cats.Id
 import cats.data.EitherT
-import cats.effect.*
-import cats.effect.std.*
-import glfw4s.core.*
-import glfw4s.core.pure.*
-import glfw4s.jna.bindings.types.*
-import gui4s.core.geometry.*
-import gui4s.core.layout.rowcolumn
-import gui4s.desktop.kit.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.skija.image.makeDeferredImageFromEncodedBytes
-import gui4s.desktop.skija.shaper.*
-import gui4s.desktop.skija.{Font, Image, Paint, SkijaTextStyle, Typeface, typeface}
+import cats.effect._
+import cats.effect.std._
+import glfw4s.core._
+import glfw4s.core.pure._
+import glfw4s.jna.bindings.types._
 import io.github.humbleui.skija.BlendMode
+
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jFactory
-import org.typelevel.log4cats.{LoggerFactory, SelfAwareStructuredLogger}
+
+import gui4s.core.geometry._
+import gui4s.core.layout.rowcolumn
+
+import gui4s.desktop.kit._
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.skija.Font
+import gui4s.desktop.skija.Image
+import gui4s.desktop.skija.Paint
+import gui4s.desktop.skija.SkijaTextStyle
+import gui4s.desktop.skija.Typeface
+import gui4s.desktop.skija.image.makeDeferredImageFromEncodedBytes
+import gui4s.desktop.skija.shaper._
+import gui4s.desktop.skija.typeface
 
 object ImageExample extends UIApp:
   given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
   given logger: SelfAwareStructuredLogger[IO] = logging.getLogger
 
-  val settings = WindowCreationSettings(
+  val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
     title = "Gui4s image example",
     width = 736/2,//TODO исправить то, что задается в пикселях, а не экранных координатах
     height = 920/2,

@@ -1,13 +1,14 @@
 package gui4s.core.widget.library
 
+import scala.reflect.Typeable
+
 import catnip.BiMonad
-import cats.*
+import cats._
 import cats.data.NonEmptyList
+
 import gui4s.core.widget.Path
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
-
-import scala.reflect.Typeable
 
 type WithContext[Widget, +Memories] =
   (Memories => Widget) => Widget

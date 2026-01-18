@@ -1,6 +1,8 @@
 package gui4s.desktop.widget.library
 
-import cats.{Functor, Monad}
+import cats.Functor
+import cats.Monad
+
 import gui4s.core.widget.free.AsFree
 import gui4s.core.widget.handle.handlesNothing
 import gui4s.core.widget.merge.anyHasNothingToMerge

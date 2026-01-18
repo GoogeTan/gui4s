@@ -1,9 +1,11 @@
 package gui4s.desktop.kit
 package effects
 
+import io.github.humbleui.skija._
+import io.github.humbleui.types.{RRect => SkijaRounedRect}
+import io.github.humbleui.types.{Rect => SkijaRect}
+
 import gui4s.core.geometry.Rect
-import io.github.humbleui.skija.*
-import io.github.humbleui.types.{RRect as SkijaRounedRect, Rect as SkijaRect}
 
 object Shapes:
   def round(rect : Rect[Float]) : Clip =

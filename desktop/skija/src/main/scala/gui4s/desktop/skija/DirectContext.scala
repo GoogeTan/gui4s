@@ -1,6 +1,7 @@
 package gui4s.desktop.skija
 
-import cats.effect.{Resource, Sync}
+import cats.effect.Resource
+import cats.effect.Sync
 import io.github.humbleui.skija.DirectContext
 
 object DirectContext:

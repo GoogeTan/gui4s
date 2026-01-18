@@ -1,7 +1,10 @@
 package gui4s.core.layout
 
 import cats.Functor
-import gui4s.core.geometry.{Point2d, Point3d, Rect}
+
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
 
 final case class Placed[+MeasurementUnit, +T](value : T, coordinate : Point3d[MeasurementUnit], size : Rect[MeasurementUnit]):
   def this(sized : Sized[MeasurementUnit, T], coordinate : Point3d[MeasurementUnit]) = 

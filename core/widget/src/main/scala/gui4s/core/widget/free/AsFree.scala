@@ -2,7 +2,7 @@ package gui4s.core.widget
 package free
 
 import cats.Functor
-import cats.syntax.all.*
+import cats.syntax.all._
 
 type AsFreeF[Placed, F[_]] = AsFree[Placed, F[Placed]]
 

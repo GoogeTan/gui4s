@@ -1,9 +1,10 @@
 package catnip
 package syntax
 
-import cats.effect.*
-import cats.syntax.all.*
-import cats.{FlatMap, MonadError}
+import cats.FlatMap
+import cats.MonadError
+import cats.effect._
+import cats.syntax.all._
 
 object monad:
   /**

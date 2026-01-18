@@ -1,10 +1,14 @@
 package gui4s.core.widget
 package handle
 
-import catnip.syntax.additional.*
+import catnip.syntax.additional._
 import catnip.syntax.list.traverseUntil
-import cats.syntax.all.*
-import cats.{Functor, Monad, Order, Traverse}
+import cats.Functor
+import cats.Monad
+import cats.Order
+import cats.Traverse
+import cats.syntax.all._
+
 import gui4s.core.widget.free.AsFree
 
 type Layout[Place[_], Container[_], Widget, Meta] = Container[Place[Widget]] => Place[Container[(Widget, Meta)]]

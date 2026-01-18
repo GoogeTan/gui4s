@@ -4,37 +4,23 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
-import build.catsEffectDeps
+import build.dependencies.catsEffect
+import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule with ScalafixModule:
 
-  def scalaVersion = build.scalaVersion
+  def scalaVersion = build.versions.scala
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector"
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven
-        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
-    )
-  }
-
-  def mvnDeps = super.mvnDeps() ++ catsEffectDeps
+  def mvnDeps = super.mvnDeps() ++ catsEffect
 
   def moduleDeps = super.moduleDeps ++ Seq(build.catnip)
 
-  def pomSettings = PomSettings(
-    "loop",
-    "loop",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
+  def pomSettings = build.pomSettings("loop")
 
-  def publishVersion = "0.1.0-SNAPSHOT"
-
-}
+  def publishVersion = build.publishVersion
+end `package`

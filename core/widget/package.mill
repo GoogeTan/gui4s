@@ -3,49 +3,30 @@ package build.core.widget
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
-import mill.scalalib.SbtModule
+import mill.scalalib.{SbtModule}
+import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule with ScalafixModule:
 
-  def scalaVersion = build.scalaVersion
+  def scalaVersion = build.versions.scala
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector"
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven
-        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
-    )
-  }
-
-  def mvnDeps = super.mvnDeps() ++ build.catsDeps
+  def mvnDeps = super.mvnDeps() ++ build.dependencies.cats
 
   def moduleDeps = super.moduleDeps ++ Seq(build.catnip)
 
-  def pomSettings = PomSettings(
-    "widget",
-    "widget",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
+  def pomSettings = build.pomSettings("widget")
 
-  def publishVersion = "0.1.0-SNAPSHOT"
+  def publishVersion = build.publishVersion
 
-  object test extends SbtTests with TestModule.ScalaTest {
+  object test extends SbtTests with TestModule.ScalaTest:
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.scalacheck::scalacheck:1.19.0",
-      mvn"org.scalatest::scalatest:3.2.19",
-      mvn"org.typelevel::cats-laws:2.13.0",
-      mvn"org.typelevel::discipline-core:1.7.0",
-      mvn"org.typelevel::discipline-scalatest:2.3.0"
-    )
+    def mvnDeps = super.mvnDeps() ++ build.dependencies.test
 
     def testSandboxWorkingDir = false
-  }
-}
+  end test
+end `package`

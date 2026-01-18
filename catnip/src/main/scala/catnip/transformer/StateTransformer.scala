@@ -1,9 +1,11 @@
 package catnip.transformer
 
-import catnip.syntax.transformer.{*, given}
+import catnip.syntax.transformer.{_, given}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
 import cats.data.StateT
-import cats.syntax.all.*
-import cats.{Applicative, Functor, Monad}
+import cats.syntax.all._
 
 type StateTransformer[State] = [IO[_], T] =>> StateT[IO, State, T]
 

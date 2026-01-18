@@ -1,11 +1,12 @@
 package gui4s.core.layout
 package linear
 
-import cats.Traverse
-import cats.syntax.all.*
-import gui4s.core.geometry.*
+import scala.math.Fractional.Implicits._
 
-import scala.math.Fractional.Implicits.*
+import cats.Traverse
+import cats.syntax.all._
+
+import gui4s.core.geometry._
 
 def placeCenter[T : Fractional](size : T, space : T) : T = (space - size) / Numeric[T].fromInt(2)
 

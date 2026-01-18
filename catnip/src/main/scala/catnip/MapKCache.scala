@@ -1,7 +1,9 @@
 package catnip
 
-import cats.syntax.all.*
-import cats.{Applicative, Monad, ~>}
+import cats.Applicative
+import cats.Monad
+import cats.syntax.all._
+import cats.~>
 
 final class MapKCache[IO[_] : Applicative, GIO[_] : Monad, K, V](original : Cache[IO, K, V], f : IO ~> GIO) extends Cache[GIO, K, V]:
   override def get(key : K) : GIO[Option[V]] =

@@ -1,11 +1,12 @@
 package gui4s.core.layout
 package linear
 
-import cats.Traverse
-import cats.syntax.all.*
-import gui4s.core.geometry.*
+import scala.math.Numeric.Implicits._
 
-import scala.math.Numeric.Implicits.*
+import cats.Traverse
+import cats.syntax.all._
+
+import gui4s.core.geometry._
 
 def placeBegin[MeasurementUnit : Numeric] : MeasurementUnit = Numeric[MeasurementUnit].zero
 

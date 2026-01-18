@@ -1,14 +1,16 @@
 package gui4s.desktop.kit.widgets
 
-import cats.*
+import scala.concurrent.duration.Duration
+
+import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Clock
-import cats.syntax.all.*
-import gui4s.core.widget.library.animation.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.decorator.eventCatcher
+import cats.syntax.all._
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import gui4s.core.widget.library.animation._
+
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets.decorator.eventCatcher
 
 def animationWidget[
   IO[_] : {MonadThrow, Clock as ClockIO},

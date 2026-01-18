@@ -4,26 +4,20 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
+import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule with ScalafixModule:
 
   def artifactName = "desktop-widget-library"
 
-  def scalaVersion = build.scalaVersion 
+  def scalaVersion = build.versions.scala 
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector"
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven
-        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
-    )
-  }
-
-  def mvnDeps = super.mvnDeps() ++ build.catsDeps
+  def mvnDeps = super.mvnDeps() ++ build.dependencies.cats
 
   def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
     build.catnip,
@@ -35,24 +29,14 @@ object `package` extends SbtModule with PublishModule {
     build.core.widgetLibrary
   )
 
-  def pomSettings: T[PomSettings] = PomSettings(
-    "desktop-widget-library",
-    "desktop-widget-library",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
+  def pomSettings: T[PomSettings] = build.pomSettings("desktop-widget-library")
 
-  def publishVersion = "0.1.0-SNAPSHOT"
+  def publishVersion = build.publishVersion
 
-  object test extends SbtTests with TestModule.ScalaTest {
+  object test extends SbtTests with TestModule.ScalaTest:
 
-    def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
-      mvn"org.scalacheck::scalacheck:1.19.0",
-      mvn"org.scalatest::scalatest:3.2.19",
-    )
+    def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ build.dependencies.test
 
     def testSandboxWorkingDir = false
-  }
-}
+  end test
+end `package`

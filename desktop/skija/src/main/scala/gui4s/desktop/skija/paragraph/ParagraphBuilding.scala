@@ -1,12 +1,13 @@
 package gui4s.desktop.skija
 package paragraph
 
+import cats.Monad
+import cats.Monoid
 import cats.arrow.Arrow
 import cats.data.Kleisli
-import cats.effect.{Resource, Sync}
-import cats.syntax.all.*
-import cats.{Monad, Monoid}
-import io.github.humbleui.skija.paragraph.*
+import cats.effect.Sync
+import cats.syntax.all._
+import io.github.humbleui.skija.paragraph._
 
 type ParagraphBuilding[F[_]] = Kleisli[F, ParagraphBuilder, ParagraphBuilder]
 

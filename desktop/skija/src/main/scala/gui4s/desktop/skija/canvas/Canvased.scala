@@ -1,9 +1,10 @@
 package gui4s.desktop.skija
 package canvas
 
+import cats.Applicative
+import cats.FlatMap
 import cats.data.ReaderT
 import cats.effect.Sync
-import cats.{Applicative, FlatMap}
 import io.github.humbleui.skija.Canvas
 
 //TODO refactor me

@@ -2,11 +2,12 @@ package gui4s.desktop.kit
 package effects
 
 import cats.effect.kernel.Sync
-import cats.kernel.Monoid
+
 import gui4s.core.geometry.Point3d
+
 import gui4s.desktop.kit.effects.Draw.given
+import gui4s.desktop.skija._
 import gui4s.desktop.skija.canvas.withClipedPath
-import gui4s.desktop.skija.*
 
 type Clip = Path
 

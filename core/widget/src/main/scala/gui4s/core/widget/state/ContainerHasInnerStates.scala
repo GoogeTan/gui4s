@@ -2,7 +2,7 @@ package gui4s.core.widget
 package state
 
 import cats.Foldable
-import cats.syntax.all.*
+import cats.syntax.all._
 
 def containerHasInnerStates[Widget, C[_] : Foldable, Layout, RecompositionAction](initial : HasInnerStates[Widget, RecompositionAction]) : HasInnerStates[Container[C[Widget], Layout], RecompositionAction] =
   self =>

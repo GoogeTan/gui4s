@@ -2,13 +2,13 @@ package gui4s.desktop.kit
 package widgets.decorator
 
 import cats.effect.Sync
-import cats.syntax.all.*
-import gui4s.core.geometry.Rect
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Clip.given
-import gui4s.desktop.kit.widgets.DesktopWidget
+import cats.syntax.all._
 
-import scala.annotation.targetName
+import gui4s.core.geometry.Rect
+
+import gui4s.desktop.kit.effects.Clip.given
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets.DesktopWidget
 
 def clipWidget[IO[_] : Sync, Event](value : DesktopWidget[IO, Event], path : Rect[Float] => Clip) : DesktopWidget[IO, Event] =
   gui4s.desktop.widget.library.decorator.clipWidget[

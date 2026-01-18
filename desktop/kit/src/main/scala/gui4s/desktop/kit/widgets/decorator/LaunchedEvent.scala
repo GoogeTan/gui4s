@@ -1,14 +1,18 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats.*
-import cats.effect.std.Supervisor
-import cats.syntax.all.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.{DesktopPlacedWidget, DesktopWidget}
-import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
-
 import scala.reflect.Typeable
+
+import cats._
+import cats.effect.std.Supervisor
+import cats.syntax.all._
+
+import gui4s.core.widget.library.LaunchedEffectWidget
+import gui4s.core.widget.library.{launchedEvent => genericLaunchedEvent}
+
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets.DesktopPlacedWidget
+import gui4s.desktop.kit.widgets.DesktopWidget
 
 trait LaunchedEvent[IO[_]]:
   def apply[Key : Typeable, Event](

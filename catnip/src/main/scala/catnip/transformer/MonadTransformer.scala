@@ -1,7 +1,7 @@
 package catnip
 package transformer
 
-import cats.*
+import cats._
 
 trait MonadTransformer[F[_[_], _]]:
   given monadInstance[IO[_] : Monad]: Monad[F[IO, *]] = scala.compiletime.deferred

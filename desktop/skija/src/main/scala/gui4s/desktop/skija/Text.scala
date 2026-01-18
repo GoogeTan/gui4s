@@ -1,10 +1,13 @@
 package gui4s.desktop.skija
 
 import cats.effect.Sync
+import io.github.humbleui.skija.Font
+import io.github.humbleui.skija.Paint
+import io.github.humbleui.skija.TextBlob
+import io.github.humbleui.skija.shaper.Shaper
+
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
-import io.github.humbleui.skija.shaper.Shaper
-import io.github.humbleui.skija.{Font, Paint, TextBlob}
 
 final case class SkijaTextStyle(font: Font, paint: Paint)
 final case class SkijaPlacedText(original : String, textBlob: TextBlob, paint: Paint)

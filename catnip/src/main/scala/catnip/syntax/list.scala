@@ -1,10 +1,17 @@
 package catnip
 package syntax
 
+import cats.Applicative
+import cats.Foldable
+import cats.Functor
 import cats.Id
-import cats.data.{NonEmptyList, StateT}
-import cats.syntax.all.*
-import cats.{Applicative, Foldable, Functor, Monad, Order, SemigroupK, Traverse}
+import cats.Monad
+import cats.Order
+import cats.SemigroupK
+import cats.Traverse
+import cats.data.NonEmptyList
+import cats.data.StateT
+import cats.syntax.all._
 
 object list:
   def fromList[C[_] : {Applicative as A, SemigroupK as S}, T](c : NonEmptyList[T]) : C[T] =

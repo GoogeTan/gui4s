@@ -1,10 +1,12 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.additional.*
-import cats.*
-import gui4s.core.geometry.*
+import catnip.syntax.additional._
+import cats._
+
+import gui4s.core.geometry._
+import gui4s.core.layout.Sized
+import gui4s.core.layout.SizedC
 import gui4s.core.layout.rowcolumn.PlacementStrategy
-import gui4s.core.layout.{Sized, SizedC}
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 

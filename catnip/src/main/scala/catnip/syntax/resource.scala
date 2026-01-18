@@ -1,10 +1,18 @@
 package catnip
 package syntax
 
-import catnip.resource.{Allocate, Eval, EvalC, Make}
-import cats.effect.{IO, LiftIO, MonadCancel, Resource}
-import cats.syntax.all.*
-import cats.{FlatMap, Functor, ~>}
+import catnip.resource.Allocate
+import catnip.resource.Eval
+import catnip.resource.EvalC
+import catnip.resource.Make
+import cats.FlatMap
+import cats.Functor
+import cats.effect.IO
+import cats.effect.LiftIO
+import cats.effect.MonadCancel
+import cats.effect.Resource
+import cats.syntax.all._
+import cats.~>
 
 object resource:
   extension [IO[_], Resource[_] : {FlatMap, EvalC[IO]}, A](value: Resource[A])

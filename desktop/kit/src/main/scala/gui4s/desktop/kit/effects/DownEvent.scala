@@ -1,7 +1,8 @@
 package gui4s.desktop.kit
 package effects
 
-import cats.syntax.all.*
+import cats.syntax.all._
+
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
 

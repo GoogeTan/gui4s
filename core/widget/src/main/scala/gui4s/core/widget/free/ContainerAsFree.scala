@@ -1,10 +1,10 @@
 package gui4s.core.widget
 package free
 
-import handle.Layout
-
 import cats.Functor
-import cats.syntax.functor.*
+import cats.syntax.functor._
+
+import gui4s.core.widget.handle.Layout
 
 def containerAsFree[Place[_] : Functor, C[_] : Functor, Widget, Meta](
   widgetAsFree : AsFree[Widget, Place[Widget]]

@@ -2,8 +2,8 @@ package gui4s.desktop.skija
 package canvas
 
 import cats.effect.kernel.Sync
+import cats.syntax.all._
 import io.github.humbleui.skija.Path
-import cats.syntax.all.*
 
 def clipPath[IO[_] : {Sync, Canvased}](path: Path): IO[Unit] =
   Canvased.applyCanvasFFI(_.clipPath(path))

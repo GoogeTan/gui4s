@@ -1,15 +1,16 @@
 package gui4s.desktop.widget.library
 
-import cats.*
-import cats.effect.*
+import scala.concurrent.ExecutionContext
+
+import cats._
+import cats.effect._
 import cats.effect.kernel.Concurrent
-import cats.syntax.all.*
-import gui4s.core.loop.*
+import cats.syntax.all._
+
+import gui4s.core.loop._
 import gui4s.core.widget.Path
 import gui4s.core.widget.draw.Drawable
 import gui4s.core.widget.library.processEvent
-
-import scala.concurrent.ExecutionContext
 
 def widgetLoops[
   IO[_] : Async,

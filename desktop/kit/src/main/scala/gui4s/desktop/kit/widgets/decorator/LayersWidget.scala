@@ -1,17 +1,18 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import catnip.syntax.all.*
-import cats.*
-import cats.effect.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Point2d, Rect}
+import catnip.syntax.all._
+import cats._
+import cats.effect._
+
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
 import gui4s.core.layout.rowcolumn.PlacementStrategy
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.{LinearContainerPlacementStrategy as _, *}
+import gui4s.core.widget.library.decorator.Decorator
+
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.RecompositionReaction.given
-import gui4s.desktop.kit.widgets.*
-import gui4s.core.widget.library.decorator.Decorator
+import gui4s.desktop.kit.effects.{LinearContainerPlacementStrategy => _, _}
+import gui4s.desktop.kit.widgets._
 
 def layersWidget[IO[_] : Sync, Event](
                                        background : List[DesktopWidget[IO, Event]],

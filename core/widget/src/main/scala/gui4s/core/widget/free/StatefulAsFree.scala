@@ -2,7 +2,7 @@ package gui4s.core.widget
 package free
 
 import cats.Functor
-import cats.syntax.functor.*
+import cats.syntax.functor._
 
 def statefulAsFree[
   Place[_] : Functor,

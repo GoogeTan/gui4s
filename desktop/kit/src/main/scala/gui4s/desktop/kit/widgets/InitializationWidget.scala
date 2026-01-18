@@ -1,10 +1,11 @@
 package gui4s.desktop.kit.widgets
 
-import cats.*
-import cats.effect.Resource
-import gui4s.core.widget.library.WithContext
-
 import scala.reflect.Typeable
+
+import cats._
+import cats.effect.Resource
+
+import gui4s.core.widget.library.WithContext
 
 
 trait InitializationWidget[IO[_]]:

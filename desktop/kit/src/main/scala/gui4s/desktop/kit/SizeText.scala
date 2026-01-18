@@ -1,12 +1,17 @@
 package gui4s.desktop.kit
 
 import catnip.Cache
-import catnip.syntax.all.*
+import catnip.syntax.all._
 import cats.effect.kernel.Sync
-import cats.syntax.all.*
-import gui4s.core.layout.{Sized, SizedC}
-import gui4s.desktop.skija.{SkijaPlacedText, SkijaTextStyle, placeText}
-import gui4s.desktop.skija.shaper.*
+import cats.syntax.all._
+
+import gui4s.core.layout.Sized
+import gui4s.core.layout.SizedC
+
+import gui4s.desktop.skija.SkijaPlacedText
+import gui4s.desktop.skija.SkijaTextStyle
+import gui4s.desktop.skija.placeText
+import gui4s.desktop.skija.shaper._
 
 type SizeText[Place[_]] = (text: String, options: SkijaTextStyle) => Place[SkijaPlacedText]
 type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]

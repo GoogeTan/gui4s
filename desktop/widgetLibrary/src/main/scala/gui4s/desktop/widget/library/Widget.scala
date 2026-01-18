@@ -1,15 +1,18 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.additional.*
+import catnip.syntax.additional._
 import cats.Functor
-import cats.syntax.all.*
+import cats.syntax.all._
+
+import gui4s.core.widget.Path
+import gui4s.core.widget.StateTree
 import gui4s.core.widget.draw.Drawable
 import gui4s.core.widget.free.AsFree
-import gui4s.core.widget.handle.{HandlesEvent, HandlesEventF}
+import gui4s.core.widget.handle.HandlesEvent
+import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.merge.MergesWithOldStates
 import gui4s.core.widget.recomposition.ReactsOnRecomposition
 import gui4s.core.widget.state.HasInnerStates
-import gui4s.core.widget.{Path, StateTree}
 
 type WidgetHandlesEvent[-HandleableEvent, +UpdatedWidget] = (pathToParent: Path, event: HandleableEvent) => UpdatedWidget
 

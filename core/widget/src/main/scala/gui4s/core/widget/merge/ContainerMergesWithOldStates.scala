@@ -2,7 +2,8 @@ package gui4s.core.widget
 package merge
 
 import cats.Functor
-import cats.syntax.all.*
+import cats.syntax.all._
+
 import gui4s.core.widget.handle.Layout
 
 def containerMergesWithOldStates[

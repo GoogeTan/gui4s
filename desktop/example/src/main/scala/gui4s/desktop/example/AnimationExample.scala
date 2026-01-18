@@ -1,43 +1,48 @@
 package gui4s.desktop.example
 
-import catnip.*
-import catnip.syntax.all.{*, given}
+import java.util.concurrent.TimeUnit
+
+import scala.concurrent.duration._
+import scala.reflect.Typeable
+
+import catnip._
+import catnip.syntax.all.given
 import cats.data.EitherT
-import cats.effect.*
-import cats.effect.std.*
-import cats.syntax.all.*
-import glfw4s.core.*
-import glfw4s.core.pure.*
-import glfw4s.jna.bindings.types.*
-import gui4s.core.geometry.Point2d
-import gui4s.core.widget.LaunchedEffect
-import gui4s.core.widget.library.animation.{Animation, SpringAnimation, TweenAnimation, Easing}
-import gui4s.core.widget.library.animation.NormedVectorSpace.numericNormedVectorSpace
-import gui4s.core.widget.library.decorator.Paddings
-import gui4s.core.widget.library.decorator.Decorator
-import gui4s.desktop.kit.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.skija.*
-import gui4s.desktop.skija.typeface.*
-import gui4s.desktop.widget.library.LaunchedEffectWidget
-import io.github.humbleui.skija.*
+import cats.effect._
+import cats.effect.std._
+import cats.syntax.all._
+import glfw4s.core._
+import glfw4s.core.pure._
+import glfw4s.jna.bindings.types._
+import io.github.humbleui.skija._
+
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
-
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.*
-import scala.reflect.Typeable
-import org.typelevel.log4cats.*
+import org.typelevel.log4cats._
 import org.typelevel.log4cats.slf4j.Slf4jFactory
+
+import gui4s.core.geometry.Point2d
+import gui4s.core.widget.library.animation.Animation
+import gui4s.core.widget.library.animation.Easing
+import gui4s.core.widget.library.animation.NormedVectorSpace.numericNormedVectorSpace
+import gui4s.core.widget.library.animation.TweenAnimation
+import gui4s.core.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.Paddings
+
+import gui4s.desktop.kit._
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.skija._
+import gui4s.desktop.skija.typeface._
+import gui4s.desktop.widget.library.LaunchedEffectWidget
 
 
 object AnimationExample extends UIApp:
   given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
   given logger: SelfAwareStructuredLogger[IO] = logging.getLogger
 
-  val settings = WindowCreationSettings(
+  val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
     title = "Gui4s animation example",
     width = 620,
     height = 480,

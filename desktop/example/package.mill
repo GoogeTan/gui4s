@@ -5,12 +5,13 @@ import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.{AssemblyModule, SbtModule}
 import mill.util.JarManifest
+import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule  with AssemblyModule {
+object `package` extends SbtModule with PublishModule  with AssemblyModule with ScalafixModule:
 
   def artifactName = "desktop-example-cats"
 
-  def scalaVersion = build.scalaVersion
+  def scalaVersion = build.versions.scala
 
   def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
@@ -19,19 +20,7 @@ object `package` extends SbtModule with PublishModule  with AssemblyModule {
     "-Vprofile",
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven
-        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
-    )
-  }
-
-  def mvnDeps = super.mvnDeps() ++ Seq(
-    mvn"org.http4s::http4s-core:1.0.0-M45",
-    mvn"org.http4s::http4s-ember-client:1.0.0-M45",
-    mvn"org.typelevel::log4cats-slf4j:2.7.1",
-    mvn"org.slf4j:slf4j-reload4j:2.0.17",
-  )
+  def mvnDeps = super.mvnDeps() ++ build.dependencies.http4s ++ build.dependencies.logging
 
   def forkArgs = Seq(
     "-XstartOnFirstThread"
@@ -39,20 +28,12 @@ object `package` extends SbtModule with PublishModule  with AssemblyModule {
 
   def moduleDeps = super.moduleDeps ++ Seq(build.desktop.kit)
 
-  def pomSettings = PomSettings(
-    "desktop-example-cats",
-    "desktop-example-cats",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
+  def pomSettings = build.pomSettings("desktop-example-cats")
 
-  def publishVersion = "0.1.0-SNAPSHOT"
+  def publishVersion = build.publishVersion
 
   def mainClass = Some("gui4s.desktop.example.TextInputExample")
 
-  override def manifest : T[JarManifest] = Task {
+  override def manifest : T[JarManifest] = Task:
     super.manifest().add(("Multi-Release" -> "true"))
-  }
-}
+end `package`

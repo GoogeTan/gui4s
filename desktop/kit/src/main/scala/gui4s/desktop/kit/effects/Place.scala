@@ -1,18 +1,23 @@
 package gui4s.desktop.kit
 package effects
 
+import scala.reflect.Typeable
+
 import catnip.MapKCache
 import catnip.syntax.functor.nestedFunctorsAreFunctors
+import cats.Functor
+import cats.Monad
+import cats.MonadThrow
 import cats.data.EitherT
 import cats.effect.Sync
-import cats.{Functor, Monad, MonadThrow, ~>}
-import gui4s.core.kit.effects.Place as GenericPlace
+import cats.~>
+
+import gui4s.core.kit.effects.{Place => GenericPlace}
 import gui4s.core.widget.Path
+
 import gui4s.desktop.kit.effects.InnerPlace.given
 import gui4s.desktop.kit.effects.OuterPlace.given
 import gui4s.desktop.skija.shaper.Shaper
-
-import scala.reflect.Typeable
 
 type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, Throwable, T]
 type PlaceC[IO[_]] = [Value] =>> Place[IO, Value]

@@ -1,11 +1,12 @@
 package gui4s.desktop.skija
 package paragraph
 
-import cats.*
-import cats.effect.*
-import cats.syntax.all.*
+import cats._
+import cats.effect._
+import cats.syntax.all._
+import io.github.humbleui.skija.paragraph._
+
 import gui4s.core.geometry.Rect
-import io.github.humbleui.skija.paragraph.*
 
 def buildParagraph[F[_] : Sync](
   list : List[(String, TextStyle)],

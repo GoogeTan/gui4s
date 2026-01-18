@@ -1,7 +1,8 @@
 package gui4s.desktop.widget.library
 
-import cats.syntax.all.*
-import cats.{Functor, Monad}
+import cats.Functor
+import cats.Monad
+import cats.syntax.all._
 
 
 

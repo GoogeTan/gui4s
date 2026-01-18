@@ -1,18 +1,20 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats.*
+import cats._
 import cats.effect.kernel.Sync
-import gui4s.core.layout.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Draw.given
-import gui4s.desktop.kit.effects.Place.given
-import gui4s.desktop.skija.*
-import gui4s.desktop.skija.canvas.*
-import gui4s.desktop.widget.library.text as genericText
 import io.github.humbleui.skija.Paint
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.shaper.Shaper
+
+import gui4s.core.layout._
+
+import gui4s.desktop.kit.effects.Draw.given
+import gui4s.desktop.kit.effects.Place.given
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.skija._
+import gui4s.desktop.skija.canvas._
+import gui4s.desktop.widget.library.{text => genericText}
 
 trait TextWidget[IO[_]]:
   def apply[Event](

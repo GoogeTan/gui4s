@@ -1,11 +1,13 @@
 package gui4s.core.kit
 package effects
 
-import catnip.syntax.transformer.{*, given}
-import catnip.transformer.*
-import catnip.{Get, Set}
-import cats.*
-import cats.data.*
+import catnip.Get
+import catnip.Set
+import catnip.syntax.transformer.{_, given}
+import catnip.transformer._
+import cats._
+import cats.data._
+
 import gui4s.core.widget.Path
 
 type OuterPlaceTransformer[Bounds, Error] = ReaderTransformer[Path] <> StateTransformer[Bounds] <> ErrorTransformer[Error]

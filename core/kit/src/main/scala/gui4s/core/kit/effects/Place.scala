@@ -1,12 +1,13 @@
 package gui4s.core.kit
 package effects
 
-import cats.*
-import catnip.syntax.all.*
+import scala.reflect.Typeable
+
+import catnip.syntax.all._
+import cats._
+
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
-
-import scala.reflect.Typeable
 
 type Place[IO[_], Bounds, MeasurementUnit, Error, Value] = OuterPlace[IO, Bounds, Error, Sized[MeasurementUnit, Value]]
 type PlaceC[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, MeasurementUnit, Error, *]

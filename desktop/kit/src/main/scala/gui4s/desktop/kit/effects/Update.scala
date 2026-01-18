@@ -2,13 +2,16 @@ package gui4s.desktop.kit
 package effects
 
 import catnip.BiMonad
-import cats.*
+import cats._
 import cats.data.NonEmptyList
 import cats.effect.ExitCode
-import cats.syntax.all.*
+import cats.syntax.all._
+
 import gui4s.core.geometry.Point3d
-import gui4s.core.kit.effects as generic_effects
 import gui4s.core.kit.effects.UpdateState
+import gui4s.core.kit.{effects => generic_effects}
+
+import gui4s.desktop.kit.effects.Clip$package.Clip.given
 
 type Update[IO[_], Event, A] = generic_effects.Update[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable, A]
 type UpdateC[IO[_], Event] = Update[IO, Event, *]
@@ -106,7 +109,6 @@ object Update:
 
 
   def runUpdate[IO[_] : MonadThrow, Event]: [T] => Update[IO, Event, T] => IO[Either[ExitCode, T]] =
-    import Clip.given
     [T] => update =>
       run[IO, Event](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
         case Right((_, (_, widget))) => Right(widget).pure[IO]

@@ -1,7 +1,9 @@
 package catnip
 
-import cats.data.{ReaderT, StateT}
-import cats.{Applicative, ~>}
+import cats.Applicative
+import cats.data.ReaderT
+import cats.data.StateT
+import cats.~>
 
 type Get[F[_], T] = F[T]
 

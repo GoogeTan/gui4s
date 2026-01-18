@@ -1,7 +1,10 @@
 package gui4s.core.layout
 
-import cats.{Comonad, Eq}
-import gui4s.core.geometry.{Axis, Rect}
+import cats.Comonad
+import cats.Eq
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Rect
 
 type SizedC[MeasurementUnit] = [Value] =>> Sized[MeasurementUnit, Value]
 

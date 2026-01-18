@@ -1,8 +1,10 @@
 package gui4s.desktop.skija
 package typeface
 
-import cats.effect.{Resource, Sync}
-import io.github.humbleui.skija.{FontMgr, Typeface}
+import cats.effect.Resource
+import cats.effect.Sync
+import io.github.humbleui.skija.FontMgr
+import io.github.humbleui.skija.Typeface
 
 def defaultTypeface[F[_] : Sync as S] : Resource[F, Typeface] =
   Resource.fromAutoCloseable(

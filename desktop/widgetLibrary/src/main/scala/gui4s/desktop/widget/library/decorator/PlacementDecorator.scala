@@ -2,8 +2,9 @@ package gui4s.desktop.widget.library
 package decorator
 
 import catnip.syntax.function.andThen
-import cats.syntax.all.*
-import cats.{Functor, ~>}
+import cats.Functor
+import cats.syntax.all._
+import cats.~>
 
 def placementDecorator[
   Update[_] : Functor,

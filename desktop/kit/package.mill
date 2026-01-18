@@ -5,12 +5,13 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
-import build.catsEffectDeps
+import build.dependencies.catsEffect
+import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule with ScalafixModule:
   def artifactName = "desktop-kit"
 
-  def scalaVersion = build.scalaVersion
+  def scalaVersion = build.versions.scala
 
   def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
@@ -18,18 +19,12 @@ object `package` extends SbtModule with PublishModule {
     //"-Vprofile",
   )
 
-  def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+  def repositoriesTask: Task[Seq[Repository]] = Task.Anon:
     super.repositoriesTask() ++ Seq(
-      coursier.maven
-        .MavenRepository("https://gitverse.ru/api/packages/daniilzemskov/maven")
+      build.myMavenRepository
     )
-  }
 
-  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffectDeps ++ Seq(
-    mvn"glfw4s:core-jvm_3:0.1.42",
-    mvn"com.github.cb372::scalacache-caffeine:1.0.0-M6",
-    mvn"com.github.cb372::scalacache-core:1.0.0-M6",
-  )
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffect ++ build.dependencies.glfw4s ++ build.dependencies.scalaCache
 
   def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
     build.catnip,
@@ -42,15 +37,7 @@ object `package` extends SbtModule with PublishModule {
     build.desktop.widgetLibrary
   )
 
-  def pomSettings: T[PomSettings] = PomSettings(
-    description = "gui4s dev kit for desktop",
-    organization = "gui4s",
-    url = "",
-    licenses = Seq(),
-    versionControl = VersionControl(None, None, None, None),
-    developers = Seq()
-  )
+  def pomSettings: T[PomSettings] = build.pomSettings("desktop-kit")
 
-  def publishVersion = "0.1.0-SNAPSHOT"
-
-}
+  def publishVersion = build.publishVersion
+end `package`

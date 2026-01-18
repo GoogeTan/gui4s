@@ -2,9 +2,12 @@ package catnip
 package syntax
 
 import catnip.syntax.monad.MonadErrorC
-import cats.data.{EitherT, StateT}
-import cats.syntax.all.*
-import cats.{FlatMap, Functor, ~>}
+import cats.FlatMap
+import cats.Functor
+import cats.data.EitherT
+import cats.data.StateT
+import cats.syntax.all._
+import cats.~>
 
 object functionk:
   def runEitherTK[F[_] : MonadErrorC[Error] as ME, Error] : EitherT[F, Error, *] ~> F =

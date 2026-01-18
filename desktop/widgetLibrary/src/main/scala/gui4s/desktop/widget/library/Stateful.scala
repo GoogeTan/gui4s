@@ -1,15 +1,21 @@
 package gui4s.desktop.widget.library
 
 import catnip.syntax.function.andThen
+import cats.Functor
+import cats.Monad
+import cats.Monoid
 import cats.data.NonEmptyList
-import cats.syntax.all.*
-import cats.{Functor, Monad, Monoid, ~>}
+import cats.syntax.all._
+import cats.~>
+
 import gui4s.core.widget
-import gui4s.core.widget.*
-import gui4s.core.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
-import gui4s.core.widget.handle.*
+import gui4s.core.widget._
+import gui4s.core.widget.draw.statefulIsDrawable
+import gui4s.core.widget.draw.statefulStateDrawsIntoWidget
+import gui4s.core.widget.handle._
 import gui4s.core.widget.library.MergeStates
-import gui4s.core.widget.merge.{Mergable, statefulMergesWithOldStates}
+import gui4s.core.widget.merge.Mergable
+import gui4s.core.widget.merge.statefulMergesWithOldStates
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates
 

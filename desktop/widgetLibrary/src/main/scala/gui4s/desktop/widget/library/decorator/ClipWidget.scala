@@ -1,9 +1,12 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.all.*
-import cats.syntax.all.*
-import cats.{Comonad, Functor, Monad}
+import catnip.syntax.all._
+import cats.Comonad
+import cats.Functor
+import cats.Monad
+import cats.syntax.all._
+
 import gui4s.core.widget.library.decorator.Decorator
 
 //TODO Выразить через DrawDecorator или показать, что это невозможно

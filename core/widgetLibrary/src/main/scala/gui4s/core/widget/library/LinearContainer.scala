@@ -1,12 +1,22 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.additional.*
-import catnip.{Get, Set, Zip}
-import cats.syntax.all.*
-import cats.{Applicative, Monad, Traverse}
-import gui4s.core.geometry.{Axis, Point3d, Rect}
-import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy, rowColumnLayoutPlacement}
-import gui4s.core.layout.{Placed, Sized}
+import catnip.Get
+import catnip.Set
+import catnip.Zip
+import catnip.syntax.additional._
+import cats.Applicative
+import cats.Monad
+import cats.Traverse
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.Placed
+import gui4s.core.layout.Sized
+import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
+import gui4s.core.layout.rowcolumn.PlacementStrategy
+import gui4s.core.layout.rowcolumn.rowColumnLayoutPlacement
 
 @FunctionalInterface
 trait LinearContainer[

@@ -1,17 +1,21 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats.*
-import cats.effect.std.Supervisor
-import cats.syntax.all.*
-import cats.effect.{MonadCancel, Resource}
-import gui4s.core.widget.Path
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Update.given
-import gui4s.desktop.kit.widgets.decorator.LaunchedEvent
-import gui4s.core.widget.library.{WithContext, resourceWidget as genericResourceWidget}
-
 import scala.reflect.Typeable
+
+import cats._
+import cats.effect.MonadCancel
+import cats.effect.Resource
+import cats.effect.std.Supervisor
+import cats.syntax.all._
+
+import gui4s.core.widget.Path
+import gui4s.core.widget.library.WithContext
+import gui4s.core.widget.library.{resourceWidget => genericResourceWidget}
+
+import gui4s.desktop.kit.effects.Update.given
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets.decorator.LaunchedEvent
 
 trait ResourceWidget[IO[_]]:
   def apply[T, Event](

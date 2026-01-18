@@ -1,8 +1,11 @@
 package catnip
 
-import cats.data.{StateT, WriterT}
-import cats.syntax.all.*
-import cats.{Applicative, Monad, ~>}
+import cats.Applicative
+import cats.Monad
+import cats.data.StateT
+import cats.data.WriterT
+import cats.syntax.all._
+import cats.~>
 
 type Set[F[_], T] = T => F[Unit]
 

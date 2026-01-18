@@ -1,9 +1,9 @@
 package catnip.transformer
 
 import catnip.syntax.transformer.<>
-import cats.*
-import cats.data.*
-import cats.syntax.all.*
+import cats._
+import cats.data._
+import cats.syntax.all._
 
 type WriterTransformer[L] = [IO[_], T] =>> WriterT[IO, L, T]
 

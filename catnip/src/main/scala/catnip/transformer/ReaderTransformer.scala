@@ -1,8 +1,10 @@
 package catnip.transformer
 
 import catnip.syntax.transformer.<>
-import cats.data.*
-import cats.{Applicative, Functor, Monad}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
+import cats.data._
 
 type ReaderTransformer[Context] = [IO[_], T] =>> ReaderT[IO, Context, T]
 

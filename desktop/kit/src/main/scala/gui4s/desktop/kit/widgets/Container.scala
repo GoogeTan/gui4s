@@ -1,23 +1,28 @@
 package gui4s.desktop.kit
 package widgets
 
-import catnip.syntax.applicative.given
-import catnip.syntax.list.{TraverseOrdered, traverseOne, traverseOrdered}
-import catnip.syntax.zip.given
 import catnip.Zip
-import cats.*
-import cats.syntax.all.*
-import cats.data.*
+import catnip.syntax.applicative.given
+import catnip.syntax.list.TraverseOrdered
+import catnip.syntax.list.traverseOne
+import catnip.syntax.list.traverseOrdered
+import catnip.syntax.zip.given
+import cats._
+import cats.data._
 import cats.effect.kernel.Sync
-import gui4s.core.geometry.{Axis, InfinityOr, Point2d, Point3d}
-import gui4s.core.widget.library.*
-import gui4s.core.widget.library.linearContainer as genericLinearContainer
-import gui4s.desktop.kit.effects.*
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point3d
+import gui4s.core.widget.library.ContainerWidget
+import gui4s.core.widget.library.LinearContainer
+import gui4s.core.widget.library.{linearContainer => genericLinearContainer}
+
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.Place.given
+import gui4s.desktop.kit.effects._
 import gui4s.desktop.skija.canvas.drawAt
-import gui4s.desktop.widget.library.container as genericContainer
-import gui4s.core.widget.library.{ContainerWidget, LinearContainer, linearContainer as genericLinearContainer}
+import gui4s.desktop.widget.library.{container => genericContainer}
 
 def containerWidget[
   IO[_] : Sync,

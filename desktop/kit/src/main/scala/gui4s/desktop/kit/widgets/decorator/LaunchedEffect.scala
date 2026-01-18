@@ -1,16 +1,18 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats.*
+import scala.reflect.Typeable
+
+import cats._
 import cats.effect.std.Supervisor
+
 import gui4s.core.widget.Path
-import gui4s.desktop.kit.effects.*
+
 import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.kit.effects.RecompositionReaction.given
+import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets.DesktopWidget
-import gui4s.desktop.widget.library.{launchedEffect as genericLaunchedEffect, *}
-
-import scala.reflect.Typeable
+import gui4s.desktop.widget.library.{launchedEffect => genericLaunchedEffect, _}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 def launchedEffect[IO[_] : MonadThrow as MT, Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[DesktopWidget[IO, Event], Key, Path => IO[Unit]] =

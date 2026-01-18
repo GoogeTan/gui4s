@@ -1,11 +1,13 @@
 package gui4s.desktop.skija
 package canvas
 
-import canvas.Canvased.applyCanvasFFI
-
 import cats.effect.Sync
+import io.github.humbleui.skija.Image
+import io.github.humbleui.skija.Paint
+import io.github.humbleui.skija.Path
 import io.github.humbleui.skija.paragraph.Paragraph
-import io.github.humbleui.skija.{Image, Paint, Path}
+
+import gui4s.desktop.skija.canvas.Canvased.applyCanvasFFI
 
 def clear[F[_]: {Sync, Canvased}](color : Int) : F[Unit] =
   applyCanvasFFI(_.clear(color))

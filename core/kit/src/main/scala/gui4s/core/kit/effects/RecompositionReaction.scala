@@ -2,8 +2,8 @@ package gui4s.core.kit
 package effects
 
 import catnip.syntax.all.given
-import cats.*
-import cats.syntax.all.*
+import cats._
+import cats.syntax.all._
 
 type RecompositionReaction[F[_]] = F[Unit]
 

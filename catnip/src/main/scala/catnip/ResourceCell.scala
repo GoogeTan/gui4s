@@ -1,9 +1,9 @@
 package catnip
 
-import cats.*
-import cats.effect.*
-import cats.effect.std.*
-import cats.syntax.all.*
+import cats._
+import cats.effect._
+import cats.effect.std._
+import cats.syntax.all._
 
 trait ResourceCell[IO[_], T]:
   def evalReplace(f : T => Resource[IO, T]) : IO[Unit]

@@ -1,10 +1,10 @@
 package gui4s.core.widget
 package merge
 
-import cats.Functor
-import cats.syntax.all.*
-
 import scala.reflect.Typeable
+
+import cats.Functor
+import cats.syntax.all._
 
 // TODO Думается мне, что это можно как-то разделить, но я пока не понимаю как.
 @SuppressWarnings(Array("org.wartremover.warts.Any"))

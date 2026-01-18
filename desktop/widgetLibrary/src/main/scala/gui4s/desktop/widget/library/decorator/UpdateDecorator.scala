@@ -1,9 +1,11 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.all.*
-import cats.syntax.all.*
-import cats.{Comonad, Functor}
+import catnip.syntax.all._
+import cats.Comonad
+import cats.Functor
+import cats.syntax.all._
+
 import gui4s.core.widget.Path
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.decorator.Decorator

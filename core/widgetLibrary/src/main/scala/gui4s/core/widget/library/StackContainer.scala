@@ -1,12 +1,14 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.additional.*
+import catnip.syntax.additional._
 import catnip.syntax.functor.nestedFunctorsAreFunctors
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.*
-import gui4s.core.layout.rowcolumn.*
-import gui4s.core.layout.{Sized, SizedC}
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry._
+import gui4s.core.layout.Sized
+import gui4s.core.layout.SizedC
+import gui4s.core.layout.rowcolumn._
 import gui4s.core.widget.library.ContainerWidget
 
 @FunctionalInterface

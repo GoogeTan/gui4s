@@ -1,7 +1,8 @@
 package gui4s.core.widget.library.decorator
 
-import catnip.syntax.all.{*, given}
-import cats.*
+import catnip.syntax.all._
+import cats._
+
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 
