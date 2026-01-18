@@ -3,31 +3,33 @@ package gui4s.android.kit
 import android.app.Activity
 import gui4s.android.kit.widgets.*
 import gui4s.android.kit.effects.*
-import gui4s.desktop.widget.library.*
 import cats.effect.syntax.all.*
-
-import scala.reflect.Typeable
 import android.content.res.Configuration
-import android.os.Looper
 import android.util.Log
-import android.view.Gravity
-import android.view.ViewGroup.LayoutParams
-import android.widget.{FrameLayout, TextView}
+import android.widget.FrameLayout
 import cats.effect.unsafe.implicits.global
-import gui4s.core.loop.updateLoop
+import gui4s.core.geometry.Rect
 import gui4s.core.widget.Path
 import org.jetbrains.skiko.*
 import org.jetbrains.skia.*
 import gui4s.desktop.widget.library.*
 
+import scala.reflect.Typeable
+
 final case class AppState[AppIO[_], CallbackIO[_]](
   dispatcher: Dispatcher[AppIO],
   eventBus : Queue[CallbackIO, DownEvent],
-  widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]]
+  widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]],
+  layer : SkiaLayer
 )
 
 enum UIAppError:
   case PlaceError(exception : Throwable)
+
+  def toThrowable : Throwable = this match
+    case UIAppError.PlaceError(exception) =>
+      Exception(s"Place error: $exception")
+  end toThrowable
 
   override def toString: String =
     this match
@@ -48,59 +50,30 @@ trait Gui4sActivity extends Activity:
 
   final type CallbackIO[T] = IO[T]
   final val liftCallbackIOToAppIO : CallbackIO ~> AppIO = EitherT.liftK
-  var state : Option[(AppState[AppIO, CallbackIO], AppIO[Unit])] = None
+  final var state : Option[(AppState[AppIO, CallbackIO], AppIO[Unit])] = None
 
   override def onCreate(savedInstanceState: android.os.Bundle): Unit =
     super.onCreate(savedInstanceState)
     Log.d("Gui4sActivity", s"onCreate started on ${Thread.currentThread().getId}")
-    setErrorView("Loading")
+    setLoadingView()
     try
-      (
-        for
-          dispatcher <- Dispatcher.parallel[AppIO]
-          supervisor <- Supervisor[AppIO]
-          eventBus <- liftCallbackIOToAppIO(Queue.unbounded[CallbackIO, DownEvent]).eval
-          getConfigutation = IO.delay(getResources.getConfiguration).map(AndroidConfiguration.fromJava)
-          runPlaceK : (PlaceC[AppIO] ~> AppIO) =
-            Place.run[AppIO](Path(Nil), liftCallbackIOToAppIO(getConfigutation))
-              .andThen(mapErrorK(UIAppError.PlaceError(_)))
-              .andThen(flattenEitherTK)
-          _ = Log.e("Gui4sActivity", "onCreate created base")
-          widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]] <- main(eventBus).evalMap(freeMainWidget =>
-            Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK, RecompositionReaction.run))
+      runAppIOAsyncUnsafe(createState.allocated) {
+        result =>
+          AndroidMainThread.execute(
+            () => {
+              result match
+                case Left(error) =>
+                  Log.e("Gui4sActivity", s"Error creating app: \n${error.toString}")
+                  state = None
+                  setErrorView(s"Error while creating app: \n${error.toString}")
+                case Right((state, destructor)) =>
+                  Log.e("Gui4sActivity", "Successfully created state")
+                  this.state = Some((state, destructor))
+                  setGui4sContent(state)
+                  Log.e("Gui4sActivity", "Successfully inited")
+            }
           )
-          _ = Log.e("Gui4sActivity", "onCreate created widget")
-          _ <- supervisor.supervise(
-            widgetRef.get.flatMap(
-              androidWidgetLoops[AppIO, Nothing](
-                Update.runUpdate[AppIO, Nothing],
-                runPlaceK,
-              )(_, newWidget => widgetRef.update(_ => newWidget), liftCallbackIOToAppIO(eventBus.take))
-            )
-          ).eval
-          _ = Log.e("Gui4sActivity", "onCreate created loop")
-        yield AppState(dispatcher, eventBus, widgetRef)
-      )
-        .allocated
-        .value
-        .unsafeRunAsync {
-          case Left(error) =>
-            Log.e("Gui4sActivity", s"Error creating app: \n${error.toString}")
-            state = None
-            setErrorView(s"Error while creating app: \n${error.toString}")
-          case Right(Left(error)) =>
-            Log.e("Gui4sActivity", s"Error creating app: \n${error.toString}")
-            state = None
-            setErrorView(s"Error while creating app: \n${error.toString}")
-          case Right(Right((state, destructor))) =>
-            Log.e("Gui4sActivity", "Successfully created state")
-            AndroidMainThread.execute(() => {
-                this.state = Some((state, destructor))
-                setGui4sContent()
-              }
-            )
-            Log.e("Gui4sActivity", "Successfully inited")
-        }(using global)
+      }
     catch
       case e : Throwable =>
         Log.e("Gui4sActivity", s"Error creating app: \n${e.toString}")
@@ -109,33 +82,91 @@ trait Gui4sActivity extends Activity:
     Log.e("Gui4sActivity", "onCreate finished")
   end onCreate
 
-  def redraw : IO[Unit] =
-    IO.delay:
-      ()
+  final def runAppIOAsyncUnsafe[T](io : AppIO[T])(callback: Either[Throwable, T] => Unit) : Unit=
+    io.value.unsafeRunAsync {
+      case Left(error) =>
+        callback(Left(error))
+      case Right(Left(error)) =>
+        callback(Left(error.toThrowable))
+      case Right(Right(value)) =>
+        callback(Right(value))
+    }(using global)
+  end runAppIOAsyncUnsafe
 
-  def setGui4sContent() : Unit =
-    val container = FrameLayout(this)
-    setContentView(container)
+  final def getConfiguration : AppIO[AndroidConfiguration[Bounds]] =
+    liftCallbackIOToAppIO(
+      IO.delay(getResources.getConfiguration).map(AndroidConfiguration.fromJava)
+    )
+  end getConfiguration
 
-    val skiaLayer = SkiaLayer()
-    skiaLayer.setRenderDelegate(
+  final def runPlaceK : PlaceC[AppIO] ~> AppIO =
+    Place.run[AppIO](Path(Nil), getConfiguration)
+      .andThen(mapErrorK(UIAppError.PlaceError(_)))
+      .andThen(flattenEitherTK)
+  end runPlaceK
+
+  final def createEventBus : AppIO[Queue[CallbackIO, DownEvent]] =
+    liftCallbackIOToAppIO(Queue.unbounded[CallbackIO, DownEvent])
+  end createEventBus
+
+  final def createWidgetRef(
+    eventBus : Queue[CallbackIO, DownEvent]
+  ) : Resource[AppIO, Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]]] =
+    main(eventBus).evalMap(freeMainWidget =>
+      Ref.ofEffect(
+        runWidgetForTheFirstTime(
+          freeMainWidget,
+          runPlaceK,
+          RecompositionReaction.run
+        ).evalOn(AndroidMainThread)
+      )
+    )
+  end createWidgetRef
+
+  final def createState : Resource[AppIO, AppState[AppIO, CallbackIO]] =
+    for
+      dispatcher <- Dispatcher.parallel[AppIO]
+      supervisor <- Supervisor[AppIO]
+      eventBus <- createEventBus.eval
+      _ = Log.e("Gui4sActivity", "onCreate created base")
+      widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]] <- createWidgetRef(eventBus)
+      _ = Log.e("Gui4sActivity", "onCreate created widget")
+      _ <- supervisor.supervise(
+        widgetRef.get.flatMap(
+          androidWidgetLoops[AppIO, Nothing](
+            Update.runUpdate[AppIO, Nothing],
+            runPlaceK,
+          )(_, newWidget => widgetRef.update(_ => newWidget), liftCallbackIOToAppIO(eventBus.take))
+        )
+      ).eval
+      _ = Log.e("Gui4sActivity", "onCreate created loop")
+    yield AppState(dispatcher, eventBus, widgetRef, createSkiaLayer)
+  end createState
+
+  final def createSkiaLayer : SkiaLayer =
+    val layer = SkiaLayer()
+    layer.setRenderDelegate(
       SkiaLayerRenderDelegate(
-        skiaLayer,
+        layer,
         RenderDelegate()
       )
     )
-    skiaLayer.attachTo(container)
-    skiaLayer.needRedraw()
+    layer.needRedraw()
+    layer
+  end createSkiaLayer
+
+  final def setGui4sContent(state : AppState[AppIO, CallbackIO]) : Unit =
+    val container = FrameLayout(this)
+    setContentView(container)
+    state.layer.attachTo(container)
   end setGui4sContent
 
-  def setErrorView(error : String) : Unit =
-    val textView = new TextView(this)
-    textView.setText(error)
-    textView.setTextSize(16)
-    textView.setTextColor(Color.RED)
-    textView.setGravity(Gravity.TOP)
-    textView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-    setContentView(textView)
+  def setLoadingView() : Unit =
+    setContentView(createBiDirectionalErrorView(this, "Loading"))
+  end setLoadingView
+
+  final def setErrorView(error : String) : Unit =
+    setContentView(createBiDirectionalErrorView(this, error))
   end setErrorView
 
   override def onConfigurationChanged(newConfig: Configuration): Unit =
