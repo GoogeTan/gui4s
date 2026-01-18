@@ -143,7 +143,7 @@ trait Gui4sActivity extends Activity:
     yield AppState(dispatcher, eventBus, widgetRef, createSkiaLayer)
   end createState
 
-  final def createSkiaLayer : SkiaLayer =
+  def createSkiaLayer : SkiaLayer =
     val layer = SkiaLayer()
     layer.setRenderDelegate(
       SkiaLayerRenderDelegate(

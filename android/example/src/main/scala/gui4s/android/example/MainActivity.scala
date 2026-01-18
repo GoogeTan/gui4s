@@ -15,16 +15,18 @@ import gui4s.core.widget.library.decorator.Paddings
 import org.jetbrains.skia.{Font, Image, Paint, Typeface}
 import org.typelevel.log4cats.*
 import org.typelevel.log4cats.slf4j.Slf4jFactory
+import org.jetbrains.skiko.*
+import org.jetbrains.skia.*
 
 class MainActivity extends Gui4sActivity:
   given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
   given logger: SelfAwareStructuredLogger[IO] = logging.getLogger
 
-  def downloadImage: AppIO[Image] =
+  def downloadImage: AppIO[android.graphics.drawable.Drawable] = //Image] =
     liftCallbackIOToAppIO(
       IO.delay:
         val res = getResources
-        res.getDrawable(gui4s.android.example.R.drawable.cosmos).toSkiaImage()
+        res.getDrawable(gui4s.android.example.R.drawable.gemma)//.toSkiaImage()
     )
   end downloadImage
 
@@ -44,13 +46,28 @@ class MainActivity extends Gui4sActivity:
       initialization = InitializationWidget[AppIO](resource)
       text = textWidget[AppIO](shaper, cache)
     yield
-      initialization[Image, Nothing](
+      initialization(
         name = "image",
         effectToRun = downloadImage,
-        body = data => image[AppIO, Nothing](data).clip(Shapes.round),
+        body = data => androidDrawableWidget[AppIO, Nothing](data).clip(Shapes.roundedCorners(80f)),
         placeholder = text("Wait.", SkijaTextStyle(new Font(Typeface.Companion.makeEmpty(), 28), paint)),
       ).padding(
         Paddings(10f, 10f, 10f, 10f)
       )
   end main
+
+  /*
+  override def createSkiaLayer =
+    val skiaLayer = SkiaLayer()
+    skiaLayer.setRenderDelegate(
+      SkiaLayerRenderDelegate(
+        skiaLayer,
+        SimpleDrawableRenderer(
+          skiaLayer,
+          getResources.getDrawable(gui4s.android.example.R.drawable.gemma)
+        )
+      )
+    )
+    skiaLayer.needRedraw()
+    skiaLayer*/
 end MainActivity

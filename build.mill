@@ -11,8 +11,8 @@ import mill.scalalib.SbtModule
 object `package` extends Module:
   object versions:
     def cats = "2.13.0"
-    def catsEffect = "3.6.3"//"3.7-822a6d2-20260115T101917Z-SNAPSHOT"
-    def scala = "3.7.3"///"3.8.1-RC1-bin-SNAPSHOT"
+    def catsEffect = "3.7-822a6d2-20260115T101917Z-SNAPSHOT"
+    def scala = "3.8.1-RC1-bin-SNAPSHOT"
     def http4s = "1.0.0-M45"
     def log4cats = "2.7.1"
     def slf4jReload4j = "2.0.17"
