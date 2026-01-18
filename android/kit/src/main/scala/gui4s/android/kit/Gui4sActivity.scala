@@ -67,7 +67,7 @@ trait Gui4sActivity extends Activity:
               .andThen(flattenEitherTK)
           _ = Log.e("Gui4sActivity", "onCreate created base")
           widgetRef : Ref[AppIO, AndroidPlacedWidget[AppIO, Nothing]] <- main(eventBus).evalMap(freeMainWidget =>
-            Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK))
+            Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK, RecompositionReaction.run))
           )
           _ = Log.e("Gui4sActivity", "onCreate created widget")
           _ <- supervisor.supervise(
@@ -145,26 +145,6 @@ trait Gui4sActivity extends Activity:
   def main(
     eventBus: Queue[IO, DownEvent],
   ): Resource[AppIO, AndroidWidget[AppIO, Nothing]]
-
-  //TODO вынести в общий модуль
-  final def runWidgetForTheFirstTime[Event](
-    widget: AndroidWidget[AppIO, Event],
-    runPlace: PlaceC[AppIO] ~> AppIO,
-  ): AppIO[AndroidPlacedWidget[AppIO, Event]] =
-    placeForTheFirstTime[AppIO, AndroidPlacedWidget[AppIO, Event], PlaceC[AppIO], RecompositionReaction[AppIO]](
-      Path(Nil),
-      widget,
-      widgetReactsOnRecomposition[
-        UpdateC[AppIO, Event],
-        PlaceC[AppIO],
-        Draw[AppIO],
-        RecompositionReaction[AppIO],
-        DownEvent,
-      ],
-      RecompositionReaction.run[AppIO],
-      runPlace,
-    ).evalOn(AndroidMainThread)
-  end runWidgetForTheFirstTime
 
   final class RenderDelegate extends SkikoRenderDelegate:
     override def onRender(

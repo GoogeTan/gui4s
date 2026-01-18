@@ -7,6 +7,7 @@ import cats.syntax.all.*
 import gui4s.core.loop.*
 import gui4s.core.widget.Path
 import gui4s.core.widget.draw.Drawable
+import gui4s.core.widget.library.processEvent
 
 import scala.concurrent.ExecutionContext
 

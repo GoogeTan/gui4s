@@ -10,10 +10,8 @@ import gui4s.android.kit.widgets.decorator.*
 import gui4s.android.skia.*
 import gui4s.android.skia.canvas.*
 import gui4s.android.skia.shaper.*
-import gui4s.core.geometry
 import gui4s.core.layout.Sized
 import gui4s.core.widget.library.decorator.Paddings
-import gui4s.core.widget.library.decorator.Decorator
 import org.jetbrains.skia.{Font, Image, Paint, Typeface}
 import org.typelevel.log4cats.*
 import org.typelevel.log4cats.slf4j.Slf4jFactory

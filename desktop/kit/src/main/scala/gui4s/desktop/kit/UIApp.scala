@@ -100,7 +100,7 @@ trait UIApp extends IOApp:
           ) *> glfw.windowShouldClose(window).map(!_)
 
       widgetCell <- main(glfw, window, eventBus).evalMap(freeMainWidget =>
-        Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK))
+        Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK, RecompositionReaction.run))
       )
       exitCode <- desktopWidgetLoops[AppIO, CallbackIO, Nothing](
         runDraw =  runDrawK,
@@ -116,25 +116,6 @@ trait UIApp extends IOApp:
   def windowBounds(window: GLFWwindow, glfw : PureWindow[AppIO, CallbackIO[Unit], GLFWmonitor, GLFWwindow]): AppIO[Bounds] =
     glfw.getFramebufferSize(window).map((w, h) => Rect(new InfinityOr(w.toFloat), new InfinityOr(h.toFloat)))
   end windowBounds
-
-  final def runWidgetForTheFirstTime[Event](
-                                      widget: DesktopWidget[AppIO, Event],
-                                      runPlace : PlaceC[AppIO] ~> AppIO,
-                                    ): AppIO[DesktopPlacedWidget[AppIO, Event]] =
-    placeForTheFirstTime[AppIO, DesktopPlacedWidget[AppIO, Event], PlaceC[AppIO], RecompositionReaction[AppIO]](
-      Path(Nil),
-      widget,
-      widgetReactsOnRecomposition[
-        UpdateC[AppIO, Event],
-        PlaceC[AppIO],
-        Draw[AppIO],
-        RecompositionReaction[AppIO],
-        DownEvent,
-      ],
-      RecompositionReaction.run[AppIO],
-      runPlace,
-    )
-  end runWidgetForTheFirstTime
 
   def main(
             glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],

@@ -1,57 +1,37 @@
 package gui4s.desktop.widget.library
 
-import cats.*
-import cats.syntax.all.given
-import gui4s.core.widget.handle.HandlesEvent
-import gui4s.core.widget.recomposition.ReactsOnRecomposition
-import gui4s.core.widget.state.HasInnerStates
-import gui4s.core.widget.{Path, collectQuitCompositionReactions}
+import cats.{~>, Monad}
+import gui4s.core.widget.Path
+import gui4s.core.widget.library.placeForTheFirstTime
 
-def placeForTheFirstTime[
+final def runWidgetForTheFirstTime[
   IO[_] : Monad,
-  Widget,
+  Update[_],
   Place[_],
-  Recomposition,
-](
-  pathToRoot : Path,
-  widget : Place[Widget],
-  widgetReactsToRecomposition : ReactsOnRecomposition[Widget, Recomposition],
-  runRecomposition : Recomposition => IO[Unit],
-  runPlacement: Place ~> IO
-) : IO[Widget] =
-
-  runPlacement(widget).flatMap(newPlacedWidget =>
-    runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, Map())).as(newPlacedWidget)
-  )
-end placeForTheFirstTime
-
-// TODO rename me
-def processEvent[
-  IO[_] : Monad,
-  Widget,
-  Place[_],
-  Update[_] : Monad,
-  Recomposition,
+  Draw,
+  RecompositionReaction,
   DownEvent,
 ](
-    pathToRoot : Path,
-    runRecomposition : Recomposition => IO[Unit],
-    widgetHandlesEvent : HandlesEvent[Widget, DownEvent, Update[Place[Widget]]],
-    widgetReactsToRecomposition : ReactsOnRecomposition[Widget, Recomposition],
-    widgetHasInnerState : HasInnerStates[Widget, Recomposition],
-    runPlacement: Place ~> IO
-)(
-  placedWidget: Widget,
-  event: DownEvent
-): Update[IO[Widget]] =
-    widgetHandlesEvent(placedWidget, pathToRoot, event).map(newWidget =>
-      for
-        newPlacedWidget <- runPlacement(newWidget)
-        _ <- runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, widgetHasInnerState(placedWidget)))
-        _ <- collectQuitCompositionReactions[Recomposition](
-          widgetHasInnerState(placedWidget),
-          widgetHasInnerState(newPlacedWidget)
-        ).traverse_(runRecomposition)
-      yield newPlacedWidget
-    )
-end processEvent
+  widget: Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
+  runPlace: Place ~> IO,
+  runRecompositionReaction: RecompositionReaction => IO[Unit],
+): IO[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]] =
+  placeForTheFirstTime[
+    IO,
+    Widget[Update, Place, Draw, RecompositionReaction, DownEvent],
+    Place,
+    RecompositionReaction
+  ](
+    Path(Nil),
+    widget,
+    widgetReactsOnRecomposition[
+      Update,
+      Place,
+      Draw,
+      RecompositionReaction,
+      DownEvent,
+    ],
+    runRecompositionReaction,
+    runPlace,
+  )
+end runWidgetForTheFirstTime
