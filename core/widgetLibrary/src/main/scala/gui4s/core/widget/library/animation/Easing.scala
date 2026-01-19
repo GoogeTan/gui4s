@@ -21,7 +21,7 @@ object Easing:
       var llow = low
       var hhigh = high
       for _ <- 0 until 20 do
-        val mid = (low + high) / 2
+        val mid = (llow + hhigh) / 2
         val xMid = f(mid)
         if xMid < x then
             llow = mid
