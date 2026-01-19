@@ -10,10 +10,10 @@ import mill.scalalib.SbtModule
 
 object `package` extends Module:
   object versions:
-    def cats = "2.13.0"
-    def catsEffect = "3.7-822a6d2-20260115T101917Z-SNAPSHOT"
-    def scala = "3.8.1-RC1-bin-SNAPSHOT"
-    def http4s = "1.0.0-M45"
+    def cats = "2.12.0"
+    def catsEffect = "3.5.7"
+    def scala = "3.6.3"
+    def http4s = "0.23.30"
     def log4cats = "2.7.1"
     def slf4jReload4j = "2.0.17"
     def skija = "0.123.0"
@@ -27,7 +27,7 @@ object `package` extends Module:
     def androidRunner = "1.6.2"
     def androidEspresso = "3.5.1"
     def junit = "4.13.2"
-    def skikoAndroid = "0.99-SNAPSHOT"
+    def skikoAndroid = "0.9.39"
     def kotlin = "2.0.0"
     def androidBuildTools = "35.0.0"
   end versions

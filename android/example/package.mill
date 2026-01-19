@@ -32,10 +32,14 @@ object `package` extends AndroidAppScalaModule with Gui4sAndroidModule:
   )
 
   override def androidVirtualDevice: T[AndroidVirtualDevice] = Task:
+    val arch = System.getProperty("os.arch") match
+      case "aarch64" | "arm64" => "arm64-v8a"
+      case _ => "x86_64"
+
     AndroidVirtualDevice(
       deviceId = "medium_phone",
       apiVersion = s"android-${build.androidConfig.targetSdk}",
-      architecture = "arm64-v8a",
+      architecture = arch,
       systemImageSource = "google_apis_playstore"
     )
 
