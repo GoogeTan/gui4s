@@ -1,18 +1,6 @@
-package gui4s.core.widget.library
+package gui4s.core.widget.library.textfield
 
 import scala.math.Ordering.Implicits.infixOrderingOps
-
-import cats.implicits.catsSyntaxOrder
-
-final case class TextPosition(line : Int, column : Int) extends Ordered[TextPosition]:
-  def compare(that : TextPosition) : Int =
-    (line, column).compare(that.line, that.column)
-  end compare
-end TextPosition
-
-object TextPosition:
-  val Zero : TextPosition = TextPosition(0, 0)
-end TextPosition
 
 final case class TextRange(start : TextPosition, end : TextPosition):
   def isCursor  : Boolean =

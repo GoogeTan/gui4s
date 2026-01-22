@@ -1,36 +1,29 @@
-package gui4s.core.widget.library
-
-import scala.math.min
-
-import catnip.BiMonad
-import cats._
-import cats.data._
-import cats.syntax.all._
+package gui4s.core.widget.library.textfield
 
 import gui4s.core.widget.Path
 
 final case class TextFieldState(
-                                 lines: List[String] = Nil,
-                                 anchor: TextPosition = TextPosition.Zero,
-                                 cursor: TextPosition = TextPosition.Zero,
-                                 focusedTextField: Option[Path] = None
-                               ):
+  lines: List[String] = Nil,
+  anchor: TextPosition = TextPosition.Zero,
+  cursor: TextPosition = TextPosition.Zero,
+  focusedTextField: Option[Path] = None
+):
   def this(lines : String, anchor : TextPosition, cursor : TextPosition, focusedTextField : Option[Path]) =
     this(lines.split("\n").toList, anchor, cursor)
-  end this  
-  
-  def this(lines : String, anchor : TextPosition, cursor : TextPosition) = 
+  end this
+
+  def this(lines : String, anchor : TextPosition, cursor : TextPosition) =
     this(lines, anchor, cursor, None)
-  end this  
-  
-  def this(lines : String, cursor : TextPosition) = 
+  end this
+
+  def this(lines : String, cursor : TextPosition) =
     this(lines, cursor, cursor)
   end this
-  
-  def this(lines : String) = 
+
+  def this(lines : String) =
     this(lines, TextPosition.Zero)
-  end this  
-  
+  end this
+
   def cursorStartIndex : Int =
     if cursor.line != 0 then
       lines.take(cursor.line).mkString("", "\n", "\n").length + cursor.column
@@ -82,7 +75,7 @@ final case class TextFieldState(
   def backspace(): TextFieldState =
     if (anchor == cursor)
       if cursor.column > 0 then
-        val column = min(cursor.column, lines(cursor.line).length)
+        val column = math.min(cursor.column, lines(cursor.line).length)
         val newLine = lines(cursor.line).patch(column - 1, "", 1)
         copy(
           lines = lines.updated(cursor.line, newLine),
@@ -152,7 +145,7 @@ final case class TextFieldState(
     if cursor.line == 0 then
       this
     else
-      val newCol = min(cursor.column, lines(cursor.line - 1).length)
+      val newCol = math.min(cursor.column, lines(cursor.line - 1).length)
       val newCursor = TextPosition(cursor.line - 1, newCol)
       updatePositions(shift, newCursor)
     end if
@@ -162,7 +155,7 @@ final case class TextFieldState(
     if cursor.line == lines.size - 1 then
       this
     else
-      val newCol = min(cursor.column, lines(cursor.line + 1).length)
+      val newCol = math.min(cursor.column, lines(cursor.line + 1).length)
       val newCursor = TextPosition(cursor.line + 1, newCol)
       updatePositions(shift, newCursor)
     end if
@@ -253,99 +246,3 @@ final case class TextFieldState(
     focusedTextField.contains(currentPath)
   end isFocused
 end TextFieldState
-
-enum TextFieldEvent:
-  case CharInput(char : Char)
-  case Backspace
-  case GoLeft(shift : Boolean = false)
-  case GoRight(shift : Boolean = false)
-  case GoUp(shift : Boolean = false)
-  case GoDown(shift : Boolean = false)
-  case MoveWholeCursorTo(pos : Int)
-  case MoveCursorTo(pos : Int)
-  case ClipboardPaste(text : String)
-  case ClipboardCopy
-  case ClipboardCut
-  case SelectAll
-  case Undo
-  case Redo
-  case GainedFocus(pathToFocusOn : Path)
-end TextFieldEvent
-
-def textField[
-  Widget[E],
-  Update[E, V] : BiMonad as UBM,
-  Event
-](
-  stateful : StatefulWidget[Widget, Update, Nothing, Nothing],
-  body : TextFieldState => Widget[TextFieldEvent],
-  copyTextToClipboard : String => Update[Event, Unit],
-)(
-   name : String,
-   text : String,
-   onChange : String => Event
- ) : Widget[Event] =
-  given Monad[Update[Event, *]] = UBM()
-  stateful[TextFieldState, Event, TextFieldEvent](
-    name = name,
-    initialState = TextFieldState(text.split("\n").toList, TextPosition(0, 0), TextPosition(0, 0)),
-    eventHandler = { (stateDontTouch : TextFieldState, path, events : NonEmptyList[TextFieldEvent]) =>
-      events.reverse.foldM(stateDontTouch) {
-        case (currentState, TextFieldEvent.CharInput(newChar)) if currentState.isFocused(path) =>
-          currentState.insert(newChar.toString).pure
-        case (currentState, TextFieldEvent.Backspace) if currentState.isFocused(path)  =>
-          currentState.backspace().pure
-        case (currentState, TextFieldEvent.GoLeft(shift)) if currentState.isFocused(path)  =>
-          currentState.moveCursorLeft(shift).pure
-        case (currentState, TextFieldEvent.GoRight(shift)) if currentState.isFocused(path)  =>
-          currentState.moveCursorRight(shift).pure
-        case (currentState, TextFieldEvent.GoUp(shift)) if currentState.isFocused(path)  =>
-          currentState.moveCursorUp(shift).pure
-        case (currentState, TextFieldEvent.GoDown(shift)) if currentState.isFocused(path)  =>
-          currentState.moveCursorDown(shift).pure
-        case (currentState, TextFieldEvent.MoveWholeCursorTo(pos)) if currentState.isFocused(path)  =>
-          currentState.putWholeCursorTo(currentState.textPositionOf(pos)).pure
-        case (currentState, TextFieldEvent.MoveCursorTo(pos)) if currentState.isFocused(path)  =>
-          currentState.putCursorTo(currentState.textPositionOf(pos)).pure
-        case (currentState, TextFieldEvent.ClipboardPaste(text)) if currentState.isFocused(path)  =>
-          currentState.insert(text).pure
-        case (currentState, TextFieldEvent.ClipboardCopy) if currentState.isFocused(path)  =>
-          if currentState.getSelected.nonEmpty then
-            copyTextToClipboard(currentState.getSelected).as(currentState)
-          else
-            currentState.pure
-        case (currentState, TextFieldEvent.ClipboardCut) if currentState.isFocused(path)  =>
-          if currentState.getSelected.nonEmpty then
-            copyTextToClipboard(currentState.getSelected).as(currentState.backspace())
-          else
-            currentState.pure
-        case (currentState, TextFieldEvent.SelectAll) if currentState.isFocused(path)  =>
-          currentState.selectAll().pure
-        case (currentState, TextFieldEvent.GainedFocus(pathToFocusOn)) =>
-          currentState.focus(pathToFocusOn).pure
-        case (currentState, _) =>
-          currentState.pure
-      }
-    },
-    body = body
-  )
-end textField
-
-def basicTextFieldBody[
-  Widget,
-  PlacedText
-](
-   textPlacer : (state :TextFieldState, body : PlacedText => Widget) => Widget,
-   systemEventCatcher : PlacedText => Widget => Widget,
-   text : PlacedText => Widget,
- )(
-   state : TextFieldState
- ) : Widget =
-  textPlacer(
-    state,
-    placedText =>
-      systemEventCatcher(placedText)(
-        text(placedText),
-      )
-  )
-end basicTextFieldBody

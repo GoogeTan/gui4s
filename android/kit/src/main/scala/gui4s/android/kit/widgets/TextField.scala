@@ -10,7 +10,7 @@ import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
 import gui4s.android.skia.paragraph.*
-import gui4s.core.widget.library.{TextFieldEvent, TextFieldState}
+import gui4s.core.widget.library.textfield.{TextFieldEvent, TextFieldState, basicTextFieldBody, textField}
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.paragraph.*
 
@@ -25,7 +25,7 @@ def textField[
   text : String,
   onChange : String => Event
 ) : AndroidWidget[IO, Event] =
-  gui4s.core.widget.library.textField(
+  gui4s.core.widget.library.textfield.textField(
     statefulWidget[IO],
     body,
     copyTextToClipboard
@@ -41,7 +41,7 @@ def basicTextFieldBody[
   drawText : (Path, TextFieldState, Sized[Float, Paragraph]) => AndroidWidget[IO, Event]
 ) : TextFieldState => AndroidWidget[IO, Event] =
   state =>
-    gui4s.core.widget.library.basicTextFieldBody[
+    gui4s.core.widget.library.textfield.basicTextFieldBody[
       AndroidWidget[IO, Event],
       Sized[Float, Paragraph]
     ](

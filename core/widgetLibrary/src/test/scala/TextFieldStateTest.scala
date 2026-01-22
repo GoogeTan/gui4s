@@ -1,4 +1,4 @@
-import gui4s.core.widget.library.{TextFieldState, TextPosition}
+import gui4s.core.widget.library.textfield.{TextFieldState, TextPosition}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

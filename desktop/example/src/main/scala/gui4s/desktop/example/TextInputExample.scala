@@ -26,9 +26,9 @@ import gui4s.core.geometry.Rect
 import gui4s.core.kit.ContainerPlacementError
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
-import gui4s.core.widget.library.TextFieldEvent
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.Paddings
+import gui4s.core.widget.library.textfield.TextFieldEvent
 
 import gui4s.desktop.kit.UIApp
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
