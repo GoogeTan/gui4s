@@ -6,6 +6,19 @@ import cats.syntax.all._
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
+/**
+ * Виджет, позволяющий при каждом изменении ключа запускать задачу, бросающую события.
+ *
+ * @param pushEvent Эффект, позволяющий кинуть событие виджету по данному пути.
+ * @param catchEvent Функция, которая должна поймать событие, брошенное pushEvent. И пробросить его родительскому виджету.
+ * @tparam IO Эффект задачи.
+ * @tparam Widget Свободный виджет.
+ * @tparam Key Ключ.
+ * @tparam Update Эффект обновления дерева виджетов.
+ * @tparam Rect Положение виджета на экране.
+ * @tparam HandleableEvent Внещнее событие.
+ * @tparam Event Событие, бросаемое виджетом.
+ */
 def launchedEvent[
   IO[_] : Monad,
   Widget,

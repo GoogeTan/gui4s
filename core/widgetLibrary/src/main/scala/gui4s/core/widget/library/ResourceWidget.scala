@@ -10,7 +10,15 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.library.TransitiveStatefulWidget
 import gui4s.core.widget.library.WithContext
 
-type ResourceWidget[Widget, F[_]] = [T : Typeable] => (name : String, resource : F[(T, F[Unit])]) => WithContext[Widget, Option[T]]
+/**
+ * Тип виджета, позволяющего безопасно создавать ресурсы.
+ * @tparam Resource Эффекта ресурса
+ * @tparam T Ресурс
+ * @param name Имя состояния виджета
+ * @param resource Эффект, создающий ресурс
+ * @returns Виджет с контекстом ресурса(пока ресурс не закончил инициализацию, будет передано None). С момента, как передано Some, всегда будет передано Some
+ */
+type ResourceWidget[Widget, Resource[_]] = [T : Typeable] => (name : String, resource : Resource[T]) => WithContext[Widget, Option[T]]
 
 @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
 given destructableIsTypeable[T: Typeable, IO: Typeable]: Typeable[(T, IO)] = x => x match {
@@ -19,36 +27,100 @@ given destructableIsTypeable[T: Typeable, IO: Typeable]: Typeable[(T, IO)] = x =
   case _ => None
 }
 
-def resourceWidget[
+/**
+ * Реализация ResourceWidget, позволяющая безопасно создавать ресурсы с деструктором.
+ * В более конктретных модулях будет эффект Resource, а не его частный случай.
+ *
+ * @param transitiveStatefulWidget
+ * @param launchedEvent
+ * @param doubleAllocError
+ * @param emptyDesctructor
+ * @tparam Desctruction Эффект, в котором исполняются деструкторы данного transitiveStatefulWidget
+ * @tparam IO Эффект инициализации ресурса
+ * @tparam Event
+ * @todo Заменить слишком общий интерфейс TransitiveStatefulWidget на конкретный тип функции.
+ * @todo Добавить докумнетацию ко всем параметрам
+ * @return
+ */
+def descructableResourceWidget[
+  Widget[_],
+  Update[_, _] : BiMonad as updateBiMonad,
+  Place[_],
+  Desctruction : Typeable,
+  IO[_] : Functor,
+  Event,
+](
+  transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, [State] =>> State => Desctruction, Nothing],
+  launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
+  doubleAllocError : [T] => Path => Update[Event, T],
+  emptyDesctructor : Desctruction
+) : ResourceWidget[Widget[Event], [T] =>> IO[(T, Desctruction)]] =
+  [Value : Typeable] => (name, resource) =>
+    (widget : Option[Value] => Widget[Event]) =>
+      transitiveStatefulWidget[
+        Option[(Value, Desctruction)],
+        Event,
+        (Value, Desctruction)
+      ](
+        name = name,
+        initialState = None,
+        eventHandler = {
+          case (None, _, NonEmptyList(event, Nil)) =>
+            updateBiMonad[Event]().pure(Some(event))
+          case (_, path, _) => doubleAllocError(path)
+        },
+        body = state =>
+          launchedEvent[(Value, Desctruction)](
+            "effect_launcher",
+            widget(state.map(_._1)),
+            resource
+          ),
+        destructor = {
+          case Some((_, destructor)) => destructor
+          case None => emptyDesctructor
+        }
+      )
+end descructableResourceWidget
+
+/**
+ * Виджет, позволяющий единоразово иницилизировать значение с эффектом.
+ * @param launchedEvent
+ * @param doubleAllocError
+ * @tparam IO Эффект инициализации ресурса
+ * @todo Заменить слишком общий интерфейс TransitiveStatefulWidget на конкретный тип функции.
+ * @todo Добавить докумнетацию ко всем параметрам
+ * @return
+ */
+def initializeResourceWidget[
   Widget[_],
   Update[_, _] : BiMonad as updateBiMonad,
   Place[_],
   IO[_] : Functor,
   Event,
 ](
-    transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
-    launchedEffect : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
-    doubleAllocError : [T] => Path => Update[Event, T]
-)(using Typeable[IO[Unit]]) : ResourceWidget[Widget[Event], IO] =
+  transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
+  launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
+  doubleAllocError : [T] => Path => Update[Event, T],
+) : ResourceWidget[Widget[Event], IO] =
   [Value : Typeable] => (name, resource) =>
-      (widget : Option[Value] => Widget[Event]) =>
-          transitiveStatefulWidget[
-            Option[(Value, IO[Unit])],
-            Event,
-            (Value, IO[Unit])
-          ](
-            name = name,
-            initialState = None,
-            eventHandler = {
-              case (None, _, NonEmptyList(event, Nil)) =>
-                updateBiMonad[Event]().pure(Some(event))
-              case (_, path, _) => doubleAllocError(path)
-            },
-            body = state =>
-              launchedEffect[(Value, IO[Unit])](
-                "effect_launcher",
-                widget(state.map(_._1)),
-                resource
-              )
-          )
-end resourceWidget
+    (widget : Option[Value] => Widget[Event]) =>
+      transitiveStatefulWidget[
+        Option[Value],
+        Event,
+        Value
+      ](
+        name = name,
+        initialState = None,
+        eventHandler = {
+          case (None, _, NonEmptyList(event, Nil)) =>
+            updateBiMonad[Event]().pure(Some(event))
+          case (_, path, _) => doubleAllocError(path)
+        },
+        body = state =>
+          launchedEvent[Value](
+            "effect_launcher",
+            widget(state),
+            resource
+          ),
+      )
+end initializeResourceWidget

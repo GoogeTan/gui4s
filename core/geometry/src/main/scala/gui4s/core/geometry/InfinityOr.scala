@@ -10,6 +10,8 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
   def minus[T >: MeasurementUnit](amount : T)(using N: Numeric[T]) : InfinityOr[T] =
     value match
       case Some(value) =>
+        //TODO я не очень понимаю, почему тут ограничение на неотрицательность(да,
+        // единственный юз это требует, но почему это ТУТ??!!!)
         if N.gteq(amount, value) then
           InfinityOr(Option(N.zero))
         else

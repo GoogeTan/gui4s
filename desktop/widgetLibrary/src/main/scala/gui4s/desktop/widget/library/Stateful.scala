@@ -22,14 +22,14 @@ import gui4s.core.widget.state.statefulHasInnerStates
 /**
  * Виджет с состоянием
  *
- * @tparam State Тип хранимого состояния
- * @tparam ChildEvent Тип порождаемых событий дочерних виджетов
+ * @tparam State Хранимоге состояние
+ * @tparam ChildEvent Порождаемые события дочерних виджетов
  * @tparam Update Эффект обновления виджета.
  * @tparam ChildUpdate Эффект обновления дочернего виджета.
  * @tparam Place Эффект установки виджета на экран.(см. TODO ссылка)
  * @tparam Draw Эффект отрисовки
  * @tparam RecompositionReaction Реакция на рекомпозицию(см. документацию по композиции TODO ссылка).
- * @tparam HandlableEvent Тип обрабатываемых внешних/системных событий
+ * @tparam HandlableEvent Обрабатываемые внешние/системные события
  *
  * @param name Имя состояния в дереве состояний(см. дерево состояний TODO ссылка на документацию)
  * @param initialState Начальное состояние

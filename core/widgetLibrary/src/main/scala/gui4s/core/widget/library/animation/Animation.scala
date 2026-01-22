@@ -2,8 +2,8 @@ package gui4s.core.widget.library.animation
 
 /**
  * Этот класс описывает анимацию в общем виде.
- * @tparam AnimatedValue тип анимируемого значения
- * @tparam Time тип времени(вероятно Double или Long в наносекундах)
+ * @tparam AnimatedValue Анимируеме значение
+ * @tparam Time Времени(вероятно Double или Long в наносекундах)
  */
 trait Animation[AnimatedValue, Time]:
   def valueAtGivenMoment(

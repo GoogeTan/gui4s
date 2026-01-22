@@ -10,15 +10,11 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
-type WithContext[Widget, +Memories] =
-  (Memories => Widget) => Widget
-
-given[Widget] : Functor[WithContext[Widget, *]] with
-  override def map[A, B](fa: WithContext[Widget, A])(f: A => B): WithContext[Widget, B] =
-    widget => fa(f andThen widget)
-  end map
-end given
-
+/**
+ * Виджет, помнящий последнее событие заданного типа
+ * @todo refactor me, I am too heavy. Soo many params
+ * @todo Почему у этого нет реализации в модулях для декстопа и андроида?
+ */
 def eventMemory[
   Widget[_], 
   Update[_, _],
@@ -55,6 +51,11 @@ def eventMemory[
     )
 end eventMemory
 
+/**
+ * Виджет, помнящий последнее событие заданного типа или [[None]]
+ * @todo refactor me, I am too heavy. Soo many params
+ * @todo Почему у этого нет реализации в модулях для декстопа и андроида?
+ */
 def rememberLastEventOfTheType[
   Widget[_],
   Update[_, _] : BiMonad as UBM,

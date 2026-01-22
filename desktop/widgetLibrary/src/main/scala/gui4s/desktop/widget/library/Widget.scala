@@ -17,7 +17,7 @@ import gui4s.core.widget.state.HasInnerStates
 type WidgetHandlesEvent[-HandleableEvent, +UpdatedWidget] = (pathToParent: Path, event: HandleableEvent) => UpdatedWidget
 
 /**
- * Представляет собой общее представление любого (возможно, только десктопного) виджета, уже установленного на экран.
+ * Представляет собой общее представление любого (возможно, только десктопного) размещенного на экране виджета.
  *
  * Всякий виджет изначально представляется в виде Place[Widget]. Такой виджет называется свободным.
  *
@@ -41,7 +41,7 @@ type WidgetHandlesEvent[-HandleableEvent, +UpdatedWidget] = (pathToParent: Path,
  * @tparam Place Эффект установки на экран
  * @tparam Draw Графическое представление (например, IO[Unit], рисующий при помощи open gl, или текст на html).
  * @tparam RecompositionReaction Реакция на рекомпозицию.
- * @tparam HandleableEvent Тип обрабатываемых событий
+ * @tparam HandleableEvent Обрабатываемые события
  * 
  * @param asFree Возвращает виджет в свободное состояние до установки на экран.
  * @param draw Возвращает графическое представление виджета.

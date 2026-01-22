@@ -11,6 +11,17 @@ import gui4s.core.layout.rowcolumn.PlacementStrategy
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 
+/**
+ * Декоратор, которй позволяет добавить виджеты на задный и передний план данного виджета.
+ *
+ * @param container Обобщенный виджет контейнер
+ * @param background Виджеты, которые будут отображаться на задном плане
+ * @param foreground Виджеты, которые будут отображаться на переднем плане
+ * @param decorationsPlacementStrategy То, как разместить виджеты
+ * @tparam Widget Свободный виджет
+ * @tparam PlacementEffect Эффект установки на экран
+ * @tparam MeasurementUnit Единица измерения размеров на экране.
+ */
 def layersWidget[
   Widget,
   PlacementEffect[_] : Monad as OPA,

@@ -87,7 +87,7 @@ object `package` extends Module:
 
   object imports:
     def cats = "cats,cats.data,cats.arrow,cats.effect,cats.syntax.all,catnip,catnip.syntax.all"
-    def catsEffect = "cats.effect,cats.effect.syntax.all,cats.effect.std"
+    def catsEffect = cats ++ ",cats.effect,cats.effect.syntax.all,cats.effect.std"
     def catnip = "catnip,catnip.syntax.all"
     def default = "java.lang,scala,scala.Predef"
   end imports

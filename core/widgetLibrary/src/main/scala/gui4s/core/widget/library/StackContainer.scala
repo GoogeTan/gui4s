@@ -11,15 +11,18 @@ import gui4s.core.layout.SizedC
 import gui4s.core.layout.rowcolumn._
 import gui4s.core.widget.library.ContainerWidget
 
-@FunctionalInterface
-trait StackContainer[Widget]:
-  def apply(children : List[Widget]) : Widget
-
-  final def apply(children : Widget*) : Widget =
-    this.apply(children.toList)
-  end apply
-end StackContainer
-
+/**
+ * Стопка - это контейнер, который располгагает свои дочерние виджеты друг над другом. Первый виджет самый нижкний, последний - самый верхний.
+ * @param getBounds Функция, возвращающая ограничения на доступное место
+ * @param container Обобщенный виджет контейнера
+ * @param children Дочерние виджеты
+ * @param xyPlacementStrategy Правило расстановки дочерних виджетов
+ * @tparam Widget Размещенный виджет
+ * @tparam OuterPlace Эффект установки виджета
+ * @tparam Bounds Ограничения на доступное место
+ * @tparam MeasurementUnit Единица измерения места на экране
+ * @return
+ */
 def stackContainer[
   Widget,
   PlacementEffect[_] : Monad as OPA,

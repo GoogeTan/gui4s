@@ -11,7 +11,7 @@ import cats.syntax.all._
 
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.WithContext
-import gui4s.core.widget.library.{resourceWidget => genericResourceWidget}
+import gui4s.core.widget.library.{descructableResourceWidget => genericResourceWidget}
 
 import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.effects._
@@ -24,21 +24,22 @@ trait ResourceWidget[IO[_]]:
 end ResourceWidget
 
 object ResourceWidget:
-  def apply[IO[_], Event](
-                          supervisor : Supervisor[IO],
-                          raiseExternalEvent : DownEvent => IO[Unit],
-                         )(using Typeable[IO[Unit]], MonadCancel[IO, Throwable]) : ResourceWidget[IO] =
+  def apply[IO[_]](
+                    supervisor : Supervisor[IO],
+                    raiseExternalEvent : DownEvent => IO[Unit],
+                   )(using Typeable[IO[Unit]], MonadCancel[IO, Throwable]) : ResourceWidget[IO] =
     new ResourceWidget[IO]:
       override def apply[T, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[IO, Event], Option[T]] =
         body => genericResourceWidget[
           DesktopWidget[IO, *],
           Update[IO, *, *],
           PlaceC[IO],
+          RecompositionReaction[IO],
           IO,
           Event
         ](
           transitiveStatefulWidget = transitiveStatefulWidget[IO],
-          launchedEffect =
+          launchedEvent =
             [TaskEvent : Typeable as TET] => (name : String, child : DesktopWidget[IO, Event], task : IO[TaskEvent]) =>
               LaunchedEvent[IO, Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
                 supervisor,
@@ -52,7 +53,8 @@ object ResourceWidget:
                 (),
                 task.map(Left(_))
               ),
-          doubleAllocError = [T] => (path : Path) => Update.raiseError(new Exception("Double resource alloc at " + path.toString))
+          doubleAllocError = [T] => (path : Path) => Update.raiseError(new Exception("Double resource alloc at " + path.toString)),
+          emptyDesctructor = RecompositionReaction.empty
         )(name, init.allocated)(body)
       end apply
     end new

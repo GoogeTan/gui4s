@@ -7,6 +7,22 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
+/**
+ * Виджет, позволяющий ловить событий мышки. Если событие произошло, пока мышь находится за пределами виджета,
+ * то оно не будет обработано.
+ * @param eventCatcherWithRect
+ * @param currentMousePosition
+ * @param appropriateEvent
+ * @param onClick
+ * @param isIn
+ * @tparam Widget
+ * @tparam Update
+ * @tparam HandleableEvent
+ * @tparam MouseClick
+ * @tparam Point
+ * @tparam WidgetBoundingBox
+ * @return
+ */
 def clickCatcher[
   Widget,
   Update[_] : Monad,

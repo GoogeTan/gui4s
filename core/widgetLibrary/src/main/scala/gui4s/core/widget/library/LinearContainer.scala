@@ -18,6 +18,21 @@ import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
 import gui4s.core.layout.rowcolumn.PlacementStrategy
 import gui4s.core.layout.rowcolumn.rowColumnLayoutPlacement
 
+/**
+ * Линейный контейнер - это контейнер, который располагает свои дочерние виджеты вдоль одной из осей.
+ *
+ * @param children Множество дочерних виджетов
+ * @param mainAxis Ось, вдоль которой располагаются дочерние виджеты
+ * @param mainAxisStrategy Функция, размещающая дочерние виджеты вдоль главной оси. Например, размещающая в начале или в конце, заполняющая все место с равным расстоянием между
+ * @param additionalAxisStrategy Функция, размещающая виджет вдоль второй оси. Например, в начале, в середине или в конце.
+ *
+ * @tparam Widget Свободный виджет
+ * @tparam Place Эффект устаовки виджета на экран
+ * @tparam Container Множество виджетов
+ * @tparam BoundUnit Ограничения на доступное место(может отличастья от MeasurementUnit, т.к. может быть бесконечным в случае скролла)
+ * @tparam MeasurementUnit Единица измерения размеров на экране
+ * @tparam Axis Ось.
+ */
 @FunctionalInterface
 trait LinearContainer[
   Widget,
@@ -27,6 +42,12 @@ trait LinearContainer[
   MeasurementUnit,
   Axis,
 ]:
+  /**
+   * @param children Множество дочерних виджетов
+   * @param mainAxis Ось, вдоль которой располагаются дочерние виджеты
+   * @param mainAxisStrategy Функция, размещающая дочерние виджеты вдоль главной оси. Например, размещающая в начале или в конце, заполняющая все место с равным расстоянием между
+   * @param additionalAxisStrategy Функция, размещающая виджет вдоль второй оси. Например, в начале, в середине или в конце.
+   */
   def apply(
               children               : Container[Widget],
               mainAxis               : Axis,
@@ -35,6 +56,21 @@ trait LinearContainer[
             ) : Widget
 end LinearContainer
 
+/**
+ * Реализация линейного контейнера через обобщенный контейнер.
+ * @see  См. определение линейного контейнера [[LinearContainer]]
+ *
+ * @param container Обобщенный контейнер
+ * @param getBounds Возвращает ограничения на доступное место
+ * @param setBounds Позволяет установить ограничения на доступное место
+ * @param cut Уменьшает ограничения на заданную величину
+ *
+ * @tparam PlacedWidget Размещенный виджет.
+ * @tparam Place Эффект устаовки виджета на экран
+ * @tparam Container Множество виджетов
+ * @tparam BoundUnit Ограничения на доступное место(может отличастья от MeasurementUnit, т.к. может быть бесконечным в случае скролла)
+ * @tparam MeasurementUnit Единица измерения размеров на экране
+ */
 def linearContainer[
   PlacedWidget,
   Place[_] : Monad,

@@ -11,6 +11,18 @@ import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 
+/**
+ * Расставляет дочерние виджеты линейного контейнера.
+ *
+ * @param getBounds Возвращает ограничения на размеры виджета
+ * @param setBounds Устанавливает ограничения на размеры виджета
+ * @param cut Позволяет уменьшить ограничение по оси на заданную длину
+ * @param mainAxis главная ось, по которой расставляются виджеты
+ * @param children дочерние виджеты
+ * @param elementsPlacement Правило установки дочерних виджетов
+ * @tparam BoundUnit Тип ограничений на размеры виджета по одной из осей. Обычно это или MeasurementUnit, или [[gui4s.core.geometry.InfinityOr]][MeasurementUnit]
+ * @tparam MeasurementUnit Единицы измерения размеров экрана. Это может быть пиксели, или DP, или другие единицы измерения.
+ */
 def rowColumnLayoutPlacement[
   Place[_] : Monad,
   Container[_] : {Traverse, Zip},
@@ -39,6 +51,12 @@ def rowColumnLayoutPlacement[
   )
 end rowColumnLayoutPlacement
 
+/**
+ * Измеряет размеры виджетов, изменяя количество свободного пространства в соответствии с их размерами.
+ * После своей работы оставляет количество свободного пространства измененным.
+ *
+ * @param updateBounds Обновляет ограничения на размеры виджета
+ */
 def measureItemsDirty[Measure[_] : Monad, Container[_] : Traverse, Item](updateBounds : Item => Measure[Unit], items : Container[Measure[Item]]) : Measure[Container[Item]] =
   items.traverse(current =>
     for

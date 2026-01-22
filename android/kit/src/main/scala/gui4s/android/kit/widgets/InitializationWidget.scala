@@ -33,6 +33,9 @@ trait InitializationWidget[IO[_]]:
 end InitializationWidget
 
 object InitializationWidget:
+  /**
+   * TODO заменить ResourceWidget на [[gui4s.core.widget.library.initializeResourceWidget]]
+   */
   def apply[
     IO[_] : Applicative,
   ](

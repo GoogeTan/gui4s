@@ -11,6 +11,15 @@ import cats.syntax.all._
 
 import gui4s.core.widget.free.AsFree
 
+/**
+ * Тип функции, описывающей установку множества виджетов в контейнер.
+ * Принимает множество свободных детей и возвращает свободное множество размещенных виджетов.
+ *
+ * @tparam Place Эффект установки виджета
+ * @tparam Container Множества виджетов. Это может быть List, если это правило установки линейного контейнера или Id, если правило только для одного виджета.:
+ * @tparam Widget Размещенный виджет
+ * @tparam Meta Вспомогательные данные об результатах установки(например, координаты). TODO может, можно обобщить на произвольную комонаду
+ */
 type Layout[Place[_], Container[_], Widget, Meta] = Container[Place[Widget]] => Place[Container[(Widget, Meta)]]
 
 def containerHandlesEvent[

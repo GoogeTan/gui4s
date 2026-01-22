@@ -8,7 +8,7 @@ import gui4s.core.widget.Path
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.LaunchedEvent
-import gui4s.core.widget.library.{WithContext, resourceWidget as genericResourceWidget}
+import gui4s.core.widget.library.{WithContext, descructableResourceWidget as genericResourceWidget}
 
 import scala.reflect.Typeable
 
@@ -29,11 +29,12 @@ object ResourceWidget:
           AndroidWidget[IO, *],
           Update[IO, *, *],
           PlaceC[IO],
+          RecompositionReaction[IO],
           IO,
           Event
         ](
           transitiveStatefulWidget = transitiveStatefulWidget[IO],
-          launchedEffect =
+          launchedEvent =
             [TaskEvent : Typeable as TET] => (name : String, child : AndroidWidget[IO, Event], task : IO[TaskEvent]) =>
               LaunchedEvent[IO, Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
                 supervisor,
@@ -47,7 +48,8 @@ object ResourceWidget:
                 (),
                 task.map(Left(_))
               ),
-          doubleAllocError = [T] => (path : Path) => Update.raiseError(new Exception("Double resource alloc at " + path.toString))
+          doubleAllocError = [T] => (path : Path) => Update.raiseError(new Exception("Double resource alloc at " + path.toString)),
+          emptyDesctructor = RecompositionReaction.empty
         )(name, init.allocated)(body)
       end apply
     end new
