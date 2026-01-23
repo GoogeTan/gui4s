@@ -38,6 +38,7 @@ def constSizedDrawOnlyWidget[IO[_] : Monad, Event](
   )
 end constSizedDrawOnlyWidget
 
+/*
 def androidDrawableWidget[
   IO[_] : Async,
   Event
@@ -50,4 +51,4 @@ def androidDrawableWidget[
   ](
     Sized(Draw.drawAndroidDrawable(image).evalOn(gui4s.android.kit.AndroidMainThread), Rect(image.getIntrinsicWidth.toFloat, image.getIntrinsicHeight.toFloat)),
   )
-end androidDrawableWidget
+end androidDrawableWidget*/
