@@ -4,12 +4,12 @@ import gui4s.core.widget.library.animation.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.decorator.eventCatcher
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.Duration
 
 def animationWidget[
   IO[_] : {MonadThrow, Clock as ClockIO},
   Event,
-  AnimatedValue : {Eq, Group}
+  AnimatedValue : Eq
 ]() : AnimationWidget[AndroidWidget[IO, Event], AnimatedValue, Duration] =
   val stateful = transitiveStatefulWidget[IO]
   gui4s.core.widget.library.animation.animationWidget[

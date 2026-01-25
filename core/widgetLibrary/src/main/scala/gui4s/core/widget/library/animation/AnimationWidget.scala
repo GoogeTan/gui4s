@@ -11,6 +11,20 @@ import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.MergeStates
 
+/**
+ *
+ * Виджет, позволяющий плавно интерполировать значение во времени. При изменении target value
+ * виджет будет передавать в тело виджета значение, соответствующее текущему моменту времени по правилу animation.
+ *
+ * @param name Имя состояния анимации
+ * @param targetValue Значение, к которому будет плавно интерполировать анимация
+ * @param animation Правило, по которому будет интерполироваться анимация
+ * @param body Тело виджета
+ *
+ * @tparam Widget Свободный виджет
+ * @tparam AnimatedValue Анимируемое значение
+ * @tparam Time Время. На практике будет либо [[Double]], либо [[scala.concurrent.duration.Duration]]
+ */
 type AnimationWidget[Widget, AnimatedValue, Time] =
   (name : String, targetValue : AnimatedValue, animation : Animation[AnimatedValue, Time], body : AnimatedValue => Widget) => Widget
 
@@ -20,7 +34,7 @@ def animationWidget[
   Update[_] : Applicative,
   Place[_],
   Destructor[_],
-  AnimatedValue : {Group, Eq},
+  AnimatedValue : Eq,
   Event
 ](
   statefulWidget: (
@@ -52,7 +66,7 @@ def animationWidget[
 end animationWidget
 
 
-def mergeStates[AnimatedValue : {Group as G, Eq as AVEQ}, Time : Group as TG](
+def mergeStates[AnimatedValue : {Eq as AVEQ}, Time : Group as TG](
   oldState : StatefulState[AnimationWidgetState[AnimatedValue, Time]],
   newState: StatefulState[AnimationWidgetState[AnimatedValue, Time]],
   time : Time

@@ -15,7 +15,7 @@ import gui4s.desktop.kit.widgets.decorator.eventCatcher
 def animationWidget[
   IO[_] : {MonadThrow, Clock as ClockIO},
   Event,
-  AnimatedValue : {Eq, Group}
+  AnimatedValue : Eq
 ]() : AnimationWidget[DesktopWidget[IO, Event], AnimatedValue, Duration] =
   val stateful = transitiveStatefulWidget[IO]
   gui4s.core.widget.library.animation.animationWidget[
