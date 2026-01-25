@@ -15,19 +15,19 @@ import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
 import gui4s.core.layout.rowcolumn.PlacementStrategy
 import gui4s.core.widget.library.decorator.Decorator
 
-import gui4s.desktop.kit.effects.OuterPlace.given
+import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.kit.widgets._
 
 def minSizeWidget[IO[_] : Sync, Event](
                                        minSize : Rect[Float],
-                                       placeIfSmaller : OneElementPlacementStrategy[OuterPlaceC[IO], Bounds, Point2d[Float]],
+                                       placeIfSmaller : OneElementPlacementStrategy[PlacementEffectC[IO], Bounds, Point2d[Float]],
                                       )
   : Decorator[DesktopWidget[IO, Event]] =
   gui4s.core.widget.library.decorator.minSizeWidget[
     DesktopPlacedWidget[IO, Event],
-    OuterPlaceC[IO],
+    PlacementEffectC[IO],
     Situated,
     Rect[Float],
     Point3d[Float]
@@ -36,7 +36,7 @@ def minSizeWidget[IO[_] : Sync, Event](
     {
       case (Sized(widget, size), minSize) =>
         if size.width < minSize.width || size.height < minSize.height then
-          OuterPlace.getBounds[IO]
+          PlacementEffect.getBounds[IO]
             .flatMap(placeIfSmaller(size.toPoint2d, _))
             .map { case ElementPlacementResult(_, coordinatesOfStarts) =>
               Sized(
@@ -45,7 +45,7 @@ def minSizeWidget[IO[_] : Sync, Event](
               )
           }
         else
-          Sized((widget, Point3d.Zero[Float]), size).pure[OuterPlaceC[IO]]
+          Sized((widget, Point3d.Zero[Float]), size).pure[PlacementEffectC[IO]]
         end if
     }
   )(minSize)

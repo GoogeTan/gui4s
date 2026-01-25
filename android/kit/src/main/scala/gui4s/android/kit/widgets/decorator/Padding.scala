@@ -17,7 +17,7 @@ def gapPaddingWidget[IO[_] : Sync, Event](paddings: Paddings[Float]): Decorator[
     )(
       original,
       child =>
-        OuterPlace.withBounds[IO, Sized[Float, AndroidPlacedWidget[IO, Event]]](
+        PlacementEffect.withBounds[IO, Sized[Float, AndroidPlacedWidget[IO, Event]]](
           child,
           originalBounds => originalBounds.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_))
         ).map(sizedChild =>

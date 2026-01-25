@@ -13,21 +13,21 @@ import gui4s.core.widget.library.decorator.Decorator
 
 def layersWidget[
   Widget,
-  OuterPlace[_] : Monad as OPA,
+  PlacementEffect[_] : Monad as OPA,
   MeasurementUnit : Numeric as MUN
 ](
   container : ContainerWidget[
     Widget,
     List,
-    OuterPlace * SizedC[MeasurementUnit],
+    PlacementEffect * SizedC[MeasurementUnit],
     Point3d[MeasurementUnit]
   ]
 )(
-   background : List[OuterPlace[Sized[MeasurementUnit, Widget]]],
-   foreground : List[OuterPlace[Sized[MeasurementUnit, Widget]]],
-   decorationsPlacementStrategy : PlacementStrategy[OuterPlace, Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
+   background : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
+   foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
+   decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
 ) : Decorator[
-  OuterPlace[Sized[MeasurementUnit, Widget]]
+  PlacementEffect[Sized[MeasurementUnit, Widget]]
 ] =
   original =>
     container(

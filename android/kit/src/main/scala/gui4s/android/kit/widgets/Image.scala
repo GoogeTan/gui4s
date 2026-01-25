@@ -23,7 +23,7 @@ def image[
     RecompositionReaction[IO],
     DownEvent,
   ](
-    Sized(drawImage[ReaderT[IO, Canvas, *]](image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[OuterPlace[IO, *]],
+    Sized(drawImage[ReaderT[IO, Canvas, *]](image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[PlacementEffect[IO, *]],
     RecompositionReaction.empty[IO],
   )
 end image

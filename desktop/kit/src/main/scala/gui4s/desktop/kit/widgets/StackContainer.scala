@@ -19,11 +19,11 @@ def stackContainer[IO[_] : Sync as S, Event](
   given Ordering[Point2d[Float]] = Ordering.by(point => math.max(point.x, point.y))
   gui4s.core.widget.library.stackContainer[
     DesktopPlacedWidget[IO, Event],
-    OuterPlaceC[IO],
+    PlacementEffectC[IO],
     Bounds,
     Float,
   ](
-    getBounds = OuterPlace.getBounds[IO],
+    getBounds = PlacementEffect.getBounds[IO],
     container = containerWidget[IO, List, Event](traverseOrdered)
   )(
     children,

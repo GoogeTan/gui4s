@@ -9,20 +9,20 @@ import cats._
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-type Place[IO[_], Bounds, MeasurementUnit, Error, Value] = OuterPlace[IO, Bounds, Error, Sized[MeasurementUnit, Value]]
+type Place[IO[_], Bounds, MeasurementUnit, Error, Value] = PlacementEffect[IO, Bounds, Error, Sized[MeasurementUnit, Value]]
 type PlaceC[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, MeasurementUnit, Error, *]
 
 object Place:
   def typecheck[
-    OuterPlace[_] : MonadErrorC[PlaceError],
+    PlacementEffect[_] : MonadErrorC[PlaceError],
     Situated[_],
     PlaceError,
     U : Typeable
-  ](error : (Any, Path) => PlaceError) : [T] => (Any, Path, U => OuterPlace[Situated[T]]) => OuterPlace[Situated[T]] =
-    [T] => (value : Any, path : Path, callback : U => OuterPlace[Situated[T]]) =>
+  ](error : (Any, Path) => PlaceError) : [T] => (Any, Path, U => PlacementEffect[Situated[T]]) => PlacementEffect[Situated[T]] =
+    [T] => (value : Any, path : Path, callback : U => PlacementEffect[Situated[T]]) =>
       value match
         case v: U => callback(v)
-        case _ => MonadError[OuterPlace, PlaceError].raiseError(error(value, path))
+        case _ => MonadError[PlacementEffect, PlaceError].raiseError(error(value, path))
       end match
   end typecheck
 
@@ -30,7 +30,7 @@ object Place:
     : PlaceC[IO, Bounds, MeasurementUnit, Error] ~> PlaceC[IO, Bounds, MeasurementUnit, Error] =
     new (PlaceC[IO, Bounds, MeasurementUnit, Error] ~> PlaceC[IO, Bounds, MeasurementUnit, Error]):
       override def apply[A](p: Place[IO, Bounds, MeasurementUnit, Error, A]) : Place[IO, Bounds, MeasurementUnit, Error, A] =
-        OuterPlace.addNameToPath[IO, Bounds, Error](name)[Sized[MeasurementUnit, A]](p)
+        PlacementEffect.addNameToPath[IO, Bounds, Error](name)[Sized[MeasurementUnit, A]](p)
       end apply
     end new
   end addNameToPath

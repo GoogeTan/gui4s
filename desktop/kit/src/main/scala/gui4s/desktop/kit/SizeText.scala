@@ -17,12 +17,12 @@ type SizeText[Place[_]] = (text: String, options: SkijaTextStyle) => Place[Skija
 type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
 
 def sizeTextFFI[
-  OuterPlace[_] : Sync
+  PlacementEffect[_] : Sync
 ](
-  getAvailablePlace : OuterPlace[Option[Float]],
+  getAvailablePlace : PlacementEffect[Option[Float]],
   shaper: Shaper,
-  cache : TextCache[OuterPlace],
-) : SizeText[OuterPlace * SizedC[Float]] =
+  cache : TextCache[PlacementEffect],
+) : SizeText[PlacementEffect * SizedC[Float]] =
   (text: String, options: SkijaTextStyle) =>
     getAvailablePlace.flatMap:
       bounds =>

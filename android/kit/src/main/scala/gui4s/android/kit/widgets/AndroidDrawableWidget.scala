@@ -3,7 +3,7 @@ package gui4s.android.kit.widgets
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import gui4s.android.kit.AndroidMainThread
-import gui4s.android.kit.effects.OuterPlace
+import gui4s.android.kit.effects.PlacementEffect
 import gui4s.android.kit.effects.Draw
 import gui4s.core.layout.Sized
 
@@ -12,7 +12,7 @@ def androidDrawableWidget[
   Event
 ](drawable : Drawable) : AndroidWidget[IO, Event] =
   drawOnlyWidget(
-    OuterPlace.liftFunction(bounds =>
+    PlacementEffect.liftFunction(bounds =>
       S.delay {
         drawable.setBounds(
           0,

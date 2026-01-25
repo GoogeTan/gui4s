@@ -37,7 +37,7 @@ end drawOnlyWidget
 
 def constanctSizeDrawOnlyWidget[
   Update[_] : Monad as M,
-  OuterPlace[_] : Applicative,
+  PlacementEffect[_] : Applicative,
   Situated[_] : Functor,
   Draw,
   RecompositionReaction,
@@ -45,13 +45,13 @@ def constanctSizeDrawOnlyWidget[
 ](
    toDraw : Situated[Draw],
    emptyRecomposition : RecompositionReaction,
-) : OuterPlace[Situated[Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent]]] =
-  given Functor[OuterPlace * Situated] = nestedFunctorsAreFunctors[OuterPlace, Situated]
+) : PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]] =
+  given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   drawOnlyWidget[
     Update,
-    OuterPlace * Situated,
+    PlacementEffect * Situated,
     Draw,
     RecompositionReaction,
     HandleableEvent,
-](toDraw.pure[OuterPlace], emptyRecomposition)
+](toDraw.pure[PlacementEffect], emptyRecomposition)
 end constanctSizeDrawOnlyWidget

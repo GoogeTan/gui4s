@@ -8,19 +8,19 @@ import gui4s.core.kit.ContainerPlacementError
 import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy => GenericOneElementPlacementStrategy}
 import gui4s.core.layout.rowcolumn.{PlacementStrategy => GenericPlacementStrategy}
 
-import gui4s.desktop.kit.effects.OuterPlace.given
+import gui4s.desktop.kit.effects.PlacementEffect.given
 
 type LinearContainerPlacementStrategy[IO[_], Container[_]]
-    = GenericPlacementStrategy[OuterPlaceC[IO], InfinityOr[Float], Container, Float]
+    = GenericPlacementStrategy[PlacementEffectC[IO], InfinityOr[Float], Container, Float]
 type OneElementLinearContainerPlacementStrategy[IO[_]]
-    = GenericOneElementPlacementStrategy[OuterPlaceC[IO], InfinityOr[Float], Float]
+    = GenericOneElementPlacementStrategy[PlacementEffectC[IO], InfinityOr[Float], Float]
 
 object LinearContainerPlacementStrategy:
   def Begin[
     IO[_] : Monad,
     Container[_] : Traverse
   ](gap : Float) : LinearContainerPlacementStrategy[IO, Container] =
-    GenericPlacementStrategy.Begin[OuterPlace[IO, *], InfinityOr[Float], Container, Float](gap)
+    GenericPlacementStrategy.Begin[PlacementEffect[IO, *], InfinityOr[Float], Container, Float](gap)
   end Begin
 
   def Center[
@@ -28,7 +28,7 @@ object LinearContainerPlacementStrategy:
     Container[_] : Traverse
   ](gap : Float, errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Container] =
     GenericPlacementStrategy.ErrorIfInfinity(
-      GenericPlacementStrategy.Center[OuterPlace[IO, *], Container, Float](gap),
+      GenericPlacementStrategy.Center[PlacementEffect[IO, *], Container, Float](gap),
       errors.withCenterStrategy
     )
   end Center
@@ -38,7 +38,7 @@ object LinearContainerPlacementStrategy:
     Container[_] : Traverse
   ](gap : Float, errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Container] =
     GenericPlacementStrategy.ErrorIfInfinity(
-      GenericPlacementStrategy.End[OuterPlace[IO, *], Container, Float](gap),
+      GenericPlacementStrategy.End[PlacementEffect[IO, *], Container, Float](gap),
       errors.withEndStrategy
     )
   end End
@@ -48,7 +48,7 @@ object LinearContainerPlacementStrategy:
     Container[_] : Traverse
   ](errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Container] =
     GenericPlacementStrategy.ErrorIfInfinity(
-      GenericPlacementStrategy.SpaceBetween[OuterPlace[IO, *], Container, Float],
+      GenericPlacementStrategy.SpaceBetween[PlacementEffect[IO, *], Container, Float],
       errors.withSpaceBetweenStrategy
     )
   end SpaceBetween
@@ -58,7 +58,7 @@ object LinearContainerPlacementStrategy:
     Container[_] : {Applicative, Traverse, SemigroupK}
   ](errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Container] =
     GenericPlacementStrategy.ErrorIfInfinity(
-      GenericPlacementStrategy.SpaceAround[OuterPlace[IO, *], Container, Float],
+      GenericPlacementStrategy.SpaceAround[PlacementEffect[IO, *], Container, Float],
       errors.withSpaceAroundStrategy
     )
   end SpaceAround

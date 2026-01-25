@@ -8,14 +8,14 @@ import gui4s.desktop.widget.library.*
 import gui4s.desktop.widget.library.decorator.eventCatcherWithRect
 
 def eventCatcher[IO[_] : Monad, Event]: EventCatcherWithRect[
-  OuterPlace[IO, Situated[AndroidPlacedWidget[IO, Event]]],
+  PlacementEffect[IO, Situated[AndroidPlacedWidget[IO, Event]]],
   Update[IO, Event, Boolean],
   Situated[AndroidPlacedWidget[IO, Event]],
   DownEvent
 ] = eventCatcherWithRect[
   AndroidPlacedWidget[IO, Event],
   UpdateC[IO, Event],
-  OuterPlace[IO, *],
+  PlacementEffect[IO, *],
   Situated,
   DownEvent
 ](

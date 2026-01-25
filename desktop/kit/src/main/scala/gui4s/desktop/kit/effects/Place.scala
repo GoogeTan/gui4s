@@ -16,7 +16,7 @@ import gui4s.core.kit.effects.{Place => GenericPlace}
 import gui4s.core.widget.Path
 
 import gui4s.desktop.kit.effects.Situated.given
-import gui4s.desktop.kit.effects.OuterPlace.given
+import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.skija.shaper.Shaper
 
 type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, Throwable, T]
@@ -26,7 +26,7 @@ object Place:
   def run[IO[_] : Monad](path : Path, bounds : IO[Bounds]) : Place[IO, *] ~> EitherT[IO, Throwable, *] =
     new ~>[Place[IO, *], EitherT[IO, Throwable, *]]:
       override def apply[A](fa : Place[IO, A]) : EitherT[IO, Throwable, A] =
-        OuterPlace.run(path, bounds)(fa.map(_.value))
+        PlacementEffect.run(path, bounds)(fa.map(_.value))
       end apply
     end new
   end run
@@ -34,7 +34,7 @@ object Place:
   def withBoundsK[IO[_] : Sync](f : Bounds => Bounds) : Place[IO, *] ~> Place[IO, *] =
     new ~>[Place[IO, *], Place[IO, *]]:
       override def apply[A](fa : Place[IO, A]) : Place[IO, A] =
-        OuterPlace.withBoundsK(f)(fa)
+        PlacementEffect.withBoundsK(f)(fa)
       end apply
     end new
   end withBoundsK
@@ -43,19 +43,19 @@ object Place:
     shaper : Shaper,
     cache : TextCache[IO],
   ) : SizeText[Place[IO, *]] =
-    sizeTextFFI[OuterPlace[IO, *]](
-      OuterPlace.getBounds.map(_.width.value),
+    sizeTextFFI[PlacementEffect[IO, *]](
+      PlacementEffect.getBounds.map(_.width.value),
       shaper,
-      MapKCache(cache, OuterPlace.liftK),
+      MapKCache(cache, PlacementEffect.liftK),
     )
   end sizeText
 
   def typecheck[IO[_] : MonadThrow, TypeToCheck : Typeable](error : (Any, Path) => Throwable) : [Res] => (Any, Path, TypeToCheck => Place[IO, Res]) => Place[IO, Res] =
-    GenericPlace.typecheck[OuterPlace[IO, *], Situated, Throwable, TypeToCheck](error)
+    GenericPlace.typecheck[PlacementEffect[IO, *], Situated, Throwable, TypeToCheck](error)
   end typecheck
 
   given functorInstance[IO[_] : Monad] : Functor[Place[IO, *]] =
-    nestedFunctorsAreFunctors[OuterPlace[IO, *], Situated]
+    nestedFunctorsAreFunctors[PlacementEffect[IO, *], Situated]
   end functorInstance
 
   def addNameToPath[IO[_] : Monad](name : String) : Place[IO, *] ~> Place[IO, *] =

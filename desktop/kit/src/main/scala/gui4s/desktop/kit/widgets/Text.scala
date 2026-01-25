@@ -54,7 +54,7 @@ def placedText[IO[_] : Sync, Event](placedText : Sized[Float, SkijaPlacedText]) 
 end placedText
 
 def paragraph[IO[_] : Sync, Event](paragraph : Paragraph) : DesktopWidget[IO, Event] =
-  OuterPlace.liftFunction(bounds =>
+  PlacementEffect.liftFunction(bounds =>
     sizeParagraph(paragraph, bounds.width.value)
   )
   .flatMap(placedParagraph)

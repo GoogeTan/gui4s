@@ -14,15 +14,15 @@ import gui4s.core.widget.library.decorator.EventCatcherWithRect
 def eventCatcherWithRect[
   PlaceWidget,
   Update[_] : Monad,
-  OuterPlace[_],
+  PlacementEffect[_],
   Situated[_] : Comonad,
   HandleableEvent,
 ](
-   updateDecorator: UpdateDecorator[Update, OuterPlace, Situated[PlaceWidget], HandleableEvent],
+   updateDecorator: UpdateDecorator[Update, PlacementEffect, Situated[PlaceWidget], HandleableEvent],
    markEventHandled : Update[Unit],
-   widgetAsFree : AsFreeF[PlaceWidget, OuterPlace * Situated],
-   widgetHandlesEvent : HandlesEventF[PlaceWidget, HandleableEvent, Update * OuterPlace * Situated]
-) : EventCatcherWithRect[OuterPlace[Situated[PlaceWidget]], Update[Boolean], Situated[PlaceWidget], HandleableEvent] =
+   widgetAsFree : AsFreeF[PlaceWidget, PlacementEffect * Situated],
+   widgetHandlesEvent : HandlesEventF[PlaceWidget, HandleableEvent, Update * PlacementEffect * Situated]
+) : EventCatcherWithRect[PlacementEffect[Situated[PlaceWidget]], Update[Boolean], Situated[PlaceWidget], HandleableEvent] =
   decorator =>
     updateDecorator(
       (self, path, event) =>

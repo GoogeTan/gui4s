@@ -10,7 +10,7 @@ import scala.annotation.targetName
 def clipWidget[IO[_] : Sync, Event](value : AndroidWidget[IO, Event], path : Rect[Float] => Clip) : AndroidWidget[IO, Event] =
   gui4s.desktop.widget.library.decorator.clipWidget[
     UpdateC[IO, Event],
-    OuterPlace[IO, *],
+    PlacementEffect[IO, *],
     Situated,
     Draw[IO],
     RecompositionReaction[IO],

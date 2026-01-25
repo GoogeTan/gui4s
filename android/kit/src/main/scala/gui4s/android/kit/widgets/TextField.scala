@@ -45,10 +45,10 @@ def basicTextFieldBody[
       AndroidWidget[IO, Event],
       Sized[Float, Paragraph]
     ](
-      (state, callback) => Monad[OuterPlaceC[IO]].flatMap(placeText(state))(callback),
+      (state, callback) => Monad[PlacementEffectC[IO]].flatMap(placeText(state))(callback),
       systemEventCatcher,
       text =>
-        OuterPlace.currentPath[IO].flatMap(path => drawText(path, state, text))
+        PlacementEffect.currentPath[IO].flatMap(path => drawText(path, state, text))
     )(state)
 end basicTextFieldBody
 
@@ -64,7 +64,7 @@ def textFieldTextPlacement[
 )(
   state : TextFieldState
 ) : Place[IO, Paragraph] =
-  OuterPlace.liftFunction(
+  PlacementEffect.liftFunction(
     bounds =>
       textFieldParagraph(
         style,

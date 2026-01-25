@@ -10,7 +10,7 @@ import gui4s.desktop.widget.library._
 
 def fixedSizeWidget[
   Update[_] : Functor,
-  OuterPlace[_],
+  PlacementEffect[_],
   Place[_] : Functor,
   Draw,
   RecompositionReaction,
@@ -22,15 +22,15 @@ def fixedSizeWidget[
    withPreferredSize : Place ~> Place,
    linearContainer: LinearContainer[
     Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
-    OuterPlace,
+    PlacementEffect,
     Id,
     BoundUnit,
     MeasurementUnit,
     Axis
   ],
    mainAxis : Axis,
-   mainAxisStrategy : OneElementPlacementStrategy[OuterPlace, BoundUnit, MeasurementUnit],
-   crossAxisStrategy : OneElementPlacementStrategy[OuterPlace, BoundUnit, MeasurementUnit],
+   mainAxisStrategy : OneElementPlacementStrategy[PlacementEffect, BoundUnit, MeasurementUnit],
+   crossAxisStrategy : OneElementPlacementStrategy[PlacementEffect, BoundUnit, MeasurementUnit],
 ) : Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]] =
   originalWidget =>
     placementDecorator(

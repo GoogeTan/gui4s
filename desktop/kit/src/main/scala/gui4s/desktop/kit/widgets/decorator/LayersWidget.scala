@@ -17,11 +17,11 @@ import gui4s.desktop.kit.widgets._
 def layersWidget[IO[_] : Sync, Event](
                                        background : List[DesktopWidget[IO, Event]],
                                        foreground : List[DesktopWidget[IO, Event]],
-                                       placementStrategy: PlacementStrategy[OuterPlaceC[IO], Rect[Float], List, Point2d[Float]]
+                                       placementStrategy: PlacementStrategy[PlacementEffectC[IO], Rect[Float], List, Point2d[Float]]
                                     ) : Decorator[DesktopWidget[IO, Event]] =
  gui4s.desktop.widget.library.layersWidget[
    UpdateC[IO, Event],
-   OuterPlaceC[IO],
+   PlacementEffectC[IO],
    Draw[IO],
    RecompositionReaction[IO],
    DownEvent,
@@ -34,14 +34,14 @@ end layersWidget
 extension[IO[_], Event](value : DesktopWidget[IO, Event])
   def withBackground(
     background : DesktopWidget[IO, Event],
-    placement: PlacementStrategy[OuterPlaceC[IO], Rect[Float], List, Point2d[Float]]
+    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], List, Point2d[Float]]
   )(using Sync[IO]) : DesktopWidget[IO, Event] =
      layersWidget[IO, Event](background.one, Nil, placement)(value)
   end withBackground
 
   def withForeground(
     foreground : DesktopWidget[IO, Event],
-    placement: PlacementStrategy[OuterPlaceC[IO], Rect[Float], List, Point2d[Float]]
+    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], List, Point2d[Float]]
   )(using Sync[IO]) : DesktopWidget[IO, Event] =
      layersWidget[IO, Event](Nil, foreground.one, placement)(value)
   end withForeground

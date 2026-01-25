@@ -92,11 +92,11 @@ object ImageExample extends UIApp:
 
       typeface <- typeface.typefaceFromFile[AppIO]("OptimusPrinceps")
 
-      centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[OuterPlaceC[AppIO], Float]
-      beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[OuterPlaceC[AppIO], Float, Float]
+      centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[PlacementEffectC[AppIO], Float]
+      beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[PlacementEffectC[AppIO], Float, Float]
 
-      textPlacement = rowcolumn.PlacementStrategy.PlaceIndependently[OuterPlaceC[AppIO], Rect[Float], List, Point2d[Float]](
-        rowcolumn.PlacementStrategy.Zip[OuterPlaceC[AppIO], Float, Id, Float](
+      textPlacement = rowcolumn.PlacementStrategy.PlaceIndependently[PlacementEffectC[AppIO], Rect[Float], List, Point2d[Float]](
+        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Id, Float](
           Axis.Vertical,
           beginPlacement,
           beginPlacement
@@ -105,7 +105,7 @@ object ImageExample extends UIApp:
       )
 
       pleaseWaitPlacement =
-        rowcolumn.PlacementStrategy.Zip[OuterPlaceC[AppIO], Float, Id, Float](
+        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Id, Float](
           Axis.Vertical,
           centerPlacement,
           centerPlacement

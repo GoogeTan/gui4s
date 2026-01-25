@@ -39,7 +39,7 @@ end paddingLayoutPlacementStrategy
 
 def paddingWidget[
   Widget,
-  OuterPlace[_] : MonadErrorC[PlaceError],
+  PlacementEffect[_] : MonadErrorC[PlaceError],
   Place[_],
   MeasurementUnit : Fractional as MUF,
   PlaceError
@@ -50,7 +50,7 @@ def paddingWidget[
    ],
    layout : LinearContainer[
      Place[Widget],
-     OuterPlace,
+     PlacementEffect,
      Id,
      InfinityOr[MeasurementUnit],
      MeasurementUnit,

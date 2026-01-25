@@ -12,24 +12,24 @@ import gui4s.core.widget.library.decorator.Decorator
 
 def layersWidget[
   Update[_] : Monad,
-  OuterPlace[_] : Monad as OPA,
+  PlacementEffect[_] : Monad as OPA,
   Draw : Monoid,
   RecompositionReaction : Monoid,
   HandleableEvent,
   MeasurementUnit : Numeric as MUN
 ](
   container : ContainerWidget[
-    Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent],
+    Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent],
     List,
-    OuterPlace * SizedC[MeasurementUnit],
+    PlacementEffect * SizedC[MeasurementUnit],
     Point3d[MeasurementUnit]
   ]
 )(
-   background : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
-   foreground : List[OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
-   decorationsPlacementStrategy : PlacementStrategy[OuterPlace, Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
+   background : List[PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
+   foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
+   decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
 ) : Decorator[
-  OuterPlace[Sized[MeasurementUnit, Widget[Update, OuterPlace * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]
+  PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]
 ] =
   gui4s.core.widget.library.layersWidget(container)(background, foreground, decorationsPlacementStrategy)
 end layersWidget

@@ -13,7 +13,7 @@ import gui4s.desktop.kit.widgets.DesktopWidget
 def clipWidget[IO[_] : Sync, Event](value : DesktopWidget[IO, Event], path : Rect[Float] => Clip) : DesktopWidget[IO, Event] =
   gui4s.desktop.widget.library.decorator.clipWidget[
     UpdateC[IO, Event],
-    OuterPlace[IO, *],
+    PlacementEffect[IO, *],
     Situated,
     Draw[IO],
     RecompositionReaction[IO],

@@ -36,7 +36,7 @@ def animationWidget[
         _ => RecompositionReaction.empty,
         _
       ),
-    currentTime = [T] => callback => OuterPlace.liftF(ClockIO.monotonic).flatMap(callback),
+    currentTime = [T] => callback => PlacementEffect.liftF(ClockIO.monotonic).flatMap(callback),
     timeSourceWidget = original =>
       eventCatcher[IO, Either[Duration, Event]](
         (path, _, _) =>

@@ -8,14 +8,14 @@ import gui4s.core.widget.library.decorator.Decorator
 
 def minSizeWidget[
   Widget,
-  OuterPlace[_] : FlatMap as M,
+  PlacementEffect[_] : FlatMap as M,
   Situated[_],
   Bounds,
   Point
 ](
-   containerWidget: ContainerWidget[Widget, Id, OuterPlace * Situated, Point],
-   ensureMinimalSize : (Situated[Widget], Bounds) => OuterPlace[Situated[(Widget, Point)]]
-)(minSize : Bounds) : Decorator[OuterPlace[Situated[Widget]]] =
+   containerWidget: ContainerWidget[Widget, Id, PlacementEffect * Situated, Point],
+   ensureMinimalSize : (Situated[Widget], Bounds) => PlacementEffect[Situated[(Widget, Point)]]
+)(minSize : Bounds) : Decorator[PlacementEffect[Situated[Widget]]] =
   containerWidget(
     _,
     M.flatMap(_)(ensureMinimalSize(_, minSize))

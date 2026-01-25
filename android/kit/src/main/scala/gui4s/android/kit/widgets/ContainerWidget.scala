@@ -28,22 +28,22 @@ def linearContainerWidget[
   IO[_] : Sync as IOS,
   Event,
   Container[_] : {Applicative, Traverse as CT, Zip}
-](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Container]) : LinearContainer[AndroidWidget[IO, Event], OuterPlace[IO, *], Container, InfinityOr[Float], Float, Axis] =
+](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Container]) : LinearContainer[AndroidWidget[IO, Event], PlacementEffect[IO, *], Container, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     AndroidPlacedWidget[IO, Event],
-    OuterPlace[IO, *],
+    PlacementEffect[IO, *],
     Container,
     InfinityOr[Float],
     Float,
   ](
     container = containerWidget[IO, Container, Event](traverseOrdered),
-    getBounds = OuterPlace.getBounds,
-    setBounds = OuterPlace.setBounds,
+    getBounds = PlacementEffect.getBounds,
+    setBounds = PlacementEffect.setBounds,
     cut = _.minus(_)
   )
 end linearContainerWidget
 
-def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[AndroidWidget[IO, Event], OuterPlace[IO, *], List, InfinityOr[Float], Float, Axis] =
+def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[AndroidWidget[IO, Event], PlacementEffect[IO, *], List, InfinityOr[Float], Float, Axis] =
   linearContainerWidget(traverseOrdered)
 end linearListContainerWidget
 

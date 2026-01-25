@@ -11,7 +11,7 @@ import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.decorator.Decorator
 
 
-type UpdateDecorator[Update[_], OuterPlace[_], Widget, HandleableEvent] = HandlesEventF[Widget, HandleableEvent, Update * OuterPlace] => Decorator[OuterPlace[Widget]]
+type UpdateDecorator[Update[_], PlacementEffect[_], Widget, HandleableEvent] = HandlesEventF[Widget, HandleableEvent, Update * PlacementEffect] => Decorator[PlacementEffect[Widget]]
 /**
  * Декорирует обновление виджета.
  */
@@ -40,24 +40,24 @@ end updateDecorator
 
 def updateDecoratorWithRect[
   Update[_] : Functor as UF,
-  OuterPlace[_] : Functor as PF,
+  PlacementEffect[_] : Functor as PF,
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
 ] : UpdateDecorator[
   Update,
-  OuterPlace,
-  Situated[Widget[Update, [Value] =>> OuterPlace[Situated[Value]], Draw, RecompositionReaction, HandleableEvent]],
+  PlacementEffect,
+  Situated[Widget[Update, [Value] =>> PlacementEffect[Situated[Value]], Draw, RecompositionReaction, HandleableEvent]],
   HandleableEvent
 ] =
-  given Functor[OuterPlace * Situated] = nestedFunctorsAreFunctors[OuterPlace, Situated]
+  given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   decorator => original => PF.map(original)(_.coflatMap(
       sizedWidget =>
         Widget.ValueWrapper[
-          Situated[Widget[Update, [Value] =>> OuterPlace[Situated[Value]], Draw, RecompositionReaction, HandleableEvent]],
+          Situated[Widget[Update, [Value] =>> PlacementEffect[Situated[Value]], Draw, RecompositionReaction, HandleableEvent]],
           Update,
-          [Value] =>> OuterPlace[Situated[Value]],
+          [Value] =>> PlacementEffect[Situated[Value]],
           Draw,
           RecompositionReaction,
           HandleableEvent

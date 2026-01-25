@@ -10,17 +10,17 @@ import gui4s.core.widget.merge.Mergable
 
 def widgetsAreMergable[
   Update[_],
-  OuterPlace[_] : Monad as OPM,
+  PlacementEffect[_] : Monad as OPM,
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
-] : Mergable[OuterPlace[Situated[Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
-  type Place[Value] = OuterPlace[Situated[Value]]
-  given Functor[Place] = nestedFunctorsAreFunctors[OuterPlace, Situated]
+] : Mergable[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
+  type Place[Value] = PlacementEffect[Situated[Value]]
+  given Functor[Place] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
 
   (path, oldWidget, newWidget) =>
-    Monad[OuterPlace].flatMap2(
+    Monad[PlacementEffect].flatMap2(
       oldWidget, newWidget
     )(
       (situatedOld, nextWidgetToMerge) =>

@@ -6,9 +6,9 @@ import gui4s.desktop.widget.library.decorator.*
 
 def updateDecorator[IO[_] : Monad, Event]: UpdateDecorator[
   UpdateC[IO, Event],
-  OuterPlace[IO, *],
+  PlacementEffect[IO, *],
   Situated[AndroidPlacedWidget[IO, Event]],
   DownEvent
 ] = updateDecoratorWithRect[
-  UpdateC[IO, Event], OuterPlace[IO, *], Situated, Draw[IO], RecompositionReaction[IO], DownEvent
+  UpdateC[IO, Event], PlacementEffect[IO, *], Situated, Draw[IO], RecompositionReaction[IO], DownEvent
 ]

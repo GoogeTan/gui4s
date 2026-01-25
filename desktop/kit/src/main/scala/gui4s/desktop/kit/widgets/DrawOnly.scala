@@ -28,7 +28,7 @@ def constSizedDrawOnlyWidget[IO[_] : Monad, Event](
 ) : DesktopWidget[IO, Event] =
   gui4s.desktop.widget.library.constanctSizeDrawOnlyWidget[
       UpdateC[IO, Event],
-      OuterPlaceC[IO],
+      PlacementEffectC[IO],
       Situated,
       Draw[IO],
       RecompositionReaction[IO],

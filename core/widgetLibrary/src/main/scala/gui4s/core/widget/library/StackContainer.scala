@@ -22,28 +22,28 @@ end StackContainer
 
 def stackContainer[
   Widget,
-  OuterPlace[_] : Monad as OPA,
+  PlacementEffect[_] : Monad as OPA,
   Bounds,
   MeasurementUnit : Numeric as MUN
 ](
-  getBounds : OuterPlace[Bounds],
+  getBounds : PlacementEffect[Bounds],
   container : ContainerWidget[
     Widget,
     List,
-    OuterPlace * SizedC[MeasurementUnit],
+    PlacementEffect * SizedC[MeasurementUnit],
     Point3d[MeasurementUnit]
   ],
 )(
-   children : List[OuterPlace[Sized[MeasurementUnit, Widget]]],
-   xyPlacementStrategy : PlacementStrategy[OuterPlace, Bounds, List, Point2d[MeasurementUnit]],
-) : OuterPlace[Sized[MeasurementUnit, Widget]] =
-  given Functor[OuterPlace * SizedC[MeasurementUnit]] = nestedFunctorsAreFunctors[OuterPlace, SizedC[MeasurementUnit]]
+   children : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
+   xyPlacementStrategy : PlacementStrategy[PlacementEffect, Bounds, List, Point2d[MeasurementUnit]],
+) : PlacementEffect[Sized[MeasurementUnit, Widget]] =
+  given Functor[PlacementEffect * SizedC[MeasurementUnit]] = nestedFunctorsAreFunctors[PlacementEffect, SizedC[MeasurementUnit]]
   given Order[(Point2d[MeasurementUnit], Int)] = Order.by(_._2)
   container(
     children,
     freeChildren =>
       for
-        sizedChilden <- freeChildren.traverse[OuterPlace, Sized[MeasurementUnit, Widget]](identity)
+        sizedChilden <- freeChildren.traverse[PlacementEffect, Sized[MeasurementUnit, Widget]](identity)
         childrenSizes = sizedChilden.map(_.size.toPoint2d)
         children = sizedChilden.map(_.value)
         bounds <- getBounds

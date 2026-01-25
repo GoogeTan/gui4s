@@ -10,15 +10,15 @@ import gui4s.core.widget.library.decorator.Decorator
 
 def drawDecorator[
   Update[_] : Functor,
-  Place[_] : Functor as PF,
+  PlacementEffect[_] : Functor as PF,
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
 ](
   toDraw : Situated[Draw] => Draw
-) : Decorator[Place[Situated[Widget[Update, Place * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
-  given Functor[Place * Situated] = nestedFunctorsAreFunctors[Place, Situated]
+) : Decorator[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
+  given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   original =>
     PF.map(
       original
