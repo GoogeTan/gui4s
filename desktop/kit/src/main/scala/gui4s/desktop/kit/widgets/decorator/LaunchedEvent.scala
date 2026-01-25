@@ -38,7 +38,7 @@ object LaunchedEvent:
       DesktopWidget[IO, Event],
       Key,
       Update[IO, *, *],
-      InnerPlace[DesktopPlacedWidget[IO, Event]],
+      Situated[DesktopPlacedWidget[IO, Event]],
       DownEvent,
       Event
     ](

@@ -28,7 +28,7 @@ def minSizeWidget[IO[_] : Sync, Event](
   gui4s.core.widget.library.decorator.minSizeWidget[
     DesktopPlacedWidget[IO, Event],
     OuterPlaceC[IO],
-    InnerPlace,
+    Situated,
     Rect[Float],
     Point3d[Float]
   ](

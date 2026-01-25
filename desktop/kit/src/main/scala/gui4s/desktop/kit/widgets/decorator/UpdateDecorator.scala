@@ -10,8 +10,8 @@ import gui4s.desktop.widget.library.decorator._
 def updateDecorator[IO[_] : Monad, Event]: UpdateDecorator[
   UpdateC[IO, Event],
   OuterPlace[IO, *],
-  InnerPlace[DesktopPlacedWidget[IO, Event]],
+  Situated[DesktopPlacedWidget[IO, Event]],
   DownEvent
 ] = updateDecoratorWithRect[
-  UpdateC[IO, Event], OuterPlace[IO, *], InnerPlace, Draw[IO], RecompositionReaction[IO], DownEvent
+  UpdateC[IO, Event], OuterPlace[IO, *], Situated, Draw[IO], RecompositionReaction[IO], DownEvent
 ]

@@ -13,7 +13,7 @@ import gui4s.core.widget.library.decorator.Decorator
 def clipWidget[
   Update[_] : Monad as UM,
   OuterPlace[_] : Functor as PF,
-  InnerPlace[_] : Comonad,
+  Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
@@ -21,25 +21,25 @@ def clipWidget[
 ](
     withClip : [T] => (Shape, Update[T]) => Update[T],
     drawModifier : (Shape, Draw) => Draw,
-    shapeFabric : InnerPlace[Unit] => Shape
-) : Decorator[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
+    shapeFabric : Situated[Unit] => Shape
+) : Decorator[OuterPlace[Situated[Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
   freeWidgetToClip =>
     PF.map(
       freeWidgetToClip
     )(
       _.coflatMap { sizedWidget =>
-          final case class ClipWidget(currentWidget: Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent], shape: Shape):
-            def this(placed : InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]) =
+          final case class ClipWidget(currentWidget: Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent], shape: Shape):
+            def this(placed : Situated[Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent]]) =
               this(placed.extract, shapeFabric(placed.as(())))
             end this
           end ClipWidget
           
-          given Functor[OuterPlace * InnerPlace] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]
+          given Functor[OuterPlace * Situated] = nestedFunctorsAreFunctors[OuterPlace, Situated]
 
           Widget.ValueWrapper[
             ClipWidget,
             Update,
-            OuterPlace * InnerPlace,
+            OuterPlace * Situated,
             Draw,
             RecompositionReaction,
             HandleableEvent
@@ -48,7 +48,7 @@ def clipWidget[
             valueAsFree = self => PF.map(self.currentWidget.asFree)(_.coflatMap(new ClipWidget(_))),
             valueIsDrawable = self => drawModifier(self.shape, self.currentWidget.draw),
             valueHandlesEvent = (self, path, event) =>
-              withClip[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]](self.shape, self.currentWidget.handleEvent(path, event))
+              withClip[OuterPlace[Situated[Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent]]]](self.shape, self.currentWidget.handleEvent(path, event))
                 .map(_.map(_.coflatMap(new ClipWidget(_)))),
             valueMergesWithOldState = (self, path, states) =>
               PF.map(self.currentWidget.mergeWithOldState(path, states))(_.coflatMap(new ClipWidget(_))),

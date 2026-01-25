@@ -15,11 +15,11 @@ type PlaceC[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, Measureme
 object Place:
   def typecheck[
     OuterPlace[_] : MonadErrorC[PlaceError],
-    InnerPlace[_],
+    Situated[_],
     PlaceError,
     U : Typeable
-  ](error : (Any, Path) => PlaceError) : [T] => (Any, Path, U => OuterPlace[InnerPlace[T]]) => OuterPlace[InnerPlace[T]] =
-    [T] => (value : Any, path : Path, callback : U => OuterPlace[InnerPlace[T]]) =>
+  ](error : (Any, Path) => PlaceError) : [T] => (Any, Path, U => OuterPlace[Situated[T]]) => OuterPlace[Situated[T]] =
+    [T] => (value : Any, path : Path, callback : U => OuterPlace[Situated[T]]) =>
       value match
         case v: U => callback(v)
         case _ => MonadError[OuterPlace, PlaceError].raiseError(error(value, path))

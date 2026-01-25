@@ -9,13 +9,13 @@ import gui4s.core.widget.library.decorator.Decorator
 def minSizeWidget[
   Widget,
   OuterPlace[_] : FlatMap as M,
-  InnerPlace[_],
+  Situated[_],
   Bounds,
   Point
 ](
-   containerWidget: ContainerWidget[Widget, Id, OuterPlace * InnerPlace, Point],
-   ensureMinimalSize : (InnerPlace[Widget], Bounds) => OuterPlace[InnerPlace[(Widget, Point)]]
-)(minSize : Bounds) : Decorator[OuterPlace[InnerPlace[Widget]]] =
+   containerWidget: ContainerWidget[Widget, Id, OuterPlace * Situated, Point],
+   ensureMinimalSize : (Situated[Widget], Bounds) => OuterPlace[Situated[(Widget, Point)]]
+)(minSize : Bounds) : Decorator[OuterPlace[Situated[Widget]]] =
   containerWidget(
     _,
     M.flatMap(_)(ensureMinimalSize(_, minSize))

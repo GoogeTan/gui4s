@@ -86,7 +86,7 @@ def statefulWidget[IO[_] : MonadThrow]
         widgetsAreMergeable = widgetsAreMergable[
           UpdateC[IO, ChildEvent],
           OuterPlace[IO, *],
-          InnerPlace,
+          Situated,
           Draw[IO],
           RecompositionReaction[IO],
           DownEvent

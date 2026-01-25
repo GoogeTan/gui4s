@@ -15,20 +15,20 @@ import gui4s.core.widget.library.decorator.PaddingWidget
 def gapPaddingWidget[
   Update[_] : Functor,
   OuterPlace[_] : Functor,
-  InnerPlace[_] : Comonad,
+  Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
   Padding,
 ](
-  placementDecoration : Padding => (OuterPlace * InnerPlace) ~> (OuterPlace * InnerPlace),
-  updateDecorations : Padding => Decorator[WidgetHandlesEvent[HandleableEvent, Update[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]]]],
-  drawDecoration : Padding => InnerPlace[Draw] => Draw
-): PaddingWidget[OuterPlace[InnerPlace[Widget[Update, OuterPlace * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
-  given Functor[OuterPlace * InnerPlace] = nestedFunctorsAreFunctors[OuterPlace, InnerPlace]
+  placementDecoration : Padding => (OuterPlace * Situated) ~> (OuterPlace * Situated),
+  updateDecorations : Padding => Decorator[WidgetHandlesEvent[HandleableEvent, Update[OuterPlace[Situated[Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent]]]]]],
+  drawDecoration : Padding => Situated[Draw] => Draw
+): PaddingWidget[OuterPlace[Situated[Widget[Update, OuterPlace * Situated, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
+  given Functor[OuterPlace * Situated] = nestedFunctorsAreFunctors[OuterPlace, Situated]
   gui4s.core.widget.library.decorator.gapPaddingWidget(
     paddings => placementDecorator(placementDecoration(paddings)),
-    paddings => updateDecorator[Place = (OuterPlace * InnerPlace)](updateDecorations(paddings)),
+    paddings => updateDecorator[Place = (OuterPlace * Situated)](updateDecorations(paddings)),
     paddings => drawDecorator(drawDecoration(paddings))
   )
 end gapPaddingWidget

@@ -14,7 +14,7 @@ def clipWidget[IO[_] : Sync, Event](value : DesktopWidget[IO, Event], path : Rec
   gui4s.desktop.widget.library.decorator.clipWidget[
     UpdateC[IO, Event],
     OuterPlace[IO, *],
-    InnerPlace,
+    Situated,
     Draw[IO],
     RecompositionReaction[IO],
     DownEvent,

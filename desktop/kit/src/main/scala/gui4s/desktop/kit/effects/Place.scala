@@ -15,7 +15,7 @@ import cats.~>
 import gui4s.core.kit.effects.{Place => GenericPlace}
 import gui4s.core.widget.Path
 
-import gui4s.desktop.kit.effects.InnerPlace.given
+import gui4s.desktop.kit.effects.Situated.given
 import gui4s.desktop.kit.effects.OuterPlace.given
 import gui4s.desktop.skija.shaper.Shaper
 
@@ -51,11 +51,11 @@ object Place:
   end sizeText
 
   def typecheck[IO[_] : MonadThrow, TypeToCheck : Typeable](error : (Any, Path) => Throwable) : [Res] => (Any, Path, TypeToCheck => Place[IO, Res]) => Place[IO, Res] =
-    GenericPlace.typecheck[OuterPlace[IO, *], InnerPlace, Throwable, TypeToCheck](error)
+    GenericPlace.typecheck[OuterPlace[IO, *], Situated, Throwable, TypeToCheck](error)
   end typecheck
 
   given functorInstance[IO[_] : Monad] : Functor[Place[IO, *]] =
-    nestedFunctorsAreFunctors[OuterPlace[IO, *], InnerPlace]
+    nestedFunctorsAreFunctors[OuterPlace[IO, *], Situated]
   end functorInstance
 
   def addNameToPath[IO[_] : Monad](name : String) : Place[IO, *] ~> Place[IO, *] =

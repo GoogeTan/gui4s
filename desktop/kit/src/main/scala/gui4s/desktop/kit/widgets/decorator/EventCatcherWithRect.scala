@@ -11,15 +11,15 @@ import gui4s.desktop.widget.library._
 import gui4s.desktop.widget.library.decorator.eventCatcherWithRect
 
 def eventCatcher[IO[_] : Monad, Event]: EventCatcherWithRect[
-  OuterPlace[IO, InnerPlace[DesktopPlacedWidget[IO, Event]]],
+  OuterPlace[IO, Situated[DesktopPlacedWidget[IO, Event]]],
   Update[IO, Event, Boolean],
-  InnerPlace[DesktopPlacedWidget[IO, Event]],
+  Situated[DesktopPlacedWidget[IO, Event]],
   DownEvent
 ] = eventCatcherWithRect[
   DesktopPlacedWidget[IO, Event],
   UpdateC[IO, Event],
   OuterPlace[IO, *],
-  InnerPlace,
+  Situated,
   DownEvent
 ](
   updateDecorator[IO, Event],

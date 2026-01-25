@@ -11,14 +11,14 @@ import gui4s.core.widget.library.decorator.Decorator
 def drawDecorator[
   Update[_] : Functor,
   Place[_] : Functor as PF,
-  InnerPlace[_] : Comonad,
+  Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
   HandleableEvent,
 ](
-  toDraw : InnerPlace[Draw] => Draw
-) : Decorator[Place[InnerPlace[Widget[Update, Place * InnerPlace, Draw, RecompositionReaction, HandleableEvent]]]] =
-  given Functor[Place * InnerPlace] = nestedFunctorsAreFunctors[Place, InnerPlace]
+  toDraw : Situated[Draw] => Draw
+) : Decorator[Place[Situated[Widget[Update, Place * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
+  given Functor[Place * Situated] = nestedFunctorsAreFunctors[Place, Situated]
   original =>
     PF.map(
       original

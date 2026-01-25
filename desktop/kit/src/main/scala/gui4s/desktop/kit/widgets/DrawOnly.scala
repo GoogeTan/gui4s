@@ -29,7 +29,7 @@ def constSizedDrawOnlyWidget[IO[_] : Monad, Event](
   gui4s.desktop.widget.library.constanctSizeDrawOnlyWidget[
       UpdateC[IO, Event],
       OuterPlaceC[IO],
-      InnerPlace,
+      Situated,
       Draw[IO],
       RecompositionReaction[IO],
       DownEvent,

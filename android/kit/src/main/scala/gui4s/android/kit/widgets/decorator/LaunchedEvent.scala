@@ -33,7 +33,7 @@ object LaunchedEvent:
       AndroidWidget[IO, Event],
       Key,
       Update[IO, *, *],
-      InnerPlace[AndroidPlacedWidget[IO, Event]],
+      Situated[AndroidPlacedWidget[IO, Event]],
       DownEvent,
       Event
     ](
