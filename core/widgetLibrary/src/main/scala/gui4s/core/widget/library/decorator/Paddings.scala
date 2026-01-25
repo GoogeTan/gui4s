@@ -5,6 +5,10 @@ import scala.math.Numeric.Implicits._
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 
+/**
+ * Задает отступы виджета со всех сторон
+ * @tparam Padding Отступ
+ */
 final case class Paddings[Padding](left : Padding, top : Padding, right : Padding, bottom : Padding):
   def verticalLength(using Numeric[Padding]) : Padding =
     top + bottom

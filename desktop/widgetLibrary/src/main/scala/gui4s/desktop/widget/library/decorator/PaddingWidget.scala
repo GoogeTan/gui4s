@@ -1,17 +1,14 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import scala.language.experimental.namedTypeArguments
-
-import catnip.syntax.all._
-import cats.Comonad
-import cats.Functor
-import cats.~>
-
-import gui4s.core.widget.library.decorator.Decorator
+import catnip.syntax.all.*
+import cats.{Comonad, Functor, Id, ~>}
+import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.PaddingWidget
 
-//TODO заменить на одноместный контейнер. Он почему-то уже используется в desktop.kit. Надо просто обобщить.
+/**
+ * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
+ */
 def gapPaddingWidget[
   Update[_] : Functor,
   PlacementEffect[_] : Functor,
@@ -19,16 +16,19 @@ def gapPaddingWidget[
   Draw,
   RecompositionReaction,
   HandleableEvent,
-  Padding,
+  Meta,
+  Paddings,
 ](
-  placementDecoration : Padding => (PlacementEffect * Situated) ~> (PlacementEffect * Situated),
-  updateDecorations : Padding => Decorator[WidgetHandlesEvent[HandleableEvent, Update[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]]]]],
-  drawDecoration : Padding => Situated[Draw] => Draw
-): PaddingWidget[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]], Padding] =
-  given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
+  container : ContainerWidget[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent], Id, PlacementEffect * Situated, Meta],
+  boundsWithPaddings : Paddings => PlacementEffect ~> PlacementEffect,
+  innerPlaceWithPaddings : [T] => Paddings => Situated[T] => Situated[(T, Meta)],
+): PaddingWidget[
+  PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]],
+  Paddings
+] =
   gui4s.core.widget.library.decorator.gapPaddingWidget(
-    paddings => placementDecorator(placementDecoration(paddings)),
-    paddings => updateDecorator[Place = (PlacementEffect * Situated)](updateDecorations(paddings)),
-    paddings => drawDecorator(drawDecoration(paddings))
+    container = container,
+    boundsWithPaddings = boundsWithPaddings,
+    innerPlaceWithPaddings = innerPlaceWithPaddings
   )
 end gapPaddingWidget

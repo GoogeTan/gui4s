@@ -1,28 +1,35 @@
 package gui4s.core.widget.library.decorator
 
-import catnip.syntax.monad.MonadErrorC
-import cats._
-import cats.syntax.all._
-
-import gui4s.core.geometry.Axis
-import gui4s.core.geometry.InfinityOr
-import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
-import gui4s.core.layout.rowcolumn.PlacementStrategy
-import gui4s.core.widget.library.LinearContainer
-import gui4s.core.widget.library.decorator.Decorator$package.Decorator.given
+import catnip.syntax.all.*
+import cats.*
+import cats.syntax.all.*
+import gui4s.core.geometry.{Axis, InfinityOr}
+import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
+import gui4s.core.widget.library.{ContainerWidget, LinearContainer}
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
+/**
+ * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
+ */
 def gapPaddingWidget[
-  Widget,
-  Padding,
+  PlacedWidget,
+  OuterPlace[_] : Functor,
+  InnerPlace[_],
+  Meta,
+  MeasurementUnit,
+  Paddings,
 ](
-   placementDecorator   : Padding => Decorator[Widget],
-   eventHandleDecorator : Padding => Decorator[Widget],
-   drawDecorator        : Padding => Decorator[Widget],
- ) : PaddingWidget[Widget, Padding] =
-  paddings =>
-    placementDecorator(paddings) |+| eventHandleDecorator(paddings) |+| drawDecorator(paddings)
+  container : ContainerWidget[PlacedWidget, Id, OuterPlace * InnerPlace, Meta],
+  boundsWithPaddings : Paddings => OuterPlace ~> OuterPlace,
+  innerPlaceWithPaddings : [T] => Paddings => InnerPlace[T] => InnerPlace[(T, Meta)],
+): PaddingWidget[OuterPlace[InnerPlace[PlacedWidget]], Paddings] =
+  paddings => original =>
+    container(
+      original,
+      child =>
+        boundsWithPaddings(paddings)(child).map(innerPlaceWithPaddings(paddings))
+    )
 end gapPaddingWidget
 
 def paddingLayoutPlacementStrategy[

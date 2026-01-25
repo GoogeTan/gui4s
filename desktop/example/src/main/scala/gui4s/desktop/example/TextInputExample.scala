@@ -110,7 +110,7 @@ object TextInputExample extends UIApp:
                 eventHandler = (_, _, newString) => newString.last.pure[UpdateC[AppIO, Nothing]],
                 body =
                   state =>
-                    gapPaddingWidget[AppIO, String](Paddings(12f, 12f, 12f, 12f))(using Sync[AppIO])(
+                    gapPaddingWidget(using Sync[AppIO])(Paddings(12f, 12f, 12f, 12f))(
                       textFieldWidget("text-field", state)
                     )
               )

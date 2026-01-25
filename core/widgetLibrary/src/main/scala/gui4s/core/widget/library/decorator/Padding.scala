@@ -1,6 +1,8 @@
 package gui4s.core.widget.library.decorator
 
-// TODO Это по смыслу буквально то же самое, что и AxisBounds. Можно попытаться унифицировать.
+/**
+ * @todo заменить на [[gui4s.core.geometry.InfinityOr]]
+ */
 enum Padding[+MeasurementUnit]:
   case Gap(gap : MeasurementUnit)
   case Fill extends Padding[Nothing]
