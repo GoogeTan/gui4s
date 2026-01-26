@@ -14,7 +14,8 @@ def placementDecorator[
   RecompositionReaction,
   HandleableEvent,
 ](
-  placementShift : OldPlace ~> NewPlace
+  placementShift : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]] =>
+    NewPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]]
 )(
   original : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]]
 ) : NewPlace[Widget[Update, NewPlace, Draw, RecompositionReaction, HandleableEvent]] =
@@ -35,7 +36,7 @@ def placementDecorator[
         valueIsDrawable = widgetIsDrawable,
         valueHandlesEvent =
           widgetHandlesEvent[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]
-            .andThen(_.map(placementShift[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]])),
+            .andThen(_.map(placementShift)),
         valueMergesWithOldState =
           widgetMergesWithOldState[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]
             .andThen(placementShift(_)),

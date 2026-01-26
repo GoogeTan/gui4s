@@ -33,8 +33,15 @@ def fixedSizeWidget[
    crossAxisStrategy : OneElementPlacementStrategy[PlacementEffect, BoundUnit, MeasurementUnit],
 ) : Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]] =
   originalWidget =>
-    placementDecorator(
-      withPreferredSize
+    placementDecorator[
+      Update,
+      Place,
+      Place,
+      Draw,
+      RecompositionReaction,
+      HandleableEvent
+    ](
+      withPreferredSize(_)
     )(
       linearContainer(
         originalWidget,
