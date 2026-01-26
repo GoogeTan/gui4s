@@ -100,7 +100,7 @@ object AnimationExample extends UIApp:
         )
       ).eval
       floatAnimation : Animation[Float, Duration] = TweenAnimation(
-        easing = Easing.Linear,//TODO fix me
+        easing = Easing.Linear,
         duration = Duration(300, TimeUnit.MILLISECONDS)
       )
       resource = ResourceWidget(
@@ -120,7 +120,7 @@ object AnimationExample extends UIApp:
           body = count =>
             animation(
               name = "animation",
-              targetValue = count.toFloat * 50,
+              targetValue = (count % 4).toFloat * 50,
               animation = floatAnimation,
               body = cornerRadius =>
                 onClick(())(
