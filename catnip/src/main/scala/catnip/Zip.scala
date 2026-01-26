@@ -1,12 +1,12 @@
 package catnip
 
-trait Zip[Container[_]]:
-  def zip[A, B](a : Container[A], b : Container[B]) : Container[(A, B)]
+trait Zip[Collection[_]]:
+  def zip[A, B](a : Collection[A], b : Collection[B]) : Collection[(A, B)]
 end Zip
 
 object Zip:
-  extension[Container[_], A](a : Container[A])
-    def zip[B](b : Container[B])(using z : Zip[Container]) : Container[(A, B)] =
+  extension[Collection[_], A](a : Collection[A])
+    def zip[B](b : Collection[B])(using z : Zip[Collection]) : Collection[(A, B)] =
       z.zip(a, b)
     end zip
   end extension

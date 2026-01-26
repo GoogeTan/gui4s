@@ -26,11 +26,11 @@ import gui4s.desktop.widget.library.{container => genericContainer}
 
 def containerWidget[
   IO[_] : Sync,
-  Container[_] : Traverse,
+  Collection[_] : Traverse,
   Event
 ](
-  updateContainerOrdered : TraverseOrdered[UpdateC[IO, Event], Container]
-) : ContainerWidget[DesktopPlacedWidget[IO, Event], Container, PlaceC[IO], Point3d[Float]] =
+  updateContainerOrdered : TraverseOrdered[UpdateC[IO, Event], Collection]
+) : ContainerWidget[DesktopPlacedWidget[IO, Event], Collection, PlaceC[IO], Point3d[Float]] =
   given Order[Point3d[Float]] = Order.by(_.z)
   genericContainer(
     (draw, meta) => drawAt(meta.x, meta.y, draw),
@@ -43,16 +43,16 @@ end containerWidget
 def linearContainerWidget[
   IO[_] : Sync,
   Event,
-  Container[_] : {Applicative, Traverse, Zip}
-](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Container]) : LinearContainer[DesktopWidget[IO, Event], PlacementEffect[IO, *], Container, InfinityOr[Float], Float, Axis] =
+  Collection[_] : {Applicative, Traverse, Zip}
+](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Collection]) : LinearContainer[DesktopWidget[IO, Event], PlacementEffect[IO, *], Collection, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     DesktopPlacedWidget[IO, Event],
     PlacementEffect[IO, *],
-    Container,
+    Collection,
     InfinityOr[Float],
     Float,
   ](
-    container = containerWidget[IO, Container, Event](traverseOrdered),
+    container = containerWidget[IO, Collection, Event](traverseOrdered),
     getBounds = PlacementEffect.getBounds,
     setBounds = PlacementEffect.setBounds,
     cut = _.minus(_)

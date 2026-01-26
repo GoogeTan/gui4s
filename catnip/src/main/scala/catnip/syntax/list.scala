@@ -18,8 +18,8 @@ object list:
     c.reduceMapK(A.pure)
   end fromList
 
-  type TraverseOrdered[Effect[_], Container[_]] =
-    [A : Order, B] => Container[A]  => (Container[A] => Effect[Container[B]])=> Effect[Container[B]]
+  type TraverseOrdered[Effect[_], Collection[_]] =
+    [A : Order, B] => Collection[A]  => (Collection[A] => Effect[Collection[B]])=> Effect[Collection[B]]
 
   /**
    * Производит обработку списка в указаном порядке элементов без нарушенения их порядка в результирующем списке.

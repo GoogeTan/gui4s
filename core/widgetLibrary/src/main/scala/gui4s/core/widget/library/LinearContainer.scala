@@ -28,7 +28,7 @@ import gui4s.core.layout.rowcolumn.rowColumnLayoutPlacement
  *
  * @tparam Widget Свободный виджет
  * @tparam Place Эффект устаовки виджета на экран
- * @tparam Container Множество виджетов
+ * @tparam Collection Множество виджетов
  * @tparam BoundUnit Ограничения на доступное место(может отличастья от MeasurementUnit, т.к. может быть бесконечным в случае скролла)
  * @tparam MeasurementUnit Единица измерения размеров на экране
  * @tparam Axis Ось.
@@ -37,7 +37,7 @@ import gui4s.core.layout.rowcolumn.rowColumnLayoutPlacement
 trait LinearContainer[
   Widget,
   Place[_],
-  Container[_],
+  Collection[_],
   BoundUnit,
   MeasurementUnit,
   Axis,
@@ -49,9 +49,9 @@ trait LinearContainer[
    * @param additionalAxisStrategy Функция, размещающая виджет вдоль второй оси. Например, в начале, в середине или в конце.
    */
   def apply(
-              children               : Container[Widget],
+              children               : Collection[Widget],
               mainAxis               : Axis,
-              mainAxisStrategy       : PlacementStrategy[Place, MeasurementUnit, BoundUnit, Container, MeasurementUnit],
+              mainAxisStrategy       : PlacementStrategy[Place, MeasurementUnit, BoundUnit, Collection, MeasurementUnit],
               additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit, BoundUnit, MeasurementUnit],
             ) : Widget
 end LinearContainer
@@ -67,28 +67,28 @@ end LinearContainer
  *
  * @tparam PlacedWidget Размещенный виджет.
  * @tparam Place Эффект устаовки виджета на экран
- * @tparam Container Множество виджетов
+ * @tparam Collection Множество виджетов
  * @tparam BoundUnit Ограничения на доступное место(может отличастья от MeasurementUnit, т.к. может быть бесконечным в случае скролла)
  * @tparam MeasurementUnit Единица измерения размеров на экране
  */
 def linearContainer[
   PlacedWidget,
   Place[_] : Monad,
-  Container[_] : {Applicative as A, Traverse, Zip},
+  Collection[_] : {Applicative as A, Traverse, Zip},
   BoundUnit,
   MeasurementUnit : Numeric as N,
 ](
-  container : ContainerWidget[PlacedWidget, Container, Place * Sized[MeasurementUnit, *], Point3d[MeasurementUnit]],
+  container : ContainerWidget[PlacedWidget, Collection, Place * Sized[MeasurementUnit, *], Point3d[MeasurementUnit]],
   getBounds: Get[Place, Rect[BoundUnit]],
   setBounds: Set[Place, Rect[BoundUnit]],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit 
-) : LinearContainer[Place[Sized[MeasurementUnit, PlacedWidget]], Place, Container, BoundUnit, MeasurementUnit, Axis] =
+) : LinearContainer[Place[Sized[MeasurementUnit, PlacedWidget]], Place, Collection, BoundUnit, MeasurementUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
       children,
       freeChildren =>
         rowColumnLayoutPlacement[
-          Place, Container, PlacedWidget, BoundUnit, MeasurementUnit
+          Place, Collection, PlacedWidget, BoundUnit, MeasurementUnit
         ](
           getBounds,
           setBounds,

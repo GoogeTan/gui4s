@@ -10,21 +10,21 @@ import gui4s.core.geometry._
 
 def placeBegin[MeasurementUnit : Numeric] : MeasurementUnit = Numeric[MeasurementUnit].zero
 
-def placeBeginMany[Container[_] : Traverse, MeasurementUnit : Numeric](sizes : Container[MeasurementUnit]) : Container[Rect1dOnPoint1d[MeasurementUnit]] =
+def placeBeginMany[Collection[_] : Traverse, MeasurementUnit : Numeric](sizes : Collection[MeasurementUnit]) : Collection[Rect1dOnPoint1d[MeasurementUnit]] =
   placeBeginTailrecHelper(sizes, Numeric[MeasurementUnit].zero)
 end placeBeginMany
 
-def placeBeginManyWithGap[Container[_] : Traverse, MeasurementUnit : Numeric](sizes : Container[MeasurementUnit], gap : MeasurementUnit) : Container[Rect1dOnPoint1d[MeasurementUnit]] =
+def placeBeginManyWithGap[Collection[_] : Traverse, MeasurementUnit : Numeric](sizes : Collection[MeasurementUnit], gap : MeasurementUnit) : Collection[Rect1dOnPoint1d[MeasurementUnit]] =
   placeBeginMany(sizes.map(_ + gap)).map(_.addLength(-gap))
 end placeBeginManyWithGap
 
 def placeBeginTailrecHelper[
-  Container[_] : Traverse,
+  Collection[_] : Traverse,
   MeasurementUnit: Numeric
 ](
-  itemLengths: Container[MeasurementUnit],
+  itemLengths: Collection[MeasurementUnit],
   placeStartingFrom: MeasurementUnit
-): Container[Rect1dOnPoint1d[MeasurementUnit]] =
+): Collection[Rect1dOnPoint1d[MeasurementUnit]] =
   itemLengths.mapAccumulate(placeStartingFrom)((currentStart, currentItem) =>
     (
       currentStart + currentItem,

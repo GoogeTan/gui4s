@@ -25,7 +25,7 @@ import gui4s.core.geometry.Rect
  */
 def rowColumnLayoutPlacement[
   Place[_] : Monad,
-  Container[_] : {Traverse, Zip},
+  Collection[_] : {Traverse, Zip},
   Widget,
   BoundUnit,
   MeasurementUnit : Numeric as MUN,
@@ -34,12 +34,12 @@ def rowColumnLayoutPlacement[
   setBounds: Rect[BoundUnit] => Place[Unit],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   mainAxis : Axis,
-  children : Container[Place[Sized[MeasurementUnit, Widget]]],
-  elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[BoundUnit], Container, Point2d[MeasurementUnit]],
-) : Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, Widget]]]] =
+  children : Collection[Place[Sized[MeasurementUnit, Widget]]],
+  elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[BoundUnit], Collection, Point2d[MeasurementUnit]],
+) : Place[Sized[MeasurementUnit, Collection[Placed[MeasurementUnit, Widget]]]] =
   for
     initialBounds <- getBounds
-    sizedItems <- measureItemsDirty[Place, Container, Sized[MeasurementUnit, Widget]](
+    sizedItems <- measureItemsDirty[Place, Collection, Sized[MeasurementUnit, Widget]](
       item => update(getBounds, setBounds)(_.mapAlong(mainAxis, cut(_, item.lengthAlong(mainAxis)))),
       children,
     )
@@ -57,7 +57,14 @@ end rowColumnLayoutPlacement
  *
  * @param updateBounds Обновляет ограничения на размеры виджета
  */
-def measureItemsDirty[Measure[_] : Monad, Container[_] : Traverse, Item](updateBounds : Item => Measure[Unit], items : Container[Measure[Item]]) : Measure[Container[Item]] =
+def measureItemsDirty[
+  Measure[_] : Monad,
+  Collection[_] : Traverse,
+  Item
+](
+  updateBounds : Item => Measure[Unit],
+  items : Collection[Measure[Item]]
+) : Measure[Collection[Item]] =
   items.traverse(current =>
     for
       currentItem <- current

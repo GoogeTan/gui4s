@@ -8,16 +8,16 @@ import gui4s.core.widget.handle.Layout
 
 def containerMergesWithOldStates[
   Place[_] : Functor,
-  C[_] : Functor,
+  Collection[_] : Functor,
   Widget,
   RecompositionAction,
   Meta
 ](
    initial : MergesWithOldStates[Widget, RecompositionAction, Place[Widget]],
 ) : MergesWithOldStates[
-  Container[C[(Widget, Meta)], Layout[Place, C, Widget, Meta]],
+  Container[Collection[(Widget, Meta)], Layout[Place, Collection, Widget, Meta]],
   RecompositionAction,
-  Place[Container[C[(Widget, Meta)], Layout[Place, C, Widget, Meta]]]
+  Place[Container[Collection[(Widget, Meta)], Layout[Place, Collection, Widget, Meta]]]
 ] =
   (self, path, oldStates) =>
       self.layout(

@@ -42,7 +42,7 @@ def spaceAroundElements[MeasurementUnit: Numeric as N](items: List[Rect1dOnPoint
   )
 end spaceAroundElements
 
-def minimalRequiredSpace[Container[_] : Foldable, MeasurementUnit: Numeric](lengths: Container[MeasurementUnit]): MeasurementUnit =
+def minimalRequiredSpace[Collection[_] : Foldable, MeasurementUnit: Numeric](lengths: Collection[MeasurementUnit]): MeasurementUnit =
   lengths.foldLeft(Numeric[MeasurementUnit].zero)(_ + _)
 end minimalRequiredSpace
 

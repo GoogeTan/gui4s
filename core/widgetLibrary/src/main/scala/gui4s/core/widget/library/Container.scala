@@ -13,9 +13,9 @@ import gui4s.core.widget.handle.Layout
  * @param layout Функция, задающая расстановку дочерних виджетов. См. [[Layout]].
  *
  * @tparam PlacedWidget Размещенный виджет.
- * @tparam Container Множество виджетов.
+ * @tparam Collection Множество виджетов.
  * @tparam Place Эффект установки виджета.
  * @tparam Meta Вспомогательные данные об результате установки виджета. TODO примеры
  */
-type ContainerWidget[PlacedWidget, Container[_], Place[_], Meta] =
-  (children : Container[Place[PlacedWidget]], layout : Layout[Place, Container, PlacedWidget, Meta]) => Place[PlacedWidget]
+type ContainerWidget[PlacedWidget, Collection[_], Place[_], Meta] =
+  (children : Collection[Place[PlacedWidget]], layout : Layout[Place, Collection, PlacedWidget, Meta]) => Place[PlacedWidget]

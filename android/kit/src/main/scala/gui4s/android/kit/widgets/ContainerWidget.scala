@@ -1,20 +1,36 @@
-package gui4s.android.kit.widgets
+package gui4s.android.kit
+package widgets
 
-import gui4s.core.geometry.{Axis, InfinityOr, Point3d}
-import gui4s.core.widget.library.{ContainerWidget, LinearContainer, linearContainer as genericLinearContainer}
-import gui4s.android.kit.effects.*
+import catnip.Zip
+import catnip.syntax.applicative.given
+import catnip.syntax.list.TraverseOrdered
+import catnip.syntax.list.traverseOne
+import catnip.syntax.list.traverseOrdered
+import catnip.syntax.zip.given
+import cats.*
+import cats.data.*
+import cats.effect.kernel.Sync
+import gui4s.android.kit.widgets.AndroidPlacedWidget
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point3d
+import gui4s.core.widget.library.ContainerWidget
+import gui4s.core.widget.library.LinearContainer
+import gui4s.core.widget.library.linearContainer as genericLinearContainer
+import gui4s.core.kit.ContainerPlacementError
 import gui4s.android.kit.effects.Draw.given
 import gui4s.android.kit.effects.Place.given
 import gui4s.android.skia.canvas.drawAt
+import gui4s.android.kit.effects.*
 import gui4s.desktop.widget.library.container as genericContainer
 
 def containerWidget[
   IO[_] : Sync,
-  Container[_] : Traverse,
+  Collection[_] : Traverse,
   Event
 ](
-  updateContainerOrdered : TraverseOrdered[UpdateC[IO, Event], Container]
-) : ContainerWidget[AndroidPlacedWidget[IO, Event], Container, PlaceC[IO], Point3d[Float]] =
+  updateContainerOrdered : TraverseOrdered[UpdateC[IO, Event], Collection]
+) : ContainerWidget[AndroidPlacedWidget[IO, Event], Collection, PlaceC[IO], Point3d[Float]] =
   given Order[Point3d[Float]] = Order.by(_.z)
   genericContainer(
     (draw, meta) => drawAt(meta.x, meta.y, draw),
@@ -25,18 +41,18 @@ def containerWidget[
 end containerWidget
 
 def linearContainerWidget[
-  IO[_] : Sync as IOS,
+  IO[_] : Sync,
   Event,
-  Container[_] : {Applicative, Traverse as CT, Zip}
-](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Container]) : LinearContainer[AndroidWidget[IO, Event], PlacementEffect[IO, *], Container, InfinityOr[Float], Float, Axis] =
+  Collection[_] : {Applicative, Traverse, Zip}
+](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Collection]) : LinearContainer[AndroidWidget[IO, Event], PlacementEffect[IO, *], Collection, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     AndroidPlacedWidget[IO, Event],
     PlacementEffect[IO, *],
-    Container,
+    Collection,
     InfinityOr[Float],
     Float,
   ](
-    container = containerWidget[IO, Container, Event](traverseOrdered),
+    container = containerWidget[IO, Collection, Event](traverseOrdered),
     getBounds = PlacementEffect.getBounds,
     setBounds = PlacementEffect.setBounds,
     cut = _.minus(_)
@@ -66,11 +82,11 @@ def columnWidget[IO[_] : Sync, Event](
                                  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
 ) : AndroidWidget[IO, Event] =
   linearListContainerWidget(
-      children,
-      Axis.Vertical,
-      verticalPlacementStrategy,
-      horizontalPlacementStrategy
-    )
+    children,
+    Axis.Vertical,
+    verticalPlacementStrategy,
+    horizontalPlacementStrategy
+  )
 end columnWidget
 
 def boxWidget[IO[_] : Sync, Event](

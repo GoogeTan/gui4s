@@ -12,7 +12,7 @@ import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.linear._ 
 
-final case class ElementPlacementResult[Container[_], Size, Point](size : Size, coordinates : Container[Point])
+final case class ElementPlacementResult[Collection[_], Size, Point](size : Size, coordinates : Collection[Point])
 
 /**
  * Функция, описывающая расстановку элементов в контейнере. Принимает множество
@@ -24,16 +24,16 @@ final case class ElementPlacementResult[Container[_], Size, Point](size : Size, 
  * @tparam Place Эффект размещения виджета на экран. Может использоваться для создания ошибок(например,
  * при попытке установить виджет посередине бесконечного скролла)
  */
-type PlacementStrategy[Place[_], Size, Bounds, Container[_], Point] =
-    (Container[Size], Bounds) => Place[ElementPlacementResult[Container, Size, Point]]
+type PlacementStrategy[Place[_], Size, Bounds, Collection[_], Point] =
+    (Collection[Size], Bounds) => Place[ElementPlacementResult[Collection, Size, Point]]
 
 object PlacementStrategy:
     def Begin[
         Place[_] : Applicative,
         Bounds,
-        Container[_] : Traverse,
+        Collection[_] : Traverse,
         MeasurementUnit : Numeric
-    ](gap : MeasurementUnit) : PlacementStrategy[Place, MeasurementUnit, Bounds, Container, MeasurementUnit] =
+    ](gap : MeasurementUnit) : PlacementStrategy[Place, MeasurementUnit, Bounds, Collection, MeasurementUnit] =
         (children, _) =>
             val placedChildren = placeBeginManyWithGap(children, gap)
             val size = placedChildren.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(Numeric[MeasurementUnit].zero)
@@ -42,40 +42,40 @@ object PlacementStrategy:
 
     def Center[
         Place[_] : Applicative,
-        Container[_] : Traverse,
+        Collection[_] : Traverse,
         MeasurementUnit : Fractional as MUF,
     ](
         gap : MeasurementUnit,
-    ) : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Container, MeasurementUnit] =
+    ) : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, placeCenterManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
     end Center
 
     def End[
         Place[_] : Applicative,
-        Container[_] : Traverse,
+        Collection[_] : Traverse,
         MeasurementUnit : Numeric
     ](
         gap : MeasurementUnit,
-    ) : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Container, MeasurementUnit] =
+    ) : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
     end End
 
     def SpaceAround[
         Place[_] : Applicative,
-        Container[_] : {Applicative, Traverse as A, SemigroupK},
+        Collection[_] : {Applicative, Traverse as A, SemigroupK},
         MeasurementUnit : Fractional,
-    ] : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Container, MeasurementUnit] =
+    ] : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning)).pure[Place]
     end SpaceAround
 
     def SpaceBetween[
         Place[_] : Applicative,
-        Container[_] : Traverse,
+        Collection[_] : Traverse,
         MeasurementUnit : Fractional,
-    ] : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Container, MeasurementUnit] =
+    ] : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
         (children, maxSpace) =>
             ElementPlacementResult(maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)).pure[Place]
     end SpaceBetween
@@ -85,12 +85,12 @@ object PlacementStrategy:
         Place[_] : Applicative,
         Size : Ordering,
         BoundsUnit,
-        Container[_] : Traverse,
+        Collection[_] : Traverse,
         MeasurementUnit
     ](
         oneElementPlacementStrategy : OneElementPlacementStrategy[Place, Size, BoundsUnit, MeasurementUnit],
         zeroSize : Size
-    ) : PlacementStrategy[Place, Size, BoundsUnit, Container, MeasurementUnit] =
+    ) : PlacementStrategy[Place, Size, BoundsUnit, Collection, MeasurementUnit] =
         (elements, bounds) =>
             elements.traverse(oneElementPlacementStrategy(_, bounds)).map(
                 placedElements =>
@@ -105,13 +105,13 @@ object PlacementStrategy:
         Place[_] : Applicative,
         OneDimensionalSize,
         BoundsUnit,
-        Container[_] : {Traverse, Zip},
+        Collection[_] : {Traverse, Zip},
         MeasurementUnit,
     ](
         axis : Axis,
-        mainAxis : PlacementStrategy[Place, OneDimensionalSize, BoundsUnit, Container, MeasurementUnit],
-        crossAxis : PlacementStrategy[Place, OneDimensionalSize, BoundsUnit, Container, MeasurementUnit],
-    ) : PlacementStrategy[Place, Rect[OneDimensionalSize], Rect[BoundsUnit], Container, Point2d[MeasurementUnit]] =
+        mainAxis : PlacementStrategy[Place, OneDimensionalSize, BoundsUnit, Collection, MeasurementUnit],
+        crossAxis : PlacementStrategy[Place, OneDimensionalSize, BoundsUnit, Collection, MeasurementUnit],
+    ) : PlacementStrategy[Place, Rect[OneDimensionalSize], Rect[BoundsUnit], Collection, Point2d[MeasurementUnit]] =
         (elements, bounds) =>
             Applicative[Place].map2(
                 mainAxis(elements.map(_.along(axis)), bounds.along(axis)),
@@ -131,13 +131,13 @@ object PlacementStrategy:
 
     def MaybeInInfiniteSpace[
         Place[_],
-        Container[_],
+        Collection[_],
         Size,
         MeasurementUnit,
     ](
-        original: PlacementStrategy[Place, Size, MeasurementUnit, Container, MeasurementUnit],
-        ifInfinity: Place[ElementPlacementResult[Container, Size, MeasurementUnit]],
-    ): PlacementStrategy[Place, Size, InfinityOr[MeasurementUnit], Container, MeasurementUnit] = {
+        original: PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit],
+        ifInfinity: Place[ElementPlacementResult[Collection, MeasurementUnit, MeasurementUnit]],
+    ): PlacementStrategy[Place, MeasurementUnit, InfinityOr[MeasurementUnit], Collection, MeasurementUnit] = {
         case (itemLength, InfinityOr(Some(space))) => original(itemLength, space)
         case _ => ifInfinity
     }
@@ -145,14 +145,14 @@ object PlacementStrategy:
     def ErrorIfInfinity[
         Place[_],
         MeasurementUnit,
-        Container[_],
+        Collection[_],
         Error,
     ](
         using M: MonadError[Place, Error]
     )(
-        original: PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Container, MeasurementUnit],
+        original: PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit],
         error: Error
-    ): PlacementStrategy[Place, MeasurementUnit, InfinityOr[MeasurementUnit], Container, MeasurementUnit] =
+    ): PlacementStrategy[Place, MeasurementUnit, InfinityOr[MeasurementUnit], Collection, MeasurementUnit] =
         MaybeInInfiniteSpace(original, M.raiseError(error))
     end ErrorIfInfinity
 end PlacementStrategy
