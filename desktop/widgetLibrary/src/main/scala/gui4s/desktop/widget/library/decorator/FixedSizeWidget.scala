@@ -29,8 +29,8 @@ def fixedSizeWidget[
     Axis
   ],
    mainAxis : Axis,
-   mainAxisStrategy : OneElementPlacementStrategy[PlacementEffect, BoundUnit, MeasurementUnit],
-   crossAxisStrategy : OneElementPlacementStrategy[PlacementEffect, BoundUnit, MeasurementUnit],
+   mainAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, BoundUnit, MeasurementUnit],
+   crossAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, BoundUnit, MeasurementUnit],
 ) : Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]] =
   originalWidget =>
     placementDecorator[

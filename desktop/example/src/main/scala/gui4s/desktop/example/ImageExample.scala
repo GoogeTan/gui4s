@@ -79,7 +79,7 @@ object ImageExample extends UIApp:
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
           ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
-    given Ordering[Point2d[Float]] = Ordering.by[Point2d[Float], Float](_.x).orElse(Ordering.by[Point2d[Float], Float](_.y))
+    given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.width))
 
     for
       dispatcher <- Dispatcher.sequential[AppIO]
@@ -95,17 +95,17 @@ object ImageExample extends UIApp:
       centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[PlacementEffectC[AppIO], Float]
       beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[PlacementEffectC[AppIO], Float, Float]
 
-      textPlacement = rowcolumn.PlacementStrategy.PlaceIndependently[PlacementEffectC[AppIO], Rect[Float], List, Point2d[Float]](
-        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Id, Float](
+      textPlacement = rowcolumn.PlacementStrategy.PlaceIndependently[PlacementEffectC[AppIO], Rect[Float], Rect[Float], List, Point2d[Float]](
+        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Float, Id, Float](
           Axis.Vertical,
           beginPlacement,
           beginPlacement
         ),
-        Point2d(0f, 0f),
+        Rect(0f, 0f),
       )
 
       pleaseWaitPlacement =
-        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Id, Float](
+        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Float, Id, Float](
           Axis.Vertical,
           centerPlacement,
           centerPlacement

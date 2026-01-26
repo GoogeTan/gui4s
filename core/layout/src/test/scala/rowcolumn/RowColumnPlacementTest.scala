@@ -24,8 +24,8 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
     def rowColumnPlace[Widget](
                                 mainAxis : Axis,
                                 children : List[Place[Sized[MeasurementUnit, Widget]]],
-                                mainAxisStrategy : PlacementStrategy[Place, Float, List, MeasurementUnit],
-                                additionlAxisStrategy : OneElementPlacementStrategy[Place, Float, MeasurementUnit]
+                                mainAxisStrategy : PlacementStrategy[Place, Float, Float, List, MeasurementUnit],
+                                additionlAxisStrategy : OneElementPlacementStrategy[Place, Float, Float, MeasurementUnit]
     ): Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, Widget]]]] =
         rowColumnLayoutPlacement[Place, List, Widget, Float, MeasurementUnit](
             State.get,

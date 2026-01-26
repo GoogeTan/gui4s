@@ -51,8 +51,8 @@ trait LinearContainer[
   def apply(
               children               : Container[Widget],
               mainAxis               : Axis,
-              mainAxisStrategy       : PlacementStrategy[Place, BoundUnit, Container, MeasurementUnit],
-              additionalAxisStrategy : OneElementPlacementStrategy[Place, BoundUnit, MeasurementUnit],
+              mainAxisStrategy       : PlacementStrategy[Place, MeasurementUnit, BoundUnit, Container, MeasurementUnit],
+              additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit, BoundUnit, MeasurementUnit],
             ) : Widget
 end LinearContainer
 

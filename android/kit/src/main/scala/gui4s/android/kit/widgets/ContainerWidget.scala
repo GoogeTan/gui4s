@@ -1,6 +1,6 @@
 package gui4s.android.kit.widgets
 
-import gui4s.core.geometry.{Axis, InfinityOr, Point2d, Point3d}
+import gui4s.core.geometry.{Axis, InfinityOr, Point3d}
 import gui4s.core.widget.library.{ContainerWidget, LinearContainer, linearContainer as genericLinearContainer}
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Draw.given

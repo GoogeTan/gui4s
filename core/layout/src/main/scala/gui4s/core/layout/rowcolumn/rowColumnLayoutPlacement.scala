@@ -35,7 +35,7 @@ def rowColumnLayoutPlacement[
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   mainAxis : Axis,
   children : Container[Place[Sized[MeasurementUnit, Widget]]],
-  elementsPlacement : PlacementStrategy[Place, Rect[BoundUnit], Container, Point2d[MeasurementUnit]],
+  elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[BoundUnit], Container, Point2d[MeasurementUnit]],
 ) : Place[Sized[MeasurementUnit, Container[Placed[MeasurementUnit, Widget]]]] =
   for
     initialBounds <- getBounds
@@ -44,10 +44,10 @@ def rowColumnLayoutPlacement[
       children,
     )
     _ <- setBounds(initialBounds)
-    placedItems <- elementsPlacement(sizedItems.map(_.size.toPoint2d), initialBounds)
+    placedItems <- elementsPlacement(sizedItems.map(_.size), initialBounds)
   yield Sized(
-    sizedItems.zip(placedItems.coordinatesOfStarts).map(new Placed(_, _, MUN.zero)),
-    new Rect(placedItems.coordinateOfEnd)
+    sizedItems.zip(placedItems.coordinates).map(new Placed(_, _, MUN.zero)),
+    placedItems.size
   )
 end rowColumnLayoutPlacement
 

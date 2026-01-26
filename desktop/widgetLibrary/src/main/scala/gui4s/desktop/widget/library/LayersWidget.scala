@@ -27,7 +27,7 @@ def layersWidget[
 )(
    background : List[PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
    foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]],
-   decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
+   decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
 ) : Decorator[
   PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, HandleableEvent]]]
 ] =

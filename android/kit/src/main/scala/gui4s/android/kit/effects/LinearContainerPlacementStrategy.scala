@@ -6,9 +6,9 @@ import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy as GenericOneEle
 import gui4s.android.kit.effects.PlacementEffect.given
 
 type LinearContainerPlacementStrategy[IO[_], Container[_]]
-    = GenericPlacementStrategy[PlacementEffectC[IO], InfinityOr[Float], Container, Float]
+    = GenericPlacementStrategy[PlacementEffectC[IO], Float, InfinityOr[Float], Container, Float]
 type OneElementLinearContainerPlacementStrategy[IO[_]]
-    = GenericOneElementPlacementStrategy[PlacementEffectC[IO], InfinityOr[Float], Float]
+    = GenericOneElementPlacementStrategy[PlacementEffectC[IO], Float, InfinityOr[Float], Float]
 
 object LinearContainerPlacementStrategy:
   def Begin[

@@ -16,7 +16,7 @@ def stackContainer[IO[_] : Sync as S, Event](
                                               verticalPlacement : OneElementLinearContainerPlacementStrategy[IO],
                                               horizontalPlacement : OneElementLinearContainerPlacementStrategy[IO]
 ) : DesktopWidget[IO, Event] =
-  given Ordering[Point2d[Float]] = Ordering.by(point => math.max(point.x, point.y))
+  given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.height))
   gui4s.core.widget.library.stackContainer[
     DesktopPlacedWidget[IO, Event],
     PlacementEffectC[IO],
@@ -29,7 +29,7 @@ def stackContainer[IO[_] : Sync as S, Event](
     children,
     GenericPlacementStrategy.PlaceIndependently(
       GenericPlacementStrategy.Zip(Axis.Vertical, verticalPlacement, horizontalPlacement),
-      Point2d(0f, 0f)
+      Rect(0f, 0f)
     )
   )
 end stackContainer

@@ -38,7 +38,7 @@ def stackContainer[
   ],
 )(
    children : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
-   xyPlacementStrategy : PlacementStrategy[PlacementEffect, Bounds, List, Point2d[MeasurementUnit]],
+   xyPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], Bounds, List, Point2d[MeasurementUnit]],
 ) : PlacementEffect[Sized[MeasurementUnit, Widget]] =
   given Functor[PlacementEffect * SizedC[MeasurementUnit]] = nestedFunctorsAreFunctors[PlacementEffect, SizedC[MeasurementUnit]]
   given Order[(Point2d[MeasurementUnit], Int)] = Order.by(_._2)
@@ -47,17 +47,17 @@ def stackContainer[
     freeChildren =>
       for
         sizedChilden <- freeChildren.traverse[PlacementEffect, Sized[MeasurementUnit, Widget]](identity)
-        childrenSizes = sizedChilden.map(_.size.toPoint2d)
+        childrenSizes = sizedChilden.map(_.size)
         children = sizedChilden.map(_.value)
         bounds <- getBounds
         placedChildren <- xyPlacementStrategy(childrenSizes, bounds)
       yield Sized(
         children.zip(
           placedChildren
-            .coordinatesOfStarts
+            .coordinates
             .zipWithIndex.map((coordinate2d, index) => new Point3d(coordinate2d, MUN.fromInt(index)))
         ), 
-        placedChildren.coordinateOfEnd.toRect
+        placedChildren.size
       )
   )
 end stackContainer

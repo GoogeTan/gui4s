@@ -36,7 +36,7 @@ def layersWidget[
 )(
    background : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
    foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
-   decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
+   decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
 ) : Decorator[
   PlacementEffect[Sized[MeasurementUnit, Widget]]
 ] =
@@ -47,10 +47,10 @@ def layersWidget[
         for
           sizedElements <- elements.traverse(identity)
           originalSized = sizedElements(background.size)
-          backgroundSizes = sizedElements.take(background.size).map(_.size.toPoint2d)
-          foregroundSizes = sizedElements.takeRight(foreground.size).map(_.size.toPoint2d)
+          backgroundSizes = sizedElements.take(background.size).map(_.size)
+          foregroundSizes = sizedElements.takeRight(foreground.size).map(_.size)
           placedElements <- decorationsPlacementStrategy(backgroundSizes ++ foregroundSizes, originalSized.size)
-          elementsCoodinates = placedElements.coordinatesOfStarts
+          elementsCoodinates = placedElements.coordinates
           shifts = (
             elementsCoodinates.take(background.size)
               ++ (Point2d(MUN.zero, MUN.zero) :: elementsCoodinates.takeRight(foreground.size))

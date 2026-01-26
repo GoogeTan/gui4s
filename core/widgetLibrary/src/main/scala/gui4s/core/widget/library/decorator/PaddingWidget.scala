@@ -37,7 +37,7 @@ def paddingLayoutPlacementStrategy[
   MeasurementUnit: Fractional,
 ](
    paddings: Paddings[Padding[MeasurementUnit]],
- ): OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit] =
+ ): OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit] =
   (paddings.left, paddings.right) match
     case (Padding.Gap(_), _) => OneElementPlacementStrategy.Begin[Place, MeasurementUnit, MeasurementUnit]
     case (Padding.Fill, Padding.Gap(_)) => OneElementPlacementStrategy.End
