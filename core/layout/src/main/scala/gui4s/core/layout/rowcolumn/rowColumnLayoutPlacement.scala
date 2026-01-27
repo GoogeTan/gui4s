@@ -38,18 +38,48 @@ def rowColumnLayoutPlacement[
   elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[BoundUnit], Collection, Point2d[MeasurementUnit]],
 ) : Place[Sized[MeasurementUnit, Collection[Placed[MeasurementUnit, Widget]]]] =
   for
-    initialBounds <- getBounds
-    sizedItems <- measureItemsDirty[Place, Collection, Sized[MeasurementUnit, Widget]](
-      item => update(getBounds, setBounds)(_.mapAlong(mainAxis, cut(_, item.lengthAlong(mainAxis)))),
-      children,
+    sizedItems <- measureItemsOneByOne[Place, Collection, Rect[BoundUnit], Sized[MeasurementUnit, Widget]](
+      getBounds = getBounds,
+      setBounds = setBounds,
+      updateBoundsAccordingToItem = (bounds, item) => bounds.mapAlong(mainAxis, cut(_, item.lengthAlong(mainAxis))),
+      items = children
     )
-    _ <- setBounds(initialBounds)
-    placedItems <- elementsPlacement(sizedItems.map(_.size), initialBounds)
+    bounds <- getBounds
+    placedItems <- elementsPlacement(sizedItems.map(_.size), bounds)
   yield Sized(
     sizedItems.zip(placedItems.coordinates).map(new Placed(_, _, MUN.zero)),
     placedItems.size
   )
 end rowColumnLayoutPlacement
+
+/**
+ * По очереди измеряет размеры виджетов, изменяя количество свободного пространства в соответствии с их размерами.
+ * После своей работы оставляет количество свободного пространства неизменным.
+ *
+ * @param getBounds Возвращает ограничения на размеры виджета
+ * @param setBounds Устанавливает ограничения на размеры виджета
+ * @param updateBoundsAccordingToItem Вычисляет новые ограничения на размеры виджета, исходя из текущих и нового установленного виджета
+ */
+def measureItemsOneByOne[
+  Measure[_] : Monad,
+  Collection[_] : Traverse,
+  Bounds,
+  Item,
+](
+  getBounds : Measure[Bounds],
+  setBounds : Bounds => Measure[Unit],
+  updateBoundsAccordingToItem : (Bounds, Item) => Bounds,
+  items : Collection[Measure[Item]],
+) : Measure[Collection[Item]] =
+  for
+    initialBounds <- getBounds
+    res <- measureItemsDirty[Measure, Collection, Item](
+        item => update(getBounds, setBounds)(updateBoundsAccordingToItem(_, item)),
+        items,
+    )
+    _ <- setBounds(initialBounds)
+  yield res
+end measureItemsOneByOne
 
 /**
  * Измеряет размеры виджетов, изменяя количество свободного пространства в соответствии с их размерами.
