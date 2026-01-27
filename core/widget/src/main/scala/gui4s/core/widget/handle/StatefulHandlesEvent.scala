@@ -10,7 +10,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 
 import gui4s.core.widget.draw.Drawable
-import gui4s.core.widget.merge.Mergable
+import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
 
 // TODO добавить тесты на добавление имен
 def statefulHandlesEvent[
@@ -24,7 +24,7 @@ def statefulHandlesEvent[
     stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[State]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
     childWidgetHandlesEvent  : HandlesEvent[Widget, EnvironmentalEvent, Update[(Place[Widget], List[ChildEvent])]],
-    widgetsAreMergable  : Mergable[Place[Widget]],
+    widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place[Widget]],
 ) : HandlesEvent[
   Stateful[Widget, State],
   EnvironmentalEvent,
@@ -47,7 +47,7 @@ def statefulHandlesEvent[
     yield newState
       .filterNot(stateEquiality.equiv(_, self.stateBehaviour))
       .map(newState =>
-        widgetsAreMergable.merge(
+        widgetsAreMergable.updateState(
           pathToParent / self.name,
           newChildWidget,
           drawStateIntoWidget(newState)

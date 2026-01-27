@@ -2,7 +2,7 @@ package gui4s.core.widget
 package handle
 
 import draw.Drawable
-import merge.Mergable
+import merge.UpdateWidgetStateFromTheOldOne
 
 import catnip.syntax.all.given
 import catnip.syntax.function.andThen
@@ -37,7 +37,7 @@ final class statefulHandlesEventsTest extends AnyFlatSpec with Matchers:
   def panicingHandlesEvent[Self, HandlableEvent, Event, Value] : HandlesEvent[Self, HandlableEvent, Update[Event, Value]] =
     (_ : Any, _ : Path, _ : Any) => EitherT.left(UpdateError.StateWasUpdated.pure)
 
-  def panicingMerge[T] : Mergable[Place[T]] =
+  def panicingMerge[T] : UpdateWidgetStateFromTheOldOne[Place[T]] =
     (_, _, _) => Left(PlaceError.MergeWasCalled)
 
   def panicingDraw[T] : Drawable[T, Nothing] =

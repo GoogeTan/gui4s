@@ -14,7 +14,7 @@ import gui4s.core.widget.draw.statefulIsDrawable
 import gui4s.core.widget.draw.statefulStateDrawsIntoWidget
 import gui4s.core.widget.handle._
 import gui4s.core.widget.library.MergeStates
-import gui4s.core.widget.merge.Mergable
+import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
 import gui4s.core.widget.merge.statefulMergesWithOldStates
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates
@@ -66,7 +66,7 @@ def stateful[
   State,
   ChildEvent
 ](
-  widgetsAreMergeable : Mergable[Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]]],
+  widgetsAreMergeable : UpdateWidgetStateFromTheOldOne[Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]]],
   typeCheckState : [T] => (Any, Path, StatefulState[State] => Place[T]) => Place[T],
   liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])],
   addNameToPath : String => Place ~> Place
@@ -145,7 +145,7 @@ def stateful[
             savedState,
             newState.stateBehaviour.state,
             newStState =>
-              widgetsAreMergeable.merge(path, widgetAsFree(newState.child), render(newStState.currentState)).map(
+              widgetsAreMergeable.updateState(path, widgetAsFree(newState.child), render(newStState.currentState)).map(
                 newChild =>
                   newState.copy(
                     stateBehaviour = newState.stateBehaviour.copy(
