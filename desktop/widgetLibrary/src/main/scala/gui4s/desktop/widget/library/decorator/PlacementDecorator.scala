@@ -12,33 +12,33 @@ def placementDecorator[
   NewPlace[_] : Functor,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
 ](
-  placementShift : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]] =>
-    NewPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]]
+  placementShift : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]] =>
+    NewPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]]
 )(
-  original : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]]
-) : NewPlace[Widget[Update, NewPlace, Draw, RecompositionReaction, HandleableEvent]] =
+  original : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]]
+) : NewPlace[Widget[Update, NewPlace, Draw, RecompositionReaction, EnvironmentalEvent]] =
   placementShift(
     original,
   ).map(
     placedWidget =>
       Widget.ValueWrapper[
-        Widget[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent],
+        Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent],
         Update,
         NewPlace,
         Draw,
         RecompositionReaction,
-        HandleableEvent
+        EnvironmentalEvent
       ](
         valueToDecorate = placedWidget,
         valueAsFree = placed => placementShift(placed.asFree),
         valueIsDrawable = widgetIsDrawable,
         valueHandlesEvent =
-          widgetHandlesEvent[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]
+          widgetHandlesEvent[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]
             .andThen(_.map(placementShift)),
         valueMergesWithOldState =
-          widgetMergesWithOldState[Update, OldPlace, Draw, RecompositionReaction, HandleableEvent]
+          widgetMergesWithOldState[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]
             .andThen(placementShift(_)),
         valueReactsOnRecomposition = widgetReactsOnRecomposition,
         valueHasInnerState = widgetHasInnerStates

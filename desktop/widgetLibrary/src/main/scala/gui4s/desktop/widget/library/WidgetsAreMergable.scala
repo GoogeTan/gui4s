@@ -14,8 +14,8 @@ def widgetsAreMergable[
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
-] : Mergable[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
+  EnvironmentalEvent,
+] : Mergable[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]]]] =
   type Place[Value] = PlacementEffect[Situated[Value]]
   given Functor[Place] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
 
@@ -24,7 +24,7 @@ def widgetsAreMergable[
       oldWidget, newWidget
     )(
       (situatedOld, nextWidgetToMerge) =>
-        widgetMergesWithOldState[Update, Place, Draw, RecompositionReaction, HandleableEvent](
+        widgetMergesWithOldState[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent](
           nextWidgetToMerge.extract,
           path,
           widgetHasInnerStates(situatedOld.extract)

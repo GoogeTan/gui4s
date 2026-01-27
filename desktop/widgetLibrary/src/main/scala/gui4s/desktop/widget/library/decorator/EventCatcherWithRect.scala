@@ -16,13 +16,13 @@ def eventCatcherWithRect[
   Update[_] : Monad,
   PlacementEffect[_],
   Situated[_] : Comonad,
-  HandleableEvent,
+  EnvironmentalEvent,
 ](
-   updateDecorator: UpdateDecorator[Update, PlacementEffect, Situated[PlaceWidget], HandleableEvent],
+   updateDecorator: UpdateDecorator[Update, PlacementEffect, Situated[PlaceWidget], EnvironmentalEvent],
    markEventHandled : Update[Unit],
    widgetAsFree : AsFreeF[PlaceWidget, PlacementEffect * Situated],
-   widgetHandlesEvent : HandlesEventF[PlaceWidget, HandleableEvent, Update * PlacementEffect * Situated]
-) : EventCatcherWithRect[PlacementEffect[Situated[PlaceWidget]], Update[Boolean], Situated[PlaceWidget], HandleableEvent] =
+   widgetHandlesEvent : HandlesEventF[PlaceWidget, EnvironmentalEvent, Update * PlacementEffect * Situated]
+) : EventCatcherWithRect[PlacementEffect[Situated[PlaceWidget]], Update[Boolean], Situated[PlaceWidget], EnvironmentalEvent] =
   decorator =>
     updateDecorator(
       (self, path, event) =>

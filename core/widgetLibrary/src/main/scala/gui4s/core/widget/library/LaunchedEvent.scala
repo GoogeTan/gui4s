@@ -16,7 +16,7 @@ import gui4s.core.widget.library.decorator.EventCatcherWithRect
  * @tparam Key Ключ.
  * @tparam Update Эффект обновления дерева виджетов.
  * @tparam Rect Положение виджета на экране.
- * @tparam HandleableEvent Внещнее событие.
+ * @tparam EnvironmentalEvent Внещнее событие.
  * @tparam Event Событие, бросаемое виджетом.
  */
 def launchedEvent[
@@ -25,20 +25,20 @@ def launchedEvent[
   Key,
   Update[_, _],
   Rect,
-  HandleableEvent,
+  EnvironmentalEvent,
   Event
 ](
   launchedEffectWidget: LaunchedEffectWidget[Widget, Key, Path => IO[Unit]],
-  eventCatcher : EventCatcherWithRect[Widget, Update[Event, Boolean], Rect, HandleableEvent],
+  eventCatcher : EventCatcherWithRect[Widget, Update[Event, Boolean], Rect, EnvironmentalEvent],
   pushEvent : (Path, Event) => IO[Unit],
-  catchEvent : (Path, HandleableEvent) => Update[Event, Boolean]
+  catchEvent : (Path, EnvironmentalEvent) => Update[Event, Boolean]
 ) : LaunchedEffectWidget[Widget, Key, IO[Event]] =
   (name, widget, key, task) =>
     launchedEffectWidget(
       name,
       eventCatcher(
-        (path, _, handleableEvent) =>
-          catchEvent(path, handleableEvent)
+        (path, _, environmentalEvent) =>
+          catchEvent(path, environmentalEvent)
       )(widget),
       key,
       path => task.flatMap(pushEvent(path, _))

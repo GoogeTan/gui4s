@@ -17,7 +17,7 @@ import gui4s.core.widget.library.decorator.EventCatcherWithRect
  * @param isIn
  * @tparam Widget
  * @tparam Update
- * @tparam HandleableEvent
+ * @tparam EnvironmentalEvent
  * @tparam MouseClick
  * @tparam Point
  * @tparam WidgetBoundingBox
@@ -26,14 +26,14 @@ import gui4s.core.widget.library.decorator.EventCatcherWithRect
 def clickCatcher[
   Widget,
   Update[_] : Monad,
-  HandleableEvent,
+  EnvironmentalEvent,
   MouseClick,
   Point,
   WidgetBoundingBox
 ](
-   eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], WidgetBoundingBox, HandleableEvent],
+   eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Boolean], WidgetBoundingBox, EnvironmentalEvent],
    currentMousePosition : Update[Point],
-   appropriateEvent: HandleableEvent => Option[MouseClick],
+   appropriateEvent: EnvironmentalEvent => Option[MouseClick],
    onClick : (Path, MouseClick) => Update[Boolean],
    isIn : Point => WidgetBoundingBox => Update[Boolean]
 ) : Decorator[Widget] =

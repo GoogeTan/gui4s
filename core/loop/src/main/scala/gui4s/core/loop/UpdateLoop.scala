@@ -15,12 +15,12 @@ type UpdateLoop[F[_], Widget, DownEvent, ExitCode] = (Widget, Widget => F[Unit],
 def runUpdateLoopOnExecutionContext[
   F[_] : Async,
   Widget,
-  HandleableEvent,
+  EnvironmentalEvent,
   ExitCode
 ](
-   loop: UpdateLoop[F, Widget, HandleableEvent, ExitCode],
+   loop: UpdateLoop[F, Widget, EnvironmentalEvent, ExitCode],
    context: ExecutionContext
-): UpdateLoop[F, Widget, HandleableEvent, ExitCode] =
+): UpdateLoop[F, Widget, EnvironmentalEvent, ExitCode] =
   (widget, sink, eventSource) => loop(widget, sink, eventSource).evalOn(context)
 end runUpdateLoopOnExecutionContext
 

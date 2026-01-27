@@ -14,10 +14,10 @@ def drawDecorator[
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
 ](
   toDraw : Situated[Draw] => Draw
-) : Decorator[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]]] =
+) : Decorator[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]]]] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   original =>
     PF.map(

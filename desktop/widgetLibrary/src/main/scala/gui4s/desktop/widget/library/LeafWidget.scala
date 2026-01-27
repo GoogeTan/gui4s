@@ -15,20 +15,20 @@ def leafWidget[
   Place[_] : Functor as F,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
 ](
    freeMarker : Place[Marker],
    emptyDraw : Draw,
    emptyRecomposition : RecompositionReaction,
- ) : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+ ) : Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]] =
   F.map(freeMarker)(
     marker =>
       val asFree : AsFree[Marker, Place[Marker]] = (_ : Any) => freeMarker
-      Widget.ValueWrapper[Marker, Update, Place, Draw, RecompositionReaction, HandleableEvent](
+      Widget.ValueWrapper[Marker, Update, Place, Draw, RecompositionReaction, EnvironmentalEvent](
         valueToDecorate = marker,
         valueAsFree = asFree,
         valueIsDrawable = (_ : Marker) => emptyDraw,
-        valueHandlesEvent = handlesNothing[Marker, HandleableEvent, Update[Place[Marker]]](asFree andThen M.pure),
+        valueHandlesEvent = handlesNothing[Marker, EnvironmentalEvent, Update[Place[Marker]]](asFree andThen M.pure),
         valueMergesWithOldState = anyHasNothingToMerge[Marker, Place[Marker]](asFree),
         valueReactsOnRecomposition = hasNoReactionOnRecomposition[RecompositionReaction](emptyRecomposition),
         valueHasInnerState = hasNoInnerState[Marker]

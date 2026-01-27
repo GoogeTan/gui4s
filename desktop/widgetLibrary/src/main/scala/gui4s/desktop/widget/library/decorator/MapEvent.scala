@@ -13,16 +13,16 @@ def mapUpdate[
   Place[_] : Functor,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
 ](
-  original : Place[Widget[OldUpdate, Place, Draw, RecompositionReaction, HandleableEvent]],
+  original : Place[Widget[OldUpdate, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
   mapEventInUpdate : OldUpdate ~> NewUpdate
 ) :
-  Place[Widget[NewUpdate, Place, Draw, RecompositionReaction, HandleableEvent]] =
+  Place[Widget[NewUpdate, Place, Draw, RecompositionReaction, EnvironmentalEvent]] =
   original.map(
     placedWidget =>
       // TODO Переписать с использованием UpdateDecorator или написать здесь, почему это невозможно
-      final case class MapEvent(currentWidget: Widget[OldUpdate, Place, Draw, RecompositionReaction, HandleableEvent])
+      final case class MapEvent(currentWidget: Widget[OldUpdate, Place, Draw, RecompositionReaction, EnvironmentalEvent])
       Widget.ValueWrapper(
         valueToDecorate = MapEvent(placedWidget),
         valueAsFree = placed => placed.currentWidget.asFree.map(MapEvent(_)),

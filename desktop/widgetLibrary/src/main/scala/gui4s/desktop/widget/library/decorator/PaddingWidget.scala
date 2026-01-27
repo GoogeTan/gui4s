@@ -15,15 +15,15 @@ def gapPaddingWidget[
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
   Meta,
   Paddings,
 ](
-  container : ContainerWidget[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent], Id, PlacementEffect * Situated, Meta],
+  container : ContainerWidget[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent], Id, PlacementEffect * Situated, Meta],
   boundsWithPaddings : Paddings => PlacementEffect ~> PlacementEffect,
   innerPlaceWithPaddings : [T] => Paddings => Situated[T] => Situated[(T, Meta)],
 ): PaddingWidget[
-  PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]],
+  PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]]],
   Paddings
 ] =
   gui4s.core.widget.library.decorator.gapPaddingWidget(

@@ -14,14 +14,14 @@ def fixedSizeWidget[
   Place[_] : Functor,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
   BoundUnit,
   MeasurementUnit,
   Axis,
 ](
    withPreferredSize : Place ~> Place,
    linearContainer: LinearContainer[
-    Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]],
+    Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
     PlacementEffect,
     Id,
     BoundUnit,
@@ -31,7 +31,7 @@ def fixedSizeWidget[
    mainAxis : Axis,
    mainAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, BoundUnit, MeasurementUnit],
    crossAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, BoundUnit, MeasurementUnit],
-) : Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]]] =
+) : Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]] =
   originalWidget =>
     placementDecorator[
       Update,
@@ -39,7 +39,7 @@ def fixedSizeWidget[
       Place,
       Draw,
       RecompositionReaction,
-      HandleableEvent
+      EnvironmentalEvent
     ](
       withPreferredSize(_)
     )(

@@ -15,19 +15,19 @@ def drawOnlyWidget[
   Place[_] : Functor,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
 ](
     toDraw : Place[Draw], 
     emptyRecomposition : RecompositionReaction,
-) : Place[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]] =
+) : Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]] =
   toDraw.map(
     draw =>
       val asFree : AsFree[Draw, Place[Draw]] = (_ : Draw) => toDraw
-      Widget.ValueWrapper[Draw, Update, Place, Draw, RecompositionReaction, HandleableEvent](
+      Widget.ValueWrapper[Draw, Update, Place, Draw, RecompositionReaction, EnvironmentalEvent](
         valueToDecorate = draw,
         valueAsFree = asFree,
         valueIsDrawable = identity, 
-        valueHandlesEvent = handlesNothing[Draw, HandleableEvent, Update[Place[Draw]]](asFree andThen M.pure),
+        valueHandlesEvent = handlesNothing[Draw, EnvironmentalEvent, Update[Place[Draw]]](asFree andThen M.pure),
         valueMergesWithOldState = anyHasNothingToMerge(asFree),
         valueReactsOnRecomposition = hasNoReactionOnRecomposition[RecompositionReaction](emptyRecomposition),
         valueHasInnerState = hasNoInnerState[Draw]
@@ -41,17 +41,17 @@ def constanctSizeDrawOnlyWidget[
   Situated[_] : Functor,
   Draw,
   RecompositionReaction,
-  HandleableEvent,
+  EnvironmentalEvent,
 ](
    toDraw : Situated[Draw],
    emptyRecomposition : RecompositionReaction,
-) : PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, HandleableEvent]]] =
+) : PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]]] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   drawOnlyWidget[
     Update,
     PlacementEffect * Situated,
     Draw,
     RecompositionReaction,
-    HandleableEvent,
+    EnvironmentalEvent,
 ](toDraw.pure[PlacementEffect], emptyRecomposition)
 end constanctSizeDrawOnlyWidget

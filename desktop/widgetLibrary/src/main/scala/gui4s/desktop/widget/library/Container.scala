@@ -28,22 +28,22 @@ def container[
   C[_] : Traverse,
   Draw : Monoid,
   RecompositionReaction : Monoid,
-  HandleableEvent,
+  EnvironmentalEvent,
   Meta : Order,
 ](
   adjustDrawToMeta : (Draw, Meta) => Draw,
   adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
   isEventConsumed : Update[Boolean],
   traverseContainerOrdered : TraverseOrdered[Update, C]
-) : ContainerWidget[Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent], C, Place, Meta] =
-  type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+) : ContainerWidget[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent], C, Place, Meta] =
+  type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
   given Order[(PlacedWidget, Meta)] = Order.by(_._2)
   (children, layout) =>
     layout(children).map(
       placedChildren =>
         Widget.ValueWrapper[
           Container[C[(PlacedWidget, Meta)], Layout[Place, C, PlacedWidget, Meta]],
-          Update, Place, Draw, RecompositionReaction, HandleableEvent
+          Update, Place, Draw, RecompositionReaction, EnvironmentalEvent
         ](
           valueToDecorate = Container(placedChildren, layout),
           valueAsFree = containerAsFree[Place, C, PlacedWidget, Meta](
@@ -55,10 +55,10 @@ def container[
               adjustDrawToMeta
             )
           ),
-          valueHandlesEvent = containerHandlesEvent[Update, Place, C, PlacedWidget, HandleableEvent, Meta](
-            childrenHandleEvent[C, Update, Place, PlacedWidget, HandleableEvent, Meta](
-              widgetHandlesEvent = widgetHandlesEvent[Update, Place, Draw, RecompositionReaction, HandleableEvent],
-              widgetAsFree = widgetAsFree[Update, Place, Draw, RecompositionReaction, HandleableEvent],
+          valueHandlesEvent = containerHandlesEvent[Update, Place, C, PlacedWidget, EnvironmentalEvent, Meta](
+            childrenHandleEvent[C, Update, Place, PlacedWidget, EnvironmentalEvent, Meta](
+              widgetHandlesEvent = widgetHandlesEvent[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent],
+              widgetAsFree = widgetAsFree[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent],
               isEventConsumed = isEventConsumed,
               adjustUpdateToMeta = adjustUpdateToMeta,
               traverseContainerOrdered = traverseContainerOrdered
@@ -67,13 +67,13 @@ def container[
           valueMergesWithOldState = containerMergesWithOldStates[
             Place, C, PlacedWidget, RecompositionReaction, Meta
           ](
-            widgetMergesWithOldState[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+            widgetMergesWithOldState[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
           ),
           valueReactsOnRecomposition = containerReactsOnRecomposition[
             (PlacedWidget, Meta), C, Layout[Place, C, PlacedWidget, Meta], RecompositionReaction
           ](
             widgetWithMetaReactsOnRecomposition[PlacedWidget, Meta, RecompositionReaction](
-              widgetReactsOnRecomposition[Update, Place, Draw, RecompositionReaction, HandleableEvent]
+              widgetReactsOnRecomposition[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
             )
           ),
           valueHasInnerState = containerHasInnerStates[(PlacedWidget, Meta), C, Layout[Place, C, PlacedWidget, Meta], RecompositionReaction](

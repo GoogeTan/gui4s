@@ -6,8 +6,8 @@ import cats.arrow.Arrow
 import cats.arrow.Strong
 import cats.syntax.all._
 
-type HandlesEvent[-T, -HandleableEvent, +UpdatedWidget] = (self : T, pathToParent : Path, event : HandleableEvent) => UpdatedWidget
-type HandlesEventF[T, -HandleableEvent, +Update[_]] = HandlesEvent[T, HandleableEvent, Update[T]]
+type HandlesEvent[-T, -EnvironmentalEvent, +UpdatedWidget] = (self : T, pathToParent : Path, event : EnvironmentalEvent) => UpdatedWidget
+type HandlesEventF[T, -EnvironmentalEvent, +Update[_]] = HandlesEvent[T, EnvironmentalEvent, Update[T]]
 
 given handlesEventIsArrow[Event] : Arrow[[A, B] =>> HandlesEvent[A, Event, B]] with
   override def compose[A, B, C](f: HandlesEvent[B, Event, C], g: HandlesEvent[A, Event, B]): HandlesEvent[A, Event, C] =
