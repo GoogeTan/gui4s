@@ -114,9 +114,7 @@ object TextInputExample extends UIApp:
                       textFieldWidget("text-field", state)
                     )
               )
-        ),
-          beginMany,
-          begin
+          )
         )
   end main
 

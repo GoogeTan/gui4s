@@ -63,10 +63,10 @@ def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[AndroidWidg
   linearContainerWidget(traverseOrdered)
 end linearListContainerWidget
 
-def rowWidget[IO[_] : Sync, Event](
-                              children                    : List[AndroidWidget[IO, Event]],
-                              horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List],
-                              verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO],
+def rowWidget[IO[_], Event](using Sync[IO])(
+  children                    : List[AndroidWidget[IO, Event]],
+  horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
+  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
 ) : AndroidWidget[IO, Event] =
   linearListContainerWidget(
     children,
@@ -76,10 +76,10 @@ def rowWidget[IO[_] : Sync, Event](
   )
 end rowWidget
 
-def columnWidget[IO[_] : Sync, Event](
-                                 children                    : List[AndroidWidget[IO, Event]],
-                                 verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List],
-                                 horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
+def columnWidget[IO[_], Event](using Sync[IO])(
+  children                    : List[AndroidWidget[IO, Event]],
+  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
+  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
 ) : AndroidWidget[IO, Event] =
   linearListContainerWidget(
     children,
@@ -89,11 +89,11 @@ def columnWidget[IO[_] : Sync, Event](
   )
 end columnWidget
 
-def boxWidget[IO[_] : Sync, Event](
-                                  child : AndroidWidget[IO, Event],
-                                  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
-                                  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO]
-                              ) : AndroidWidget[IO, Event] =
+def boxWidget[IO[_], Event](using Sync[IO])(
+  child : AndroidWidget[IO, Event],
+  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Center[IO, Id](0f, ContainerPlacementError.English),
+  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Center[IO, Id](0f, ContainerPlacementError.English)
+) : AndroidWidget[IO, Event] =
   linearContainerWidget[IO, Event, Id](traverseOne)(
     child,
     Axis.Vertical,

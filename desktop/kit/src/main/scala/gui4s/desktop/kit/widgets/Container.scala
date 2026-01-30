@@ -14,6 +14,7 @@ import cats.effect.kernel.Sync
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.geometry.Point3d
+import gui4s.core.kit.ContainerPlacementError
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.LinearContainer
 import gui4s.core.widget.library.{linearContainer => genericLinearContainer}
@@ -63,10 +64,10 @@ def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[DesktopWidg
   linearContainerWidget(traverseOrdered)
 end linearListContainerWidget
 
-def rowWidget[IO[_] : Sync, Event](
+def rowWidget[IO[_], Event](using Sync[IO])(
   children                    : List[DesktopWidget[IO, Event]],
-  horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List],
-  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO],
+  horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
+  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
 ) : DesktopWidget[IO, Event] =
   linearListContainerWidget(
     children,
@@ -76,10 +77,10 @@ def rowWidget[IO[_] : Sync, Event](
   )
 end rowWidget
 
-def columnWidget[IO[_] : Sync, Event](
+def columnWidget[IO[_], Event](using Sync[IO])(
   children                    : List[DesktopWidget[IO, Event]],
-  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List],
-  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
+  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
+  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
 ) : DesktopWidget[IO, Event] =
   linearListContainerWidget(
       children,
@@ -89,10 +90,10 @@ def columnWidget[IO[_] : Sync, Event](
     )
 end columnWidget
 
-def boxWidget[IO[_] : Sync, Event](
+def boxWidget[IO[_], Event](using Sync[IO])(
   child : DesktopWidget[IO, Event],
-  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO],
-  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO]
+  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Center[IO, Id](0f, ContainerPlacementError.English),
+  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Center[IO, Id](0f, ContainerPlacementError.English)
 ) : DesktopWidget[IO, Event] =
   linearContainerWidget[IO, Event, Id](traverseOne)(
     child,
