@@ -1,8 +1,12 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.all.*
-import cats.{Comonad, Functor, Id, ~>}
+import catnip.syntax.all._
+import cats.Comonad
+import cats.Functor
+import cats.Id
+import cats.~>
+
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.PaddingWidget
 

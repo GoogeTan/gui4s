@@ -1,6 +1,6 @@
 package gui4s.core.widget.library.textfield
 
-import cats.syntax.order.*
+import cats.syntax.order._
 
 final case class TextPosition(line : Int, column : Int) extends Ordered[TextPosition]:
   def compare(that : TextPosition) : Int =

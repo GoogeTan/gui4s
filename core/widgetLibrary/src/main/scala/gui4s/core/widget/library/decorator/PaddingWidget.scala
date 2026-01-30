@@ -1,11 +1,15 @@
 package gui4s.core.widget.library.decorator
 
-import catnip.syntax.all.*
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, InfinityOr}
-import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.core.widget.library.{ContainerWidget, LinearContainer}
+import catnip.syntax.all._
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
+import gui4s.core.layout.rowcolumn.PlacementStrategy
+import gui4s.core.widget.library.ContainerWidget
+import gui4s.core.widget.library.LinearContainer
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 

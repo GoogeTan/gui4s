@@ -3,7 +3,6 @@ package gui4s.core.widget.library
 import scala.reflect.Typeable
 
 import catnip.BiMonad
-import cats._
 import cats.data.NonEmptyList
 
 import gui4s.core.widget.Path

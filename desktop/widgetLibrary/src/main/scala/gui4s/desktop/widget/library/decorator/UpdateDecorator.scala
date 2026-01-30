@@ -2,7 +2,9 @@ package gui4s.desktop.widget.library
 package decorator
 
 import catnip.syntax.all._
-import cats.{Comonad, Id, Functor}
+import cats.Comonad
+import cats.Functor
+import cats.Id
 import cats.syntax.all._
 
 import gui4s.core.widget.Path

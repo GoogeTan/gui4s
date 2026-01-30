@@ -1,8 +1,8 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.*
-import cats.syntax.all.*
-import cats.*
+import catnip.syntax.all._
+import cats._
+import cats.syntax.all._
 
 import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
 

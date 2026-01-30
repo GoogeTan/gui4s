@@ -1,13 +1,11 @@
 package gui4s.core.widget.library.textfield
 
 import catnip.BiMonad
-import cats.*
-import cats.data.*
-import cats.syntax.all.*
-import gui4s.core.widget.Path
-import gui4s.core.widget.library.StatefulWidget
+import cats._
+import cats.data._
+import cats.syntax.all._
 
-import scala.math.min
+import gui4s.core.widget.library.StatefulWidget
 
 def textField[
   Widget[E],

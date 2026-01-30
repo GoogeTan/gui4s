@@ -11,7 +11,7 @@ import gui4s.core.widget.library.decorator.Decorator
 
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.RecompositionReaction.given
-import gui4s.desktop.kit.effects.{LinearContainerPlacementStrategy => _, _}
+import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets._
 
 def layersWidget[IO[_] : Sync, Event](

@@ -15,8 +15,8 @@ import cats.~>
 import gui4s.core.kit.effects.{Place => GenericPlace}
 import gui4s.core.widget.Path
 
-import gui4s.desktop.kit.effects.Situated.given
 import gui4s.desktop.kit.effects.PlacementEffect.given
+import gui4s.desktop.kit.effects.Situated.given
 import gui4s.desktop.skija.shaper.Shaper
 
 type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, Throwable, T]
