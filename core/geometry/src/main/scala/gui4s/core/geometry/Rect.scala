@@ -60,7 +60,11 @@ final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : Measur
   
   def +[T >: MeasurementUnit](point : Point2d[T])(using N : Numeric[T]) : Rect[T] =
     this + point.toRect
-  end +  
+  end +
+
+  def withLengthAlong[T >: MeasurementUnit](axis : Axis, length : T) : Rect[T] =
+    mapAlong(axis, _ => length)
+  end withLengthAlong
 end Rect
 
 extension[MeasurementUnit : Numeric](value : Rect[MeasurementUnit])
