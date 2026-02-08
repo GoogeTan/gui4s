@@ -41,54 +41,6 @@ def containerWidget[
   )
 end containerWidget
 
-def linearContainerWidget[
-  IO[_] : Sync,
-  Event,
-  Collection[_] : {Applicative, Traverse, Zip}
-](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Collection]) : LinearContainer[DesktopWidget[IO, Event], PlacementEffect[IO, *], Collection, InfinityOr[Float], Float, Axis] =
-  genericLinearContainer[
-    DesktopPlacedWidget[IO, Event],
-    PlacementEffect[IO, *],
-    Collection,
-    InfinityOr[Float],
-    Float,
-  ](
-    container = containerWidget[IO, Collection, Event](traverseOrdered),
-    getBounds = PlacementEffect.getBounds,
-    setBounds = PlacementEffect.setBounds,
-    cut = _.minus(_)
-  )
-end linearContainerWidget
-
-def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[DesktopWidget[IO, Event], PlacementEffect[IO, *], List, InfinityOr[Float], Float, Axis] =
-  linearContainerWidget(traverseOrdered)
-end linearListContainerWidget
-
-def rowWidget[IO[_], Event](using Sync[IO])(
-  children                    : List[DesktopWidget[IO, Event]],
-  horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
-  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
-) : DesktopWidget[IO, Event] =
-  linearListContainerWidget(
-    children,
-    Axis.Horizontal,
-    horizontalPlacementStrategy,
-    verticalPlacementStrategy
-  )
-end rowWidget
-
-def columnWidget[IO[_], Event](using Sync[IO])(
-  children                    : List[DesktopWidget[IO, Event]],
-  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
-  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
-) : DesktopWidget[IO, Event] =
-  linearListContainerWidget(
-      children,
-      Axis.Vertical,
-      verticalPlacementStrategy,
-      horizontalPlacementStrategy
-    )
-end columnWidget
 
 def boxWidget[IO[_], Event](using Sync[IO])(
   child : DesktopWidget[IO, Event],
