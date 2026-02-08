@@ -19,4 +19,14 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
       case None => this
     end match
   end minus
+  
+  def *[T >: MeasurementUnit](another : InfinityOr[T])(using N : Numeric[T]) : InfinityOr[T] =
+    InfinityOr(
+      value.zip(another.value).map((a, b) => N.times(a, b))
+    )
+  end *
+  
+  def *[T >: MeasurementUnit](amount : T)(using N : Numeric[T]) : InfinityOr[T] =
+    this * InfinityOr(Some(amount))
+  end *
 end InfinityOr
