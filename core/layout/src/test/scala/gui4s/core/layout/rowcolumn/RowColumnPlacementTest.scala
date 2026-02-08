@@ -1,12 +1,11 @@
 package gui4s.core.layout
 package rowcolumn
 
+import catnip.syntax.all.given
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import catnip.syntax.all.given 
 import gui4s.core.geometry.{Axis, Point3d, Rect}
-
 import org.scalatest.*
 import org.scalatest.flatspec.*
 import org.scalatest.matchers.should.Matchers.*
@@ -53,7 +52,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
                 OneElementPlacementStrategy.Begin[Place, Float, Float],
             ),
             Rect(0f, 0f) 
-        ) should be(Right(Sized(List(), Rect(0f, 0f))))
+        ) should be(Sized(List(), Rect(0f, 0f)))
 
     it should "place inside of itself correctly" in:
         val innerChildSize = Rect(5f, 5f)
@@ -62,10 +61,10 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
         val horizontalGap = 4f
         val verticalGap = 4f
 
-        val innerChildren : List[Place[Sized[MeasurementUnit, Unit]]] = List.fill(horizontalChildrenCount)(
+        val innerChildren = List.fill(horizontalChildrenCount)(
             Sized((), innerChildSize).pure[Place]
         )
-        val children : List[Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, Unit]]]]] = List.fill(verticalChildrenCount)(
+        val children = List.fill(verticalChildrenCount)(
             rowColumnPlace(
                 Axis.Horizontal,
                 innerChildren,

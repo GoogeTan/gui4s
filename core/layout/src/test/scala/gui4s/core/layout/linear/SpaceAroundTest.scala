@@ -1,8 +1,8 @@
 package gui4s.core.layout
 package linear
 
-import org.scalatest.flatspec.AnyFlatSpec
 import gui4s.core.geometry.*
+import org.scalatest.flatspec.AnyFlatSpec
 
 class SpaceAroundTest extends AnyFlatSpec:
   "placeSpaceAround" should "cover all the space except begin-end gaps" in:

@@ -1,11 +1,11 @@
 package gui4s.core.layout
 package linear
 
-import org.scalatest.flatspec.*
+import gui4s.core.geometry.*
 import org.scalatest.*
+import org.scalatest.flatspec.*
 
 import scala.collection.immutable.List
-import gui4s.core.geometry.*
 
 class BeginTest extends AnyFlatSpec:
   "placeBegin" should "always return 0" in:
