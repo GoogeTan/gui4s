@@ -53,7 +53,7 @@ final class TextFieldStateTest extends AnyFlatSpec with should.Matchers:
       .moveCursorUp(false) shouldBe new TextFieldState("\n\n12414", TextPosition(1, 0))
 
     new TextFieldState("\n\n12414", TextPosition(2, 7))
-      .moveCursorUp(false) shouldBe new TextFieldState("\n\n12414", TextPosition(1, 0))
+      .moveCursorUp(false) shouldBe new TextFieldState("\n\n12414", TextPosition(1, 7))
 
   "move up" should "keep horizontal position" in:
     new TextFieldState("123\n\n12414", TextPosition(1, 5))

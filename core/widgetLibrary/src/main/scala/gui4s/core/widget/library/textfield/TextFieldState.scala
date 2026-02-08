@@ -9,7 +9,7 @@ final case class TextFieldState(
   focusedTextField: Option[Path] = None
 ):
   def this(lines : String, anchor : TextPosition, cursor : TextPosition, focusedTextField : Option[Path]) =
-    this(lines.split("\n").toList, anchor, cursor)
+    this(lines.split("\n", -1).toList, anchor, cursor)
   end this
 
   def this(lines : String, anchor : TextPosition, cursor : TextPosition) =
@@ -145,8 +145,7 @@ final case class TextFieldState(
     if cursor.line == 0 then
       this
     else
-      val newCol = math.min(cursor.column, lines(cursor.line - 1).length)
-      val newCursor = TextPosition(cursor.line - 1, newCol)
+      val newCursor = TextPosition(cursor.line - 1, cursor.column)
       updatePositions(shift, newCursor)
     end if
   end moveCursorUp
