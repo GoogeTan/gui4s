@@ -4,7 +4,7 @@ import cats.kernel.Monoid
 import io.github.humbleui.skija.PathFillMode
 import io.github.humbleui.skija.PathOp
 
-package object skija {
+package object skija:
   type Canvas = io.github.humbleui.skija.Canvas
   type Paint = io.github.humbleui.skija.Paint
   type Color = io.github.humbleui.skija.Color
@@ -17,6 +17,7 @@ package object skija {
   type Point = io.github.humbleui.types.Point
   type Path = io.github.humbleui.skija.Path
   type Image = io.github.humbleui.skija.Image
+  type Shader = io.github.humbleui.skija.Shader
 
   given clipMonoid : Monoid[Path] with
     override def empty: Path =
@@ -27,4 +28,4 @@ package object skija {
       io.github.humbleui.skija.Path.makeCombining(x, y, PathOp.INTERSECT)
     end combine
   end clipMonoid
-}
+end skija
