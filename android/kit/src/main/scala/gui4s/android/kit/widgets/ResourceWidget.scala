@@ -8,7 +8,7 @@ import gui4s.core.widget.Path
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.LaunchedEvent
-import gui4s.core.widget.library.{WithContext, descructableResourceWidget as genericResourceWidget}
+import gui4s.core.widget.library.{WithContext, destructibleResourceWidget as genericResourceWidget}
 
 import scala.reflect.Typeable
 

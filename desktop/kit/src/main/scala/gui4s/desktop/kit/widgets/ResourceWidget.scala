@@ -11,7 +11,7 @@ import cats.syntax.all._
 
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.WithContext
-import gui4s.core.widget.library.{descructableResourceWidget => genericResourceWidget}
+import gui4s.core.widget.library.{destructibleResourceWidget => genericResourceWidget}
 
 import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.effects._

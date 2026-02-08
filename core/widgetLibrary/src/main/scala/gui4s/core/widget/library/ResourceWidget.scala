@@ -35,32 +35,32 @@ given destructableIsTypeable[T: Typeable, IO: Typeable]: Typeable[(T, IO)] = x =
  * @param launchedEvent
  * @param doubleAllocError
  * @param emptyDesctructor
- * @tparam Desctruction Эффект, в котором исполняются деструкторы данного transitiveStatefulWidget
+ * @tparam Destruction Эффект, в котором исполняются деструкторы данного transitiveStatefulWidget
  * @tparam IO Эффект инициализации ресурса
  * @tparam Event
  * @todo Заменить слишком общий интерфейс TransitiveStatefulWidget на конкретный тип функции.
  * @todo Добавить докумнетацию ко всем параметрам
  * @return
  */
-def descructableResourceWidget[
+def destructibleResourceWidget[
   Widget[_],
   Update[_, _] : BiMonad as updateBiMonad,
   Place[_],
-  Desctruction : Typeable,
+  Destruction : Typeable,
   IO[_] : Functor,
   Event,
 ](
-  transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, [State] =>> State => Desctruction, Nothing],
+  transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, [State] =>> State => Destruction, Nothing],
   launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
   doubleAllocError : [T] => Path => Update[Event, T],
-  emptyDesctructor : Desctruction
-) : ResourceWidget[Widget[Event], [T] =>> IO[(T, Desctruction)]] =
+  emptyDesctructor : Destruction
+) : ResourceWidget[Widget[Event], [T] =>> IO[(T, Destruction)]] =
   [Value : Typeable] => (name, resource) =>
     (widget : Option[Value] => Widget[Event]) =>
       transitiveStatefulWidget[
-        Option[(Value, Desctruction)],
+        Option[(Value, Destruction)],
         Event,
-        (Value, Desctruction)
+        (Value, Destruction)
       ](
         name = name,
         initialState = None,
@@ -70,7 +70,7 @@ def descructableResourceWidget[
           case (_, path, _) => doubleAllocError(path)
         },
         body = state =>
-          launchedEvent[(Value, Desctruction)](
+          launchedEvent[(Value, Destruction)](
             "effect_launcher",
             widget(state.map(_._1)),
             resource
@@ -80,7 +80,7 @@ def descructableResourceWidget[
           case None => emptyDesctructor
         }
       )
-end descructableResourceWidget
+end destructibleResourceWidget
 
 /**
  * Виджет, позволяющий единоразово иницилизировать значение с эффектом.
