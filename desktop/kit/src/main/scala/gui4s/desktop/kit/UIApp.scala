@@ -1,17 +1,17 @@
 package gui4s.desktop.kit
 
 import scala.reflect.Typeable
-
-import catnip.syntax.all.{_, given}
-import cats._
+import catnip.syntax.all.{*, given}
+import cats.*
 import cats.data.EitherT
 import cats.data.ReaderT
 import cats.effect.*
 import cats.effect.std.*
 import cats.effect.unsafe.IORuntime
-import cats.syntax.all._
+import cats.syntax.all.*
+import glfw4s.core.GlfwConstants.*
 import glfw4s.core.WindowCreationSettings
-import glfw4s.core.pure._
+import glfw4s.core.pure.*
 import glfw4s.core.types.GlfwError
 import glfw4s.jna.bindings.structs.GLFWcursor
 import glfw4s.jna.bindings.types.GLFWmonitor
@@ -22,9 +22,9 @@ import gui4s.core.geometry.*
 import gui4s.core.widget.*
 import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.Draw.given
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
-import gui4s.desktop.skija.DirectContext._
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.skija.DirectContext.*
 import gui4s.desktop.skija.canvas.clear
 import gui4s.desktop.widget.library.*
 
@@ -71,8 +71,15 @@ trait UIApp extends IOApp:
         MainThread,
         error => EitherT.leftT[CallbackIO, Unit](UIAppError.InitError(error))
       )()
-      eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval
+      //Skija требует новый OGL, без этого будут иногда падать шейдеры
+      _ <- glfw.windowHint(GLFW_CONTEXT_VERSION_MAJOR, 3).eval
+      _ <- glfw.windowHint(GLFW_CONTEXT_VERSION_MINOR, 3).eval
+      _ <- glfw.windowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE).eval
+      _ <- glfw.windowHint(GLFW_OPENGL_FORWARD_COMPAT, 1).eval
       window <- glfw.createWindow(settings)
+      _ <- glfw.makeContextCurrent(Some(window)).eval
+
+      eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval
       _ <- glfw.makeContextCurrent(Some(window)).eval
 
       eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval

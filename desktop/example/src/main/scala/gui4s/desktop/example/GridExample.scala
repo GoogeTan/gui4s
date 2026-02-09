@@ -59,6 +59,11 @@ object GridExample extends UIApp:
                 bs.map:
                   rowElement =>
                     f(columnElement, rowElement)
+                      .border(
+                        Shapes.roundedCorners(50f),
+                        Brush.solid(0xFF454649), 
+                        StrokeOptions(width = 4f)
+                      )
             )
     ).paintOnBackgroundWith(Brush.linearGradient(
         Point2d[Float](0f, 0f),

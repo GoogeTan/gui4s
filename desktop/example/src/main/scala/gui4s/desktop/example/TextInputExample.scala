@@ -1,16 +1,15 @@
 package gui4s.desktop.example
 
-import scala.math._
-
-import catnip.syntax.all.{_, given}
-import cats._
-import cats.effect._
-import cats.effect.std._
-import cats.syntax.all._
+import scala.math.*
+import catnip.syntax.all.{*, given}
+import cats.*
+import cats.effect.*
+import cats.effect.std.*
+import cats.syntax.all.*
 import glfw4s.core.GlfwConstants
 import glfw4s.core.KeyAction
 import glfw4s.core.WindowCreationSettings
-import glfw4s.core.pure._
+import glfw4s.core.pure.*
 import glfw4s.jna.bindings.types.GLFWcursor
 import glfw4s.jna.bindings.types.GLFWmonitor
 import glfw4s.jna.bindings.types.GLFWwindow
@@ -20,7 +19,6 @@ import io.github.humbleui.skija.paragraph.FontCollection
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.paragraph.ParagraphStyle
 import io.github.humbleui.skija.paragraph.TextStyle
-
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 import gui4s.core.kit.ContainerPlacementError
@@ -29,13 +27,13 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.widget.library.textfield.TextFieldEvent
-
 import gui4s.desktop.kit.UIApp
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
-import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets
-import gui4s.desktop.kit.widgets._
-import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.kit.widgets.decorator.*
+import gui4s.desktop.skija.{Brush, StrokeOptions}
 
 enum TextInputOuterEvent:
   case CharInputEvent(key : Int)
@@ -110,9 +108,14 @@ object TextInputExample extends UIApp:
                 eventHandler = (_, _, newString) => newString.last.pure[UpdateC[AppIO, Nothing]],
                 body =
                   state =>
-                    gapPaddingWidget(using Sync[AppIO])(Paddings(12f, 12f, 12f, 12f))(
-                      textFieldWidget("text-field", state)
-                    )
+                    textFieldWidget("text-field", state)
+                      .padding(Paddings(6f, 6f, 6f, 6f))
+                      .border(
+                        Shapes.roundedCorners(50f),
+                        Brush.solid(0xFF454649),
+                        StrokeOptions()
+                      )
+                      .padding(Paddings(12f, 12f, 12f, 12f))
               )
           )
         )
