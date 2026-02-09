@@ -29,4 +29,6 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
   def *[T >: MeasurementUnit](amount : T)(using N : Numeric[T]) : InfinityOr[T] =
     this * InfinityOr(Some(amount))
   end *
+
+  def getUnsafe : MeasurementUnit = value.get
 end InfinityOr

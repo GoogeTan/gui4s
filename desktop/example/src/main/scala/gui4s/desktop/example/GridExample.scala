@@ -2,19 +2,19 @@ package gui4s.desktop.example
 
 import cats.Id
 import cats.data.EitherT
-import cats.effect._
+import cats.effect.*
 import cats.effect.std.Queue
-import glfw4s.core._
-import glfw4s.core.pure._
-import glfw4s.jna.bindings.types._
-
+import glfw4s.core.*
+import glfw4s.core.pure.*
+import glfw4s.jna.bindings.types.*
+import gui4s.core.geometry.Point2d
 import gui4s.core.kit.ContainerPlacementError
-
-import gui4s.desktop.kit._
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
-import gui4s.desktop.skija._
-import gui4s.desktop.skija.typeface._
+import gui4s.desktop.kit.*
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.kit.widgets.decorator.*
+import gui4s.desktop.skija.*
+import gui4s.desktop.skija.typeface.*
 
 object GridExample extends UIApp:
   val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
@@ -36,7 +36,7 @@ object GridExample extends UIApp:
       text = TextWidget(shaper, cache)
       textStyle = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
     yield
-      grid(numbers, numbers)(
+      grid((1 to 10).toList, ('a' to 'f').toList)(
         gridCell(text[Nothing](_, textStyle))
       )
   end main
@@ -60,10 +60,15 @@ object GridExample extends UIApp:
                   rowElement =>
                     f(columnElement, rowElement)
             )
+    ).paintOnBackgroundWith(Brush.linearGradient(
+        Point2d[Float](0f, 0f),
+        Point2d[Float](500f, 500f),
+        List(0xFF242424, 0xFF343434, 0xFF445444),
+      )
     )
   end grid
 
-  def gridCell[Event](textWidget: String => DesktopWidget[AppIO, Event])(row : Int, column : Int) : DesktopWidget[AppIO, Event] =
+  def gridCell[Event](textWidget: String => DesktopWidget[AppIO, Event])(row : Int, column : Char) : DesktopWidget[AppIO, Event] =
     textWidget(column.toString + ":" + row.toString)
   end gridCell
 end GridExample
