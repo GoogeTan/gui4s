@@ -8,6 +8,7 @@ import gui4s.core.layout.rowcolumn.PlacementStrategy
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
+import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects.RecompositionReaction.given
 import gui4s.desktop.kit.widgets.*
 
@@ -30,17 +31,25 @@ def layersWidget[IO[_] : Sync, Event](
 end layersWidget
 
 extension[IO[_], Event](value : DesktopWidget[IO, Event])
-  def withBackground(
+  def withBackground(using Sync[IO])(
     background : DesktopWidget[IO, Event],
-    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], List, Point2d[Float]]
-  )(using Sync[IO]) : DesktopWidget[IO, Event] =
-     layersWidget[IO, Event](background.one, Nil, placement)(value)
+    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], Id, Point2d[Float]]
+  ) : DesktopWidget[IO, Event] =
+     layersWidget[IO, Event](
+       background.one,
+       Nil,
+       PlacementStrategy.PlaceStackIndependently(placement)
+     )(value)
   end withBackground
 
-  def withForeground(
+  def withForeground(using Sync[IO])(
     foreground : DesktopWidget[IO, Event],
-    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], List, Point2d[Float]]
-  )(using Sync[IO]) : DesktopWidget[IO, Event] =
-     layersWidget[IO, Event](Nil, foreground.one, placement)(value)
+    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], Id, Point2d[Float]]
+  ) : DesktopWidget[IO, Event] =
+     layersWidget[IO, Event](
+       Nil,
+       foreground.one,
+       PlacementStrategy.PlaceStackIndependently(placement)
+     )(value)
   end withForeground
 end extension

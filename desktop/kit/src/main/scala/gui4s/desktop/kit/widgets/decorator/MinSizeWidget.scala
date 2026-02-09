@@ -57,5 +57,5 @@ def minSizeWidget[IO[_] : Sync, Event](
                                         placeVertically : OneElementLinearContainerPlacementStrategy[IO],
                                       )
 : Decorator[DesktopWidget[IO, Event]] =
-    minSizeWidget(minSize, PlacementStrategy.Zip(Axis.Horizontal, placeHorizontally, placeVertically))
+    minSizeWidget(minSize, PlacementStrategy.Zip(placeHorizontally, placeVertically))
 end minSizeWidget

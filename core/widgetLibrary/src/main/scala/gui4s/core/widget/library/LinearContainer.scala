@@ -3,12 +3,9 @@ package gui4s.core.widget.library
 import catnip.Get
 import catnip.Set
 import catnip.Zip
-import catnip.syntax.additional._
-import cats.Applicative
-import cats.Monad
-import cats.Traverse
-import cats.syntax.all._
-
+import catnip.syntax.additional.*
+import cats.{Applicative, Monad, Order, Traverse}
+import cats.syntax.all.*
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
@@ -98,10 +95,7 @@ def linearContainer[
           PlacementStrategy.Zip(
             mainAxis,
             mainAxisStrategy,
-            PlacementStrategy.PlaceIndependently(
-              additionalAxisStrategy,
-              N.zero
-            )
+            PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
           ),
         ).map(_.mapValue(elements => A.map(elements)(placedElementAsLayoutMetadata)))
     )

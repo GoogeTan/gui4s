@@ -80,7 +80,7 @@ def paddingWidget[
     layout(
       innerGaps(paddings.map(_.gapOrZero))(widget),
       Axis.Vertical,
-      PlacementStrategy.PlaceIndependently(placementStrategy, MUF.zero),
+      PlacementStrategy.PlaceListIndependently(placementStrategy),
       placementStrategy
     )
 end paddingWidget

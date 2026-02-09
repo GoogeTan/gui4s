@@ -27,9 +27,8 @@ def stackContainer[IO[_] : Sync as S, Event](
     container = containerWidget[IO, List, Event](traverseOrdered)
   )(
     children,
-    GenericPlacementStrategy.PlaceIndependently(
-      GenericPlacementStrategy.Zip(Axis.Vertical, verticalPlacement, horizontalPlacement),
-      Rect(0f, 0f)
+    GenericPlacementStrategy.Stack(
+      Axis.Vertical, verticalPlacement, horizontalPlacement,
     )
   )
 end stackContainer

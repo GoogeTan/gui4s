@@ -35,10 +35,7 @@ final class RowColumnPlacementTest extends AnyFlatSpec:
             PlacementStrategy.Zip(
                 mainAxis,
                 mainAxisStrategy,
-                PlacementStrategy.PlaceIndependently(
-                    additionlAxisStrategy,
-                    0f
-                )
+                PlacementStrategy.PlaceListIndependently(additionlAxisStrategy)
             )
         )
 

@@ -2,7 +2,7 @@ package gui4s.core.widget.library
 
 import catnip.{Get, Set}
 import catnip.syntax.all.{*, given}
-import cats.Monad
+import cats.{Monad, Order}
 import cats.syntax.all.*
 import gui4s.core.geometry.{Axis, Point3d, Rect}
 import gui4s.core.layout.{Sized, Weighted}
@@ -71,10 +71,7 @@ def weightedLinearContainer[
           PlacementStrategy.Zip[Place, MeasurementUnit, BoundUnit, List, MeasurementUnit](
             mainAxis,
             mainAxisStrategy,
-            PlacementStrategy.PlaceIndependently(
-              additionalAxisStrategy,
-              N.zero
-            )
+            PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
           )
         ).map(_.mapValue(_.map(placedElementAsLayoutMetadata)))
     )

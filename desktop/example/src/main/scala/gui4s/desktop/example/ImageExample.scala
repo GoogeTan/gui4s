@@ -95,18 +95,13 @@ object ImageExample extends UIApp:
       centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[PlacementEffectC[AppIO], Float]
       beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[PlacementEffectC[AppIO], Float, Float]
 
-      textPlacement = rowcolumn.PlacementStrategy.PlaceIndependently[PlacementEffectC[AppIO], Rect[Float], Rect[Float], List, Point2d[Float]](
-        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Float, Id, Float](
-          Axis.Vertical,
-          beginPlacement,
-          beginPlacement
-        ),
-        Rect(0f, 0f),
+      textPlacement = rowcolumn.PlacementStrategy.Zip(
+         beginPlacement,
+         beginPlacement
       )
 
       pleaseWaitPlacement =
         rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Float, Id, Float](
-          Axis.Vertical,
           centerPlacement,
           centerPlacement
         )
