@@ -70,7 +70,7 @@ def createGLRenderTarget[
   fbId: Int = 0,
   fbFormat: Int
 ): Resource[IO, BackendRenderTarget] =
-  Resource.fromAutoCloseable(
+  Resource.eval(//TODO test if I need to close this
     S.delay(
       BackendRenderTarget.makeGL(
         width, height,
