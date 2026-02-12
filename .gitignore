@@ -47,6 +47,7 @@ build/
 .bsp/
 /.idea/
 *.log
+.scala-build/
 
 ### Metals ###
 .metals
