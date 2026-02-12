@@ -9,10 +9,10 @@ import gui4s.core.geometry.Rect
 
 object Shapes:
   def round(rect : Rect[Float]) : Clip =
-    new Path().addOval(SkijaRect(0f, 0f, rect.width, rect.height))
+    Path.makeOval(SkijaRect(0f, 0f, rect.width, rect.height))
   end round
 
   def roundedCorners(radius : Float)(rect: Rect[Float]): Clip =
-    new Path().addRRect(SkijaRounedRect.makeLTRB(0f, 0f, rect.width, rect.height, radius))
+    Path.makeRRect(SkijaRounedRect.makeLTRB(0f, 0f, rect.width, rect.height, radius))
   end roundedCorners
 end Shapes

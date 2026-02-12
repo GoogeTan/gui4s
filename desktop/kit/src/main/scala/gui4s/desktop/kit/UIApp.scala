@@ -6,8 +6,8 @@ import catnip.syntax.all.{_, given}
 import cats._
 import cats.data.EitherT
 import cats.data.ReaderT
-import cats.effect._
-import cats.effect.std._
+import cats.effect.*
+import cats.effect.std.*
 import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import glfw4s.core.WindowCreationSettings
@@ -18,17 +18,15 @@ import glfw4s.jna.bindings.types.GLFWmonitor
 import glfw4s.jna.bindings.types.GLFWwindow
 import glfw4s.jvm.CatsJvmPostInit
 import io.github.humbleui.skija.Canvas
-
-import gui4s.core.geometry._
-import gui4s.core.widget._
-
-import gui4s.desktop.kit._
+import gui4s.core.geometry.*
+import gui4s.core.widget.*
+import gui4s.desktop.kit.*
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets._
 import gui4s.desktop.skija.DirectContext._
 import gui4s.desktop.skija.canvas.clear
-import gui4s.desktop.widget.library._
+import gui4s.desktop.widget.library.*
 
 enum UIAppError:
   case InitError(glfwError : GlfwError)
@@ -75,6 +73,9 @@ trait UIApp extends IOApp:
       )()
       eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval
       window <- glfw.createWindow(settings)
+      _ <- glfw.makeContextCurrent(Some(window)).eval
+
+      eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval
       _ <- glfw.makeContextCurrent(Some(window)).eval
       surface <- SkijaSurface.create(window, glfw, liftCallbackIOToAppIO).evalOn(MainThread)
       _ <- glfw.addFramebufferSizeCallback(

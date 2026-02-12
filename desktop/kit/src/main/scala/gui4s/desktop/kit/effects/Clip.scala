@@ -15,11 +15,7 @@ object Clip:
   export gui4s.desktop.skija.clipMonoid
 
   def moveClipToPoint(path : Clip, point : Point3d[Float]) : Clip =
-    clipMonoid.empty.addPath(
-      path,
-      point.x,
-      point.y
-    )
+    path.makeOffset(point.x, point.y)
   end moveClipToPoint
 
   def drawClipped[IO[_] : Sync](path: Clip, original: Draw[IO]): Draw[IO] =

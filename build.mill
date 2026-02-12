@@ -16,7 +16,7 @@ object `package` extends Module:
     def http4s = "1.0.0-M45"
     def log4cats = "2.7.1"
     def slf4jReload4j = "2.0.17"
-    def skija = "0.123.0"
+    def skija = "0.143.9"
     def scalaCache = "1.0.0-M6"
     def glfw4s = "0.1.42"
     def scalaCheck = "1.19.0"

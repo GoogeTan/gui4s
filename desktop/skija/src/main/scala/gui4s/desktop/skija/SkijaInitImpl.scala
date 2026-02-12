@@ -3,16 +3,7 @@ package gui4s.desktop.skija
 import catnip.syntax.all.given
 import cats.effect.Resource
 import cats.effect.Sync
-import io.github.humbleui.skija.BackendRenderTarget
-import io.github.humbleui.skija.Canvas
-import io.github.humbleui.skija.ColorSpace
-import io.github.humbleui.skija.DirectContext
-import io.github.humbleui.skija.FramebufferFormat
-import io.github.humbleui.skija.PixelGeometry
-import io.github.humbleui.skija.Surface
-import io.github.humbleui.skija.SurfaceColorFormat
-import io.github.humbleui.skija.SurfaceOrigin
-import io.github.humbleui.skija.SurfaceProps
+import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, ColorType, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceOrigin, SurfaceProps}
 import io.github.humbleui.skija.shaper.Shaper
 
 def createRenderTarget[
@@ -32,7 +23,7 @@ def createRenderTarget[
       context,
       renderTarget,
       SurfaceOrigin.BOTTOM_LEFT,
-      SurfaceColorFormat.RGBA_8888,
+      ColorType.RGBA_8888,
       Some(ColorSpace.getDisplayP3), // TODO load monitor profile
       Some(new SurfaceProps(PixelGeometry.RGB_H))
     )
@@ -47,7 +38,7 @@ def createSurface[
   context: DirectContext,
   target: BackendRenderTarget,
   origin: SurfaceOrigin,
-  colorFormat: SurfaceColorFormat,
+  colorFormat: ColorType,
   colorSpace: Option[ColorSpace],
   props: Option[SurfaceProps]
 ): Resource[IO, Surface] =
