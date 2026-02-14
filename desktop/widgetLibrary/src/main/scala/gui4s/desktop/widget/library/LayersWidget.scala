@@ -23,7 +23,8 @@ def layersWidget[
     List,
     PlacementEffect * SizedC[MeasurementUnit],
     Point3d[MeasurementUnit]
-  ]
+  ],
+  withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect
 )(
    background : List[PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, EnvironmentalEvent]]]],
    foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, EnvironmentalEvent]]]],
@@ -31,5 +32,5 @@ def layersWidget[
 ) : Decorator[
   PlacementEffect[Sized[MeasurementUnit, Widget[Update, PlacementEffect * SizedC[MeasurementUnit], Draw, RecompositionReaction, EnvironmentalEvent]]]
 ] =
-  gui4s.core.widget.library.layersWidget(container)(background, foreground, decorationsPlacementStrategy)
+  gui4s.core.widget.library.layersWidget(container, withBounds)(background, foreground, decorationsPlacementStrategy)
 end layersWidget

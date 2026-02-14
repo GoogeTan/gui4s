@@ -1,18 +1,15 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import catnip.syntax.all._
-import cats._
-import cats.effect._
-
-import gui4s.core.geometry.Point2d
-import gui4s.core.geometry.Rect
+import catnip.syntax.all.*
+import cats.*
+import cats.effect.*
+import gui4s.core.geometry.{InfinityOr, Point2d, Rect}
 import gui4s.core.layout.rowcolumn.PlacementStrategy
 import gui4s.core.widget.library.decorator.Decorator
-
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.RecompositionReaction.given
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.widgets.*
 
 def layersWidget[IO[_] : Sync, Event](
                                        background : List[DesktopWidget[IO, Event]],
@@ -27,7 +24,8 @@ def layersWidget[IO[_] : Sync, Event](
    DownEvent,
    Float
  ](
-   containerWidget[IO, List, Event](traverseOrdered)(using Sync[IO], Traverse[List])
+   containerWidget[IO, List, Event](traverseOrdered)(using Sync[IO], Traverse[List]),
+   bounds => PlacementEffect.withBoundsK(_ => bounds.map(new InfinityOr(_)))
  )(background, foreground, placementStrategy)
 end layersWidget
 

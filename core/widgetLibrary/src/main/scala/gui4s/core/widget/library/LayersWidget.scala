@@ -32,7 +32,8 @@ def layersWidget[
     List,
     PlacementEffect * SizedC[MeasurementUnit],
     Point3d[MeasurementUnit]
-  ]
+  ],
+  withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect
 )(
    background : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
    foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
@@ -44,17 +45,20 @@ def layersWidget[
     container(
       background ++ (original :: foreground),
       elements =>
-        for
-          sizedElements <- elements.traverse(identity)
-          originalSized = sizedElements(background.size)
-          backgroundSizes = sizedElements.take(background.size).map(_.size)
-          foregroundSizes = sizedElements.takeRight(foreground.size).map(_.size)
-          placedElements <- decorationsPlacementStrategy(backgroundSizes ++ foregroundSizes, originalSized.size)
-          elementsCoodinates = placedElements.coordinates
-          shifts = (
-            elementsCoodinates.take(background.size)
-              ++ (Point2d(MUN.zero, MUN.zero) :: elementsCoodinates.takeRight(foreground.size))
-          ).mapWithIndex((point, index) => new Point3d(point, MUN.fromInt(index)))
-        yield Sized(sizedElements.map(_.value).zip(shifts), originalSized.size)
+        OPA.flatMap(elements(background.size))(originalSized =>
+          for
+            backgroundSized <- withBounds(originalSized.size)(elements.take(background.size).traverse(identity))
+            foregroundSized <- withBounds(originalSized.size)(elements.takeRight(foreground.size).traverse(identity))
+            sizedElements = backgroundSized ++ (originalSized :: foregroundSized)
+            backgroundSizes = backgroundSized.map(_.size)
+            foregroundSizes = foregroundSized.map(_.size)
+            placedElements <- decorationsPlacementStrategy(backgroundSizes ++ foregroundSizes, originalSized.size)
+            elementsCoodinates = placedElements.coordinates
+            shifts = (
+              elementsCoodinates.take(background.size)
+                ++ (Point2d(MUN.zero, MUN.zero) :: elementsCoodinates.takeRight(foreground.size))
+            ).mapWithIndex((point, index) => new Point3d(point, MUN.fromInt(index)))
+          yield Sized(sizedElements.map(_.value).zip(shifts), originalSized.size)
+        )
     )
 end layersWidget
