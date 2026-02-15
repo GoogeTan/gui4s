@@ -22,6 +22,12 @@ type ClickEventSource = DownEvent => Option[MouseEvent]
 
 trait ClickCatcher:
   def apply[Event](eventOnClick: Event): Decorator[DesktopWidget[Event]]
+
+  extension[Event](self: DesktopWidget[Event])
+    def onClick(eventOnClick: Event) : DesktopWidget[Event] =
+      apply(eventOnClick)(self)
+    end onClick
+  end extension
 end ClickCatcher
 
 def clickCatcher[
