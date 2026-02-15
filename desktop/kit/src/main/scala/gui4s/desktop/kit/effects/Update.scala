@@ -56,11 +56,11 @@ object Update:
   end getState
 
   def setState[Event](state: UpdateState[List[DownEvent]]): Update[Event, Unit] =
-    StateTransformer.set_(state)
+    StateTransformer.set(state)
   end setState
 
   def updateState[Event](f: UpdateState[List[DownEvent]] => UpdateState[List[DownEvent]]): Update[Event, Unit] =
-    StateTransformer.modify_(f)
+    StateTransformer.modify(f)
   end updateState
 
   def emitEnvironmentalEvents[Event](events: List[DownEvent]): Update[Event, Unit] =
