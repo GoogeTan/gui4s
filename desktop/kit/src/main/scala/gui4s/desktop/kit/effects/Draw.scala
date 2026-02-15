@@ -10,9 +10,16 @@ import io.github.humbleui.types.Rect.makeWH
 
 import gui4s.core.geometry.Rect
 
+import gui4s.core.layout.Sized
+import io.github.humbleui.skija.*
+import io.github.humbleui.skija.paragraph.*
 import gui4s.desktop.skija
 import gui4s.desktop.skija.SkPaint
+import gui4s.desktop.skija.canvas.*
 import gui4s.desktop.skija.canvas._
+import gui4s.desktop.skija.canvas.*
+import io.github.humbleui.skija.svg.SVGDOM
+import io.github.humbleui.types.Point
 
 
 type DrawM[T] = ReaderT[SyncIO, Canvas, T]
@@ -32,6 +39,17 @@ object Draw:
   def drawImage(image : Image) : Draw =
     skija.canvas.drawImage(image)
   end drawImage
+  
+  def drawSVG(image : SVGDOM) : Draw =
+    skija.canvas.drawSVG(image)
+  end drawSVG
+
+  def drawSVG(image : Sized[Rect[Float], SVGDOM]) : Draw =
+    val svgDom = image.value
+    val size = image.size
+    svgDom.setContainerSize(new Point(size.width, size.height))
+    drawSVG(svgDom)
+  end drawSVG
 
   def drawText(text : skija.SkijaPlacedText) : Draw =
     skija.canvas.drawText(text)

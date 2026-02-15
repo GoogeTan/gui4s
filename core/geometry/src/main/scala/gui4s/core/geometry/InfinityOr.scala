@@ -42,6 +42,10 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
   end *
 
   def getUnsafe : MeasurementUnit = value.get
+  
+  def valueOr[T >: MeasurementUnit](default : T) : T =
+    value.getOrElse(default)
+  end valueOr
 end InfinityOr
 
 object InfinityOr:
