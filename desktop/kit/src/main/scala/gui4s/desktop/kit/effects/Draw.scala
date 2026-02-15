@@ -86,6 +86,12 @@ object Draw:
         canvas.drawRect(makeWH(size.width, size.height), brush(size, SkPaint()).toSkia)
   end drawBrush
 
+  def drawBrush[IO[_] : Sync](brush : skija.Brush, size : Rect[Float], path : Path) : Draw[IO] =
+    Canvased.applyCanvasFFI:
+      canvas =>
+        canvas.drawPath(path, brush(size, SkPaint()).toSkia)
+  end drawBrush
+
   def drawBorder[IO[_] : Sync](path : Path, size : Rect[Float], brush : skija.Brush, paint : SkPaint) : Draw[IO] =
     Canvased.applyCanvasFFI:
       canvas =>

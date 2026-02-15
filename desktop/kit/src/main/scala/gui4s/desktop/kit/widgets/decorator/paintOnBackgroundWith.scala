@@ -1,10 +1,12 @@
 package gui4s.desktop.kit.widgets.decorator
 
 import cats.effect.*
+import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.skija.Brush
+import io.github.humbleui.skija.Path
 
 extension[Event](widget : DesktopWidget[Event])
   def paintOnBackgroundWith(brush : Brush) : DesktopWidget[Event] =
@@ -14,6 +16,18 @@ extension[Event](widget : DesktopWidget[Event])
           val finiteBounds = bounds.map(_.getUnsafe)
           Sized(
             Draw.drawBrush(brush, finiteBounds),
+            finiteBounds,
+          )
+    )
+  end paintOnBackgroundWith
+
+  def paintOnBackgroundWith(brush: Brush, shape : Rect[Float] => Path): DesktopWidget[Event] =
+    widget.withDrawOnlyBackground(
+      PlacementEffect.getBounds.map:
+        bounds =>
+          val finiteBounds = bounds.map(_.getUnsafe)
+          Sized(
+            Draw.drawBrush(brush, finiteBounds, shape(finiteBounds)),
             finiteBounds,
           )
     )

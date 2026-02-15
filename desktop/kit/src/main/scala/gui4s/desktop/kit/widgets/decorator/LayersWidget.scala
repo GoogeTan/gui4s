@@ -1,10 +1,10 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import catnip.syntax.all.*
+import catnip.syntax.all.{*, given}
 import cats.*
 import cats.effect.*
 import gui4s.core.geometry.{InfinityOr, Point2d, Rect}
-import gui4s.core.layout.rowcolumn.PlacementStrategy
+import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
@@ -51,5 +51,51 @@ extension[Event](value : DesktopWidget[Event])
        foreground.one,
        PlacementStrategy.PlaceStackIndependently(placement)
      )(value)
+  end withForeground
+
+  def withBackground(
+    background: DesktopWidget[Event],
+    horizontalPlacementStrategy : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
+    verticalPlacementStrategy   : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
+  ): DesktopWidget[Event] =
+    layersWidget[Event](
+      background.one,
+      Nil,
+      PlacementStrategy.PlaceStackIndependently(
+        PlacementStrategy.Zip[
+          PlacementEffectC[IO],
+          Float,
+          Float,
+          Id,
+          Float
+        ](
+          horizontalPlacementStrategy,
+          verticalPlacementStrategy
+        )
+      )
+    )(value)
+  end withBackground
+
+  def withForeground(
+    foreground: DesktopWidget[Event],
+    horizontalPlacementStrategy : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
+    verticalPlacementStrategy   : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
+  ): DesktopWidget[Event] =
+    layersWidget[Event](
+      Nil,
+      foreground.one,
+      PlacementStrategy.PlaceStackIndependently(
+        PlacementStrategy.Zip[
+          PlacementEffectC[IO],
+          Float,
+          Float,
+          Id,
+          Float
+        ](
+          horizontalPlacementStrategy,
+          verticalPlacementStrategy
+        )
+      )
+    )(value)
   end withForeground
 end extension

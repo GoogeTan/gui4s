@@ -18,7 +18,7 @@ extension[Event](widget : DesktopWidget[Event])
     )
   ): DesktopWidget[Event] =
     widget.withBackground(
-      drawOnlyWidget(draw),
+      drawOnlyWidget[Event](draw),
       placement
     )
   end withDrawOnlyBackground
