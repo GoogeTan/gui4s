@@ -62,7 +62,7 @@ object TextInputExample extends UIApp:
                      glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                      window: GLFWwindow,
                      eventBus: Queue[IO, DownEvent]
-                   ): Resource[IO, DesktopWidget[IO, Nothing]] =
+                   ): Resource[IO, DesktopWidget[Nothing]] =
     val fontCollection = new FontCollection
     fontCollection.setDefaultFontManager(FontMgr.getDefault)
     val paint = new Paint().setColor(0xFF454649)
@@ -75,11 +75,11 @@ object TextInputExample extends UIApp:
       .setFontSize(32)
     val paragraphStyle = new ParagraphStyle().setTextStyle(textStyle)
     val cursorPaint = new Paint().setColor(0xFF000000).setStrokeWidth(3f)
-    val stateful = statefulWidget[IO]
-    val beginMany: LinearContainerPlacementStrategy[IO, List] =
-      LinearContainerPlacementStrategy.Begin[IO, List](5f)
-    val begin : OneElementLinearContainerPlacementStrategy[IO] =
-      LinearContainerPlacementStrategy.Begin[IO, Id](0f)
+    val stateful = statefulWidget
+    val beginMany: LinearContainerPlacementStrategy[List] =
+      LinearContainerPlacementStrategy.Begin[List](5f)
+    val begin : OneElementLinearContainerPlacementStrategy =
+      LinearContainerPlacementStrategy.Begin[Id](0f)
     for
       _ <- textFieldEventSource(glfw, window, eventBus).eval
       textFieldWidget = textField[String](
@@ -98,7 +98,7 @@ object TextInputExample extends UIApp:
         Rect(100, 30)
       )(_ : String, _ : String, identity)
     yield
-        columnWidget[IO, Nothing](
+        columnWidget[Nothing](
           (0 until 2).toList.map(i =>
               stateful[String, Nothing, String](
                 name = "basic-state-" + i.toString,
@@ -134,8 +134,8 @@ object TextInputExample extends UIApp:
                         name : String,
                         text : String,
                         update : String => Event
-                      ) : DesktopWidget[IO, Event] =
-    widgets.textField[IO, Event](
+                      ) : DesktopWidget[Event] =
+    widgets.textField[Event](
       basicTextFieldBody(
         textFieldTextPlacement(
           style = paragraphStyle,
@@ -145,19 +145,19 @@ object TextInputExample extends UIApp:
         ),
         textFieldEventCatcher(glfw, window, minimalClickableAreaSize, requestFocus),
         (path, state, text) =>
-          minSizeWidget[IO, TextFieldEvent](
+          minSizeWidget[TextFieldEvent](
             minSize = minimalClickableAreaSize,
-            placeHorizontally = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
-            placeVertically = LinearContainerPlacementStrategy.Center[IO, Id](0f, ContainerPlacementError.English),
+            placeHorizontally = LinearContainerPlacementStrategy.Begin[Id](0f),
+            placeVertically = LinearContainerPlacementStrategy.Center[Id](0f, ContainerPlacementError.English),
           )(
             stackContainer(
               List(
-                placedParagraph[IO, TextFieldEvent](text),
+                placedParagraph[TextFieldEvent](text),
               ) ++ Option.when(state.isFocused(path))(
-                drawCursor[IO, TextFieldEvent](text, state.cursorStartIndex, cursorPaint)
+                drawCursor[TextFieldEvent](text, state.cursorStartIndex, cursorPaint)
               ),
-              LinearContainerPlacementStrategy.Begin[IO, Id](0),
-              LinearContainerPlacementStrategy.Begin[IO, Id](0)
+              LinearContainerPlacementStrategy.Begin[Id](0),
+              LinearContainerPlacementStrategy.Begin[Id](0)
             )
           ),
       ),
@@ -230,7 +230,7 @@ object TextInputExample extends UIApp:
                              requestFocus : Path => Update[IO, TextFieldEvent, Unit]
                            )(
                              sizedParagraph : Sized[Float, Paragraph],
-                           ) : Decorator[DesktopWidget[IO, TextFieldEvent]] =
+                           ) : Decorator[DesktopWidget[TextFieldEvent]] =
     val emitEvent : List[TextFieldEvent] => Update[IO, TextFieldEvent, Boolean] = events =>
       Update.emitEvents[IO, TextFieldEvent](events).as(true)
 
@@ -287,7 +287,7 @@ object TextInputExample extends UIApp:
         )
     }
 
-    eventCatcher[IO, TextFieldEvent] {
+    eventCatcher[TextFieldEvent] {
       case (path, textFieldTextArea, DownEvent.UserEvent(event : TextInputOuterEvent)) =>
         convertFocusedEvent(textFieldTextArea.size, path)(event).flatMap(emitEvent)
       case _ => false.pure[UpdateC[IO, TextFieldEvent]]

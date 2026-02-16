@@ -26,7 +26,7 @@ object GridExample extends UIApp:
             glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-          ) : Resource[IO, DesktopWidget[IO, Nothing]] =
+          ) : Resource[IO, DesktopWidget[Nothing]] =
     for
       shaper <- createShaper[IO]
       cache : TextCache[IO] <- ScalacacheCache()
@@ -40,18 +40,18 @@ object GridExample extends UIApp:
       )
   end main
 
-  def grid[A, B, Event](as: List[A], bs: List[B])(f: (A, B) => DesktopWidget[IO, Event]) : DesktopWidget[IO, Event] =
-    val spaceBetween: LinearContainerPlacementStrategy[IO, List] =
-      LinearContainerPlacementStrategy.SpaceBetween[IO, List](ContainerPlacementError.English)
-    val begin : OneElementLinearContainerPlacementStrategy[IO] =
-      LinearContainerPlacementStrategy.Begin[IO, Id](0f)
-    columnWidget[IO, Event](
+  def grid[A, B, Event](as: List[A], bs: List[B])(f: (A, B) => DesktopWidget[Event]) : DesktopWidget[Event] =
+    val spaceBetween: LinearContainerPlacementStrategy[List] =
+      LinearContainerPlacementStrategy.SpaceBetween[List](ContainerPlacementError.English)
+    val begin : OneElementLinearContainerPlacementStrategy =
+      LinearContainerPlacementStrategy.Begin[Id](0f)
+    columnWidget[Event](
       verticalPlacementStrategy = spaceBetween,
       horizontalPlacementStrategy = begin,
       children =
         as.map:
           columnElement =>
-            rowWidget[IO, Event](
+            rowWidget[Event](
               horizontalPlacementStrategy = spaceBetween,
               verticalPlacementStrategy = begin,
               children =
@@ -72,7 +72,7 @@ object GridExample extends UIApp:
     )
   end grid
 
-  def gridCell[Event](textWidget: String => DesktopWidget[IO, Event])(row : Int, column : Char) : DesktopWidget[IO, Event] =
+  def gridCell[Event](textWidget: String => DesktopWidget[Event])(row : Int, column : Char) : DesktopWidget[Event] =
     textWidget(column.toString + ":" + row.toString)
   end gridCell
 end GridExample

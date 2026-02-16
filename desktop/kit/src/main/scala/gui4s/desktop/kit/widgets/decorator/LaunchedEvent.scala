@@ -5,6 +5,7 @@ import scala.reflect.Typeable
 
 import cats._
 import cats.effect.std.Supervisor
+import cats.effect.*
 import cats.syntax.all._
 
 import gui4s.core.widget.library.LaunchedEffectWidget
@@ -14,31 +15,30 @@ import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets.DesktopPlacedWidget
 import gui4s.desktop.kit.widgets.DesktopWidget
 
-trait LaunchedEvent[IO[_]]:
+trait LaunchedEvent:
   def apply[Key : Typeable, Event](
                                      name : String,
                                      key: Key,
                                      task : IO[Event],
-                                     body : DesktopWidget[IO, Event]
-                                   ) : DesktopWidget[IO, Event]
+                                     body : DesktopWidget[Event]
+                                   ) : DesktopWidget[Event]
 end LaunchedEvent
 
 object LaunchedEvent:
   def apply[
-    IO[_] : MonadThrow,
     Event,
     Key : Typeable
   ](
     supervisor: Supervisor[IO],
     raiseExternalEvent : DownEvent => IO[Unit],
     eventFromAny : Any => Option[Event]
-  ) : LaunchedEffectWidget[DesktopWidget[IO, Event], Key, IO[Event]] =
+  ) : LaunchedEffectWidget[DesktopWidget[Event], Key, IO[Event]] =
     genericLaunchedEvent[
       IO,
-      DesktopWidget[IO, Event],
+      DesktopWidget[Event],
       Key,
       Update[IO, *, *],
-      Situated[DesktopPlacedWidget[IO, Event]],
+      Situated[DesktopPlacedWidget[Event]],
       DownEvent,
       Event
     ](
@@ -51,9 +51,9 @@ object LaunchedEvent:
             false.pure[UpdateC[IO, Event]]
           case Some[Any](valueFound : Any) =>
             eventFromAny(valueFound).fold(
-              Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+              Update.raiseError[IO, Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
             )(
-              event => Update.emitEvents(List(event)).as(true)
+              event => Update.emitEvents[IO, Event](List(event)).as(true)
             )
     )
   end apply

@@ -32,16 +32,16 @@ object StatefulExample extends UIApp:
                      glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                      window: GLFWwindow,
                      eventBus: Queue[IO, DownEvent],
-                   ) : Resource[IO, DesktopWidget[IO, Nothing]] =
+                   ) : Resource[IO, DesktopWidget[Nothing]] =
     for
       shaper <- createShaper[IO]
       cache : TextCache[IO] <- ScalacacheCache()
       text = TextWidget(shaper, cache)
       typeface <- defaultTypeface[IO]
-      clickSource <- clickEventSource[IO, IO, GLFWmonitor, GLFWwindow, GLFWcursor, Int](window, glfw, eventBus).eval
+      clickSource <- clickEventSource[GLFWmonitor, GLFWwindow, GLFWcursor, Int](window, glfw, eventBus).eval
       onClick = [Event] => (event : Event) =>
         clickCatcher(glfw.getCursorPos(window).map((x, y) => Point2d(x.toFloat, y.toFloat)), event, clickSource)
-    yield statefulWidget[IO][Int, Nothing, Unit](
+    yield statefulWidget[Int, Nothing, Unit](
       name = "state",
       initialState = 0,
       eventHandler = (state, _, _) => (state + 1).pure[UpdateC[IO, Nothing]],

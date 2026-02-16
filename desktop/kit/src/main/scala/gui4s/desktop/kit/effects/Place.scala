@@ -5,7 +5,6 @@ import scala.reflect.Typeable
 import catnip.MapKCache
 import catnip.syntax.functor.nestedFunctorsAreFunctors
 import cats.{Functor, Monad, MonadError, MonadThrow, ~>}
-import cats.data.EitherT
 import cats.effect.Sync
 import gui4s.core.kit.effects.{Place as GenericPlace, PlacementEffect as GenericPlacementEffect}
 import gui4s.core.widget.Path

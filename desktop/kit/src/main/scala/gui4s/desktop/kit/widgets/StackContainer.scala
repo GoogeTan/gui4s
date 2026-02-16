@@ -1,7 +1,7 @@
 package gui4s.desktop.kit
 package widgets
 
-import catnip.syntax.all.{_, given}
+import catnip.syntax.all._
 import cats._
 import cats.effect._
 
@@ -11,20 +11,20 @@ import gui4s.core.layout.rowcolumn.{PlacementStrategy => GenericPlacementStrateg
 import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets.DesktopWidget
 
-def stackContainer[IO[_] : Sync as S, Event](
-                                              children : List[DesktopWidget[IO, Event]],
-                                              verticalPlacement : OneElementLinearContainerPlacementStrategy[IO],
-                                              horizontalPlacement : OneElementLinearContainerPlacementStrategy[IO]
-) : DesktopWidget[IO, Event] =
+def stackContainer[Event](
+                           children : List[DesktopWidget[Event]],
+                           verticalPlacement : OneElementLinearContainerPlacementStrategy,
+                           horizontalPlacement : OneElementLinearContainerPlacementStrategy
+) : DesktopWidget[Event] =
   given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.height))
   gui4s.core.widget.library.stackContainer[
-    DesktopPlacedWidget[IO, Event],
+    DesktopPlacedWidget[Event],
     PlacementEffectC[IO],
     Bounds,
     Float,
   ](
     getBounds = PlacementEffect.getBounds[IO],
-    container = containerWidget[IO, List, Event](traverseOrdered)
+    container = containerWidget[List, Event](traverseOrdered)
   )(
     children,
     GenericPlacementStrategy.Stack(

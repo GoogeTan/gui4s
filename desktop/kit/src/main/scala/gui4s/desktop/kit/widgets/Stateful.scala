@@ -6,6 +6,7 @@ import scala.reflect.Typeable
 import catnip.syntax.all.given
 import cats._
 import cats.data._
+import cats.effect.*
 
 import gui4s.core.layout.Sized.given
 import gui4s.core.widget.Path
@@ -21,15 +22,14 @@ import gui4s.desktop.widget.library
 import gui4s.desktop.widget.library._
 
 
-def statefulWidget[IO[_] : MonadThrow]
-: StatefulWidget[
-  DesktopWidget[IO, *],
+def statefulWidget: StatefulWidget[
+  DesktopWidget,
   Update[IO, *, *],
   [State] =>> State => RecompositionReaction[IO],
   [State] =>> MergeStates[PlaceC[IO], State]
 ] =
   new StatefulWidget[
-    DesktopWidget[IO, *],
+    DesktopWidget,
     Update[IO, *, *],
     [State] =>> State => RecompositionReaction[IO],
     [State] =>> MergeStates[PlaceC[IO], State]
@@ -38,8 +38,8 @@ def statefulWidget[IO[_] : MonadThrow]
                                                                       name: String,
                                                                       initialState: State,
                                                                       eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
-                                                                      body: State => DesktopWidget[IO, ChildEvent]
-                                                                    ): DesktopWidget[IO, Event] =
+                                                                      body: State => DesktopWidget[ChildEvent]
+                                                                    ): DesktopWidget[Event] =
       apply(name, initialState, eventHandler, body, _ => RecompositionReaction.empty)
     end apply
 
@@ -48,9 +48,9 @@ def statefulWidget[IO[_] : MonadThrow]
                                                                       name: String,
                                                                       initialState: State,
                                                                       eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
-                                                                      body: State => DesktopWidget[IO, ChildEvent],
+                                                                      body: State => DesktopWidget[ChildEvent],
                                                                       destructor: State => RecompositionReaction[IO]
-                                                                    ): DesktopWidget[IO, Event] =
+                                                                    ): DesktopWidget[Event] =
       apply(
         name = name,
         initialState = initialState,
@@ -69,10 +69,10 @@ def statefulWidget[IO[_] : MonadThrow]
                                                             name: String,
                                                             initialState: State,
                                                             eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
-                                                            body: State => DesktopWidget[IO, ChildEvent],
+                                                            body: State => DesktopWidget[ChildEvent],
                                                             destructor: State => RecompositionReaction[IO],
                                                             mergeStates: MergeStates[PlaceC[IO], State]
-                                                          ): DesktopWidget[IO, Event] =
+                                                          ): DesktopWidget[Event] =
       library.stateful[
         UpdateC[IO, Event],
         UpdateC[IO, ChildEvent],

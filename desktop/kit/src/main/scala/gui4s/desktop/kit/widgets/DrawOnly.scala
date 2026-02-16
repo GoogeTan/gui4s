@@ -2,15 +2,16 @@ package gui4s.desktop.kit
 package widgets
 
 import cats._
+import cats.effect.*
 
 import gui4s.core.layout._
 
 import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.kit.effects._
 
-def drawOnlyWidget[IO[_] : Monad, Event](
+def drawOnlyWidget[Event](
   draw : Place[IO, Draw[IO]]
-) : DesktopWidget[IO, Event] =
+) : DesktopWidget[Event] =
   gui4s.desktop.widget.library.drawOnlyWidget[
       UpdateC[IO, Event],
       PlaceC[IO],
@@ -23,9 +24,9 @@ def drawOnlyWidget[IO[_] : Monad, Event](
   )
 end drawOnlyWidget
 
-def constSizedDrawOnlyWidget[IO[_] : Monad, Event](
+def constSizedDrawOnlyWidget[Event](
   draw : Sized[Float, Draw[IO]]
-) : DesktopWidget[IO, Event] =
+) : DesktopWidget[Event] =
   gui4s.desktop.widget.library.constanctSizeDrawOnlyWidget[
       UpdateC[IO, Event],
       PlacementEffectC[IO],

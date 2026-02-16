@@ -48,9 +48,9 @@ object AnimationExample extends UIApp:
   )
 
   def updaterWidget[Event](
-                            launchedEffect: LaunchedEffectWidget[DesktopWidget[IO, Event], Unit, IO[Unit]],
+                            launchedEffect: LaunchedEffectWidget[DesktopWidget[Event], Unit, IO[Unit]],
                             pushUpdate : IO[Unit]
-                          ) : Decorator[DesktopWidget[IO, Event]] =
+                          ) : Decorator[DesktopWidget[Event]] =
     original =>
       launchedEffect("updater", original, (), pushUpdate)
   end updaterWidget
@@ -73,18 +73,18 @@ object AnimationExample extends UIApp:
     glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
     window: GLFWwindow,
     eventBus: Queue[IO, DownEvent],
-  ) : Resource[IO, DesktopWidget[IO, Nothing]] =
+  ) : Resource[IO, DesktopWidget[Nothing]] =
     for
       dispatcher <- Dispatcher.sequential[IO]
       supervisor <- Supervisor[IO]
       shaper <- createShaper[IO]
       cache: TextCache[IO] <- ScalacacheCache()
       typeface <- defaultTypeface[IO]
-      stateful = statefulWidget[IO]
+      stateful = statefulWidget
       clickSource <- clickEventSource(window, glfw, eventBus).eval
       onClick = [Event] => (event : Event) =>
         clickCatcher(glfw.getCursorPos(window).map((x, y) => Point2d(x.toFloat, y.toFloat)), event, clickSource)
-      animation = animationWidget[IO, Unit, Float]()
+      animation = animationWidget[Unit, Float]()
       _ <- supervisor.supervise(
         (eventBus.offer(DownEvent.WindowShouldBeRedrawn)
           *> IO.sleep(FiniteDuration(15, TimeUnit.MILLISECONDS))
@@ -115,7 +115,7 @@ object AnimationExample extends UIApp:
               animation = floatAnimation,
               body = cornerRadius =>
                 onClick(())(
-                  imageWidget[IO, Unit](data).clip(Shapes.roundedCorners(cornerRadius))
+                  imageWidget[Unit](data).clip(Shapes.roundedCorners(cornerRadius))
                 )
             ),
         ),

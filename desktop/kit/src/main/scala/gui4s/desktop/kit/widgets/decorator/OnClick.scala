@@ -1,9 +1,8 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats.Applicative
-import cats.Monad
 import cats.effect.std.Queue
+import cats.effect.*
 import cats.syntax.all._
 import glfw4s.core.KeyAction
 import glfw4s.core.KeyModes
@@ -21,17 +20,17 @@ final case class MouseEvent(keyCode: Int, action : KeyAction, modes: KeyModes)
 
 type ClickEventSource = DownEvent => Option[MouseEvent]
 
-def clickCatcher[IO[_] : Monad, Event](
-                                        mousePosition : IO[Point2d[Float]],
-                                        eventOnClick : Event,
-                                        extractEvent : DownEvent => Option[MouseEvent]
-                                      ) : Decorator[DesktopWidget[IO, Event]] =
+def clickCatcher[Event](
+                         mousePosition : IO[Point2d[Float]],
+                         eventOnClick : Event,
+                         extractEvent : DownEvent => Option[MouseEvent]
+                       ) : Decorator[DesktopWidget[Event]] =
   genericClickCatcher(
     eventCatcherWithRect = eventCatcher,
     currentMousePosition = Update.liftK[IO, Event](mousePosition),
     appropriateEvent = extractEvent,
     onClick = {
-      case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents(List(eventOnClick)).as(true)
+      case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents[IO, Event](List(eventOnClick)).as(true)
       case _ => false.pure[UpdateC[IO,  Event]]
     },
     isIn = point => shape =>
@@ -45,16 +44,14 @@ end clickCatcher
 final case class ClickCatcherEvent(mouseEvent: MouseEvent)
 
 def clickEventSource[
-  IO[_] : Applicative,
-  CallbackEffect[_],
   Monitor,
   Window,
   Cursor,
   Joystick
 ](
   window: Window,
-  glfw : PureInput[IO, CallbackEffect[Unit], Window, Cursor, Joystick],
-  queue: Queue[CallbackEffect, DownEvent]
+  glfw : PureInput[IO, IO[Unit], Window, Cursor, Joystick],
+  queue: Queue[IO, DownEvent]
 ) : IO[ClickEventSource] =
   glfw.addMouseButtonCallback(
     window,

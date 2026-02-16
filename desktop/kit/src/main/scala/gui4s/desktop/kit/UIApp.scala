@@ -1,15 +1,13 @@
 package gui4s.desktop.kit
 
 import scala.reflect.Typeable
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.given
 import cats.*
 import cats.arrow.FunctionK
-import cats.data.EitherT
 import cats.data.ReaderT
 import cats.effect.*
 import cats.effect.std.*
 import cats.effect.unsafe.IORuntime
-import cats.syntax.all.*
 import glfw4s.core.GlfwConstants.*
 import glfw4s.core.WindowCreationSettings
 import glfw4s.core.pure.*
@@ -101,7 +99,7 @@ trait UIApp extends IOApp:
       widgetCell <- main(glfw, window, eventBus).evalMap(freeMainWidget =>
         Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK, RecompositionReaction.run))
       )
-      exitCode <- desktopWidgetLoops[IO, IO, Nothing](
+      exitCode <- desktopWidgetLoops[Nothing](
         runDraw =  runDrawK,
         runPlace = runPlaceK,
         waitForTheNextEvent = eventBus.take,
@@ -120,5 +118,5 @@ trait UIApp extends IOApp:
             glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-  ): Resource[IO, DesktopWidget[IO, Nothing]]
+  ): Resource[IO, DesktopWidget[Nothing]]
 end UIApp

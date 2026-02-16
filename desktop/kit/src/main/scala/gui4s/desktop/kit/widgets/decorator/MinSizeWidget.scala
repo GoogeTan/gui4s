@@ -5,7 +5,6 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 
-import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
@@ -20,13 +19,13 @@ import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.kit.widgets._
 
-def minSizeWidget[IO[_] : Sync, Event](
-                                       minSize : Rect[Float],
-                                       placeIfSmaller : OneElementPlacementStrategy[PlacementEffectC[IO], Rect[Float], Bounds, Point2d[Float]],
-                                      )
-  : Decorator[DesktopWidget[IO, Event]] =
+def minSizeWidget[Event](
+                          minSize : Rect[Float],
+                          placeIfSmaller : OneElementPlacementStrategy[PlacementEffectC[IO], Rect[Float], Bounds, Point2d[Float]],
+                        )
+  : Decorator[DesktopWidget[Event]] =
   gui4s.core.widget.library.decorator.minSizeWidget[
-    DesktopPlacedWidget[IO, Event],
+    DesktopPlacedWidget[Event],
     PlacementEffectC[IO],
     Situated,
     Rect[Float],
@@ -51,11 +50,11 @@ def minSizeWidget[IO[_] : Sync, Event](
   )(minSize)
 end minSizeWidget
 
-def minSizeWidget[IO[_] : Sync, Event](
-                                        minSize : Rect[Float],
-                                        placeHorizontally : OneElementLinearContainerPlacementStrategy[IO],
-                                        placeVertically : OneElementLinearContainerPlacementStrategy[IO],
-                                      )
-: Decorator[DesktopWidget[IO, Event]] =
+def minSizeWidget[Event](
+                          minSize : Rect[Float],
+                          placeHorizontally : OneElementLinearContainerPlacementStrategy,
+                          placeVertically : OneElementLinearContainerPlacementStrategy,
+                        )
+: Decorator[DesktopWidget[Event]] =
     minSizeWidget(minSize, PlacementStrategy.Zip(placeHorizontally, placeVertically))
 end minSizeWidget

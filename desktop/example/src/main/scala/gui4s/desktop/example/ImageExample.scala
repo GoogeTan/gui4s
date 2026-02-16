@@ -75,7 +75,7 @@ object ImageExample extends UIApp:
             glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-          ) : Resource[IO, DesktopWidget[IO, Nothing]] =
+          ) : Resource[IO, DesktopWidget[Nothing]] =
     given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.width))
 
     for
@@ -83,7 +83,7 @@ object ImageExample extends UIApp:
       supervisor <- Supervisor[IO]
       shaper <- createShaper[IO]
       cache: TextCache[IO] <- ScalacacheCache()
-      text = TextWidget[IO](shaper, cache)
+      text = TextWidget(shaper, cache)
       resource = ResourceWidget(supervisor, eventBus.offer)
       initialization = InitializationWidget(resource)
 
@@ -107,7 +107,7 @@ object ImageExample extends UIApp:
         name = "image",
         effectToRun = downloadImage("https://i.pinimg.com/736x/c6/f2/41/c6f241cff25453bca4c861009e32d141.jpg"),
         body = image =>
-          imageWidget[IO, Nothing](image)
+          imageWidget[Nothing](image)
             .withForeground(
               foreground = text("Princess Mononoke", headerTextStyle(typeface)),
               placement = textPlacement

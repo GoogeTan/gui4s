@@ -15,19 +15,17 @@ import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.kit.widgets.linearContainerWidget
 
 def fixedSizeWidget[
-  IO[_] : Sync,
   Event
 ](
    size : Rect[Float],
-   horizontalPlacement : OneElementLinearContainerPlacementStrategy[IO],
-   verticalPlacement : OneElementLinearContainerPlacementStrategy[IO]
-) : Decorator[DesktopWidget[IO, Event]] =
+   horizontalPlacement : OneElementLinearContainerPlacementStrategy,
+   verticalPlacement : OneElementLinearContainerPlacementStrategy
+) : Decorator[DesktopWidget[Event]] =
   gui4s.desktop.widget.library.decorator.fixedSizeWidget(
       Place.withBoundsK(
         _ => size.map(new InfinityOr(_))
       ),
     linearContainerWidget[
-      IO,
       Event,
       Id,
     ](

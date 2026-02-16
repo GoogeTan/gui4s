@@ -4,7 +4,7 @@ package widgets.decorator
 import catnip.syntax.list.traverseOne
 import cats._
 import cats.arrow.FunctionK
-import cats.effect.kernel.Sync
+import cats.effect.*
 
 import gui4s.core.geometry.Point3d
 import gui4s.core.layout.Sized
@@ -17,9 +17,9 @@ import gui4s.desktop.kit.widgets._
 /**
  * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
  */
-def gapPaddingWidget[IO[_] : Sync, Event] : PaddingWidget[DesktopWidget[IO, Event], Paddings[Float]] =
+def gapPaddingWidget[Event] : PaddingWidget[DesktopWidget[Event], Paddings[Float]] =
   gui4s.desktop.widget.library.decorator.gapPaddingWidget(
-    container = containerWidget[IO, Id, Event](traverseOne),
+    container = containerWidget[Id, Event](traverseOne),
     boundsWithPaddings = paddings => FunctionK.lift([T] => effect =>
       PlacementEffect.withBounds[IO, T](
         effect,
@@ -38,11 +38,11 @@ def gapPaddingWidget[IO[_] : Sync, Event] : PaddingWidget[DesktopWidget[IO, Even
   )
 end gapPaddingWidget
 
-extension[IO[_], Event](widget: DesktopWidget[IO, Event])
+extension[Event](widget: DesktopWidget[Event])
   /**
    * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
    */
-  def padding(paddings: Paddings[Float])(using Sync[IO]): DesktopWidget[IO, Event] =
+  def padding(paddings: Paddings[Float]): DesktopWidget[Event] =
     gapPaddingWidget(paddings)(widget)
   end padding
 end extension

@@ -12,11 +12,11 @@ import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects.RecompositionReaction.given
 import gui4s.desktop.kit.widgets.*
 
-def layersWidget[IO[_] : Sync, Event](
-                                       background : List[DesktopWidget[IO, Event]],
-                                       foreground : List[DesktopWidget[IO, Event]],
-                                       placementStrategy: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], List, Point2d[Float]]
-                                    ) : Decorator[DesktopWidget[IO, Event]] =
+def layersWidget[Event](
+                         background : List[DesktopWidget[Event]],
+                         foreground : List[DesktopWidget[Event]],
+                         placementStrategy: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], List, Point2d[Float]]
+                       ) : Decorator[DesktopWidget[Event]] =
  gui4s.desktop.widget.library.layersWidget[
    UpdateC[IO, Event],
    PlacementEffectC[IO],
@@ -25,28 +25,28 @@ def layersWidget[IO[_] : Sync, Event](
    DownEvent,
    Float
  ](
-   containerWidget[IO, List, Event](traverseOrdered)(using Sync[IO], Traverse[List]),
+   containerWidget[List, Event](traverseOrdered)(using Traverse[List]),
    bounds => PlacementEffect.withBoundsK(_ => bounds.map(new InfinityOr(_)))
  )(background, foreground, placementStrategy)
 end layersWidget
 
-extension[IO[_], Event](value : DesktopWidget[IO, Event])
-  def withBackground(using Sync[IO])(
-    background : DesktopWidget[IO, Event],
+extension[Event](value : DesktopWidget[Event])
+  def withBackground(
+    background : DesktopWidget[Event],
     placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], Id, Point2d[Float]]
-  ) : DesktopWidget[IO, Event] =
-     layersWidget[IO, Event](
+  ) : DesktopWidget[Event] =
+     layersWidget[Event](
        background.one,
        Nil,
        PlacementStrategy.PlaceStackIndependently(placement)
      )(value)
   end withBackground
 
-  def withForeground(using Sync[IO])(
-    foreground : DesktopWidget[IO, Event],
+  def withForeground(
+    foreground : DesktopWidget[Event],
     placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], Id, Point2d[Float]]
-  ) : DesktopWidget[IO, Event] =
-     layersWidget[IO, Event](
+  ) : DesktopWidget[Event] =
+     layersWidget[Event](
        Nil,
        foreground.one,
        PlacementStrategy.PlaceStackIndependently(placement)

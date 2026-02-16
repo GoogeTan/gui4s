@@ -4,7 +4,6 @@ package effects
 import catnip.Get
 import catnip.Set
 import cats.*
-import cats.data.EitherT
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path

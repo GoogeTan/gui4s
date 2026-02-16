@@ -1,6 +1,6 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import cats.effect.kernel.Sync
+import cats.effect.*
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
 import gui4s.desktop.kit.effects.*
@@ -8,12 +8,12 @@ import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.skija.{Brush, SkPaint, StrokeOptions}
 import io.github.humbleui.skija.PaintMode
 
-extension[IO[_], Event](widget : DesktopWidget[IO, Event])
-  def border(using Sync[IO])(
+extension[Event](widget : DesktopWidget[Event])
+  def border(
     shape : Rect[Float] => Clip,
     brush: Brush,
     style : SkPaint = SkPaint(style = PaintMode.STROKE)
-  ) : DesktopWidget[IO, Event] =
+  ) : DesktopWidget[Event] =
     widget.withDrawOnlyBackground(
       PlacementEffect.getBounds.map:
         bounds =>
@@ -25,11 +25,11 @@ extension[IO[_], Event](widget : DesktopWidget[IO, Event])
     )
   end border
 
-  def border(using Sync[IO])(
+  def border(
     shape: Rect[Float] => Clip,
     brush: Brush,
     stroke : StrokeOptions,
-  ): DesktopWidget[IO, Event] =
+  ): DesktopWidget[Event] =
     border(shape, brush, SkPaint(style = PaintMode.STROKE, stroke = stroke)) 
   end border
 end extension

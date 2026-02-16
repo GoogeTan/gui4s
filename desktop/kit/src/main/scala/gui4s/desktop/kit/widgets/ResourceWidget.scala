@@ -4,10 +4,8 @@ package widgets
 import scala.reflect.Typeable
 
 import cats._
-import cats.effect.MonadCancel
-import cats.effect.Resource
+import cats.effect.*
 import cats.effect.std.Supervisor
-import cats.syntax.all._
 
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.WithContext
@@ -17,31 +15,29 @@ import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets.decorator.LaunchedEvent
 
-trait ResourceWidget[IO[_]]:
-  def apply[T, Event](
-                    name : String, init : Resource[IO, T]
-                  ) : WithContext[DesktopWidget[IO, Event], Option[T]]
+trait ResourceWidget:
+  def apply[T, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
 end ResourceWidget
 
 object ResourceWidget:
-  def apply[IO[_]](
-                    supervisor : Supervisor[IO],
-                    raiseExternalEvent : DownEvent => IO[Unit],
-                   )(using Typeable[IO[Unit]], MonadCancel[IO, Throwable]) : ResourceWidget[IO] =
-    new ResourceWidget[IO]:
-      override def apply[T, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[IO, Event], Option[T]] =
+  def apply(
+             supervisor : Supervisor[IO],
+             raiseExternalEvent : DownEvent => IO[Unit],
+           ) : ResourceWidget =
+    new ResourceWidget:
+      override def apply[T, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
         body => genericResourceWidget[
-          DesktopWidget[IO, *],
+          DesktopWidget,
           Update[IO, *, *],
           PlaceC[IO],
           RecompositionReaction[IO],
           IO,
           Event
         ](
-          transitiveStatefulWidget = transitiveStatefulWidget[IO],
+          transitiveStatefulWidget = transitiveStatefulWidget,
           launchedEvent =
-            [TaskEvent : Typeable as TET] => (name : String, child : DesktopWidget[IO, Event], task : IO[TaskEvent]) =>
-              LaunchedEvent[IO, Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
+            [TaskEvent : Typeable as TET] => (name : String, child : DesktopWidget[Event], task : IO[TaskEvent]) =>
+              LaunchedEvent[Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
                 supervisor,
                 raiseExternalEvent,
                 (valueFound : Any) => valueFound match

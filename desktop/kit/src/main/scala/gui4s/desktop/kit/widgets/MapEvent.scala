@@ -1,7 +1,7 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats.Monad
+import cats.effect.*
 
 import gui4s.core.widget.library.MapEvent
 
@@ -9,7 +9,7 @@ import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.kit.effects._
 import gui4s.desktop.widget.library.decorator.{mapUpdate => genericMapUpdate}
 
-def mapEventWidget[IO[_] : Monad] : MapEvent[DesktopWidget[IO, *]] =
+def mapEventWidget : MapEvent[DesktopWidget] =
   [Event, NewEvent] => f => original =>
     genericMapUpdate[UpdateC[IO, Event], UpdateC[IO, NewEvent], PlaceC[IO], Draw[IO], RecompositionReaction[IO], DownEvent](
       original,
@@ -18,8 +18,8 @@ def mapEventWidget[IO[_] : Monad] : MapEvent[DesktopWidget[IO, *]] =
 end mapEventWidget
 
 
-extension[IO[_] : Monad, Event](value : DesktopWidget[IO, Event])
-  def mapEvent[NewEvent](f : Event => NewEvent) : DesktopWidget[IO, NewEvent] =
+extension[Event](value : DesktopWidget[Event])
+  def mapEvent[NewEvent](f : Event => NewEvent) : DesktopWidget[NewEvent] =
     mapEventWidget(f)(value)
   end mapEvent
 end extension

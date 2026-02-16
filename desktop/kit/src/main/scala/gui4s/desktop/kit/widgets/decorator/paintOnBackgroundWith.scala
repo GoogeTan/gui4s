@@ -1,13 +1,13 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import cats.effect.kernel.Sync
+import cats.effect.*
 import gui4s.core.layout.Sized
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.skija.Brush
 
-extension[IO[_], Event](widget : DesktopWidget[IO, Event])
-  def paintOnBackgroundWith(using Sync[IO])(brush : Brush) : DesktopWidget[IO, Event] =
+extension[Event](widget : DesktopWidget[Event])
+  def paintOnBackgroundWith(brush : Brush) : DesktopWidget[Event] =
     widget.withDrawOnlyBackground(
       PlacementEffect.getBounds.map:
         bounds =>

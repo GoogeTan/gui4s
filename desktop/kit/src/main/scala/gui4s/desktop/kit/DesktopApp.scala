@@ -12,8 +12,6 @@ import gui4s.desktop.kit.widgets.DesktopPlacedWidget
 import gui4s.desktop.widget.library.widgetLoops
 
 def desktopWidgetLoops[
-  IO[_] : Async,
-  CallbackIO[_] : Async,
   Event,
 ](
    runDraw : Draw[IO] => IO[Boolean],
@@ -21,11 +19,11 @@ def desktopWidgetLoops[
    waitForTheNextEvent : IO[DownEvent],
    drawLoopExecutionContext : ExecutionContext,
    updateLoopExecutionContext : ExecutionContext,
-   widget : Ref[IO, DesktopPlacedWidget[IO, Event]],
+   widget : Ref[IO, DesktopPlacedWidget[Event]],
 ) : IO[ExitCode] =
   widgetLoops[
     IO,
-    CallbackIO,
+    IO,
     UpdateC[IO, Event],
     PlaceC[IO],
     Draw[IO],

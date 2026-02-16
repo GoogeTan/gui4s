@@ -4,6 +4,7 @@ package widgets.decorator
 import scala.reflect.Typeable
 
 import cats._
+import cats.effect.*
 import cats.effect.std.Supervisor
 
 import gui4s.core.widget.Path
@@ -15,9 +16,9 @@ import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.widget.library.{launchedEffect => genericLaunchedEffect, _}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-def launchedEffect[IO[_] : MonadThrow as MT, Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[DesktopWidget[IO, Event], Key, Path => IO[Unit]] =
+def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[DesktopWidget[Event], Key, Path => IO[Unit]] =
   val lew : LaunchedEffectWidget[
-    DesktopWidget[IO, Event],
+    DesktopWidget[Event],
     Key,
     Path => RecompositionReaction[IO]
   ] = genericLaunchedEffect[
@@ -31,7 +32,7 @@ def launchedEffect[IO[_] : MonadThrow as MT, Event, Key : Typeable](supervisor :
     [T] => (path : Path, value : Any) =>
       Place.raiseError[IO, Throwable, T](new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
     (valueFound : Any) => RecompositionReaction.lift[IO, Any](
-      MT.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
+      IO.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
     ),
     Place.addNameToPath[IO]
   )
