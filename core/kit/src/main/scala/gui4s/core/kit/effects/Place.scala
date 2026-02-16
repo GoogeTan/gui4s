@@ -9,8 +9,8 @@ import cats._
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-type Place[IO[_], Bounds, MeasurementUnit, Error, Value] = PlacementEffect[IO, Bounds, Error, Sized[MeasurementUnit, Value]]
-type PlaceC[IO[_], Bounds, MeasurementUnit, Error] = Place[IO, Bounds, MeasurementUnit, Error, *]
+type Place[IO[_], Bounds, MeasurementUnit, Value] = PlacementEffect[IO, Bounds, Sized[MeasurementUnit, Value]]
+type PlaceC[IO[_], Bounds, MeasurementUnit] = Place[IO, Bounds, MeasurementUnit, *]
 
 object Place:
   def typecheck[
@@ -27,10 +27,10 @@ object Place:
   end typecheck
 
   def addNameToPath[IO[_] : Monad, Bounds, MeasurementUnit, Error](name : String)
-    : PlaceC[IO, Bounds, MeasurementUnit, Error] ~> PlaceC[IO, Bounds, MeasurementUnit, Error] =
-    new (PlaceC[IO, Bounds, MeasurementUnit, Error] ~> PlaceC[IO, Bounds, MeasurementUnit, Error]):
-      override def apply[A](p: Place[IO, Bounds, MeasurementUnit, Error, A]) : Place[IO, Bounds, MeasurementUnit, Error, A] =
-        PlacementEffect.addNameToPath[IO, Bounds, Error](name)[Sized[MeasurementUnit, A]](p)
+    : PlaceC[IO, Bounds, MeasurementUnit] ~> PlaceC[IO, Bounds, MeasurementUnit] =
+    new (PlaceC[IO, Bounds, MeasurementUnit] ~> PlaceC[IO, Bounds, MeasurementUnit]):
+      override def apply[A](p: Place[IO, Bounds, MeasurementUnit, A]) : Place[IO, Bounds, MeasurementUnit, A] =
+        PlacementEffect.addNameToPath[IO, Bounds](name)[Sized[MeasurementUnit, A]](p)
       end apply
     end new
   end addNameToPath

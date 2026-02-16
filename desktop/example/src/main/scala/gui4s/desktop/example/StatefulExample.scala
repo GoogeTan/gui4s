@@ -29,22 +29,22 @@ object StatefulExample extends UIApp:
   )
 
   override def main(
-                     glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+                     glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                      window: GLFWwindow,
                      eventBus: Queue[IO, DownEvent],
-                   ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
+                   ) : Resource[IO, DesktopWidget[IO, Nothing]] =
     for
-      shaper <- createShaper[AppIO]
-      cache : TextCache[AppIO] <- ScalacacheCache()
+      shaper <- createShaper[IO]
+      cache : TextCache[IO] <- ScalacacheCache()
       text = TextWidget(shaper, cache)
-      typeface <- defaultTypeface[AppIO]
-      clickSource <- clickEventSource[AppIO, IO, GLFWmonitor, GLFWwindow, GLFWcursor, Int](window, glfw, eventBus).eval
+      typeface <- defaultTypeface[IO]
+      clickSource <- clickEventSource[IO, IO, GLFWmonitor, GLFWwindow, GLFWcursor, Int](window, glfw, eventBus).eval
       onClick = [Event] => (event : Event) =>
         clickCatcher(glfw.getCursorPos(window).map((x, y) => Point2d(x.toFloat, y.toFloat)), event, clickSource)
-    yield statefulWidget[AppIO][Int, Nothing, Unit](
+    yield statefulWidget[IO][Int, Nothing, Unit](
       name = "state",
       initialState = 0,
-      eventHandler = (state, _, _) => (state + 1).pure[UpdateC[AppIO, Nothing]],
+      eventHandler = (state, _, _) => (state + 1).pure[UpdateC[IO, Nothing]],
       body = state =>
         onClick(())(
           text(

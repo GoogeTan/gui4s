@@ -3,6 +3,7 @@ package gui4s.desktop.kit
 import scala.reflect.Typeable
 import catnip.syntax.all.{*, given}
 import cats.*
+import cats.arrow.FunctionK
 import cats.data.EitherT
 import cats.data.ReaderT
 import cats.effect.*
@@ -40,36 +41,26 @@ enum UIAppError:
 end UIAppError
 
 trait UIApp extends IOApp:
-  final type AppIO[T] = EitherT[IO, UIAppError, T]
-
-  final given Typeable[AppIO[Unit]] = (a : Any) =>
+  final given Typeable[IO[Unit]] = (a : Any) =>
     a match
-      case _ : EitherT[io, b, c] =>
-        Some(a.asInstanceOf[EitherT[IO, UIAppError, Unit] & a.type])
+      case _ : IO[c] =>
+        Some(a.asInstanceOf[IO[Unit] & a.type])
       case _ => None
     end match
   end given
 
-  final type CallbackIO[T] = IO[T]
-  final val liftCallbackIOToAppIO : (CallbackIO ~> AppIO) = EitherT.liftK
-
   val settings : WindowCreationSettings[GLFWmonitor, GLFWwindow]
 
   final override def run(args: List[String]): IO[ExitCode] =
-    runResourced
-      .use(EitherT.pure(_))
-      .foldF(
-        fa = error => IO.raiseError(new Exception(error.toString)),
-        fb = IO.pure[ExitCode],
-      )
+    runResourced.use_.as(ExitCode.Success)
   end run
 
-  final def runResourced : Resource[AppIO, ExitCode] =
+  final def runResourced : Resource[IO, ExitCode] =
     given IORuntime = runtime
     for
       glfw <- CatsJvmPostInit(
         MainThread,
-        error => EitherT.leftT[CallbackIO, Unit](UIAppError.InitError(error))
+        error => IO.raiseError(new Exception("Error in GLFW: " + error.toString))
       )()
       //Skija требует новый OGL, без этого будут иногда падать шейдеры
       _ <- glfw.windowHint(GLFW_CONTEXT_VERSION_MAJOR, 3).eval
@@ -79,12 +70,12 @@ trait UIApp extends IOApp:
       window <- glfw.createWindow(settings)
       _ <- glfw.makeContextCurrent(Some(window)).eval
 
-      eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval
+      eventBus <- Queue.unbounded[IO, DownEvent].to[IO].eval
       _ <- glfw.makeContextCurrent(Some(window)).eval
 
-      eventBus <- Queue.unbounded[CallbackIO, DownEvent].to[AppIO].eval
+      eventBus <- Queue.unbounded[IO, DownEvent].to[IO].eval
       _ <- glfw.makeContextCurrent(Some(window)).eval
-      surface <- SkijaSurface.create(window, glfw, liftCallbackIOToAppIO).evalOn(MainThread)
+      surface <- SkijaSurface.create(window, glfw, FunctionK.id).evalOn(MainThread)
       _ <- glfw.addFramebufferSizeCallback(
         window,
         (_ : GLFWwindow, w : Int, h : Int) =>
@@ -92,31 +83,28 @@ trait UIApp extends IOApp:
             *> eventBus.offer(DownEvent.WindowShouldBeRedrawn)
       ).eval
 
-      runPlaceK : (PlaceC[AppIO] ~> AppIO) =
-        Place.run[AppIO](Path(Nil), windowBounds(window, glfw))
-          .andThen(mapErrorK(UIAppError.PlaceError(_)))
-          .andThen(flattenEitherTK)
+      runPlaceK : (PlaceC[IO] ~> IO) = Place.run[IO](Path(Nil), windowBounds(window, glfw))
 
-      runDrawK : (Draw[AppIO] => AppIO[Boolean]) =
+      runDrawK : (Draw[IO] => IO[Boolean]) =
         draw =>
           surface.drawFrame(sur =>
             for
-              _ <- clear[ReaderT[AppIO, Canvas, *]](0xFFFFFFFF).run(sur.canvas)
+              _ <- clear[ReaderT[IO, Canvas, *]](0xFFFFFFFF).run(sur.canvas)
               _ <- draw.run(sur.canvas)
-              _ <- flush[AppIO](sur.directContext)
+              _ <- flush[IO](sur.directContext)
               _ <- glfw.swapBuffers(window)
               _ <- glfw.pollEvents
             yield (),
-            liftCallbackIOToAppIO
+            FunctionK.id
           ) *> glfw.windowShouldClose(window).map(!_)
 
       widgetCell <- main(glfw, window, eventBus).evalMap(freeMainWidget =>
         Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK, RecompositionReaction.run))
       )
-      exitCode <- desktopWidgetLoops[AppIO, CallbackIO, Nothing](
+      exitCode <- desktopWidgetLoops[IO, IO, Nothing](
         runDraw =  runDrawK,
         runPlace = runPlaceK,
-        waitForTheNextEvent = liftCallbackIOToAppIO(eventBus.take),
+        waitForTheNextEvent = eventBus.take,
         updateLoopExecutionContext = this.runtime.compute,
         drawLoopExecutionContext = MainThread,
         widget = widgetCell,
@@ -124,13 +112,13 @@ trait UIApp extends IOApp:
     yield exitCode
   end runResourced
 
-  def windowBounds(window: GLFWwindow, glfw : PureWindow[AppIO, CallbackIO[Unit], GLFWmonitor, GLFWwindow]): AppIO[Bounds] =
+  def windowBounds(window: GLFWwindow, glfw : PureWindow[IO, IO[Unit], GLFWmonitor, GLFWwindow]): IO[Bounds] =
     glfw.getFramebufferSize(window).map((w, h) => Rect(new InfinityOr(w.toFloat), new InfinityOr(h.toFloat)))
   end windowBounds
 
   def main(
-            glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+            glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-  ): Resource[AppIO, DesktopWidget[AppIO, Nothing]]
+  ): Resource[IO, DesktopWidget[IO, Nothing]]
 end UIApp

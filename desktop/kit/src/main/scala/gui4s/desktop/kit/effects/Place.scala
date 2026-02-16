@@ -2,30 +2,24 @@ package gui4s.desktop.kit
 package effects
 
 import scala.reflect.Typeable
-
 import catnip.MapKCache
 import catnip.syntax.functor.nestedFunctorsAreFunctors
-import cats.Functor
-import cats.Monad
-import cats.MonadThrow
+import cats.{Functor, Monad, MonadError, MonadThrow, ~>}
 import cats.data.EitherT
 import cats.effect.Sync
-import cats.~>
-
-import gui4s.core.kit.effects.{Place => GenericPlace}
+import gui4s.core.kit.effects.{Place as GenericPlace, PlacementEffect as GenericPlacementEffect}
 import gui4s.core.widget.Path
-
 import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects.Situated.given
 import gui4s.desktop.skija.shaper.Shaper
 
-type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, Throwable, T]
+type Place[IO[_], T] = GenericPlace[IO, Bounds, Float, T]
 type PlaceC[IO[_]] = [Value] =>> Place[IO, Value]
 
 object Place:
-  def run[IO[_] : Monad](path : Path, bounds : IO[Bounds]) : Place[IO, *] ~> EitherT[IO, Throwable, *] =
-    new ~>[Place[IO, *], EitherT[IO, Throwable, *]]:
-      override def apply[A](fa : Place[IO, A]) : EitherT[IO, Throwable, A] =
+  def run[IO[_] : Monad](path : Path, bounds : IO[Bounds]) : Place[IO, *] ~> IO =
+    new ~>[Place[IO, *], IO]:
+      override def apply[A](fa : Place[IO, A]) : IO[A] =
         PlacementEffect.run(path, bounds)(fa.map(_.value))
       end apply
     end new
@@ -61,4 +55,8 @@ object Place:
   def addNameToPath[IO[_] : Monad](name : String) : Place[IO, *] ~> Place[IO, *] =
     GenericPlace.addNameToPath(name)
   end addNameToPath
+
+  def raiseError[IO[_], Error, Value](error: => Error)(using ME: MonadError[IO, Error]): Place[IO, Value] =
+    GenericPlacementEffect.liftF(ME.raiseError(error))
+  end raiseError
 end Place

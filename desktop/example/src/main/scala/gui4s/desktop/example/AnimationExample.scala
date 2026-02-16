@@ -3,7 +3,6 @@ package gui4s.desktop.example
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
-import scala.reflect.Typeable
 
 import catnip._
 import catnip.syntax.all.given
@@ -48,56 +47,48 @@ object AnimationExample extends UIApp:
     height = 480,
   )
 
-  given Typeable[IO[Unit]] = a => a match
-    case b: IO[t] => Some(b.as(()).asInstanceOf[IO[Unit] & a.type])
-    case _ => None
-
   def updaterWidget[Event](
-                            launchedEffect: LaunchedEffectWidget[DesktopWidget[AppIO, Event], Unit, AppIO[Unit]],
-                            pushUpdate : AppIO[Unit]
-                          ) : Decorator[DesktopWidget[AppIO, Event]] =
+                            launchedEffect: LaunchedEffectWidget[DesktopWidget[IO, Event], Unit, IO[Unit]],
+                            pushUpdate : IO[Unit]
+                          ) : Decorator[DesktopWidget[IO, Event]] =
     original =>
       launchedEffect("updater", original, (), pushUpdate)
   end updaterWidget
 
-  def downloadImage(uri: String): AppIO[Image] =
-    EitherT.liftF(
-      EmberClientBuilder
-        .default[IO]
-        .build
-        .use(
-          client =>
-            IO.fromEither(
-              Uri.fromString(uri)
-            ).flatMap(
-              client.expect[Array[Byte]]
-            ).map(Image.makeDeferredFromEncodedBytes)
-        )
-    )
+  def downloadImage(uri: String): IO[Image] =
+    EmberClientBuilder
+      .default[IO]
+      .build
+      .use(
+        client =>
+          IO.fromEither(
+            Uri.fromString(uri)
+          ).flatMap(
+            client.expect[Array[Byte]]
+          ).map(Image.makeDeferredFromEncodedBytes)
+      )
   end downloadImage
 
   def main(
-    glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+    glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
     window: GLFWwindow,
     eventBus: Queue[IO, DownEvent],
-  ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
+  ) : Resource[IO, DesktopWidget[IO, Nothing]] =
     for
-      dispatcher <- Dispatcher.sequential[AppIO]
-      supervisor <- Supervisor[AppIO]
-      shaper <- createShaper[AppIO]
-      cache: TextCache[AppIO] <- ScalacacheCache()
-      typeface <- defaultTypeface[AppIO]
-      stateful = statefulWidget[AppIO]
+      dispatcher <- Dispatcher.sequential[IO]
+      supervisor <- Supervisor[IO]
+      shaper <- createShaper[IO]
+      cache: TextCache[IO] <- ScalacacheCache()
+      typeface <- defaultTypeface[IO]
+      stateful = statefulWidget[IO]
       clickSource <- clickEventSource(window, glfw, eventBus).eval
       onClick = [Event] => (event : Event) =>
         clickCatcher(glfw.getCursorPos(window).map((x, y) => Point2d(x.toFloat, y.toFloat)), event, clickSource)
-      animation = animationWidget[AppIO, Unit, Float]()
+      animation = animationWidget[IO, Unit, Float]()
       _ <- supervisor.supervise(
-        liftCallbackIOToAppIO(
-          (eventBus.offer(DownEvent.WindowShouldBeRedrawn)
-            *> IO.sleep(FiniteDuration(15, TimeUnit.MILLISECONDS))
-            ).iterateWhile(_ => true)
-        )
+        (eventBus.offer(DownEvent.WindowShouldBeRedrawn)
+          *> IO.sleep(FiniteDuration(15, TimeUnit.MILLISECONDS))
+          ).iterateWhile(_ => true)
       ).eval
       floatAnimation : Animation[Float, Duration] = TweenAnimation(
         easing = Easing.Linear,
@@ -105,7 +96,7 @@ object AnimationExample extends UIApp:
       )
       resource = ResourceWidget(
         supervisor = supervisor,
-        raiseExternalEvent = eventBus.offer.andThen(liftCallbackIOToAppIO(_))
+        raiseExternalEvent = eventBus.offer
       )
       initialization = InitializationWidget(resource)
       text = TextWidget(shaper, cache)
@@ -116,7 +107,7 @@ object AnimationExample extends UIApp:
         stateful[Int, Nothing, Unit](
           name = "counter",
           initialState = 0,
-          eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[AppIO, Nothing]],
+          eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[IO, Nothing]],
           body = count =>
             animation(
               name = "animation",
@@ -124,7 +115,7 @@ object AnimationExample extends UIApp:
               animation = floatAnimation,
               body = cornerRadius =>
                 onClick(())(
-                  imageWidget[AppIO, Unit](data).clip(Shapes.roundedCorners(cornerRadius))
+                  imageWidget[IO, Unit](data).clip(Shapes.roundedCorners(cornerRadius))
                 )
             ),
         ),

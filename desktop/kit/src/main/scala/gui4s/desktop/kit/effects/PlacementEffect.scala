@@ -3,18 +3,23 @@ package effects
 
 import catnip.Get
 import catnip.Set
-import cats._
+import cats.*
 import cats.data.EitherT
-
-import gui4s.core.kit.effects.{PlacementEffect => GenericPlacementEffect}
+import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-type PlacementEffect[IO[_], T] = GenericPlacementEffect[IO, Bounds, Throwable, T]
+import scala.util.NotGiven
+
+type PlacementEffect[IO[_], T] = GenericPlacementEffect[IO, Bounds, T]
 type PlacementEffectC[IO[_]] = [Value] =>> PlacementEffect[IO, Value]
 
 object PlacementEffect:
-  given monadInstance[IO[_] : Monad]: MonadThrow[PlacementEffectC[IO]] =
+  given monadThrowInstance[IO[_] : MonadThrow]: MonadThrow[PlacementEffectC[IO]] =
+    GenericPlacementEffect.monadThrowInstance
+  end monadThrowInstance
+
+  given monadInstance[IO[_] : Monad](using NotGiven[MonadThrow[IO]]): Monad[PlacementEffectC[IO]] =
     GenericPlacementEffect.monadInstance
   end monadInstance
 
@@ -55,12 +60,12 @@ object PlacementEffect:
     }
   end withBoundsK
 
-  def raiseError[IO[_] : Monad, Value](error: => Throwable): PlacementEffect[IO, Value] =
-    GenericPlacementEffect.raiseError(error)
+  def raiseError[IO[_], Error, Value](error: => Error)(using ME : MonadError[IO, Error]): PlacementEffect[IO, Value] =
+    GenericPlacementEffect.liftF(ME.raiseError(error))
   end raiseError
 
-  def run[IO[_] : Monad](path : Path, bounds: IO[Bounds]): PlacementEffectC[IO] ~> EitherT[IO, Throwable, *] =
-    GenericPlacementEffect.run[IO, Bounds, Throwable](path, bounds)
+  def run[IO[_] : Monad](path : Path, bounds: IO[Bounds]): PlacementEffectC[IO] ~> IO =
+    GenericPlacementEffect.run(path, bounds)
   end run
 
   def addNameToPath[IO[_] : Monad](name: String): PlacementEffectC[IO] ~> PlacementEffectC[IO] =

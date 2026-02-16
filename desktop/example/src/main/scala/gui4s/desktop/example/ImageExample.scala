@@ -2,7 +2,6 @@ package gui4s.desktop.example
 
 import catnip.syntax.all.given
 import cats.Id
-import cats.data.EitherT
 import cats.effect._
 import cats.effect.std._
 import glfw4s.core._
@@ -42,8 +41,7 @@ object ImageExample extends UIApp:
     height = 920/2,
   )
 
-  def downloadImage(uri: String): AppIO[Image] =
-    EitherT.liftF(
+  def downloadImage(uri: String): IO[Image] =
     EmberClientBuilder
       .default[IO]
       .build
@@ -55,7 +53,6 @@ object ImageExample extends UIApp:
             client.expect[Array[Byte]]
           ).map(makeDeferredImageFromEncodedBytes)
       )
-    )
   end downloadImage
 
   def inverseColorPaint : Paint =
@@ -75,25 +72,25 @@ object ImageExample extends UIApp:
   end pleaseWaitTextStyle
 
   def main(
-            glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+            glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-          ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
+          ) : Resource[IO, DesktopWidget[IO, Nothing]] =
     given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.width))
 
     for
-      dispatcher <- Dispatcher.sequential[AppIO]
-      supervisor <- Supervisor[AppIO]
-      shaper <- createShaper[AppIO]
-      cache: TextCache[AppIO] <- ScalacacheCache()
-      text = TextWidget[AppIO](shaper, cache)
-      resource = ResourceWidget(supervisor, eventBus.offer.andThen(liftCallbackIOToAppIO(_)))
+      dispatcher <- Dispatcher.sequential[IO]
+      supervisor <- Supervisor[IO]
+      shaper <- createShaper[IO]
+      cache: TextCache[IO] <- ScalacacheCache()
+      text = TextWidget[IO](shaper, cache)
+      resource = ResourceWidget(supervisor, eventBus.offer)
       initialization = InitializationWidget(resource)
 
-      typeface <- typeface.typefaceFromFile[AppIO]("OptimusPrinceps")
+      typeface <- typeface.typefaceFromFile[IO]("OptimusPrinceps")
 
-      centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[PlacementEffectC[AppIO], Float]
-      beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[PlacementEffectC[AppIO], Float, Float]
+      centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[PlacementEffectC[IO], Float]
+      beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[PlacementEffectC[IO], Float, Float]
 
       textPlacement = rowcolumn.PlacementStrategy.Zip(
          beginPlacement,
@@ -101,7 +98,7 @@ object ImageExample extends UIApp:
       )
 
       pleaseWaitPlacement =
-        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[AppIO], Float, Float, Id, Float](
+        rowcolumn.PlacementStrategy.Zip[PlacementEffectC[IO], Float, Float, Id, Float](
           centerPlacement,
           centerPlacement
         )
@@ -110,7 +107,7 @@ object ImageExample extends UIApp:
         name = "image",
         effectToRun = downloadImage("https://i.pinimg.com/736x/c6/f2/41/c6f241cff25453bca4c861009e32d141.jpg"),
         body = image =>
-          imageWidget[AppIO, Nothing](image)
+          imageWidget[IO, Nothing](image)
             .withForeground(
               foreground = text("Princess Mononoke", headerTextStyle(typeface)),
               placement = textPlacement

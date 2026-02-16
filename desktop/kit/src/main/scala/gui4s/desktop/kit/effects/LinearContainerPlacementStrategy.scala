@@ -10,8 +10,8 @@ import gui4s.core.layout.rowcolumn.{PlacementStrategy => GenericPlacementStrateg
 
 import gui4s.desktop.kit.effects.PlacementEffect.given
 
-type LinearContainerPlacementStrategy[IO[_], Collecton[_]]
-    = GenericPlacementStrategy[PlacementEffectC[IO], Float, InfinityOr[Float], Collecton, Float]
+type LinearContainerPlacementStrategy[IO[_], Collection[_]]
+    = GenericPlacementStrategy[PlacementEffectC[IO], Float, InfinityOr[Float], Collection, Float]
 type OneElementLinearContainerPlacementStrategy[IO[_]]
     = GenericOneElementPlacementStrategy[PlacementEffectC[IO], Float, InfinityOr[Float], Float]
 
@@ -24,17 +24,17 @@ object LinearContainerPlacementStrategy:
   end Begin
 
   def Center[
-    IO[_] : Monad,
+    IO[_] : MonadThrow,
     Collection[_] : Traverse
   ](gap : Float, errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Collection] =
-    GenericPlacementStrategy.ErrorIfInfinity(
+    GenericPlacementStrategy.ErrorIfInfinity[PlacementEffectC[IO], Float, Collection, Throwable](
       GenericPlacementStrategy.Center[PlacementEffect[IO, *], Collection, Float](gap),
       errors.withCenterStrategy
     )
   end Center
 
   def End[
-    IO[_] : Monad,
+    IO[_] : MonadThrow,
     Collection[_] : Traverse
   ](gap : Float, errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Collection] =
     GenericPlacementStrategy.ErrorIfInfinity(
@@ -44,7 +44,7 @@ object LinearContainerPlacementStrategy:
   end End
 
   def SpaceBetween[
-    IO[_] : Monad,
+    IO[_] : MonadThrow,
     Collection[_] : Traverse
   ](errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Collection] =
     GenericPlacementStrategy.ErrorIfInfinity(
@@ -54,7 +54,7 @@ object LinearContainerPlacementStrategy:
   end SpaceBetween
 
   def SpaceAround[
-    IO[_] : Monad,
+    IO[_] : MonadThrow,
     Collection[_] : {Applicative, Traverse, SemigroupK}
   ](errors : ContainerPlacementError[Throwable]) : LinearContainerPlacementStrategy[IO, Collection] =
     GenericPlacementStrategy.ErrorIfInfinity(

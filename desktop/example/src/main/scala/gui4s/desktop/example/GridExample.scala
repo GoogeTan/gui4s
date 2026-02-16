@@ -1,7 +1,6 @@
 package gui4s.desktop.example
 
 import cats.Id
-import cats.data.EitherT
 import cats.effect.*
 import cats.effect.std.Queue
 import glfw4s.core.*
@@ -24,14 +23,14 @@ object GridExample extends UIApp:
   )
 
   def main(
-            glfw: PurePostInit[AppIO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+            glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-          ) : Resource[AppIO, DesktopWidget[AppIO, Nothing]] =
+          ) : Resource[IO, DesktopWidget[IO, Nothing]] =
     for
-      shaper <- createShaper[AppIO]
-      cache : TextCache[AppIO] <- ScalacacheCache()
-      typeface <- defaultTypeface[AppIO]
+      shaper <- createShaper[IO]
+      cache : TextCache[IO] <- ScalacacheCache()
+      typeface <- defaultTypeface[IO]
       numbers = (1 to 10).toList
       text = TextWidget(shaper, cache)
       textStyle = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
@@ -41,18 +40,18 @@ object GridExample extends UIApp:
       )
   end main
 
-  def grid[A, B, Event](as: List[A], bs: List[B])(f: (A, B) => DesktopWidget[AppIO, Event]) : DesktopWidget[AppIO, Event] =
-    val spaceBetween: LinearContainerPlacementStrategy[AppIO, List] =
-      LinearContainerPlacementStrategy.SpaceBetween[AppIO, List](ContainerPlacementError.English)
-    val begin : OneElementLinearContainerPlacementStrategy[AppIO] =
-      LinearContainerPlacementStrategy.Begin[AppIO, Id](0f)
-    columnWidget[AppIO, Event](
+  def grid[A, B, Event](as: List[A], bs: List[B])(f: (A, B) => DesktopWidget[IO, Event]) : DesktopWidget[IO, Event] =
+    val spaceBetween: LinearContainerPlacementStrategy[IO, List] =
+      LinearContainerPlacementStrategy.SpaceBetween[IO, List](ContainerPlacementError.English)
+    val begin : OneElementLinearContainerPlacementStrategy[IO] =
+      LinearContainerPlacementStrategy.Begin[IO, Id](0f)
+    columnWidget[IO, Event](
       verticalPlacementStrategy = spaceBetween,
       horizontalPlacementStrategy = begin,
       children =
         as.map:
           columnElement =>
-            rowWidget[AppIO, Event](
+            rowWidget[IO, Event](
               horizontalPlacementStrategy = spaceBetween,
               verticalPlacementStrategy = begin,
               children =
@@ -73,7 +72,7 @@ object GridExample extends UIApp:
     )
   end grid
 
-  def gridCell[Event](textWidget: String => DesktopWidget[AppIO, Event])(row : Int, column : Char) : DesktopWidget[AppIO, Event] =
+  def gridCell[Event](textWidget: String => DesktopWidget[IO, Event])(row : Int, column : Char) : DesktopWidget[IO, Event] =
     textWidget(column.toString + ":" + row.toString)
   end gridCell
 end GridExample

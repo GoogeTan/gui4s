@@ -215,10 +215,10 @@ object PlacementStrategy:
         Collection[_],
         Error,
     ](
-        using M: MonadError[Place, Error]
-    )(
         original: PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit],
         error: Error
+    )(
+      using M: MonadError[Place, Error]
     ): PlacementStrategy[Place, MeasurementUnit, InfinityOr[MeasurementUnit], Collection, MeasurementUnit] =
         MaybeInInfiniteSpace(original, M.raiseError(error))
     end ErrorIfInfinity

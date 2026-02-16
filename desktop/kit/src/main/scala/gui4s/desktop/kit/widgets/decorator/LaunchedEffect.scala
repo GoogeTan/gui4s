@@ -28,7 +28,8 @@ def launchedEffect[IO[_] : MonadThrow as MT, Event, Key : Typeable](supervisor :
     DownEvent,
     Key
   ](
-    [T] => (path : Path, value : Any) => PlacementEffect.raiseError(new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
+    [T] => (path : Path, value : Any) =>
+      Place.raiseError[IO, Throwable, T](new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
     (valueFound : Any) => RecompositionReaction.lift[IO, Any](
       MT.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
     ),
