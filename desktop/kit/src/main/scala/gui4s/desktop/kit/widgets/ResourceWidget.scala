@@ -2,17 +2,14 @@ package gui4s.desktop.kit
 package widgets
 
 import scala.reflect.Typeable
-
-import cats._
+import cats.*
 import cats.effect.*
-import cats.effect.std.Supervisor
-
+import cats.effect.std.{QueueSink, Supervisor}
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.WithContext
-import gui4s.core.widget.library.{destructibleResourceWidget => genericResourceWidget}
-
+import gui4s.core.widget.library.destructibleResourceWidget as genericResourceWidget
 import gui4s.desktop.kit.effects.Update.given
-import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.decorator.LaunchedEvent
 
 trait ResourceWidget:
@@ -54,5 +51,11 @@ object ResourceWidget:
         )(name, init.allocated)(body)
       end apply
     end new
+  end apply
+  
+  def apply(eventBus : QueueSink[IO, DownEvent]) : Init[ResourceWidget] = 
+    Init.evalResource(
+      Supervisor[IO].map(apply(_, eventBus.offer))
+    )
   end apply
 end ResourceWidget

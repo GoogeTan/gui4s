@@ -20,31 +20,48 @@ final case class MouseEvent(keyCode: Int, action : KeyAction, modes: KeyModes)
 
 type ClickEventSource = DownEvent => Option[MouseEvent]
 
-def clickCatcher[Event](
-                         mousePosition : IO[Point2d[Float]],
-                         eventOnClick : Event,
-                         extractEvent : DownEvent => Option[MouseEvent]
-                       ) : Decorator[DesktopWidget[Event]] =
-  genericClickCatcher(
-    eventCatcherWithRect = eventCatcher,
-    currentMousePosition = Update.liftK[IO, Event](mousePosition),
-    appropriateEvent = extractEvent,
-    onClick = {
-      case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents[IO, Event](List(eventOnClick)).as(true)
-      case _ => false.pure[UpdateC[IO,  Event]]
-    },
-    isIn = point => shape =>
-      Update.getCornerCoordinates.map(
-        coordinatesOfTopLeftCornet =>
-          RectAtPoint2d(shape.size, coordinatesOfTopLeftCornet.projectToXY).containsPoint(point)
-      )
+trait ClickCatcher:
+  def apply[Event](eventOnClick: Event): Decorator[DesktopWidget[Event]]
+end ClickCatcher
+
+def clickCatcher[
+  Window,
+  Cursor,
+  Joystick
+](
+  window: Window,
+  glfw : PureInput[IO, IO[Unit], Window, Cursor, Joystick],
+  queue: Queue[IO, DownEvent],
+) : Init[ClickCatcher] =
+  Init.eval(
+    clickEventSource(window, glfw, queue)
+  ).map(source =>
+    new ClickCatcher:
+      override def apply[Event](
+                                        eventOnClick: Event,
+                                      ): Decorator[DesktopWidget[Event]] =
+        genericClickCatcher(
+          eventCatcherWithRect = eventCatcher,
+          currentMousePosition = Update.liftK[IO, Event](
+            glfw.getCursorPos(window).map((x, y) => Point2d(x.toFloat, y.toFloat))
+          ),
+          appropriateEvent = source,
+          onClick = {
+            case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents[IO, Event](List(eventOnClick)).as(true)
+            case _ => false.pure[UpdateC[IO,  Event]]
+          },
+          isIn = point => shape =>
+            Update.getCornerCoordinates.map(
+              coordinatesOfTopLeftCornet =>
+                RectAtPoint2d(shape.size, coordinatesOfTopLeftCornet.projectToXY).containsPoint(point)
+            )
+        )
   )
 end clickCatcher
 
 final case class ClickCatcherEvent(mouseEvent: MouseEvent)
 
 def clickEventSource[
-  Monitor,
   Window,
   Cursor,
   Joystick

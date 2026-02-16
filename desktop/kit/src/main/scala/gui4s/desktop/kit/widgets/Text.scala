@@ -45,6 +45,15 @@ object TextWidget:
       end apply
     end new
   end apply
+
+  def apply() : Init[TextWidget] =
+    Init.evalResource(
+      for
+        shaper <- createShaper[IO]
+        cache : TextCache[IO] <- ScalacacheCache()
+      yield apply(shaper, cache)
+    )
+  end apply
 end TextWidget
 
 def placedText[Event](placedText : Sized[Float, SkijaPlacedText]) : DesktopWidget[Event] =

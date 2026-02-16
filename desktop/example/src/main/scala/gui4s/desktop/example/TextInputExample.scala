@@ -1,7 +1,7 @@
 package gui4s.desktop.example
 
 import scala.math.*
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.*
 import cats.*
 import cats.effect.*
 import cats.effect.std.*
@@ -62,7 +62,7 @@ object TextInputExample extends UIApp:
                      glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                      window: GLFWwindow,
                      eventBus: Queue[IO, DownEvent]
-                   ): Resource[IO, DesktopWidget[Nothing]] =
+                   ): Init[DesktopWidget[Nothing]] =
     val fontCollection = new FontCollection
     fontCollection.setDefaultFontManager(FontMgr.getDefault)
     val paint = new Paint().setColor(0xFF454649)
@@ -81,7 +81,7 @@ object TextInputExample extends UIApp:
     val begin : OneElementLinearContainerPlacementStrategy =
       LinearContainerPlacementStrategy.Begin[Id](0f)
     for
-      _ <- textFieldEventSource(glfw, window, eventBus).eval
+      _ <- Init.eval(textFieldEventSource(glfw, window, eventBus))//TODO move into the widget
       textFieldWidget = textField[String](
         glfw,
         window,

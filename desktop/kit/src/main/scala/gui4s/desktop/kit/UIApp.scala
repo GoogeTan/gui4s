@@ -96,7 +96,7 @@ trait UIApp extends IOApp:
             FunctionK.id
           ) *> glfw.windowShouldClose(window).map(!_)
 
-      widgetCell <- main(glfw, window, eventBus).evalMap(freeMainWidget =>
+      widgetCell <- Init.runWidget(main(glfw, window, eventBus)).evalMap(freeMainWidget =>
         Ref.ofEffect(runWidgetForTheFirstTime(freeMainWidget, runPlaceK, RecompositionReaction.run))
       )
       exitCode <- desktopWidgetLoops[Nothing](
@@ -118,5 +118,5 @@ trait UIApp extends IOApp:
             glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
             window: GLFWwindow,
             eventBus: Queue[IO, DownEvent],
-  ): Resource[IO, DesktopWidget[Nothing]]
+  ): Init[DesktopWidget[Nothing]]
 end UIApp
