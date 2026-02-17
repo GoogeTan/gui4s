@@ -62,8 +62,8 @@ def childrenHandleEvent[
     traverseUntil(
       original = children,
       main = (currentChild, currentMeta) => UM.product(
+        adjustUpdateToMeta(widgetHandlesEvent(currentChild, pathToParent, event), currentMeta),
         isEventConsumed,
-        adjustUpdateToMeta(widgetHandlesEvent(currentChild, pathToParent, event), currentMeta)
       ),
       afterAll = (currentChild, _) => widgetAsFree(currentChild).pure[Update]
     )

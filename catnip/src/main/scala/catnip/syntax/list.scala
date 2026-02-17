@@ -46,7 +46,7 @@ object list:
       [A : Order, B] => value => f => f(value)
   end traverseOne
   
-  def traverseUntil[F[_] : Monad, G[_] : Traverse, A, B](original : G[A], main : A => F[(Boolean, B)], afterAll : A => F[B]) : F[G[B]] =
+  def traverseUntil[F[_] : Monad, G[_] : Traverse, A, B](original : G[A], main : A => F[(B, Boolean)], afterAll : A => F[B]) : F[G[B]] =
     original.traverse[[Value] =>> StateT[F, Boolean, Value], B](
       element =>
         StateT(
@@ -54,7 +54,7 @@ object list:
             if shouldStop then
               afterAll(element).map(a => (true, a))
             else
-              main(element)
+              main(element).map((a, b) => (b, a))
         )
     ).runA(false)
   end traverseUntil
