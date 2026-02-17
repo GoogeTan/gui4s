@@ -12,5 +12,6 @@ object all:
   export functor.{*, given}
   export zip.{*, given}
   export resource.{*, given}
+  export sortable.{*, given}
 end all
 
