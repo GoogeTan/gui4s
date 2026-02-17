@@ -18,7 +18,7 @@ import gui4s.core.widget.library.ContainerWidget
  * @param children Дочерние виджеты
  * @param xyPlacementStrategy Правило расстановки дочерних виджетов
  * @tparam Widget Размещенный виджет
- * @tparam OuterPlace Эффект установки виджета
+ * @tparam PlacementEffect Эффект установки виджета
  * @tparam Bounds Ограничения на доступное место
  * @tparam MeasurementUnit Единица измерения места на экране
  * @return
