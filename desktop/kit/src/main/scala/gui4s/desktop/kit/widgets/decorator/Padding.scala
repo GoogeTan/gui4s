@@ -1,25 +1,22 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import catnip.syntax.list.traverseOne
-import cats._
+import catnip.syntax.all.given
+import cats.*
 import cats.arrow.FunctionK
 import cats.effect.*
-
 import gui4s.core.geometry.Point3d
 import gui4s.core.layout.Sized
-import gui4s.core.widget.library.decorator.PaddingWidget
-import gui4s.core.widget.library.decorator.Paddings
-
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
+import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.widgets.*
 
 /**
  * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
  */
 def gapPaddingWidget[Event] : PaddingWidget[DesktopWidget[Event], Paddings[Float]] =
   gui4s.desktop.widget.library.decorator.gapPaddingWidget(
-    container = containerWidget[Id, Event](traverseOne),
+    container = oneElementContainerWidget,
     boundsWithPaddings = paddings => FunctionK.lift([T] => effect =>
       PlacementEffect.withBounds[IO, T](
         effect,

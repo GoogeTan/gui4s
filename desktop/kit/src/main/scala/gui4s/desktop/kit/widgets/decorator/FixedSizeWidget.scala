@@ -1,6 +1,6 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import catnip.syntax.all.given
+import catnip.syntax.all.{traverseOne, given}
 import cats._
 import cats.effect._
 
@@ -29,8 +29,7 @@ def fixedSizeWidget[
       Event,
       Id,
     ](
-      [A : Order, B] => (value : A) => (f : A => Update[IO, Event, B]) =>
-        f(value)
+      traverseOne,
     ),
     Axis.Horizontal,
     horizontalPlacement,

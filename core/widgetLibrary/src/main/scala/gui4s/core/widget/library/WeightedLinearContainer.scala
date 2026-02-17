@@ -2,7 +2,7 @@ package gui4s.core.widget.library
 
 import catnip.{Get, Set}
 import catnip.syntax.all.{*, given}
-import cats.{Monad, Order}
+import cats.Monad
 import cats.syntax.all.*
 import gui4s.core.geometry.{Axis, Point3d, Rect}
 import gui4s.core.layout.{Sized, Weighted}

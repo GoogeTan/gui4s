@@ -1,23 +1,16 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import catnip.syntax.all.{_, given}
-import cats._
-import cats.effect._
-import cats.syntax.all._
-
-import gui4s.core.geometry.Point2d
-import gui4s.core.geometry.Point3d
-import gui4s.core.geometry.Rect
+import catnip.syntax.all.{*, given}
+import cats.*
+import cats.effect.*
+import cats.syntax.all.*
+import gui4s.core.geometry.{Point2d, Point3d, Rect}
 import gui4s.core.layout.Sized
-import gui4s.core.layout.rowcolumn.ElementPlacementResult
-import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
-import gui4s.core.layout.rowcolumn.PlacementStrategy
+import gui4s.core.layout.rowcolumn.{ElementPlacementResult, OneElementPlacementStrategy, PlacementStrategy}
 import gui4s.core.widget.library.decorator.Decorator
-
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.PlacementEffect.given
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets.DesktopWidget
-import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.widgets.*
 
 def minSizeWidget[Event](
                           minSize : Rect[Float],
@@ -31,7 +24,7 @@ def minSizeWidget[Event](
     Rect[Float],
     Point3d[Float]
   ](
-    containerWidget(traverseOne),
+    oneElementContainerWidget,
     {
       case (Sized(widget, size), minSize) =>
         if size.width < minSize.width || size.height < minSize.height then

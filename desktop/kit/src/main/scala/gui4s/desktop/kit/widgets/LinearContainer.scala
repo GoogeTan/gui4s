@@ -1,24 +1,20 @@
 package gui4s.desktop.kit.widgets
 
-import catnip.Zip
-import catnip.syntax.list.TraverseOrdered
-import catnip.syntax.list.traverseOrdered
-import catnip.syntax.zip.given
-import cats._
-import cats.data._
+import catnip.{Sortable, Zip}
+import catnip.syntax.all.{*, given}
+import cats.*
+import cats.data.*
 import cats.effect.*
-
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.widget.library.LinearContainer
-import gui4s.core.widget.library.{linearContainer => genericLinearContainer}
-
-import gui4s.desktop.kit.effects._
+import gui4s.core.widget.library.linearContainer as genericLinearContainer
+import gui4s.desktop.kit.effects.*
 
 
 def linearContainerWidget[
   Event,
-  Collection[_] : {Applicative, Traverse, Zip}
+  Collection[_] : {Applicative, Traverse, Zip, Sortable}//TODO Refactor me. Лучше стоит принимать более конкретные операции. Это слишком сильное требование
 ](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Collection]) : LinearContainer[DesktopWidget[Event], PlacementEffect[IO, *], Collection, InfinityOr[Float], Float, Axis] =
   genericLinearContainer[
     DesktopPlacedWidget[Event],
@@ -27,7 +23,10 @@ def linearContainerWidget[
     InfinityOr[Float],
     Float,
   ](
-    container = containerWidget[Collection, Event](traverseOrdered),
+    container = containerWidget[Collection, Event](
+      traverseOrdered,
+      foldOrdered[Draw[IO], Collection],
+    ),
     getBounds = PlacementEffect.getBounds,
     setBounds = PlacementEffect.setBounds,
     cut = _.minus(_)

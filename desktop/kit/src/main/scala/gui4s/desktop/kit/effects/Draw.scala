@@ -12,7 +12,9 @@ import gui4s.desktop.skija
 import gui4s.desktop.skija.SkPaint
 import gui4s.desktop.skija.canvas.*
 
-type Draw[IO[_]] = ReaderT[IO, Canvas, Unit]
+
+type DrawM[IO[_], T] = ReaderT[IO, Canvas, T]
+type Draw[IO[_]] = DrawM[IO, Unit]
 
 object Draw:
   given[IO[_] : Applicative]: Canvased[ReaderT[IO, Canvas, *]] = Canvased.given_Canvased_ReaderT

@@ -25,7 +25,7 @@ def layersWidget[Event](
    DownEvent,
    Float
  ](
-   containerWidget[List, Event](traverseOrdered)(using Traverse[List]),
+   listContainerWidget,
    bounds => PlacementEffect.withBoundsK(_ => bounds.map(new InfinityOr(_)))
  )(background, foreground, placementStrategy)
 end layersWidget

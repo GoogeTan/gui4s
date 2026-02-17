@@ -1,10 +1,10 @@
 package gui4s.desktop.kit.widgets
 
-import catnip.syntax.all.traverseOrdered
+import catnip.syntax.all.given
 import cats.effect.*
 import gui4s.core.geometry.{Axis, InfinityOr}
 import gui4s.core.widget.library.WeightedLinearContainer
-import gui4s.desktop.kit.effects.{PlacementEffect, *}
+import gui4s.desktop.kit.effects.*
 
 def weightedLinearContainer[
   Event
@@ -17,7 +17,7 @@ def weightedLinearContainer[
   Axis
 ] =
   gui4s.core.widget.library.weightedLinearContainer(
-    containerWidget[List, Event](traverseOrdered),
+    listContainerWidget,
     PlacementEffect.getBounds,
     PlacementEffect.setBounds,
     _.minus(_),

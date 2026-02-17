@@ -31,12 +31,12 @@ def containerWidget[
 ](
   updateContainerOrdered : TraverseOrdered[UpdateC[IO, Event], Collection]
 ) : ContainerWidget[AndroidPlacedWidget[IO, Event], Collection, PlaceC[IO], Point3d[Float]] =
-  given Order[Point3d[Float]] = Order.by(_.z)
+  given Order[Point3d[Float]] = Order.reverse(Order.by(_.z)) // Нам надо сначала врехние, а не нижние
   genericContainer(
     (draw, meta) => drawAt(meta.x, meta.y, draw),
     [T] => (update, point) => Update.withCornerCoordinates(update, _ + point),
     Update.isEventHandled,
-    updateContainerOrdered
+    lst => f => updateContainerOrdered(lst)(f)
   )
 end containerWidget
 
@@ -52,7 +52,10 @@ def linearContainerWidget[
     InfinityOr[Float],
     Float,
   ](
-    container = containerWidget[IO, Collection, Event](traverseOrdered),
+    container = containerWidget[IO, Collection, Event](
+      traverseOrdered,
+      
+    ),
     getBounds = PlacementEffect.getBounds,
     setBounds = PlacementEffect.setBounds,
     cut = _.minus(_)

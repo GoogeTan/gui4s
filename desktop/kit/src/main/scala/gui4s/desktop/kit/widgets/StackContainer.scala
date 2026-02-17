@@ -1,14 +1,12 @@
 package gui4s.desktop.kit
 package widgets
 
-import catnip.syntax.all._
-import cats._
-import cats.effect._
-
-import gui4s.core.geometry._
-import gui4s.core.layout.rowcolumn.{PlacementStrategy => GenericPlacementStrategy}
-
-import gui4s.desktop.kit.effects._
+import catnip.syntax.all.given
+import cats.*
+import cats.effect.*
+import gui4s.core.geometry.*
+import gui4s.core.layout.rowcolumn.PlacementStrategy as GenericPlacementStrategy
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopWidget
 
 def stackContainer[Event](
@@ -24,7 +22,7 @@ def stackContainer[Event](
     Float,
   ](
     getBounds = PlacementEffect.getBounds[IO],
-    container = containerWidget[List, Event](traverseOrdered)
+    container = listContainerWidget
   )(
     children,
     GenericPlacementStrategy.Stack(

@@ -5,7 +5,6 @@ import catnip.syntax.additional._
 import catnip.syntax.list.traverseUntil
 import cats.Functor
 import cats.Monad
-import cats.Order
 import cats.Traverse
 import cats.syntax.all._
 
@@ -44,19 +43,22 @@ def containerHandlesEvent[
       )
 end containerHandlesEvent
 
+type TraverseChildrenOrdered[Update[_], Place[_], Collection[_], Widget, Meta] =
+  Collection[(Widget, Meta)] => (f: Collection[(Widget, Meta)] => Update[Collection[Place[Widget]]]) => Update[Collection[Place[Widget]]]
+
 def childrenHandleEvent[
   Collection[_] : Traverse,
   Update[_] : Monad as UM,
   Place[_] : Functor,
   Widget,
   HandlableEvent,
-  Meta : Order,
+  Meta,
 ](
     widgetHandlesEvent : HandlesEvent[Widget, HandlableEvent, Update[Place[Widget]]],
     widgetAsFree : AsFree[Widget, Place[Widget]],
     isEventConsumed : Update[Boolean],
     adjustUpdateToMeta : [T] => (Update[T], Meta) => Update[T],
-    traverseContainerOrdered : [A : Order, B] => (list: Collection[A]) => (f: Collection[A] => Update[Collection[B]]) => Update[Collection[B]]
+    traverseContainerOrdered : TraverseChildrenOrdered[Update, Place, Collection, Widget, Meta]
 ) : HandlesEvent[Collection[(Widget, Meta)], HandlableEvent, Update[Collection[Place[Widget]]]] =
   def updateChildren(children: Collection[(Widget, Meta)], pathToParent: Path, event: HandlableEvent): Update[Collection[Place[Widget]]] =
     traverseUntil(
@@ -70,7 +72,6 @@ def childrenHandleEvent[
   end updateChildren
 
   def updateChildrenOrdered(children : Collection[(Widget, Meta)], pathToParent : Path, event : HandlableEvent) : Update[Collection[Place[Widget]]] =
-    given Order[(Widget, Meta)] = Order.by(_._2)
     traverseContainerOrdered(children)(
       orderedChildren => updateChildren(orderedChildren, pathToParent, event)
     )

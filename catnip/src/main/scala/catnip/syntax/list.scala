@@ -1,19 +1,15 @@
 package catnip
 package syntax
 
-import cats.Applicative
-import cats.Foldable
-import cats.Functor
-import cats.Id
-import cats.Monad
-import cats.Order
-import cats.SemigroupK
-import cats.Traverse
+import catnip.Zip.zip
+import cats.{Applicative, Foldable, Functor, Id, Monad, Monoid, Order, SemigroupK, Traverse}
 import cats.data.NonEmptyList
 import cats.data.StateT
-import cats.syntax.all._
+import cats.syntax.all.*
 
 object list:
+  
+
   def fromList[C[_] : {Applicative as A, SemigroupK as S}, T](c : NonEmptyList[T]) : C[T] =
     c.reduceMapK(A.pure)
   end fromList
@@ -24,27 +20,26 @@ object list:
   /**
    * Производит обработку списка в указаном порядке элементов без нарушенения их порядка в результирующем списке.
    */
-  def traverseOrdered[F[_] : Functor, C[_] : {Applicative as A, Foldable, SemigroupK}] : TraverseOrdered[F, C] =
+  def traverseOrdered[F[_] : Functor, C[_] : {Traverse as CT, Sortable as CS, Zip}] : TraverseOrdered[F, C] =
     [A : Order, B] => list => f =>
-      NonEmptyList.fromList(list.toList) match
-        case Some(value) =>
-          val indexed = value.zipWithIndex.sortBy((value, _) => value)
-          val indexes = indexed.map(_._2)
-          val values = fromList(indexed.map(_._1))
-          f(values).map(res =>
-            fromList(
-              NonEmptyList.fromListUnsafe(
-                res.toList
-              ).zip(indexes).sortBy(_._2).map(_._1)
-            )
-          )
-        case None =>
-          f(list)
+      val sorted = CS.sortBy(
+        CT.zipWithIndex(list),
+        _._1
+      )
+      val (sortedValues, indexes) = sorted.unzip
+
+      f(sortedValues).map(res => CS.sortBy(res.zip(indexes), _._2).map(_._1))
   end traverseOrdered
 
-  def traverseOne[F[_]] : TraverseOrdered[F, Id] =
-      [A : Order, B] => value => f => f(value)
+  def traverseOne[F[_]]: TraverseOrdered[F, Id] =
+    [A: Order, B] => value => f => f(value)
   end traverseOne
+
+  def foldOrdered[M : Monoid, C[_] : {Sortable as CS, Foldable}] :
+    [A : Order] => C[A] => (A => M) => M =
+     [A : Order] => list => f =>
+        CS.sort(list).foldMap(f)
+  end foldOrdered
   
   def traverseUntil[F[_] : Monad, G[_] : Traverse, A, B](original : G[A], main : A => F[(B, Boolean)], afterAll : A => F[B]) : F[G[B]] =
     original.traverse[[Value] =>> StateT[F, Boolean, Value], B](
