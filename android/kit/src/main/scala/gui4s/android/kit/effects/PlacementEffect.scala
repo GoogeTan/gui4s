@@ -1,75 +1,88 @@
-package gui4s.android.kit.effects
+package gui4s.android.kit
+package effects
 
 import catnip.{Get, Set}
+import cats.*
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-type PlacementEffect[IO[_], T] = GenericPlacementEffect[IO, AndroidConfiguration[Bounds], Throwable, T]
-type PlacementEffectC[IO[_]] = [Value] =>> PlacementEffect[IO, Value]
+import scala.util.NotGiven
+
+import cats.effect.IO
+import catnip.{Get, Set}
+import cats.*
+import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
+import gui4s.core.layout.Sized
+import gui4s.core.widget.Path
+
+import scala.util.NotGiven
+
+type PlacementEffect[T] = GenericPlacementEffect[IO, AndroidConfiguration[Bounds], T]
+type PlacementEffectC = [Value] =>> PlacementEffect[Value]
 
 object PlacementEffect:
-  given monadInstance[IO[_] : Monad]: MonadThrow[PlacementEffectC[IO]] =
-    GenericPlacementEffect.monadInstance
-  end monadInstance
+  given monadThrowInstance : MonadThrow[PlacementEffectC] =
+    GenericPlacementEffect.monadThrowInstance
+  end monadThrowInstance
 
-  def liftK[IO[_] : Monad]: IO ~> PlacementEffectC[IO] =
+  def liftK : IO ~> PlacementEffectC =
     GenericPlacementEffect.liftK
   end liftK
 
-  def liftF[IO[_] : Monad, Value](value: IO[Value]): PlacementEffect[IO, Value] =
+  def liftF[Value](value: IO[Value]): PlacementEffect[Value] =
     liftK(value)
   end liftF
 
-  def liftSized[IO[_] : Monad as A, Value](value: Sized[Float, Value]): PlacementEffect[IO, Sized[Float, Value]] =
-    monadInstance.pure(value)
+  def liftSized[Value](value: Sized[Float, Value]): PlacementEffect[Sized[Float, Value]] =
+    monadThrowInstance.pure(value)
   end liftSized
 
-  def liftFunction[IO[_] : Monad, Value](value: Bounds => IO[Value]): PlacementEffect[IO, Value] =
+  def liftFunction[Value](value: Bounds => IO[Value]): PlacementEffect[Value] =
     getBounds.flatMap(
       bounds => liftF(value(bounds))
     )
   end liftFunction
 
-  def getBounds[IO[_] : Monad]: Get[PlacementEffectC[IO], Bounds] =
-    GenericPlacementEffect.getBounds.map(_.bounds)
+  def getBounds : Get[PlacementEffectC, Bounds] =
+    GenericPlacementEffect.getBounds[IO, AndroidConfiguration[Bounds]].map(_.bounds)
   end getBounds
 
-  def setBounds[IO[_] : Monad]: Set[PlacementEffectC[IO], Bounds] =
+  def setBounds : Set[PlacementEffectC, Bounds] =
     newBounds =>
       GenericPlacementEffect
-        .getBounds[IO, AndroidConfiguration[Bounds], Throwable]
+        .getBounds[IO, AndroidConfiguration[Bounds]]
         .flatMap(configuration =>
-          GenericPlacementEffect.setBounds[IO, AndroidConfiguration[Bounds], Throwable](
+          GenericPlacementEffect.setBounds[IO, AndroidConfiguration[Bounds]](
             configuration.withBounds(newBounds)
           )
         )
   end setBounds
 
-  def withBounds[IO[_] : Monad, T](original: PlacementEffect[IO, T], f: Bounds => Bounds): PlacementEffect[IO, T] =
+  def withBounds[T](original: PlacementEffect[T], f: Bounds => Bounds): PlacementEffect[T] =
     GenericPlacementEffect.withBounds(original, _.withTransformedBounds(f))
   end withBounds
 
-  def withBoundsK[IO[_] : Monad](f: Bounds => Bounds): PlacementEffect[IO, *] ~> PlacementEffect[IO, *] =
-    new (PlacementEffect[IO, *] ~> PlacementEffect[IO, *]) {
-      def apply[A](original: PlacementEffect[IO, A]): PlacementEffect[IO, A] =
+  def withBoundsK(f: Bounds => Bounds): PlacementEffect[*] ~> PlacementEffect[*] =
+    new (PlacementEffect[*] ~> PlacementEffect[*]) {
+      def apply[A](original: PlacementEffect[A]): PlacementEffect[A] =
         withBounds(original, f)
     }
   end withBoundsK
 
-  def raiseError[IO[_] : Monad, Value](error: => Throwable): PlacementEffect[IO, Value] =
-    GenericPlacementEffect.raiseError(error)
+  def raiseError[Error, Value](error: => Error)(using ME : MonadError[IO, Error]): PlacementEffect[Value] =
+    GenericPlacementEffect.liftF(ME.raiseError(error))
   end raiseError
 
-  def run[IO[_] : Monad](path : Path, bounds: IO[AndroidConfiguration[Bounds]]): PlacementEffectC[IO] ~> EitherT[IO, Throwable, *] =
-    GenericPlacementEffect.run[IO, AndroidConfiguration[Bounds], Throwable](path, bounds)
+  def run(path : Path, bounds: IO[AndroidConfiguration[Bounds]]): PlacementEffectC ~> IO =
+    GenericPlacementEffect.run[IO, AndroidConfiguration[Bounds]](path, bounds)
   end run
 
-  def addNameToPath[IO[_] : Monad](name: String): PlacementEffectC[IO] ~> PlacementEffectC[IO] =
+  def addNameToPath(name: String): PlacementEffectC ~> PlacementEffectC =
     GenericPlacementEffect.addNameToPath(name)
   end addNameToPath
 
-  def currentPath[IO[_] : Monad]: PlacementEffect[IO, Path]  =
+  def currentPath : PlacementEffect[Path]  =
     GenericPlacementEffect.currentPath
   end currentPath
 end PlacementEffect

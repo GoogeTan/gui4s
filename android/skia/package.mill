@@ -5,6 +5,7 @@ import mill.scalalib.*
 import build.android.*
 import coursier.maven.MavenRepository
 import build.dependencies.catsEffect
+import build.versions.skikoAndroid
 
 object `package` extends AndroidLibScalaModule with Gui4sAndroidPublishModule:
   override def androidLibPackage : String = "gui4s.android.skia"
@@ -12,7 +13,7 @@ object `package` extends AndroidLibScalaModule with Gui4sAndroidPublishModule:
 
   override def repositoriesTask = Task.Anon:
     super.repositoriesTask() ++ Seq(
-      //coursier.MavenRepository("https://maven.pkg.jetbrains.space/public/p/compose/dev"),
+      MavenRepository("https://redirector.kotlinlang.org/maven/compose-dev"),
       MavenRepository("file:///Users/katze/.m2/repository")
     )
   end repositoriesTask

@@ -1,13 +1,13 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.additional._
-import cats._
-import cats.syntax.all._
-
-import gui4s.core.geometry._
-import gui4s.core.layout.Sized
-import gui4s.core.layout.SizedC
-import gui4s.core.layout.rowcolumn.PlacementStrategy
+import catnip.syntax.additional.*
+import catnip.syntax.all.given
+import cats.*
+import cats.syntax.all.*
+import gui4s.core.geometry.*
+import gui4s.core.layout.*
+import gui4s.core.widget.free.AsFreeF
+import gui4s.core.widget.handle.LayoutIncrementalWidget
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 
@@ -25,40 +25,105 @@ import gui4s.core.widget.library.decorator.Decorator
 def layersWidget[
   Widget,
   PlacementEffect[_] : Monad as OPA,
-  MeasurementUnit : Numeric as MUN
+  MeasurementUnit : Numeric as MUN,
+  BoundUnit
 ](
   container : ContainerWidget[
-    Widget,
-    List,
-    PlacementEffect * SizedC[MeasurementUnit],
-    Point3d[MeasurementUnit]
+    PlacementEffect[Sized[MeasurementUnit, Widget]],
+    List[
+      PlacementEffect[Sized[MeasurementUnit, Widget]],
+    ], 
+    PlacementStrategy[
+      PlacementEffect,
+      PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]],
+      Rect[MeasurementUnit], 
+      Rect[BoundUnit],
+      List, 
+      (Widget, LayersMetadata[Point3d[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit]])
+    ]
   ],
-  withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect
+  withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect,
 )(
    background : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
    foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
-   decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
+   decorationsPlacementStrategy : PlacementStrategy[
+     PlacementEffect,
+     Rect[MeasurementUnit],
+     Rect[MeasurementUnit],
+     Rect[MeasurementUnit],
+     List,
+     Point2d[MeasurementUnit]
+   ],
+   masterPlacementStrategy : OneElementPlacementStrategy[
+     PlacementEffect,
+     Rect[MeasurementUnit],
+     Rect[MeasurementUnit],
+     Rect[BoundUnit],
+     Point2d[MeasurementUnit]
+   ],
 ) : Decorator[
   PlacementEffect[Sized[MeasurementUnit, Widget]]
 ] =
   original =>
     container(
       background ++ (original :: foreground),
-      elements =>
-        OPA.flatMap(elements(background.size))(originalSized =>
-          for
-            backgroundSized <- withBounds(originalSized.size)(elements.take(background.size).traverse(identity))
-            foregroundSized <- withBounds(originalSized.size)(elements.takeRight(foreground.size).traverse(identity))
-            sizedElements = backgroundSized ++ (originalSized :: foregroundSized)
-            backgroundSizes = backgroundSized.map(_.size)
-            foregroundSizes = foregroundSized.map(_.size)
-            placedElements <- decorationsPlacementStrategy(backgroundSizes ++ foregroundSizes, originalSized.size)
-            elementsCoodinates = placedElements.coordinates
-            shifts = (
-              elementsCoodinates.take(background.size)
-                ++ (Point2d(MUN.zero, MUN.zero) :: elementsCoodinates.takeRight(foreground.size))
-            ).mapWithIndex((point, index) => new Point3d(point, MUN.fromInt(index)))
-          yield Sized(sizedElements.map(_.value).zip(shifts), originalSized.size)
-        )
+      ContainerStrategy.combine(
+        measurementStrategy = MeasurementStrategy.layeredPlace[
+          PlacementEffect,
+          Measured[MeasurementUnit, BoundUnit, Widget]
+        ](
+          background.size,
+          (masterWidget, currentWidget) =>
+            withBounds(masterWidget.size)(currentWidget)
+        ),
+        placementStrategy = PlacementStrategy.MasterBasedStack(
+          decorationsPlacementStrategy,
+          masterPlacementStrategy,
+          background.size
+        ),
+        someMap = _.mapWithIndex:
+          case ((measuredWidget, point), index) =>
+            (
+              measuredWidget.value,
+              LayersMetadata(
+                new Point3d(point, MUN.fromInt(index)),
+                measuredWidget.size,
+                measuredWidget.bounds
+              )
+            ),
+        sizeOfItem = _.size
+      )
     )
 end layersWidget
+
+final case class LayersMetadata[Point, Size, Bounds](
+  point : Point,
+  size : Size,
+  bounds : Bounds
+)
+
+
+def placeOneIncrementally[
+  PlacementEffect[_] : Monad as PEM,
+  Widget,
+  MeasurementUnit,
+  BoundUnit,
+  Point
+](
+  getBounds : PlacementEffect[Rect[BoundUnit]],
+  widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[MeasurementUnit]],
+  widget: LayoutIncrementalWidget[
+    Widget,
+    PlacementEffect * SizedC[MeasurementUnit],
+    LayersMetadata[Point, Rect[MeasurementUnit], Rect[BoundUnit]]
+  ],
+): PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]] =
+  getBounds.flatMap:
+    bounds =>
+      if widget.meta.bounds == bounds then
+        Measured(widget.widget, widget.meta.size, bounds).pure[PlacementEffect]
+      else
+        PEM.map(
+            widget.newWidget.getOrElse(widgetAsFree(widget.widget))
+        )(new Measured(_, bounds))
+end placeOneIncrementally

@@ -7,16 +7,24 @@ import gui4s.core.widget.library.WithContext
 import scala.reflect.Typeable
 
 
-trait InitializationWidget[IO[_]]:
+import cats.effect.IO
+import cats.*
+import cats.effect.Resource
+import gui4s.core.widget.library.WithContext
+
+import scala.reflect.Typeable
+
+
+trait InitializationWidget:
   final def apply[
     Value: Typeable,
     Event,
   ](
     name : String,
     effectToRun : IO[Value],
-    body : Value => AndroidWidget[IO, Event],
-    placeholder : AndroidWidget[IO, Event],
-  ) : AndroidWidget[IO, Event] =
+    body : Value => AndroidWidget[Event],
+    placeholder : AndroidWidget[Event],
+  ) : AndroidWidget[Event] =
     apply[Value, Event](
       name,
       effectToRun
@@ -29,20 +37,18 @@ trait InitializationWidget[IO[_]]:
   def apply[Value: Typeable, Event](
                                      name: String,
                                      init: IO[Value]
-                                   ) : WithContext[AndroidWidget[IO, Event], Option[Value]]
+                                   ) : WithContext[AndroidWidget[Event], Option[Value]]
 end InitializationWidget
 
 object InitializationWidget:
   /**
    * TODO заменить ResourceWidget на [[gui4s.core.widget.library.initializeResourceWidget]]
    */
-  def apply[
-    IO[_] : Applicative,
-  ](
-    resourceWidget: ResourceWidget[IO]
-  ) : InitializationWidget[IO] =
-    new InitializationWidget[IO]:
-      override def apply[Value: Typeable, Event](name: String, init: IO[Value]): WithContext[AndroidWidget[IO, Event], Option[Value]] =
+  def apply(
+    resourceWidget: ResourceWidget
+  ) : InitializationWidget =
+    new InitializationWidget:
+      override def apply[Value: Typeable, Event](name: String, init: IO[Value]): WithContext[AndroidWidget[Event], Option[Value]] =
         resourceWidget(name, Resource.eval(init))
       end apply
     end new

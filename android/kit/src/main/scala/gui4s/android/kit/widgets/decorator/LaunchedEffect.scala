@@ -10,24 +10,24 @@ import gui4s.desktop.widget.library.{launchedEffect as genericLaunchedEffect, *}
 import scala.reflect.Typeable
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-def launchedEffect[IO[_] : MonadThrow as MT, Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[AndroidWidget[IO, Event], Key, Path => IO[Unit]] =
+def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[AndroidWidget[Event], Key, Path => IO[Unit]] =
   val lew : LaunchedEffectWidget[
-    AndroidWidget[IO, Event],
+    AndroidWidget[Event],
     Key,
-    Path => RecompositionReaction[IO]
+    Path => RecompositionReaction
   ] = genericLaunchedEffect[
-    UpdateC[IO, Event],
-    PlaceC[IO],
-    Draw[IO],
-    RecompositionReaction[IO],
+    UpdateC[Event],
+    Place,
+    Draw,
+    RecompositionReaction,
     DownEvent,
     Key
   ](
-    [T] => (path : Path, value : Any) => PlacementEffect.raiseError(new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
+    [T] => (path : Path, value : Any) => Place.raiseError[Throwable, T](new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
     (valueFound : Any) => RecompositionReaction.lift[IO, Any](
-      MT.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
+      IO.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
     ),
-    Place.addNameToPath[IO]
+    Place.addNameToPath
   )
   (name, child, key, task) =>
     lew(name, child, key, path =>

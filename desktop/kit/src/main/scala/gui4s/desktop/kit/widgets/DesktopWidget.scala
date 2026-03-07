@@ -7,5 +7,5 @@ import gui4s.desktop.kit.effects._
 import gui4s.desktop.widget.library.Widget
 import cats.effect.*
 
-type DesktopPlacedWidget[Event] = Widget[UpdateC[IO, Event], PlaceC[IO], Draw[IO], RecompositionReaction[IO], DownEvent]
-type DesktopWidget[Event] = Place[IO, DesktopPlacedWidget[Event]]
+type DesktopPlacedWidget[Event] = Widget[UpdateC[Event], Place, Draw, RecompositionReaction[IO], DownEvent]
+type DesktopWidget[Event] = Place[DesktopPlacedWidget[Event]]

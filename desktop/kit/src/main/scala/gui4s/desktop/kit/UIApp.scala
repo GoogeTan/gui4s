@@ -27,6 +27,8 @@ import gui4s.desktop.skija.DirectContext.*
 import gui4s.desktop.skija.canvas.clear
 import gui4s.desktop.widget.library.*
 
+import scala.concurrent.duration.FiniteDuration
+
 enum UIAppError:
   case InitError(glfwError : GlfwError)
   case PlaceError(exception : Throwable)
@@ -37,6 +39,24 @@ enum UIAppError:
       case PlaceError(exception) => "PlaceError(" + exception + ")"
   end toString
 end UIAppError
+
+def tryTakeTimed(max : FiniteDuration, queue : Queue[IO, DownEvent]) : IO[Option[DownEvent]] =
+  for
+    startTime <- IO.realTime
+    res <- Monad[IO].tailRecM(())(
+      _ =>
+          queue.tryTake.flatMap:
+            case Some(value) => IO.pure(Right(Some(value)))
+            case None =>
+              IO.realTime
+                .map(_ - startTime > max)
+                .ifM(
+                  IO.pure(Left(())),
+                  IO.pure(Right(None))
+                )
+    )
+  yield res
+end tryTakeTimed
 
 trait UIApp extends IOApp:
   final given Typeable[IO[Unit]] = (a : Any) =>
@@ -68,7 +88,6 @@ trait UIApp extends IOApp:
       window <- glfw.createWindow(settings)
       _ <- glfw.makeContextCurrent(Some(window)).eval
 
-      eventBus <- Queue.unbounded[IO, DownEvent].to[IO].eval
       _ <- glfw.makeContextCurrent(Some(window)).eval
 
       eventBus <- Queue.unbounded[IO, DownEvent].to[IO].eval
@@ -77,13 +96,14 @@ trait UIApp extends IOApp:
       _ <- glfw.addFramebufferSizeCallback(
         window,
         (_ : GLFWwindow, w : Int, h : Int) =>
+          IO.delay(assert(Thread.currentThread().getId == 1))
           surface.recreateRenderTarget(Rect(w, h))
             *> eventBus.offer(DownEvent.WindowShouldBeRedrawn)
       ).eval
 
-      runPlaceK : (PlaceC[IO] ~> IO) = Place.run[IO](Path(Nil), windowBounds(window, glfw))
+      runPlaceK : (Place ~> IO) = Place.run(Path(Nil), windowBounds(window, glfw))
 
-      runDrawK : (Draw[IO] => IO[Boolean]) =
+      runDrawK : (Draw => IO[Boolean]) =
         draw =>
           surface.drawFrame(sur =>
             for
@@ -102,7 +122,8 @@ trait UIApp extends IOApp:
       exitCode <- desktopWidgetLoops[Nothing](
         runDraw =  runDrawK,
         runPlace = runPlaceK,
-        waitForTheNextEvent = eventBus.take,
+        waitForTheNextEvent =
+          eventBus.tryTake.map(_.getOrElse(DownEvent.WindowShouldBeRedrawn)),
         updateLoopExecutionContext = this.runtime.compute,
         drawLoopExecutionContext = MainThread,
         widget = widgetCell,

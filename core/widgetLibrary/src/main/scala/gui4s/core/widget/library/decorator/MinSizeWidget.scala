@@ -1,8 +1,9 @@
 package gui4s.core.widget.library.decorator
 
-import catnip.syntax.all._
-import cats._
-
+import catnip.syntax.all.{*, given}
+import cats.*
+import cats.syntax.all.*
+import gui4s.core.layout.{ContainerStrategy, OneElementPlacementStrategy, PlacementStrategy}
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 
@@ -12,7 +13,7 @@ import gui4s.core.widget.library.decorator.Decorator
  * @param ensureMinimalSize Функция, гарантирующая минимальный размер. Она принимает измеренный виджет,
  *                          доступные границы и возвращает его с иформцией о том, как он расположе.
  * @param minSize Минимальные размеры виджета
- * @tparam Widget Размещенный виджет
+ * @tparam PlacedWidget Размещенный виджет
  * @tparam OuterPlace Эффект установки виджета
  * @tparam InnerPlace Результат установки виджета. В частности, вероятно, это его размер.
  * @tparam Bounds Ограничения на размер виджета
@@ -21,16 +22,40 @@ import gui4s.core.widget.library.decorator.Decorator
  */
 def minSizeWidget[
   Widget,
+  PlacedWidget,
+  MeasuredWidget,
   PlacementEffect[_] : FlatMap as M,
-  Situated[_],
+  Size,
   Bounds,
+  Point,
   Meta
 ](
- containerWidget: ContainerWidget[Widget, Id, PlacementEffect * Situated, Meta],
- ensureMinimalSize : (Situated[Widget], Bounds) => PlacementEffect[Situated[(Widget, Meta)]]
-)(minSize : Bounds) : Decorator[PlacementEffect[Situated[Widget]]] =
+  containerWidget : ContainerWidget[
+    Widget,
+    Widget,
+    PlacementStrategy[
+      PlacementEffect,
+      PlacementEffect[MeasuredWidget],
+      Size,
+      Bounds,
+      Id,
+      (PlacedWidget, Meta)
+    ]
+  ],
+  getBounds : PlacementEffect[Bounds],
+  ensureMinimalSize : OneElementPlacementStrategy[PlacementEffect, Size, Size, Bounds, Point],
+  makeMeta : (MeasuredWidget, Bounds, Point) => (PlacedWidget, Meta),
+  itemSize : MeasuredWidget => Size
+)(minSize : Bounds) : Decorator[Widget] =
   containerWidget(
     _,
-    M.flatMap(_)(ensureMinimalSize(_, minSize))
+    ContainerStrategy.combine(
+      measurementStrategy = child => getBounds.flatMap(bounds => child.map(childPlaced => (childPlaced, bounds))),
+      placementStrategy = ensureMinimalSize,
+      someMap = {
+        case ((widget, bounds), point) => makeMeta(widget, bounds, point)
+      },
+      sizeOfItem = (item, _) => itemSize(item)
+    )
   )
 end minSizeWidget

@@ -15,4 +15,16 @@ enum Weighted[+T](val value: T):
           case Weight(_, weight) => Weight(value, weight)
       end match
   end as
+
+  def map[B](f : T => B) : Weighted[B] =
+    this match
+      case Weighted.Rigid(value) => Rigid(f(value))
+      case Weighted.Weight(value, weight) => Weight(f(value), weight)
+
+end Weighted
+
+object Weighted:
+  def apply[T](value : T, weight : Option[Float]) : Weighted[T] =
+    weight.fold(Rigid(value))(Weight(value, _))
+  end apply
 end Weighted

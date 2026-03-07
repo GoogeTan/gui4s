@@ -23,7 +23,7 @@ import gui4s.core.widget.library.decorator.Decorator
  * @tparam EnvironmentalEvent Внешнее событие
  */
 type UpdateDecorator[Update[_], Place[_], Widget, EnvironmentalEvent] =
-  HandlesEventF[Widget, EnvironmentalEvent, Update * Place] => Decorator[Place[Widget]]
+  HandlesEventF[Widget, EnvironmentalEvent, Update * Option * Place] => Decorator[Place[Widget]]
 
 /**
  * Декоратор, позволяющий задекорировать обновление виджета. Отличается от [[updateDecoratorWithRect]] тем, что
@@ -39,7 +39,7 @@ def updateDecorator[
   decorator : Decorator[
     WidgetHandlesEvent[
       EnvironmentalEvent,
-      Update[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]]
+      Update[Option[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]]]
     ]
   ]
 ): Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]] =
@@ -58,6 +58,7 @@ end updateDecorator
 
 /**
  * Реализация [[UpdateDecorator]]
+ * @todo Может, её стоит удалить, так как она просто конкретизация метода ниже
  */
 def updateDecoratorWithRect[
   Update[_] : Functor as UF,
@@ -69,28 +70,108 @@ def updateDecoratorWithRect[
 ] : UpdateDecorator[
   Update,
   PlacementEffect,
-  Situated[Widget[Update, [Value] =>> PlacementEffect[Situated[Value]], Draw, RecompositionReaction, EnvironmentalEvent]],
+  Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]],
   EnvironmentalEvent
 ] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
-  decorator => original => PF.map(original)(_.coflatMap(
-      sizedWidget =>
-        Widget.ValueWrapper[
-          Situated[Widget[Update, [Value] =>> PlacementEffect[Situated[Value]], Draw, RecompositionReaction, EnvironmentalEvent]],
-          Update,
-          PlacementEffect * Situated,
-          Draw,
-          RecompositionReaction,
-          EnvironmentalEvent
-        ](
+  decorator => original =>
+    trueUpdateDecoratorWithRect(
+      original,
+      decorator
+    )
+end updateDecoratorWithRect
+
+type WidgetWithSituated[
+  Update[_],
+  PlacementEffect[_],
+  Situated[_],
+  Draw,
+  RecompositionReaction,
+  EnvironmentalEvent,
+] =
+  Widget[
+    Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent
+  ]
+
+type FreeWidgetWithSituated[
+  Update[_],
+  PlacementEffect[_],
+  Situated[_],
+  Draw,
+  RecompositionReaction,
+  EnvironmentalEvent,
+] =
+  PlacementEffect[
+    Situated[
+      WidgetWithSituated[
+        Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+      ]
+    ]
+  ]
+
+type UpdateDecoratorFunction[
+  EnvironmentalEvent,
+  Widget[_[_]],
+  OldUpdate[_],
+  NewUpdate[_]
+] =
+  WidgetHandlesEvent[EnvironmentalEvent, Widget[OldUpdate]]
+    => WidgetHandlesEvent[EnvironmentalEvent, Widget[NewUpdate]]
+
+def trueUpdateDecoratorWithRect[
+  OldUpdate[_],
+  NewUpdate[_] : Functor as NUF,
+  PlacementEffect[_] : Functor as PF,
+  Situated[_] : Comonad,
+  Draw,
+  RecompositionReaction,
+  EnvironmentalEvent,
+](
+  original : FreeWidgetWithSituated[
+    OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+  ],
+  decorator :
+  (
+    Situated[
+      WidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent]
+    ],
+    Path,
+    EnvironmentalEvent
+  ) =>
+    NewUpdate[
+      Option[
+        FreeWidgetWithSituated[
+          OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+        ]
+      ]
+    ],
+) : FreeWidgetWithSituated[
+  NewUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+] =
+  given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
+  PF.map(original)(_.coflatMap(
+    sizedWidget =>
+      Widget.ValueWrapper[
+        Situated[Widget[OldUpdate, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]],
+        NewUpdate,
+        PlacementEffect * Situated,
+        Draw,
+        RecompositionReaction,
+        EnvironmentalEvent
+      ](
         valueToDecorate = sizedWidget,
         valueAsFree = self => PF.map(self.extract.asFree)(_.coflatten),
         valueIsDrawable = _.extract.draw,
-        valueHandlesEvent = (self, path, event) => UF.map(decorator(self, path, event))(PF.map(_)(_.coflatten)),
-        valueMergesWithOldState = (self, path, event) => PF.map(self.extract.mergeWithOldState(path, event))(_.coflatten),
+        valueHandlesEvent = (self, path, event) =>
+          NUF.map(decorator(self, path, event))(
+            _.map(
+              PF.map(_)(_.coflatten)
+            )
+          ),
+        valueMergesWithOldState = (self, path, event) => self.extract.mergeWithOldState(path, event).map(PF.map(_)(_.coflatten)),
         valueReactsOnRecomposition = _.extract.reactOnRecomposition(_, _),
         valueHasInnerState = _.extract.innerStates
       )
-    )
   )
-end updateDecoratorWithRect
+  )
+end trueUpdateDecoratorWithRect

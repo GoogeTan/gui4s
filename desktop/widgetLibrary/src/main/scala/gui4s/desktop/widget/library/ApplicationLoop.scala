@@ -61,6 +61,7 @@ def widgetLoops[
               ](
                 Path(Nil),
                 runRecomposition,
+                widgetAsFree,
                 widgetHandlesEvent,
                 widgetReactsOnRecomposition,
                 widgetHasInnerStates,

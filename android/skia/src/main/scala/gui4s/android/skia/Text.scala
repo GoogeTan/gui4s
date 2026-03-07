@@ -1,6 +1,5 @@
 package gui4s.android.skia
 
-import cats.*
 import cats.effect.*
 
 import gui4s.core.layout.*

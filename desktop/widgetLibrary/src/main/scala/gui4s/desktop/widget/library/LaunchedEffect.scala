@@ -31,6 +31,8 @@ def launchedEffect[
   addNameToPath : String => Place ~> Place
 ) : LaunchedEffectWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]], Key, Path => RecompositionReaction] =
   type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]
+  given updateOptionFunctor : Functor[Update * Option] = nestedFunctorsAreFunctors[Update, Option]()
+  given updateOptionPlaceFunctor : Functor[Update * Option * Place] = nestedFunctorsAreFunctors[Update * Option, Place]()
   (name, freeChild, key, task) =>
     addNameToPath(name)(freeChild).map:
       child =>
@@ -50,15 +52,19 @@ def launchedEffect[
         ](
           valueToDecorate = (LaunchedEffect(name, key, task), child),
           valueAsFree = Strong[[A, B] =>> A => Place[B]].second(widgetAsFree),
-          valueIsDrawable = Contravariant[[A] =>> A => Draw].contramap(widgetIsDrawable)(_._2),
+          valueIsDrawable = Contravariant[* => Draw].contramap(widgetIsDrawable)(_._2),
           valueHandlesEvent =
-            handlesEventFIsStrong[Update * Place, HandlableEvent](using nestedFunctorsAreFunctors[Update, Place])
+            handlesEventFIsStrong[Update * Option * Place, HandlableEvent]
               .second(
                 mapEventHandle(
                   widgetHandlesEvent
-                )(_.map(addNameToPath(name)(_)))
+                )(_.map(_.map(addNameToPath(name)(_))))
               ),
-          valueMergesWithOldState = launchedEffectMergesWithOldState(using KT, PF)(keyTypeError, widgetMergesWithOldState),
+          valueMergesWithOldState = launchedEffectMergesWithOldState(using KT, PF)(
+            keyTypeError, 
+            widgetMergesWithOldState,
+            widgetAsFree
+          ),
           valueReactsOnRecomposition = reactsOnRecompositionIsContravariantMonoidal.product(
             launchedEffectReactsOnRecomposition(M.empty, keysTypeMismatchError),
             widgetReactsOnRecomposition

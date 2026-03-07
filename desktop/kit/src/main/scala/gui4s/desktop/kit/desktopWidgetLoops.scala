@@ -14,8 +14,8 @@ import gui4s.desktop.widget.library.widgetLoops
 def desktopWidgetLoops[
   Event,
 ](
-   runDraw : Draw[IO] => IO[Boolean],
-   runPlace : PlaceC[IO] ~> IO,
+   runDraw : Draw => IO[Boolean],
+   runPlace : Place ~> IO,
    waitForTheNextEvent : IO[DownEvent],
    drawLoopExecutionContext : ExecutionContext,
    updateLoopExecutionContext : ExecutionContext,
@@ -24,16 +24,16 @@ def desktopWidgetLoops[
   widgetLoops[
     IO,
     IO,
-    UpdateC[IO, Event],
-    PlaceC[IO],
-    Draw[IO],
-    RecompositionReaction[IO],
+    UpdateC[Event],
+    Place,
+    Draw,
+    RecompositionReaction,
     DownEvent,
     ExitCode
   ](
     waitForTheNextEvent = waitForTheNextEvent,
     widget = widget,
-    runUpdate = Update.runUpdate[IO, Event],
+    runUpdate = Update.runUpdate[Event],
     runPlace = runPlace,
     runDraw = runDraw,
     runRecomposition = RecompositionReaction.run,

@@ -1,110 +1,109 @@
 package gui4s.android.kit.effects
 
+import cats.effect.IO
 import gui4s.core.geometry.Point3d
 import gui4s.core.kit.effects as generic_effects
 import gui4s.core.kit.effects.UpdateState
 
-type Update[IO[_], Event, A] = generic_effects.Update[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable, A]
-type UpdateC[IO[_], Event] = Update[IO, Event, *]
+type Update[Event, A] = generic_effects.Update[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable, A]
+type UpdateC[Event] = Update[Event, *]
 
 object Update:
-  given biMonadInstance[IO[_] : Monad] : BiMonad[[A, B] =>> Update[IO, A, B]] =
+  given biMonadInstance : BiMonad[[A, B] =>> Update[A, B]] =
     generic_effects.Update.biMonadInstance
 
-  def pure[IO[_] : Monad, Event, A](a : A) : Update[IO, Event, A] =
-    biMonadInstance[IO]().pure(a)
+  def pure[Event, A](a : A) : Update[Event, A] =
+    biMonadInstance().pure(a)
   end pure
 
-  def liftK[IO[_] : Monad, Event] : IO ~> UpdateC[IO, Event] =
+  def liftK[Event] : IO ~> UpdateC[Event] =
     generic_effects.Update.liftK
   end liftK
 
-  def getState[IO[_] : Monad, Event]: Update[IO, Event, UpdateState[Point3d[Float], Clip]] =
+  def getState[Event]: Update[Event, UpdateState[Point3d[Float], Clip]] =
     generic_effects.Update.getState
   end getState
 
-  def setState[IO[_] : Monad, Event](state: UpdateState[Point3d[Float], Clip]): Update[IO, Event, Unit] =
+  def setState[Event](state: UpdateState[Point3d[Float], Clip]): Update[Event, Unit] =
     generic_effects.Update.setState(state)
   end setState
 
-  def updateState[IO[_] : Monad, Event](f: UpdateState[Point3d[Float], Clip] => UpdateState[Point3d[Float], Clip]): Update[IO, Event, Unit] =
+  def updateState[Event](f: UpdateState[Point3d[Float], Clip] => UpdateState[Point3d[Float], Clip]): Update[Event, Unit] =
     generic_effects.Update.updateState(f)
   end updateState
 
-  def emitEvents[IO[_] : Monad, Event](events : List[Event]): Update[IO, Event, Unit] =
+  def emitEvents[Event](events : List[Event]): Update[Event, Unit] =
     generic_effects.Update.emitEvents(events)
   end emitEvents
 
-  def emitEvents[IO[_] : Monad, Event](events : NonEmptyList[Event]): Update[IO, Event, Unit] =
+  def emitEvents[Event](events : NonEmptyList[Event]): Update[Event, Unit] =
     generic_effects.Update.emitEvents(events.toList)
   end emitEvents
 
-  def catchEvents[IO[_] : Monad, Event, NewEvent]: [T] => Update[IO, Event, T] => Update[IO, NewEvent, (T, List[Event])] =
+  def catchEvents[Event, NewEvent]: [T] => Update[Event, T] => Update[NewEvent, (T, List[Event])] =
     generic_effects.Update.catchEvents[IO, UpdateState[Point3d[Float], Clip], List[Event], List[NewEvent], Throwable]
   end catchEvents
 
-  def mapEvents[IO[_] : Monad, Event, NewEvent](f : Event => NewEvent) : UpdateC[IO, Event] ~> UpdateC[IO, NewEvent] =
+  def mapEvents[Event, NewEvent](f : Event => NewEvent) : UpdateC[Event] ~> UpdateC[NewEvent] =
     generic_effects.Update.mapEvents(_.map(f))
   end mapEvents
 
-  def run[IO[_] : Monad, Event](initialState : UpdateState[Point3d[Float], Clip])
-      : [T] => Update[IO, Event, T] => IO[Either[Throwable, (List[Event], (UpdateState[Point3d[Float], Clip],  T))]] =
+  def run[Event](initialState : UpdateState[Point3d[Float], Clip])
+      : [T] => Update[Event, T] => IO[Either[Throwable, (List[Event], (UpdateState[Point3d[Float], Clip],  T))]] =
     generic_effects.Update.run[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable](initialState)
   end run
 
-  def raiseError[IO[_] : Monad, Event, Value](error : Throwable) : Update[IO, Event, Value] =
+  def raiseError[Event, Value](error : Throwable) : Update[Event, Value] =
     generic_effects.Update.raiseError(error)
   end raiseError
 
-  def getCornerCoordinates[IO[_] : Monad, Event] : Update[IO, Event, Point3d[Float]] =
+  def getCornerCoordinates[Event] : Update[Event, Point3d[Float]] =
     generic_effects.Update.getCornerCoordinates
   end getCornerCoordinates
 
-  def getClip[IO[_] : Monad, Event] : Update[IO, Event, Clip] =
+  def getClip[Event] : Update[Event, Clip] =
     generic_effects.Update.getClip
   end getClip
 
-  def setClip[IO[_] : Monad, Event](clip : Clip) : Update[IO, Event, Unit] =
+  def setClip[Event](clip : Clip) : Update[Event, Unit] =
     generic_effects.Update.setClip[IO, Point3d[Float], Clip, List[Event], Throwable](clip)
   end setClip
 
-  def markEventHandled[IO[_] : Monad, Event] : Update[IO, Event, Unit] =
+  def markEventHandled[Event] : Update[Event, Unit] =
     generic_effects.Update.markEventHandled
   end markEventHandled
 
-  def isEventHandled[IO[_] : Monad, Event] : Update[IO, Event, Boolean] =
+  def isEventHandled[Event] : Update[Event, Boolean] =
     generic_effects.Update.isEventHandled
   end isEventHandled
 
   def withCornerCoordinates[
-    IO[_] : Monad,
     Event,
     Value
   ](
-    original : Update[IO, Event, Value],
+    original : Update[Event, Value],
     f : Point3d[Float] => Point3d[Float]
-  ) : Update[IO, Event, Value] =
+  ) : Update[Event, Value] =
     generic_effects.Update.withCornerCoordinates(original, f)
   end withCornerCoordinates
 
   def withClip[
-    IO[_] : Monad,
     Event,
     Value
   ](
-      original : Update[IO, Event, Value],
+      original : Update[Event, Value],
       f : (Clip, Point3d[Float]) => Clip
-  ) : Update[IO, Event, Value] =
+  ) : Update[Event, Value] =
     generic_effects.Update.withClip(original, f)
   end withClip
 
 
-  def runUpdate[IO[_] : MonadThrow, Event]: [T] => Update[IO, Event, T] => IO[Either[ExitCode, T]] =
+  def runUpdate[Event]: [T] => Update[Event, T] => IO[Either[ExitCode, T]] =
     import Clip.given
     [T] => update =>
-      run[IO, Event](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
+      run[Event](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
         case Right((_, (_, widget))) => Right(widget).pure[IO]
-        case Left(error) => error.raiseError.as(Left(ExitCode.Error))
+        case Left(error) => error.raiseError[IO, Unit].as(Left(ExitCode.Error))
       }
   end runUpdate
 end Update

@@ -37,7 +37,7 @@ object LaunchedEvent:
       IO,
       DesktopWidget[Event],
       Key,
-      Update[IO, *, *],
+      Update,
       Situated[DesktopPlacedWidget[Event]],
       DownEvent,
       Event
@@ -48,12 +48,12 @@ object LaunchedEvent:
       catchEvent = (path, event) =>
         DownEvent.catchExternalEvent(path, event) match
           case None =>
-            false.pure[UpdateC[IO, Event]]
+            false.pure[UpdateC[Event]]
           case Some[Any](valueFound : Any) =>
             eventFromAny(valueFound).fold(
-              Update.raiseError[IO, Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+              Update.raiseError[Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
             )(
-              event => Update.emitEvents[IO, Event](List(event)).as(true)
+              event => Update.emitEvents[Event](List(event)).as(true)
             )
     )
   end apply

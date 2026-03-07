@@ -1,20 +1,18 @@
 package gui4s.android.kit.widgets
 
-import android.graphics.drawable.Drawable
+import cats.effect.IO
 import gui4s.core.layout.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Place.given
-import gui4s.core.geometry.Rect
-import cats.effect.syntax.all.*
 
-def drawOnlyWidget[IO[_] : Monad, Event](
-  draw : Place[IO, Draw[IO]]
-) : AndroidWidget[IO, Event] =
+def drawOnlyWidget[Event](
+  draw : Place[Draw]
+) : AndroidWidget[Event] =
   gui4s.desktop.widget.library.drawOnlyWidget[
-      UpdateC[IO, Event],
-      PlaceC[IO],
-      Draw[IO],
-      RecompositionReaction[IO],
+      UpdateC[Event],
+      PlaceC,
+      Draw,
+      RecompositionReaction,
       DownEvent,
   ](
       draw,
@@ -22,15 +20,15 @@ def drawOnlyWidget[IO[_] : Monad, Event](
   )
 end drawOnlyWidget
 
-def constSizedDrawOnlyWidget[IO[_] : Monad, Event](
-  draw : Sized[Float, Draw[IO]]
-) : AndroidWidget[IO, Event] =
+def constSizedDrawOnlyWidget[Event](
+  draw : Sized[Float, Draw]
+) : AndroidWidget[Event] =
   gui4s.desktop.widget.library.constanctSizeDrawOnlyWidget[
-      UpdateC[IO, Event],
-      PlacementEffectC[IO],
+      UpdateC[Event],
+      PlacementEffectC,
       Situated,
-      Draw[IO],
-      RecompositionReaction[IO],
+      Draw,
+      RecompositionReaction,
       DownEvent,
   ](
       draw,

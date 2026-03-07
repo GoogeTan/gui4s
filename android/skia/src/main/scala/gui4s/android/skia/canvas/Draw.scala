@@ -2,8 +2,6 @@ package gui4s.android.skia.canvas
 
 import org.jetbrains.skia.paragraph.*
 import org.jetbrains.skia.*
-import cats.*
-import cats.data.*
 import cats.effect.*
 import Canvased.*
 

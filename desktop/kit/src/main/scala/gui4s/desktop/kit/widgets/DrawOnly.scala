@@ -10,13 +10,13 @@ import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.kit.effects._
 
 def drawOnlyWidget[Event](
-  draw : Place[IO, Draw[IO]]
+  draw : Place[Draw]
 ) : DesktopWidget[Event] =
   gui4s.desktop.widget.library.drawOnlyWidget[
-      UpdateC[IO, Event],
-      PlaceC[IO],
-      Draw[IO],
-      RecompositionReaction[IO],
+      UpdateC[Event],
+      Place,
+      Draw,
+      RecompositionReaction,
       DownEvent,
   ](
       draw,
@@ -25,14 +25,14 @@ def drawOnlyWidget[Event](
 end drawOnlyWidget
 
 def constSizedDrawOnlyWidget[Event](
-  draw : Sized[Float, Draw[IO]]
+  draw : Sized[Float, Draw]
 ) : DesktopWidget[Event] =
   gui4s.desktop.widget.library.constanctSizeDrawOnlyWidget[
-      UpdateC[IO, Event],
-      PlacementEffectC[IO],
+      UpdateC[Event],
+      PlacementEffect,
       Situated,
-      Draw[IO],
-      RecompositionReaction[IO],
+      Draw,
+      RecompositionReaction,
       DownEvent,
   ](
       draw,

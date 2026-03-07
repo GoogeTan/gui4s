@@ -1,4 +1,4 @@
-package gui4s.core.layout.rowcolumn
+package gui4s.core.layout
 
 import cats.*
 import cats.syntax.all.*
@@ -29,11 +29,10 @@ def weightedRowColumnLayoutPlacement[
   weightedSize : (BoundUnit, Float) => BoundUnit,
   mainAxis : Axis,
   children : List[Weighted[Place[Sized[MeasurementUnit, Widget]]]],
-  elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[BoundUnit], List, Point2d[MeasurementUnit]],
+  elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit], List, Point2d[MeasurementUnit]],
 ) : Place[Sized[MeasurementUnit, List[Placed[MeasurementUnit, Widget]]]] =
   for
     (rigidChildren, weightedChildren) = splitChildren(children)
-
 
     sizedRigidItems <- measureItemsOneByOne[Place, List, Rect[BoundUnit], Sized[MeasurementUnit, Widget]](
       getBounds = getBounds,

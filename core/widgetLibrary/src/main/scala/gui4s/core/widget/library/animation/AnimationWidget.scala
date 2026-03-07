@@ -61,7 +61,7 @@ def animationWidget[
         currentTime(
           time =>
             callback(mergeStates(oldState, newState, time))
-        )
+        ).some
     )
 end animationWidget
 

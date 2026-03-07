@@ -25,9 +25,9 @@ object ResourceWidget:
       override def apply[T, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
         body => genericResourceWidget[
           DesktopWidget,
-          Update[IO, *, *],
-          PlaceC[IO],
-          RecompositionReaction[IO],
+          Update,
+          Place,
+          RecompositionReaction,
           IO,
           Event
         ](

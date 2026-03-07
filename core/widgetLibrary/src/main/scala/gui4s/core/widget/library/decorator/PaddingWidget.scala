@@ -1,15 +1,10 @@
 package gui4s.core.widget.library.decorator
 
-import catnip.syntax.all._
-import cats._
-import cats.syntax.all._
-
-import gui4s.core.geometry.Axis
-import gui4s.core.geometry.InfinityOr
-import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
-import gui4s.core.layout.rowcolumn.PlacementStrategy
-import gui4s.core.widget.library.ContainerWidget
-import gui4s.core.widget.library.LinearContainer
+import catnip.syntax.all.{*, given}
+import cats.*
+import gui4s.core.geometry.{Axis, InfinityOr}
+import gui4s.core.layout.{ContainerStrategy, OneElementPlacementStrategy, PlacementStrategy}
+import gui4s.core.widget.library.{ContainerWidget, LinearContainer}
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
@@ -17,22 +12,41 @@ type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
  * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
  */
 def gapPaddingWidget[
+  Widget,
   PlacedWidget,
-  OuterPlace[_] : Functor,
-  InnerPlace[_],
+  PlacementEffect[_] : FlatMap,
+  MeasuredWidget,
   Meta,
-  MeasurementUnit,
-  Paddings,
+  Size,
+  Bounds,
+  Point,
 ](
-  container : ContainerWidget[PlacedWidget, Id, OuterPlace * InnerPlace, Meta],
-  boundsWithPaddings : Paddings => OuterPlace ~> OuterPlace,
-  innerPlaceWithPaddings : [T] => Paddings => InnerPlace[T] => InnerPlace[(T, Meta)],
-): PaddingWidget[OuterPlace[InnerPlace[PlacedWidget]], Paddings] =
-  paddings => original =>
+  container : ContainerWidget[
+    Widget,
+    Widget,
+    PlacementStrategy[
+      PlacementEffect,
+      PlacementEffect[MeasuredWidget],
+      Size,
+      Bounds,
+      Id,
+      (PlacedWidget, Meta)
+    ]
+  ],
+  boundsWithPaddings : PlacementEffect ~> PlacementEffect,
+  innerPlaceWithPaddings : OneElementPlacementStrategy[PlacementEffect, Size, Size, Bounds, Point],
+  makeMeta : (MeasuredWidget, Point) => (PlacedWidget, Meta),
+  sizeOfItem : MeasuredWidget => Size
+): Decorator[Widget] =
+  original =>
     container(
       original,
-      child =>
-        boundsWithPaddings(paddings)(child).map(innerPlaceWithPaddings(paddings))
+      ContainerStrategy.combine(
+        measurementStrategy = boundsWithPaddings(_),
+        placementStrategy = innerPlaceWithPaddings, 
+        someMap = makeMeta(_, _), 
+        sizeOfItem = sizeOfItem
+      )
     )
 end gapPaddingWidget
 
@@ -41,7 +55,7 @@ def paddingLayoutPlacementStrategy[
   MeasurementUnit: Fractional,
 ](
    paddings: Paddings[Padding[MeasurementUnit]],
- ): OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit] =
+ ): OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, MeasurementUnit] =
   (paddings.left, paddings.right) match
     case (Padding.Gap(_), _) => OneElementPlacementStrategy.Begin[Place, MeasurementUnit, MeasurementUnit]
     case (Padding.Fill, Padding.Gap(_)) => OneElementPlacementStrategy.End

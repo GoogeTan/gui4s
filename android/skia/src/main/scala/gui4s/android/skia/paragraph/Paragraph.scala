@@ -1,7 +1,6 @@
 package gui4s.android.skia.paragraph
 
 import org.jetbrains.skia.paragraph.*
-import org.jetbrains.skia.*
 import gui4s.core.geometry.Rect
 
 def buildParagraph[F[_] : Sync](

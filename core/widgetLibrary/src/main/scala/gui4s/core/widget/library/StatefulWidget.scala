@@ -3,12 +3,13 @@ package gui4s.core.widget.library
 import scala.reflect.Typeable
 
 import catnip.ContT
+import catnip.syntax.all.*
 import cats.data.NonEmptyList
 
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
 
-type MergeStates[Place[_], State] = [T] => (StatefulState[State], StatefulState[State], StatefulState[State] => Place[T]) => Place[T]
+type MergeStates[Place[_], State] = [T] => (StatefulState[State], StatefulState[State], StatefulState[State] => Place[T]) => Option[Place[T]]
 type MergeStates2[Place[_], State] =
   (StatefulState[State], StatefulState[State]) => ContT[Place, StatefulState[State]]
 
@@ -46,7 +47,7 @@ trait StatefulWidget[Widget[_], Update[Event, Value], -Destructor[_], -MergeStat
   ](
      name: String,
      initialState: State,
-     eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
+     eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *] * Option],
      body: State => Widget[ChildEvent],
      destructor: Destructor[State],
      mergeStates : MergeStates[State]

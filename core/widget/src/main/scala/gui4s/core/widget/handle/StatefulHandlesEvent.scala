@@ -17,18 +17,18 @@ def statefulHandlesEvent[
   Update[_] : Monad,
   Place[_] : Functor,
   Widget,
-  State : Equiv as stateEquiality,
+  State,
   ChildEvent,
   EnvironmentalEvent
 ](
-    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[State]],
+    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Option[State]]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childWidgetHandlesEvent  : HandlesEvent[Widget, EnvironmentalEvent, Update[(Place[Widget], List[ChildEvent])]],
-    widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place[Widget]],
+    childWidgetHandlesEvent  : HandlesEvent[Widget, EnvironmentalEvent, Update[(Option[Place[Widget]], List[ChildEvent])]],
+    widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place, Widget],
 ) : HandlesEvent[
   Stateful[Widget, State],
   EnvironmentalEvent,
-  Update[Place[Stateful[Widget, State]]]
+  Update[Option[Place[Stateful[Widget, State]]]]
 ] =
   (
     self: Stateful[Widget, State],
@@ -44,16 +44,26 @@ def statefulHandlesEvent[
       newState : Option[State] <-
         NonEmptyList.fromList(events)
           .traverse(stateHandlesEvents(self.stateBehaviour, pathToParent / self.name, _))
-    yield newState
-      .filterNot(stateEquiality.equiv(_, self.stateBehaviour))
-      .map(newState =>
-        widgetsAreMergable.updateState(
+          .map(_.flatten)
+    yield (newState, newChildWidget) match
+      case (Some(newState), Some(newChildWidget)) =>
+        widgetsAreMergable.mergeUpdatedAndRerenderedWidgets(
           pathToParent / self.name,
           newChildWidget,
           drawStateIntoWidget(newState)
         ).map(newChild =>
           self.copy(stateBehaviour = newState, child = newChild)
-        )
-      )
-      .getOrElse(newChildWidget.map(newChild => self.copy(child = newChild)))
+        ).some
+      case (None, Some(newChildWidget)) =>
+        newChildWidget.map(newChildWidgetPlaced => self.copy(child = newChildWidgetPlaced)).some
+      case (Some(newState), None) =>
+        widgetsAreMergable.mergeOldAndRerenderedWidgets(
+          pathToParent / self.name,
+          self.child,
+          drawStateIntoWidget(newState)
+        ).map(newChild =>
+          self.copy(stateBehaviour = newState, child = newChild)
+        ).some
+      case (None, None) =>
+        None
 end statefulHandlesEvent

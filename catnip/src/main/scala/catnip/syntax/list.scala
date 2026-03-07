@@ -14,25 +14,29 @@ object list:
     c.reduceMapK(A.pure)
   end fromList
 
-  type TraverseOrdered[Effect[_], Collection[_]] =
-    [A : Order, B] => Collection[A]  => (Collection[A] => Effect[Collection[B]])=> Effect[Collection[B]]
+  type TraverseOrdered[Effect[_], Collection[_], A] =
+    [B] => Collection[A]  => (Collection[A] => Effect[Collection[B]])=> Effect[Collection[B]]
 
   /**
    * Производит обработку списка в указаном порядке элементов без нарушенения их порядка в результирующем списке.
    */
-  def traverseOrdered[F[_] : Functor, C[_] : {Traverse as CT, Sortable as CS, Zip}] : TraverseOrdered[F, C] =
-    [A : Order, B] => list => f =>
+  def traverseOrdered[F[_] : Functor, C[_] : {Traverse as CT, Sortable as CS, Zip}, A : Order] : TraverseOrdered[F, C, A] =
+    [B] => list => f =>
       val sorted = CS.sortBy(
         CT.zipWithIndex(list),
         _._1
       )
       val (sortedValues, indexes) = sorted.unzip
-
+      //TODO мы помним перестановку: можно за линейное время получить ответ.
       f(sortedValues).map(res => CS.sortBy(res.zip(indexes), _._2).map(_._1))
   end traverseOrdered
 
-  def traverseOne[F[_]]: TraverseOrdered[F, Id] =
-    [A: Order, B] => value => f => f(value)
+  def traverseUnordered[F[_] : Functor, C[_] : {Traverse as CT}, A] : TraverseOrdered[F, C, A] =
+    [B] => list => f => f(list)
+  end traverseUnordered
+
+  def traverseOne[F[_], A]: TraverseOrdered[F, Id, A] =
+    [B] => value => f => f(value)
   end traverseOne
 
   def foldOrdered[M : Monoid, C[_] : {Sortable as CS, Foldable}] :

@@ -31,10 +31,10 @@ object TextWidget:
     new TextWidget:
       override def apply[Event](text : String, style : SkijaTextStyle) : DesktopWidget[Event] =
         genericText[
-          UpdateC[IO, Event],
-          PlaceC[IO],
-          Draw[IO],
-          RecompositionReaction[IO],
+          UpdateC[Event],
+          Place,
+          Draw,
+          RecompositionReaction,
           DownEvent,
           SkijaPlacedText
         ](

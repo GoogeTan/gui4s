@@ -29,9 +29,9 @@ def drawDecorator[
           valueAsFree = placed => PF.map(placed.extract.asFree)(_.coflatten),
           valueIsDrawable = self => toDraw(self.map(_.draw)),
           valueHandlesEvent = (self, path, event) =>
-            self.extract.handleEvent(path, event).map(_.map(_.coflatten)),
+            self.extract.handleEvent(path, event).map(_.map(PF.map(_)(_.coflatten))),
           valueMergesWithOldState = (self, path, states) =>
-            PF.map(self.extract.mergeWithOldState(path, states))(_.coflatten),
+            self.extract.mergeWithOldState(path, states).map(PF.map(_)(_.coflatten)),
           valueReactsOnRecomposition = (self, path, states) =>
             self.extract.reactOnRecomposition(path, states),
           valueHasInnerState =

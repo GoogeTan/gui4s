@@ -20,4 +20,12 @@ object NormedVectorSpace:
     def times(a: T, scalar: Double): T = a * N.parseString(scalar.toString).get//TODO remove this thing
     def magnitude(a: T): Double = abs(a.toDouble)
   end numericNormedVectorSpace
+
+  given floatNormedVectorSpace : NormedVectorSpace[Float] with
+    def zero: Float = 0.0
+    def plus(a: Float, b: Float): Float = a + b
+    def minus(a: Float, b: Float): Float = a - b
+    def times(a: Float, scalar: Double): Float = a * scalar.toFloat
+    def magnitude(a: Float): Double = abs(a.toDouble)
+  end floatNormedVectorSpace
 end NormedVectorSpace

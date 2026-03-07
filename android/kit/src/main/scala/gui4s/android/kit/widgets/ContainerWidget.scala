@@ -1,106 +1,158 @@
 package gui4s.android.kit
 package widgets
 
-import catnip.Zip
-import catnip.syntax.applicative.given
-import catnip.syntax.list.TraverseOrdered
-import catnip.syntax.list.traverseOne
-import catnip.syntax.list.traverseOrdered
-import catnip.syntax.zip.given
-import cats.*
-import cats.data.*
-import cats.effect.kernel.Sync
-import gui4s.android.kit.widgets.AndroidPlacedWidget
-import gui4s.core.geometry.Axis
-import gui4s.core.geometry.InfinityOr
-import gui4s.core.geometry.Point3d
-import gui4s.core.widget.library.ContainerWidget
-import gui4s.core.widget.library.LinearContainer
-import gui4s.core.widget.library.linearContainer as genericLinearContainer
-import gui4s.core.kit.ContainerPlacementError
-import gui4s.android.kit.effects.Draw.given
-import gui4s.android.kit.effects.Place.given
-import gui4s.android.skia.canvas.drawAt
+import catnip.syntax.all.{*, given}
 import gui4s.android.kit.effects.*
-import gui4s.desktop.widget.library.container as genericContainer
+import gui4s.android.kit.effects.Draw.{monoidInstance, given}
+import gui4s.android.kit.effects.Place.given
+import gui4s.android.kit.widgets.{AndroidPlacedWidget, AndroidWidget}
+import gui4s.android.skia.canvas.drawAt
+import gui4s.core.geometry.{InfinityOr, Point3d, Rect}
+import gui4s.core.layout.{Measured, OneElementPlacementStrategy, PlacementStrategy, Sized}
+import gui4s.core.widget.handle.{Layout, LayoutIncrementalWidget}
+import gui4s.core.widget.library.{GenericLayout, LayersMetadata}
+import gui4s.desktop.widget.library.{widgetAsFree, widgetIsDrawable, container as genericContainer}
+
+def measureWithBounds[T](value : Place[T]) : PlacementEffect[Measured[Float, InfinityOr[Float], T]] =
+  PlacementEffect.getBounds.flatMap(bounds =>
+    value.map(new Measured(_, bounds))
+  )
+end measureWithBounds
+
+def measureWithBoundsIncrementally[Event, Point](
+  child  : LayoutIncrementalWidget[
+    AndroidPlacedWidget[Event],
+    PlaceC,
+    LayersMetadata[Point, Rect[Float], Bounds]
+  ]
+) : PlacementEffect[
+  Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]
+] =
+  PlacementEffect.getBounds.flatMap(bounds =>
+    child.newWidget.getOrElse[AndroidWidget[Event]](
+      if bounds == child.meta.bounds then
+        Sized(child.widget, child.meta.size).pure[PlacementEffectC]
+      else
+        widgetAsFree(child.widget)
+    ).map(new Measured(_, bounds))
+  )
+end measureWithBoundsIncrementally
 
 def containerWidget[
-  IO[_] : Sync,
-  Collection[_] : Traverse,
+  Collection[_] : {Traverse, Sortable, Zip},
   Event
 ](
-  updateContainerOrdered : TraverseOrdered[UpdateC[IO, Event], Collection]
-) : ContainerWidget[AndroidPlacedWidget[IO, Event], Collection, PlaceC[IO], Point3d[Float]] =
-  given Order[Point3d[Float]] = Order.reverse(Order.by(_.z)) // Нам надо сначала врехние, а не нижние
-  genericContainer(
-    (draw, meta) => drawAt(meta.x, meta.y, draw),
-    [T] => (update, point) => Update.withCornerCoordinates(update, _ + point),
-    Update.isEventHandled,
-    lst => f => updateContainerOrdered(lst)(f)
+  children : Collection[AndroidWidget[Event]],
+  placementStrategy : PlacementStrategy[
+    PlacementEffect,
+    PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
+    Rect[Float],
+    Bounds,
+    Collection,
+    (AndroidPlacedWidget[Event], LayersMetadata[Point3d[Float], Rect[Float], Bounds])
+  ]
+) : AndroidWidget[Event] =
+  containerWidget2(
+    children,
+    GenericLayout(
+      measureWithBounds = measureWithBounds,
+      measureWithBoundsIncrementally = measureWithBoundsIncrementally[Event, Point3d[Float]],
+      getBounds = PlacementEffect.getBounds,
+      placementStrategy = placementStrategy,
+    ),
+    incrementalFreeChildrenFromPlaced = LayoutIncrementalWidget(_, _),
+    pointOfMeta = _.point
   )
 end containerWidget
 
-def linearContainerWidget[
-  IO[_] : Sync,
+def containerWidget2[
+  Collection[_] : {Traverse, Sortable, Zip},
   Event,
-  Collection[_] : {Applicative, Traverse, Zip}
-](traverseOrdered: TraverseOrdered[UpdateC[IO, Event], Collection]) : LinearContainer[AndroidWidget[IO, Event], PlacementEffect[IO, *], Collection, InfinityOr[Float], Float, Axis] =
-  genericLinearContainer[
-    AndroidPlacedWidget[IO, Event],
-    PlacementEffect[IO, *],
+  FreeWidget,
+  IncrementalFreeWidget,
+  Meta
+](
+  childrenIn : Collection[FreeWidget],
+  layout : Layout[
+    Place,
     Collection,
-    InfinityOr[Float],
-    Float,
+    FreeWidget,
+    IncrementalFreeWidget,
+    (AndroidPlacedWidget[Event], Meta)
+  ],
+  incrementalFreeChildrenFromPlaced: (
+    (AndroidPlacedWidget[Event], Meta),
+      Option[AndroidWidget[Event]]
+    ) => IncrementalFreeWidget,
+  pointOfMeta : Meta => Point3d[Float]
+) : AndroidWidget[Event] =
+  type WidgetAndItsPositionInContainer = (AndroidPlacedWidget[Event], Meta)
+  genericContainer[
+    UpdateC[Event],
+    Place,
+    Collection,
+    Draw,
+    RecompositionReaction,
+    DownEvent,
+    Meta,
+    FreeWidget,
+    IncrementalFreeWidget
   ](
-    container = containerWidget[IO, Collection, Event](
-      traverseOrdered,
-      
-    ),
-    getBounds = PlacementEffect.getBounds,
-    setBounds = PlacementEffect.setBounds,
-    cut = _.minus(_)
+    [T] => (update, meta) =>
+      Update.withCornerCoordinates(update, _ + pointOfMeta(meta)),
+    Update.isEventHandled,
+    children => updateFunction =>
+      //Обновляются сначала виджеты, лежащие выше.
+      given Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by((_, meta) => pointOfMeta(meta).z))
+      traverseOrdered[
+        UpdateC[Event],
+        Collection,
+        WidgetAndItsPositionInContainer
+      ](children)(updateFunction),
+    children =>
+      // А рисуются вначале виджеты, лежащие ниже.
+      given Order[WidgetAndItsPositionInContainer] = Order.by((_, meta) => pointOfMeta(meta).z)
+      foldOrdered[Draw, Collection](children)((widget, meta) =>
+        val point = pointOfMeta(meta)
+        drawAt(point.x, point.y, widgetIsDrawable(widget))
+      ),
+    childrenIn,
+    layout,
+    incrementalFreeChildrenFromPlaced
   )
-end linearContainerWidget
+end containerWidget2
 
-def linearListContainerWidget[IO[_] : Sync, Event] : LinearContainer[AndroidWidget[IO, Event], PlacementEffect[IO, *], List, InfinityOr[Float], Float, Axis] =
-  linearContainerWidget(traverseOrdered)
-end linearListContainerWidget
-
-def rowWidget[IO[_], Event](using Sync[IO])(
-  children                    : List[AndroidWidget[IO, Event]],
-  horizontalPlacementStrategy : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
-  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
-) : AndroidWidget[IO, Event] =
-  linearListContainerWidget(
-    children,
-    Axis.Horizontal,
-    horizontalPlacementStrategy,
-    verticalPlacementStrategy
-  )
-end rowWidget
-
-def columnWidget[IO[_], Event](using Sync[IO])(
-  children                    : List[AndroidWidget[IO, Event]],
-  verticalPlacementStrategy   : LinearContainerPlacementStrategy[IO, List] = LinearContainerPlacementStrategy.Begin[IO, List](0f),
-  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Begin[IO, Id](0f),
-) : AndroidWidget[IO, Event] =
-  linearListContainerWidget(
-    children,
-    Axis.Vertical,
-    verticalPlacementStrategy,
-    horizontalPlacementStrategy
-  )
-end columnWidget
-
-def boxWidget[IO[_], Event](using Sync[IO])(
-  child : AndroidWidget[IO, Event],
-  horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Center[IO, Id](0f, ContainerPlacementError.English),
-  verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy[IO] = LinearContainerPlacementStrategy.Center[IO, Id](0f, ContainerPlacementError.English)
-) : AndroidWidget[IO, Event] =
-  linearContainerWidget[IO, Event, Id](traverseOne)(
+def oneElementContainerWidget[Event](
+                                      child : AndroidWidget[Event],
+                                      placementStrategy : OneElementPlacementStrategy[
+                                        PlacementEffectC,
+                                        PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
+                                        Rect[Float],
+                                        Bounds,
+                                        (AndroidPlacedWidget[Event], LayersMetadata[Point3d[Float], Rect[Float], Bounds])
+                                      ]
+                                    ) : AndroidWidget[Event]  =
+  containerWidget[Id, Event](
     child,
-    Axis.Vertical,
-    verticalPlacementStrategy,
-    horizontalPlacementStrategy
+    placementStrategy
   )
-end boxWidget
+end oneElementContainerWidget
+
+def listContainerWidget[
+  Event
+](
+  children : List[AndroidWidget[Event]],
+  placementStrategy : PlacementStrategy[
+    PlacementEffectC,
+    PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
+    Rect[Float],
+    Bounds,
+    List,
+    (AndroidPlacedWidget[Event], LayersMetadata[Point3d[Float], Rect[Float], Bounds])
+  ]
+) : AndroidWidget[Event]  =
+  containerWidget[List, Event](
+    children,
+    placementStrategy
+  )
+end listContainerWidget

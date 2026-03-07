@@ -86,7 +86,7 @@ object TextInputExample extends UIApp:
         glfw,
         window,
         path =>
-          Update.liftK[IO, TextFieldEvent](
+          Update.liftK[TextFieldEvent](
             eventBus.offer(DownEvent.UserEvent(TextInputOuterEvent.FocusedOn(path)))
           )
       )(
@@ -103,7 +103,7 @@ object TextInputExample extends UIApp:
               stateful[String, Nothing, String](
                 name = "basic-state-" + i.toString,
                 initialState = "A",
-                eventHandler = (_, _, newString) => newString.last.pure[UpdateC[IO, Nothing]],
+                eventHandler = (_, _, newString) => newString.last.pure[UpdateC[Nothing]],
                 body =
                   state =>
                     textFieldWidget("text-field", state)
@@ -122,7 +122,7 @@ object TextInputExample extends UIApp:
   def textField[Event](
                         glfw : PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                         window : GLFWwindow,
-                        requestFocus : Path => Update[IO, TextFieldEvent, Unit]
+                        requestFocus : Path => Update[TextFieldEvent, Unit]
                       )(
                         paragraphStyle: ParagraphStyle,
                         fontCollection: FontCollection,
@@ -162,7 +162,7 @@ object TextInputExample extends UIApp:
           ),
       ),
       text =>
-        Update.liftK[IO, Event](
+        Update.liftK[Event](
           glfw.setClipboardString(window, text)
         )
   )(name, text, update)
@@ -227,14 +227,14 @@ object TextInputExample extends UIApp:
                              glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                              window: GLFWwindow,
                              minimalClickableAreaSize : Rect[Float],
-                             requestFocus : Path => Update[IO, TextFieldEvent, Unit]
+                             requestFocus : Path => Update[TextFieldEvent, Unit]
                            )(
                              sizedParagraph : Sized[Float, Paragraph],
                            ) : Decorator[DesktopWidget[TextFieldEvent]] =
-    val emitEvent : List[TextFieldEvent] => Update[IO, TextFieldEvent, Boolean] = events =>
-      Update.emitEvents[IO, TextFieldEvent](events).as(true)
+    val emitEvent : List[TextFieldEvent] => Update[TextFieldEvent, Boolean] = events =>
+      Update.emitEvents[TextFieldEvent](events).as(true)
 
-    def convertFocusedEvent(textFieldTextAreaSize : Rect[Float], currentPath : Path) : TextInputOuterEvent => Update[IO, TextFieldEvent, List[TextFieldEvent]] = {
+    def convertFocusedEvent(textFieldTextAreaSize : Rect[Float], currentPath : Path) : TextInputOuterEvent => Update[TextFieldEvent, List[TextFieldEvent]] = {
       case TextInputOuterEvent.CharInputEvent(key) => TextFieldEvent.CharInput(key.toChar).one.pure
       case TextInputOuterEvent.Backspace => TextFieldEvent.Backspace.one.pure
       case TextInputOuterEvent.Enter => TextFieldEvent.CharInput('\n').one.pure
@@ -243,7 +243,7 @@ object TextInputExample extends UIApp:
       case TextInputOuterEvent.Up(shift) => TextFieldEvent.GoUp(shift).one.pure
       case TextInputOuterEvent.Down(shift) => TextFieldEvent.GoDown(shift).one.pure
       case TextInputOuterEvent.ClipbordPaste =>
-        Update.liftK[IO, TextFieldEvent](
+        Update.liftK[TextFieldEvent](
           glfw
             .getClipboardString(window)
             .map(_.toList.map(TextFieldEvent.ClipboardPaste(_)))
@@ -257,8 +257,8 @@ object TextInputExample extends UIApp:
       case TextInputOuterEvent.FocusedOn(path) =>
         TextFieldEvent.GainedFocus(path).one.pure
       case TextInputOuterEvent.LeftMouseClick(x, y, press) =>
-        Monad[UpdateC[IO, TextFieldEvent]].flatMap(
-            Update.getCornerCoordinates[IO, TextFieldEvent]
+        Monad[UpdateC[TextFieldEvent]].flatMap(
+            Update.getCornerCoordinates[TextFieldEvent]
         )(
           cornerCoords =>
             val paragraphHeightShift =
@@ -290,7 +290,7 @@ object TextInputExample extends UIApp:
     eventCatcher[TextFieldEvent] {
       case (path, textFieldTextArea, DownEvent.UserEvent(event : TextInputOuterEvent)) =>
         convertFocusedEvent(textFieldTextArea.size, path)(event).flatMap(emitEvent)
-      case _ => false.pure[UpdateC[IO, TextFieldEvent]]
+      case _ => false.pure[UpdateC[TextFieldEvent]]
     }
   end textFieldEventCatcher
 end TextInputExample

@@ -1,6 +1,5 @@
 package gui4s.desktop.example
 
-import catnip.syntax.all.given
 import cats.*
 import cats.data.*
 import cats.effect.*

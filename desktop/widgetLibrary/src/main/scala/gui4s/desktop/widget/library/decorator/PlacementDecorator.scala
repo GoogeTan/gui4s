@@ -35,10 +35,10 @@ def placementDecorator[
         valueIsDrawable = widgetIsDrawable,
         valueHandlesEvent =
           widgetHandlesEvent[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]
-            .andThen(_.map(placementShift)),
+            .andThen(_.map(_.map(placementShift))),
         valueMergesWithOldState =
           widgetMergesWithOldState[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]
-            .andThen(placementShift(_)),
+            .andThen(_.map(placementShift(_))),
         valueReactsOnRecomposition = widgetReactsOnRecomposition,
         valueHasInnerState = widgetHasInnerStates
       )

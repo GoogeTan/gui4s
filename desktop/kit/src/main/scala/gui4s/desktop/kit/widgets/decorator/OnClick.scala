@@ -45,7 +45,7 @@ def clickCatcher[
       override def apply[Event](eventOnClick: Event): Decorator[DesktopWidget[Event]] =
         genericClickCatcher(
           eventCatcherWithRect = eventCatcher,
-          currentMousePosition = Update.liftK[IO, Event](
+          currentMousePosition = Update.liftK[Event](
             for
               monitor <- glfw.getPrimaryMonitor
               (scaleX, scaleY) <- glfw.getMonitorContentScale(monitor.get)
@@ -54,8 +54,8 @@ def clickCatcher[
           ),
           appropriateEvent = source,
           onClick = {
-            case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents[IO, Event](List(eventOnClick)).as(true)
-            case _ => false.pure[UpdateC[IO,  Event]]
+            case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents[Event](List(eventOnClick)).as(true)
+            case _ => false.pure[UpdateC[Event]]
           },
           isIn = point => shape =>
             Update.getCornerCoordinates.map(

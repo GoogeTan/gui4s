@@ -1,42 +1,25 @@
-  package gui4s.desktop.widget.library
+package gui4s.desktop.widget.library
 package decorator
 
-import cats.Functor
-import cats.Monad
-import cats.syntax.all._
-import cats.~>
+import cats.{Comonad, Functor, ~>}
+import cats.syntax.all.*
 
 
 def mapUpdate[
-  OldUpdate[_] : Monad,
-  NewUpdate[_] : Monad,
-  Place[_] : Functor,
+  OldUpdate[_],
+  NewUpdate[_] : Functor,
+  PlacementEffect[_] : Functor,
+  Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
   EnvironmentalEvent,
 ](
-  original : Place[Widget[OldUpdate, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
+  original : FreeWidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
   mapEventInUpdate : OldUpdate ~> NewUpdate
-) :
-  Place[Widget[NewUpdate, Place, Draw, RecompositionReaction, EnvironmentalEvent]] =
-  original.map(
-    placedWidget =>
-      // TODO Переписать с использованием UpdateDecorator или написать здесь, почему это невозможно
-      final case class MapEvent(currentWidget: Widget[OldUpdate, Place, Draw, RecompositionReaction, EnvironmentalEvent])
-      Widget.ValueWrapper(
-        valueToDecorate = MapEvent(placedWidget),
-        valueAsFree = placed => placed.currentWidget.asFree.map(MapEvent(_)),
-        valueIsDrawable = _.currentWidget.draw,
-        valueHandlesEvent = (self, path, event) =>
-          mapEventInUpdate(self.currentWidget.handleEvent(path, event)).map(
-            _.map(MapEvent(_))
-          ),
-        valueMergesWithOldState = (self, path, states) =>
-          self.currentWidget.mergeWithOldState(path, states).map(MapEvent(_)),
-        valueReactsOnRecomposition = (self, path, states) =>
-          self.currentWidget.reactOnRecomposition(path, states),
-        valueHasInnerState =
-          self => self.currentWidget.innerStates
-      )
+) : FreeWidgetWithSituated[NewUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent] =
+  trueUpdateDecoratorWithRect(
+    original,
+    (self, path, event) =>
+      mapEventInUpdate(self.extract.handleEvent(path, event))
   )
 end mapUpdate

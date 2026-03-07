@@ -4,74 +4,68 @@ package effects
 import catnip.Get
 import catnip.Set
 import cats.*
+import cats.effect.*
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-import scala.util.NotGiven
-
-type PlacementEffect[IO[_], T] = GenericPlacementEffect[IO, Bounds, T]
-type PlacementEffectC[IO[_]] = [Value] =>> PlacementEffect[IO, Value]
+type PlacementEffect[T] = GenericPlacementEffect[IO, Bounds, T]
 
 object PlacementEffect:
-  given monadThrowInstance[IO[_] : MonadThrow]: MonadThrow[PlacementEffectC[IO]] =
+  given monadThrowInstance: MonadThrow[PlacementEffect] =
     GenericPlacementEffect.monadThrowInstance
   end monadThrowInstance
 
-  given monadInstance[IO[_] : Monad](using NotGiven[MonadThrow[IO]]): Monad[PlacementEffectC[IO]] =
-    GenericPlacementEffect.monadInstance
-  end monadInstance
-
-  def liftK[IO[_] : Monad]: IO ~> PlacementEffectC[IO] =
+  def liftK: IO ~> PlacementEffect =
     GenericPlacementEffect.liftK
   end liftK
 
-  def liftF[IO[_] : Monad, Value](value: IO[Value]): PlacementEffect[IO, Value] =
+  def liftF[Value](value: IO[Value]): PlacementEffect[Value] =
     liftK(value)
   end liftF
 
-  def liftSized[IO[_] : Monad as A, Value](value: Sized[Float, Value]): PlacementEffect[IO, Sized[Float, Value]] =
-    monadInstance.pure(value)
+  def liftSized[Value](value: Sized[Float, Value]): PlacementEffect[Sized[Float, Value]] =
+    monadThrowInstance.pure(value)
   end liftSized
 
-  def liftFunction[IO[_] : Monad, Value](value: Bounds => IO[Value]): PlacementEffect[IO, Value] =
+  def liftFunction[Value](value: Bounds => IO[Value]): PlacementEffect[Value] =
     getBounds.flatMap(
       bounds => liftF(value(bounds))
     )
   end liftFunction
 
-  def getBounds[IO[_] : Monad]: Get[PlacementEffectC[IO], Bounds] =
+  def getBounds: Get[PlacementEffect, Bounds] =
     GenericPlacementEffect.getBounds
   end getBounds
 
-  def setBounds[IO[_] : Monad]: Set[PlacementEffectC[IO], Bounds] =
+  def setBounds: Set[PlacementEffect, Bounds] =
     GenericPlacementEffect.setBounds
   end setBounds
 
-  def withBounds[IO[_] : Monad, T](original: PlacementEffect[IO, T], f: Bounds => Bounds): PlacementEffect[IO, T] =
+  def withBounds[T](original: PlacementEffect[T], f: Bounds => Bounds): PlacementEffect[T] =
     GenericPlacementEffect.withBounds(original, f)
   end withBounds
 
-  def withBoundsK[IO[_] : Monad](f: Bounds => Bounds): PlacementEffect[IO, *] ~> PlacementEffect[IO, *] =
-    new (PlacementEffect[IO, *] ~> PlacementEffect[IO, *]) {
-      def apply[A](original: PlacementEffect[IO, A]): PlacementEffect[IO, A] =
+  def withBoundsK(f: Bounds => Bounds): PlacementEffect ~> PlacementEffect =
+    new (PlacementEffect ~> PlacementEffect) {
+      def apply[A](original: PlacementEffect[A]): PlacementEffect[A] =
         withBounds(original, f)
     }
   end withBoundsK
 
-  def raiseError[IO[_], Error, Value](error: => Error)(using ME : MonadError[IO, Error]): PlacementEffect[IO, Value] =
+  def raiseError[Error, Value](error: => Error)(using ME : MonadError[IO, Error]): PlacementEffect[Value] =
     GenericPlacementEffect.liftF(ME.raiseError(error))
   end raiseError
 
-  def run[IO[_] : Monad](path : Path, bounds: IO[Bounds]): PlacementEffectC[IO] ~> IO =
+  def run(path : Path, bounds: IO[Bounds]): PlacementEffect ~> IO =
     GenericPlacementEffect.run(path, bounds)
   end run
 
-  def addNameToPath[IO[_] : Monad](name: String): PlacementEffectC[IO] ~> PlacementEffectC[IO] =
+  def addNameToPath(name: String): PlacementEffect ~> PlacementEffect =
     GenericPlacementEffect.addNameToPath(name)
   end addNameToPath
 
-  def currentPath[IO[_] : Monad]: PlacementEffect[IO, Path]  =
+  def currentPath: PlacementEffect[Path]  =
     GenericPlacementEffect.currentPath
   end currentPath
 end PlacementEffect

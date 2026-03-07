@@ -1,7 +1,26 @@
-package gui4s.android.kit.effects
+package gui4s.android.kit
+package effects
 
-type RecompositionReaction[IO[_]] = gui4s.core.kit.effects.RecompositionReaction[IO]
+import cats.{Applicative, MonadError, Monoid}
+import cats.effect.IO
+
+type RecompositionReaction = gui4s.core.kit.effects.RecompositionReaction[IO]
 
 object RecompositionReaction:
   export gui4s.core.kit.effects.RecompositionReaction.{*, given}
+
+  def empty: RecompositionReaction =
+    gui4s.core.kit.effects.RecompositionReaction.empty
+
+  def run(recomposition: RecompositionReaction): IO[Unit] =
+    gui4s.core.kit.effects.RecompositionReaction.run(recomposition)
+
+  def lift[Value](value: IO[Value]): RecompositionReaction =
+    gui4s.core.kit.effects.RecompositionReaction.lift(value)
+
+  def raiseError(error: Throwable): RecompositionReaction =
+    gui4s.core.kit.effects.RecompositionReaction.raiseError[IO, Throwable](error)
+  end raiseError
+
+  given Monoid[RecompositionReaction] = summon
 end RecompositionReaction

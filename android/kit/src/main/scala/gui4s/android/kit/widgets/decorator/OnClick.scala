@@ -5,14 +5,14 @@ import gui4s.core.widget.library.decorator.{Decorator, clickCatcher as genericCl
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.AndroidWidget
 
-def clickCatcher[IO[_] : Monad, Event, MouseEvent](
-                                        mousePosition : IO[Point2d[Float]],
-                                        eventOnClick : Event,
-                                        extractEvent : DownEvent => Option[MouseEvent]
-                                      ) : Decorator[AndroidWidget[IO, Event]] =
+def clickCatcher[Event, MouseEvent](
+                                     mousePosition : IO[Point2d[Float]],
+                                     eventOnClick : Event,
+                                     extractEvent : DownEvent => Option[MouseEvent]
+                                   ) : Decorator[AndroidWidget[Event]] =
   genericClickCatcher(
     eventCatcherWithRect = eventCatcher,
-    currentMousePosition = Update.liftK[IO, Event](mousePosition),
+    currentMousePosition = Update.liftK[Event](mousePosition),
     appropriateEvent = extractEvent,
     onClick = {
       (_, _) => Update.emitEvents(List(eventOnClick)).as(true)

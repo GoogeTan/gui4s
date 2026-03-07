@@ -9,31 +9,40 @@ import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as generic
 
 import scala.reflect.Typeable
 
-trait LaunchedEvent[IO[_]]:
+import cats.effect.IO
+import cats.*
+import cats.effect.std.Supervisor
+import cats.syntax.all.*
+import gui4s.android.kit.effects.*
+import gui4s.android.kit.widgets.{AndroidPlacedWidget, AndroidWidget}
+import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
+
+import scala.reflect.Typeable
+
+trait LaunchedEvent:
   def apply[Key : Typeable, Event](
                                      name : String,
                                      key: Key,
                                      task : IO[Event],
-                                     body : AndroidWidget[IO, Event]
-                                   ) : AndroidWidget[IO, Event]
+                                     body : AndroidWidget[Event]
+                                   ) : AndroidWidget[Event]
 end LaunchedEvent
 
 object LaunchedEvent:
   def apply[
-    IO[_] : MonadThrow,
     Event,
     Key : Typeable
   ](
     supervisor: Supervisor[IO],
     raiseExternalEvent : DownEvent => IO[Unit],
     eventFromAny : Any => Option[Event]
-  ) : LaunchedEffectWidget[AndroidWidget[IO, Event], Key, IO[Event]] =
+  ) : LaunchedEffectWidget[AndroidWidget[Event], Key, IO[Event]] =
     genericLaunchedEvent[
       IO,
-      AndroidWidget[IO, Event],
+      AndroidWidget[Event],
       Key,
-      Update[IO, *, *],
-      Situated[AndroidPlacedWidget[IO, Event]],
+      Update[*, *],
+      Situated[AndroidPlacedWidget[Event]],
       DownEvent,
       Event
     ](
@@ -43,7 +52,7 @@ object LaunchedEvent:
       catchEvent = (path, event) =>
         DownEvent.catchExternalEvent(path, event) match
           case None =>
-            false.pure[UpdateC[IO, Event]]
+            false.pure[UpdateC[Event]]
           case Some[Any](valueFound : Any) =>
             eventFromAny(valueFound).fold(
               Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))

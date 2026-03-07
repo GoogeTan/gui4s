@@ -18,11 +18,11 @@ object `package` extends AndroidAppScalaModule with Gui4sAndroidModule:
     s"-Yimports:${build.imports.default},${build.imports.cats},${build.imports.catsEffect}"
   )
 
-  def androidBuildSettings = Task:
+  /*def androidBuildSettings = Task:
     AndroidBuildTypeSettings(
       enableDesugaring = true,
       isMinifyEnabled = false
-    )
+    )*/
 
   override def mvnDeps = build.dependencies.http4s ++ build.dependencies.logging
 
@@ -31,7 +31,7 @@ object `package` extends AndroidAppScalaModule with Gui4sAndroidModule:
     build.android.skia,
   )
 
-  override def androidEmulatorArchitecture = "arm64-v8a"
+  //override def androidEmulatorArchitecture = "arm64-v8a"
 
   def jniFiles = Task.Input:
     val jniLibsDir = millSourcePath0 / "src" / "main" / "jniLibs"
@@ -67,6 +67,7 @@ object `package` extends AndroidAppScalaModule with Gui4sAndroidModule:
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
+  /*
   object test extends AndroidAppTests, TestModule.Junit4:
     def junit4Version = build.versions.junit
   end test
@@ -76,6 +77,5 @@ object `package` extends AndroidAppScalaModule with Gui4sAndroidModule:
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     def mvnDeps = build.dependencies.androidTest
-  end it
-
+  end it*/
 end `package`

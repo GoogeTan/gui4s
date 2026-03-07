@@ -39,14 +39,13 @@ def clickCatcher[
 ) : Decorator[Widget] =
   eventCatcherWithRect:
     (path, widgetBoundingBox, event) =>
-      currentMousePosition.flatMap:
-        mousePosition =>
-          isIn(mousePosition)(widgetBoundingBox).ifM(
-            ifTrue = appropriateEvent(event) match
-                case Some(click) =>
-                  onClick(path, click)
-                case _ =>
-                  false.pure[Update],
+      appropriateEvent(event) match
+        case Some(click) =>
+          currentMousePosition.flatMap:
+            mousePosition => isIn(mousePosition)(widgetBoundingBox).ifM(
+              ifTrue =onClick(path, click),
             ifFalse = false.pure[Update],
           )
+        case _ =>
+          false.pure[Update]
 end clickCatcher

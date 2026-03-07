@@ -1,6 +1,10 @@
 package gui4s.android.kit
 
-final class ScalacacheCache[IO[_], K, V](cache : scalacache.Cache[IO, K, V]) extends Cache[IO, K, V]:
+import cats.effect.IO
+import cats.effect.kernel.Resource
+import cats.effect.kernel.Sync
+
+final class ScalacacheCache[K, V](cache : scalacache.Cache[IO, K, V]) extends Cache[IO, K, V]:
   override def get(key: K): IO[Option[V]] =
     cache.get(key)
   end get
@@ -11,8 +15,8 @@ final class ScalacacheCache[IO[_], K, V](cache : scalacache.Cache[IO, K, V]) ext
 end ScalacacheCache
 
 object ScalacacheCache:
-  def apply[F[_] : Sync, K <: AnyRef, V]() : Resource[F, ScalacacheCache[F, K, V]] =
-    Resource.eval(scalacache.caffeine.CaffeineCache[F, K, V]).map(new ScalacacheCache(_))
+  def apply[K <: AnyRef, V]() : Resource[IO, ScalacacheCache[K, V]] =
+    Resource.eval(scalacache.caffeine.CaffeineCache[IO, K, V]).map(new ScalacacheCache(_))
   end apply
 end ScalacacheCache
 

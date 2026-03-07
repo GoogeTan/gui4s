@@ -1,12 +1,11 @@
 package gui4s.core.widget.library
 
+import catnip.syntax.all.given
 import catnip.{Get, Set}
-import catnip.syntax.all.{*, given}
 import cats.Monad
 import cats.syntax.all.*
 import gui4s.core.geometry.{Axis, Point3d, Rect}
-import gui4s.core.layout.{Sized, Weighted}
-import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy, weightedRowColumnLayoutPlacement}
+import gui4s.core.layout.*
 
 /**
  * Взвешенный линейный контейнер - это линейный контейнер, некоторые элементы которого имеют вес.
@@ -36,8 +35,8 @@ trait WeightedLinearContainer[
   def apply(
               children               : Collection[Weighted[Widget]],
               mainAxis               : Axis,
-              mainAxisStrategy       : PlacementStrategy[Place, MeasurementUnit, BoundUnit, Collection, MeasurementUnit],
-              additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit, BoundUnit, MeasurementUnit],
+              mainAxisStrategy       : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, BoundUnit, Collection, MeasurementUnit],
+              additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, BoundUnit, MeasurementUnit],
             ) : Widget
 end WeightedLinearContainer
 
@@ -46,33 +45,54 @@ end WeightedLinearContainer
  */
 def weightedLinearContainer[
   PlacedWidget,
-  Place[_] : Monad,
+  PlacementEffect[_] : Monad,
   BoundUnit,
   MeasurementUnit : Numeric as N,
 ](
-  container : ContainerWidget[PlacedWidget, List, Place * Sized[MeasurementUnit, *], Point3d[MeasurementUnit]],
-  getBounds: Get[Place, Rect[BoundUnit]],
-  setBounds: Set[Place, Rect[BoundUnit]],
+  container : ContainerWidget[
+    PlacementEffect[Sized[MeasurementUnit, PlacedWidget]],
+    List[Weighted[PlacementEffect[Sized[MeasurementUnit, PlacedWidget]]]],
+    PlacementStrategy[
+      PlacementEffect,
+      Weighted[PlacementEffect[Measured[MeasurementUnit, BoundUnit, PlacedWidget]]],
+      Rect[MeasurementUnit],
+      Rect[BoundUnit],
+      List,
+      (PlacedWidget, LayersMetadata[(Option[Float], Point3d[MeasurementUnit]), Rect[MeasurementUnit], Rect[BoundUnit]])
+    ]
+  ],
+  getBounds: Get[PlacementEffect, Rect[BoundUnit]],
+  setBounds: Set[PlacementEffect, Rect[BoundUnit]],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   weightedBounds : (BoundUnit, Float) => BoundUnit,
-  toMeasurementUnit : BoundUnit => Option[MeasurementUnit]
-) : WeightedLinearContainer[Place[Sized[MeasurementUnit, PlacedWidget]], Place, List, BoundUnit, MeasurementUnit, Axis] =
+) : WeightedLinearContainer[PlacementEffect[Sized[MeasurementUnit, PlacedWidget]], PlacementEffect, List, BoundUnit, MeasurementUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
-      children.map(_.value),
-      freeChildren =>
-        weightedRowColumnLayoutPlacement(
+      children,
+      ContainerStrategy.combine(
+        measurementStrategy = MeasurementStrategy.weightedLinearMeasurementStrategy(
           getBounds,
           setBounds,
           cut,
           weightedBounds,
+          mainAxis
+        ),
+        placementStrategy = PlacementStrategy.Zip(
           mainAxis,
-          freeChildren.zip(children).map((free, weights) => weights.as(free)),//TODO remove this shit and allow so store additional data in container widget.
-          PlacementStrategy.Zip[Place, MeasurementUnit, BoundUnit, List, MeasurementUnit](
-            mainAxis,
-            mainAxisStrategy,
-            PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
-          )
-        ).map(_.mapValue(_.map(placedElementAsLayoutMetadata)))
+          mainAxisStrategy,
+          PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
+        ),
+        someMap = _.mapWithIndex:
+          case ((measuredWidget, point), index) =>
+            (
+              measuredWidget.value,
+              LayersMetadata(
+                (None, new Point3d(point, N.fromInt(index))),
+                measuredWidget.size,
+                measuredWidget.bounds
+              )
+            ),
+        sizeOfItem = _.size
+      )
     )
 end weightedLinearContainer

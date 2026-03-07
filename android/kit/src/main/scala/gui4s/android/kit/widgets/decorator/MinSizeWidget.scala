@@ -1,0 +1,70 @@
+package gui4s.android.kit.widgets.decorator
+
+import catnip.syntax.all.given
+import cats.*
+import cats.effect.*
+import cats.syntax.all.*
+import gui4s.core.geometry.{Point2d, Point3d, Rect, InfinityOr}
+import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
+import gui4s.core.widget.library.LayersMetadata
+import gui4s.core.widget.library.decorator.Decorator
+import gui4s.android.kit.effects.*
+import gui4s.android.kit.effects.PlacementEffect.given
+import gui4s.android.kit.widgets.*
+
+import cats.effect.IO
+import catnip.syntax.all.given
+import cats.*
+import cats.effect.*
+import cats.syntax.all.*
+import gui4s.core.geometry.{Point2d, Point3d, Rect, InfinityOr}
+import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
+import gui4s.core.widget.library.LayersMetadata
+import gui4s.core.widget.library.decorator.Decorator
+import gui4s.android.kit.effects.*
+import gui4s.android.kit.effects.PlacementEffect.given
+import gui4s.android.kit.widgets.*
+
+def minSizeWidget[Event](
+  minSize : Rect[Float],
+  placeIfSmaller : OneElementPlacementStrategy[PlacementEffectC, Rect[Float], Rect[Float], Bounds, Point2d[Float]],
+) : Decorator[AndroidWidget[Event]] =
+  type Meta = LayersMetadata[Point3d[Float], Rect[Float], Bounds]
+  type Res = (AndroidPlacedWidget[Event], Meta)
+  type Free = PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]]
+  gui4s.core.widget.library.decorator.minSizeWidget[
+    AndroidWidget[Event],
+    AndroidPlacedWidget[Event],
+    Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]],
+    PlacementEffectC,
+    Rect[Float],
+    Bounds,
+    Point3d[Float],
+    Meta,
+  ](
+    oneElementContainerWidget,
+    PlacementEffect.getBounds,
+    (childSize, bounds) =>
+      if childSize.width < minSize.width || childSize.height < minSize.height then
+        placeIfSmaller(childSize, bounds)
+          .map { case ElementPlacementResult(_, coordinatesOfStarts) =>
+            ElementPlacementResult(
+              minSize,
+              new Point3d(coordinatesOfStarts, 0),
+            )
+          }
+      else
+        ElementPlacementResult[Id, Rect[Float], Point3d[Float]](minSize, Point3d.Zero[Float]).pure[PlacementEffectC],
+    makeMeta = (sizedWidget, bounds, point) => (sizedWidget.value, LayersMetadata(point, sizedWidget.size, bounds)),
+    itemSize = _.size
+  )(minSize.map(new InfinityOr(_)))
+end minSizeWidget
+
+def minSizeWidget[Event](
+                          minSize : Rect[Float],
+                          placeHorizontally : OneElementLinearContainerPlacementStrategy,
+                          placeVertically : OneElementLinearContainerPlacementStrategy,
+                        )
+: Decorator[AndroidWidget[Event]] =
+    minSizeWidget[Event](minSize, PlacementStrategy.Zip[PlacementEffectC, Float, InfinityOr[Float], Id, Float](placeHorizontally, placeVertically))
+end minSizeWidget

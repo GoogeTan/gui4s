@@ -5,15 +5,14 @@ import cats.effect.*
 
 import gui4s.core.widget.library.MapEvent
 
-import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.kit.effects._
 import gui4s.desktop.widget.library.decorator.{mapUpdate => genericMapUpdate}
 
 def mapEventWidget : MapEvent[DesktopWidget] =
   [Event, NewEvent] => f => original =>
-    genericMapUpdate[UpdateC[IO, Event], UpdateC[IO, NewEvent], PlaceC[IO], Draw[IO], RecompositionReaction[IO], DownEvent](
+    genericMapUpdate[UpdateC[Event], UpdateC[NewEvent], PlacementEffect, Situated, Draw, RecompositionReaction, DownEvent](
       original,
-      Update.mapEvents[IO, Event, NewEvent](f)
+      Update.mapEvents[Event, NewEvent](f)
     )
 end mapEventWidget
 

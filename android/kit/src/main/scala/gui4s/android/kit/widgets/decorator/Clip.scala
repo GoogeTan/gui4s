@@ -5,15 +5,13 @@ import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Clip.given
 import gui4s.android.kit.widgets.AndroidWidget
 
-import scala.annotation.targetName
-
-def clipWidget[IO[_] : Sync, Event](value : AndroidWidget[IO, Event], path : Rect[Float] => Clip) : AndroidWidget[IO, Event] =
+def clipWidget[Event](value : AndroidWidget[Event], path : Rect[Float] => Clip) : AndroidWidget[Event] =
   gui4s.desktop.widget.library.decorator.clipWidget[
-    UpdateC[IO, Event],
-    PlacementEffect[IO, *],
+    UpdateC[Event],
+    PlacementEffect,
     Situated,
-    Draw[IO],
-    RecompositionReaction[IO],
+    Draw,
+    RecompositionReaction,
     DownEvent,
     Clip
   ](
@@ -28,8 +26,8 @@ def clipWidget[IO[_] : Sync, Event](value : AndroidWidget[IO, Event], path : Rec
   )(value)
 end clipWidget
 
-extension[IO[_], Event](value : AndroidWidget[IO, Event])
-  def clip(path : Rect[Float] => Clip)(using Sync[IO]) : AndroidWidget[IO, Event] =
-    clipWidget[IO, Event](value, path)
+extension[Event](value : AndroidWidget[Event])
+  def clip(path : Rect[Float] => Clip) : AndroidWidget[Event] =
+    clipWidget[Event](value, path)
   end clip
 end extension

@@ -3,7 +3,7 @@ package effects
 
 import cats.*
 import cats.data.ReaderT
-import cats.effect.Sync
+import cats.effect.*
 import gui4s.core.geometry.Rect
 import io.github.humbleui.skija.*
 import io.github.humbleui.skija.paragraph.*
@@ -13,41 +13,41 @@ import gui4s.desktop.skija.SkPaint
 import gui4s.desktop.skija.canvas.*
 
 
-type DrawM[IO[_], T] = ReaderT[IO, Canvas, T]
-type Draw[IO[_]] = DrawM[IO, Unit]
+type DrawM[T] = ReaderT[IO, Canvas, T]
+type Draw = DrawM[Unit]
 
 object Draw:
-  given[IO[_] : Applicative]: Canvased[ReaderT[IO, Canvas, *]] = Canvased.given_Canvased_ReaderT
+  given Canvased[ReaderT[IO, Canvas, *]] = Canvased.given_Canvased_ReaderT
 
-  given monoidInstance[IO[_] : Monad] : Monoid[Draw[IO]] =
+  given monoidInstance : Monoid[Draw] =
     catnip.syntax.all.applicativesAreMonoids[ReaderT[IO, Canvas, *]]
   end monoidInstance
 
-  def drawAt[IO[_] : Sync](whatToDraw : Draw[IO], x : Float, y : Float) : Draw[IO] =
+  def drawAt(whatToDraw : Draw, x : Float, y : Float) : Draw =
     skija.canvas.drawAt(x, y, whatToDraw)
   end drawAt
 
-  def drawImage[IO[_] : Sync](image : Image) : Draw[IO] =
+  def drawImage(image : Image) : Draw =
     skija.canvas.drawImage(image)
   end drawImage
 
-  def drawText[IO[_] : Sync](text : skija.SkijaPlacedText) : Draw[IO] =
+  def drawText(text : skija.SkijaPlacedText) : Draw =
     skija.canvas.drawText(text)
   end drawText
 
-  def drawClipped[IO[_] : Sync](path: Clip, original: Draw[IO]): Draw[IO] =
+  def drawClipped(path: Clip, original: Draw): Draw =
     withClipedPath(path, original)
   end drawClipped
 
-  def drawParagraph[IO[_] : Sync](paragraph : Paragraph) : Draw[IO] =
+  def drawParagraph(paragraph : Paragraph) : Draw =
     skija.canvas.drawParagraph(paragraph)
   end drawParagraph
 
-  def drawCursor[IO[_] : Sync](
-                                paragraph: Paragraph,
-                                cursorPos : Int,
-                                cursorPaint: Paint
-                              ) : Draw[IO] =
+  def drawCursor(
+                  paragraph: Paragraph,
+                  cursorPos : Int,
+                  cursorPaint: Paint
+                ) : Draw =
     Canvased.applyCanvasFFI(canvas =>
       // Честно говоря, я не знаю почему это так, но без этого не работает.
       // Если брать только первое, то на ненулевой позиции будет пустой массив, если только второе,
@@ -82,19 +82,19 @@ object Draw:
     )
   end drawCursor
 
-  def drawBrush[IO[_] : Sync](brush : skija.Brush, size : Rect[Float]) : Draw[IO] =
+  def drawBrush(brush : skija.Brush, size : Rect[Float]) : Draw =
     Canvased.applyCanvasFFI:
       canvas =>
         canvas.drawRect(makeWH(size.width, size.height), brush(size, SkPaint()).toSkia)
   end drawBrush
 
-  def drawBrush[IO[_] : Sync](brush : skija.Brush, size : Rect[Float], path : Path) : Draw[IO] =
+  def drawBrush(brush : skija.Brush, size : Rect[Float], path : Path) : Draw =
     Canvased.applyCanvasFFI:
       canvas =>
         canvas.drawPath(path, brush(size, SkPaint()).toSkia)
   end drawBrush
 
-  def drawBorder[IO[_] : Sync](path : Path, size : Rect[Float], brush : skija.Brush, paint : SkPaint) : Draw[IO] =
+  def drawBorder(path : Path, size : Rect[Float], brush : skija.Brush, paint : SkPaint) : Draw =
     Canvased.applyCanvasFFI:
       canvas =>
         canvas.drawPath(path, brush(size, paint).toSkia)

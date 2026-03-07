@@ -20,21 +20,21 @@ def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : Launche
   val lew : LaunchedEffectWidget[
     DesktopWidget[Event],
     Key,
-    Path => RecompositionReaction[IO]
+    Path => RecompositionReaction
   ] = genericLaunchedEffect[
-    UpdateC[IO, Event],
-    PlaceC[IO],
-    Draw[IO],
-    RecompositionReaction[IO],
+    UpdateC[Event],
+    Place,
+    Draw,
+    RecompositionReaction,
     DownEvent,
     Key
   ](
     [T] => (path : Path, value : Any) =>
-      Place.raiseError[IO, Throwable, T](new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
-    (valueFound : Any) => RecompositionReaction.lift[IO, Any](
+      Place.raiseError[Throwable, T](new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
+    (valueFound : Any) => RecompositionReaction.lift[Any](
       IO.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
     ),
-    Place.addNameToPath[IO]
+    Place.addNameToPath
   )
   (name, child, key, task) =>
     lew(name, child, key, path =>

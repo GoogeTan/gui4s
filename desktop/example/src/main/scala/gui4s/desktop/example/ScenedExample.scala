@@ -8,7 +8,7 @@ import glfw4s.core.WindowCreationSettings
 import glfw4s.core.pure.PurePostInit
 import glfw4s.jna.bindings.structs
 import glfw4s.jna.bindings.types.{GLFWmonitor, GLFWwindow}
-import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
+import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.desktop.kit.UIApp
 import gui4s.desktop.kit.effects.{DownEvent, Init, LinearContainerPlacementStrategy, Shapes, UpdateC}
 import gui4s.desktop.skija.typeface.defaultTypeface
@@ -49,7 +49,7 @@ object ScenedExample extends UIApp:
               name = "currentScene",
               initialState = 0,
               eventHandler = (state : Int, _, events : NonEmptyList[Int]) =>
-                ((state + events.toList.sum + loadedScenes.length) % loadedScenes.length).pure[UpdateC[IO, Nothing]],
+                ((state + events.toList.sum + loadedScenes.length) % loadedScenes.length).pure[UpdateC[Nothing]],
               body = state =>
                 scener(
                   loadedScenes.toList(state).mapEvent(identity),

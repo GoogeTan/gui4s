@@ -27,7 +27,8 @@ object `package` extends Module:
     def androidRunner = "1.6.2"
     def androidEspresso = "3.5.1"
     def junit = "4.13.2"
-    def skikoAndroid = "0.99-SNAPSHOT"
+    //def skikoAndroid = "0.99-SNAPSHOT"
+    def skikoAndroid = "0.144.4"
     def kotlin = "2.0.0"
     def androidBuildTools = "35.0.0"
   end versions

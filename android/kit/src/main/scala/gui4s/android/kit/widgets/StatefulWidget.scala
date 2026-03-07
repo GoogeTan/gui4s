@@ -3,7 +3,7 @@ package gui4s.android.kit.widgets
 import gui4s.core.layout.Sized.given
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.*
-import gui4s.core.widget.{Path, StatefulState, given}
+import gui4s.core.widget.StatefulState
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Place.given
 import gui4s.desktop.widget.library
@@ -12,25 +12,39 @@ import gui4s.desktop.widget.library.*
 import scala.reflect.Typeable
 
 
-def statefulWidget[IO[_] : MonadThrow]
+import cats.effect.IO
+import gui4s.core.layout.Sized.given
+import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.library.*
+import gui4s.core.widget.StatefulState
+import gui4s.android.kit.effects.*
+import gui4s.android.kit.effects.Place.given
+import gui4s.desktop.widget.library
+import gui4s.desktop.widget.library.*
+import cats.data.NonEmptyList
+
+import scala.reflect.Typeable
+
+
+def statefulWidget
 : StatefulWidget[
-  AndroidWidget[IO, *],
-  Update[IO, *, *],
-  [State] =>> State => RecompositionReaction[IO],
-  [State] =>> MergeStates[PlaceC[IO], State]
+  AndroidWidget,
+  Update,
+  * => RecompositionReaction,
+  MergeStates[PlaceC, *]
 ] =
   new StatefulWidget[
-    AndroidWidget[IO, *],
-    Update[IO, *, *],
-    [State] =>> State => RecompositionReaction[IO],
-    [State] =>> MergeStates[PlaceC[IO], State]
+    AndroidWidget,
+    Update,
+    * => RecompositionReaction,
+    MergeStates[PlaceC, *]
   ]:
     override def apply[State: {Equiv, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
-                                                                      body: State => AndroidWidget[IO, ChildEvent]
-                                                                    ): AndroidWidget[IO, Event] =
+                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                      body: State => AndroidWidget[ChildEvent]
+                                                                    ): AndroidWidget[Event] =
       apply(name, initialState, eventHandler, body, _ => RecompositionReaction.empty)
     end apply
 
@@ -38,52 +52,65 @@ def statefulWidget[IO[_] : MonadThrow]
     override def apply[State: {Equiv as EQ, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
-                                                                      body: State => AndroidWidget[IO, ChildEvent],
-                                                                      destructor: State => RecompositionReaction[IO]
-                                                                    ): AndroidWidget[IO, Event] =
-      apply(
+                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                      body: State => AndroidWidget[ChildEvent],
+                                                                      destructor: State => RecompositionReaction
+                                                                    ): AndroidWidget[Event] =
+      apply[State, Event, ChildEvent](
         name = name,
         initialState = initialState,
-        eventHandler = eventHandler,
+        eventHandler =
+          (originalState, path, events) =>
+            eventHandler(originalState, path, events).map(
+              resultingState =>
+                if EQ.equiv(originalState, resultingState) then
+                  None
+                else
+                  Some(resultingState)
+            ),
         body = body,
         destructor = destructor,
-        mergeStates = [T] => (oldState : StatefulState[State], newState : StatefulState[State], consumer : StatefulState[State] => Place[IO, T]) =>
+        mergeStates = [T] => (oldState : StatefulState[State], newState : StatefulState[State], consumer : StatefulState[State] => Place[T]) =>
           if EQ.equiv(oldState.initialState, newState.initialState) then
-             consumer(oldState)  // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
+             Some(consumer(oldState))  // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
           else
-             consumer(newState)
+             None
       )
     end apply
 
     override def apply[State, Event, ChildEvent](
                                                             name: String,
                                                             initialState: State,
-                                                            eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
-                                                            body: State => AndroidWidget[IO, ChildEvent],
-                                                            destructor: State => RecompositionReaction[IO],
-                                                            mergeStates: MergeStates[PlaceC[IO], State]
-                                                          ): AndroidWidget[IO, Event] =
+                                                            eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *] * Option],
+                                                            body: State => AndroidWidget[ChildEvent],
+                                                            destructor: State => RecompositionReaction,
+                                                            mergeStates: MergeStates[PlaceC, State]
+                                                          ): AndroidWidget[Event] =
       library.stateful[
-        UpdateC[IO, Event],
-        UpdateC[IO, ChildEvent],
-        PlaceC[IO],
-        Draw[IO],
-        RecompositionReaction[IO],
+        UpdateC[Event],
+        UpdateC[ChildEvent],
+        PlaceC,
+        Draw,
+        RecompositionReaction,
         DownEvent,
         State,
         ChildEvent
       ](
-        widgetsAreMergeable = widgetsCanUpdateStateFromTheOldOnes[
-          UpdateC[IO, ChildEvent],
-          PlacementEffect[IO, *],
-          Situated,
-          Draw[IO],
-          RecompositionReaction[IO],
-          DownEvent
-        ],
-        typeCheckState = Place.typecheck[IO, StatefulState[State]]((value: Any, path: Path) => new Exception("Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]")),
-        liftUpdate = Update.catchEvents[IO, ChildEvent, Event],
+        widgetsAreMergeable = new widgetsCanUpdateStateFromTheOldOnes(
+          widgetMergesWithOldState[UpdateC[ChildEvent], Place, Draw, RecompositionReaction, DownEvent],
+          widgetHasInnerStates[UpdateC[ChildEvent], Place, Draw, RecompositionReaction, DownEvent]
+        ),
+        typeCheckState = [T] => (valueToTypeCheck, path, consumer) =>
+          valueToTypeCheck match
+            case s : StatefulState[State] =>
+              consumer(s)
+            case _ =>
+              Some(
+                Place.raiseError[Throwable, T](
+                  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
+                )
+              ),
+        liftUpdate = Update.catchEvents[ChildEvent, Event],
         addNameToPath = Place.addNameToPath,
       )(
         name = name,

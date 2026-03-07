@@ -1,31 +1,37 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import catnip.syntax.all.{*, given}
-import cats.*
-import cats.effect.*
-import gui4s.core.geometry.{InfinityOr, Point2d, Rect}
-import gui4s.core.layout.rowcolumn.{OneElementPlacementStrategy, PlacementStrategy}
+import catnip.syntax.all.{_, given}
+import cats._
+import cats.effect._
+
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.OneElementPlacementStrategy
+import gui4s.core.layout.PlacementStrategy
 import gui4s.core.widget.library.decorator.Decorator
-import gui4s.desktop.kit.effects.*
+
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects.RecompositionReaction.given
-import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
 
 def layersWidget[Event](
                          background : List[DesktopWidget[Event]],
                          foreground : List[DesktopWidget[Event]],
-                         placementStrategy: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], List, Point2d[Float]]
+                         placementStrategy: PlacementStrategy[PlacementEffect, Rect[Float], Rect[Float], Rect[Float], List, Point2d[Float]]
                        ) : Decorator[DesktopWidget[Event]] =
  gui4s.desktop.widget.library.layersWidget[
-   UpdateC[IO, Event],
-   PlacementEffectC[IO],
-   Draw[IO],
-   RecompositionReaction[IO],
+   UpdateC[Event],
+   PlacementEffect,
+   Draw,
+   RecompositionReaction,
    DownEvent,
-   Float
+   Float,
+   InfinityOr[Float]
  ](
-   listContainerWidget,
+   listContainerWidget[Event],
    bounds => PlacementEffect.withBoundsK(_ => bounds.map(new InfinityOr(_)))
  )(background, foreground, placementStrategy)
 end layersWidget
@@ -33,7 +39,7 @@ end layersWidget
 extension[Event](value : DesktopWidget[Event])
   def withBackground(
     background : DesktopWidget[Event],
-    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], Id, Point2d[Float]]
+    placement: PlacementStrategy[PlacementEffect, Rect[Float], Rect[Float], Rect[Float], Id, Point2d[Float]]
   ) : DesktopWidget[Event] =
      layersWidget[Event](
        background.one,
@@ -44,7 +50,7 @@ extension[Event](value : DesktopWidget[Event])
 
   def withForeground(
     foreground : DesktopWidget[Event],
-    placement: PlacementStrategy[PlacementEffectC[IO], Rect[Float], Rect[Float], Id, Point2d[Float]]
+    placement: PlacementStrategy[PlacementEffect, Rect[Float], Rect[Float], Rect[Float], Id, Point2d[Float]]
   ) : DesktopWidget[Event] =
      layersWidget[Event](
        Nil,
@@ -55,15 +61,15 @@ extension[Event](value : DesktopWidget[Event])
 
   def withBackground(
     background: DesktopWidget[Event],
-    horizontalPlacementStrategy : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
-    verticalPlacementStrategy   : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
+    horizontalPlacementStrategy : OneElementPlacementStrategy[PlacementEffect, Float, Float, Float, Float] = OneElementPlacementStrategy.Begin,
+    verticalPlacementStrategy   : OneElementPlacementStrategy[PlacementEffect, Float, Float, Float, Float] = OneElementPlacementStrategy.Begin,
   ): DesktopWidget[Event] =
     layersWidget[Event](
       background.one,
       Nil,
       PlacementStrategy.PlaceStackIndependently(
         PlacementStrategy.Zip[
-          PlacementEffectC[IO],
+          PlacementEffect,
           Float,
           Float,
           Id,
@@ -78,15 +84,15 @@ extension[Event](value : DesktopWidget[Event])
 
   def withForeground(
     foreground: DesktopWidget[Event],
-    horizontalPlacementStrategy : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
-    verticalPlacementStrategy   : OneElementPlacementStrategy[PlacementEffectC[IO], Float, Float, Float] = OneElementPlacementStrategy.Begin,
+    horizontalPlacementStrategy : OneElementPlacementStrategy[PlacementEffect, Float, Float, Float, Float] = OneElementPlacementStrategy.Begin,
+    verticalPlacementStrategy   : OneElementPlacementStrategy[PlacementEffect, Float, Float, Float, Float] = OneElementPlacementStrategy.Begin,
   ): DesktopWidget[Event] =
     layersWidget[Event](
       Nil,
       foreground.one,
       PlacementStrategy.PlaceStackIndependently(
         PlacementStrategy.Zip[
-          PlacementEffectC[IO],
+          PlacementEffect,
           Float,
           Float,
           Id,

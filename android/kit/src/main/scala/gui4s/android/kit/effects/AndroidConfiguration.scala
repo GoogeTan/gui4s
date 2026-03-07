@@ -1,11 +1,9 @@
 package gui4s.android.kit.effects
 
-import android.os.{LocaleList, Parcel, Parcelable}
+import android.os.LocaleList
 import android.text.TextUtils
-import android.util.DisplayMetrics
 import android.view.View
 
-import java.lang.annotation.{Retention, RetentionPolicy}
 import java.util.Locale
 import android.content.res.Configuration
 import gui4s.android.kit.effects.AndroidConfiguration.UiModeType
@@ -23,7 +21,6 @@ import gui4s.android.kit.effects.AndroidConfiguration.HardKeyboardHidden
 import gui4s.android.kit.effects.AndroidConfiguration.Navigation
 import gui4s.android.kit.effects.AndroidConfiguration.NavigationHidden
 import gui4s.android.kit.effects.AndroidConfiguration.ScreenRound
-import gui4s.core.geometry.InfinityOr
 
 object AndroidConfiguration {
   enum GrammaticalGender(val id: Int):

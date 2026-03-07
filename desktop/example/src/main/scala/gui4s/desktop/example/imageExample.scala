@@ -3,7 +3,7 @@ package gui4s.desktop.example
 import catnip.syntax.all.given
 import cats.effect.*
 import gui4s.core.geometry.*
-import gui4s.core.layout.rowcolumn
+import gui4s.core.layout.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*
@@ -33,9 +33,9 @@ def imageExample(
 ) : DesktopWidget[Nothing] =
   given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.width))
 
-  val centerPlacement = rowcolumn.OneElementPlacementStrategy.Center[PlacementEffectC[IO], Float]
-  val beginPlacement = rowcolumn.OneElementPlacementStrategy.Begin[PlacementEffectC[IO], Float, Float]
-  val textPlacement = rowcolumn.PlacementStrategy.Zip(
+  val centerPlacement = OneElementPlacementStrategy.Center[PlacementEffect, Float]
+  val beginPlacement = OneElementPlacementStrategy.Begin[PlacementEffect, Float, Float]
+  val textPlacement = PlacementStrategy.Zip(
     beginPlacement,
     beginPlacement
   )

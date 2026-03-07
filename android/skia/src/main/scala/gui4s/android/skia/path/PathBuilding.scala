@@ -1,11 +1,8 @@
 package gui4s.android.skia.path
 
 import org.jetbrains.skia.{Path, Rect as SkRect, RRect as SkRRect, PathDirection}
-import cats.*
-import cats.arrow.*
 import cats.data.*
 import cats.effect.*
-import cats.syntax.all.*
 import gui4s.core.geometry.*
 
 type PathBuilding[F[_]] = Kleisli[F, Path, Path]

@@ -1,15 +1,12 @@
 package gui4s.core.layout
-package rowcolumn
 
-import catnip.Set._
+import catnip.Set.*
 import catnip.Zip
 import catnip.Zip.zip
-import cats._
-import cats.syntax.all._
+import cats.*
+import cats.syntax.all.*
+import gui4s.core.geometry.{Axis, Point2d, Rect}
 
-import gui4s.core.geometry.Axis
-import gui4s.core.geometry.Point2d
-import gui4s.core.geometry.Rect
 
 /**
  * Расставляет дочерние виджеты линейного контейнера.
@@ -34,20 +31,22 @@ def rowColumnLayoutPlacement[
   setBounds: Rect[BoundUnit] => Place[Unit],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   mainAxis : Axis,
-  children : Collection[Place[Sized[MeasurementUnit, Widget]]],
-  elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[BoundUnit], Collection, Point2d[MeasurementUnit]],
-) : Place[Sized[MeasurementUnit, Collection[Placed[MeasurementUnit, Widget]]]] =
+  children : Collection[Place[Widget]],
+  elementsPlacement : PlacementStrategy[Place, Rect[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit], Collection, Point2d[MeasurementUnit]],
+  childSize : Widget => Rect[MeasurementUnit],
+) : Place[Sized[MeasurementUnit, Collection[(Widget, Point2d[MeasurementUnit])]]] =
   for
-    sizedItems <- measureItemsOneByOne[Place, Collection, Rect[BoundUnit], Sized[MeasurementUnit, Widget]](
+    sizedItems <- measureItemsOneByOne[Place, Collection, Rect[BoundUnit], Widget](
       getBounds = getBounds,
       setBounds = setBounds,
-      updateBoundsAccordingToItem = (bounds, item) => bounds.mapAlong(mainAxis, cut(_, item.lengthAlong(mainAxis))),
+      updateBoundsAccordingToItem = (bounds, item) => 
+        bounds.mapAlong(mainAxis, cut(_, childSize(item).along(mainAxis))),
       items = children
     )
     bounds <- getBounds
-    placedItems <- elementsPlacement(sizedItems.map(_.size), bounds)
+    placedItems <- elementsPlacement(sizedItems.map(childSize), bounds)
   yield Sized(
-    sizedItems.zip(placedItems.coordinates).map(new Placed(_, _, MUN.zero)),
+    sizedItems.zip(placedItems.coordinates),
     placedItems.size
   )
 end rowColumnLayoutPlacement

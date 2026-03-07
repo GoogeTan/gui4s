@@ -10,7 +10,6 @@ import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Init.given 
 import gui4s.desktop.kit.widgets.decorator.*
 
-import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 def loopEach(
@@ -28,6 +27,7 @@ def animationWidget[
 ) : Init[AnimationWidget[DesktopWidget[Event], AnimatedValue, Duration]] =
   for
     supervisor <- Init.evalResource(Supervisor[IO])
+    /*
     timer : Ref[IO, FiniteDuration] <- Init.eval(Ref.ofEffect(IO.realTime))
     _ <- 
     Init.eval(
@@ -42,42 +42,49 @@ def animationWidget[
             else
               IO.unit
           yield (),
-          FiniteDuration(15, TimeUnit.MILLISECONDS)
+          FiniteDuration(2, TimeUnit.MILLISECONDS)
         )
       )
     )
     _ <- Init.emitDecorator(
       eventCatcher[Nothing](
         (_, _, _) =>
-          Update.liftK[IO, Nothing](IO.realTime.flatMap(timer.set)).as(false)
+          Update.liftK[Nothing](IO.realTime.flatMap(timer.set)).as(false)
       )
-    )
+    )*/
   yield {
     val stateful = transitiveStatefulWidget
     gui4s.core.widget.library.animation.animationWidget[
       DesktopWidget,
       Duration,
-      Update[IO, Event, *],
-      PlaceC[IO],
-      * => RecompositionReaction[IO],
+      UpdateC[Event],
+      Place,
+      * => RecompositionReaction,
       AnimatedValue,
       Event
     ](
       statefulWidget =
-        stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
-          _,
-          _,
-          _,
-          _,
-          _ => RecompositionReaction.empty,
-          _
-        ),
+        (
+          name,
+          initialState,
+          handleEvents,
+          body,
+          mergeStates
+        ) =>
+          stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
+            name,
+            initialState,
+            (a, b, c) => handleEvents(a, b, c).map(Some(_)),
+            body,
+            _ => RecompositionReaction.empty,
+            mergeStates
+          ),
       currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
       timeSourceWidget = original =>
         eventCatcher[Either[Duration, Event]](
           (path, _, _) =>
             Update
-              .liftK[IO, Either[Duration, Event]](Clock[IO].monotonic)
+              .liftK[Either[Duration, Event]](Clock[IO].monotonic)
               .map(Left[Duration, Event])
               .map(NonEmptyList.one)
               .flatMap(Update.emitEvents(_))

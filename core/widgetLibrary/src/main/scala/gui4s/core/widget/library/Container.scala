@@ -1,7 +1,5 @@
 package gui4s.core.widget.library
 
-import gui4s.core.widget.handle.Layout
-
 /**
  * Тип виджета контейнера.
  * Он позволяет делать любые операции по размещению виджетов в пространстве.
@@ -16,6 +14,10 @@ import gui4s.core.widget.handle.Layout
  * @tparam Collection Множество виджетов.
  * @tparam Place Эффект установки виджета.
  * @tparam Meta Вспомогательные данные об результате установки виджета. TODO примеры
+ * @todo Rewrite me
  */
-type ContainerWidget[PlacedWidget, Collection[_], Place[_], Meta] =
-  (children : Collection[Place[PlacedWidget]], layout : Layout[Place, Collection, PlacedWidget, Meta]) => Place[PlacedWidget]
+type ContainerWidget[Widget, Children, Placement] =
+  (
+    children : Children,
+    placementStrategy : Placement
+  ) => Widget

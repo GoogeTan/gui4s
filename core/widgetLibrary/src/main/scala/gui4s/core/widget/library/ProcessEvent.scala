@@ -1,10 +1,10 @@
 package gui4s.core.widget.library
 
-import cats._
+import cats.*
 import cats.syntax.all.given
-
 import gui4s.core.widget.Path
 import gui4s.core.widget.collectQuitCompositionReactions
+import gui4s.core.widget.free.AsFreeF
 import gui4s.core.widget.handle.HandlesEvent
 import gui4s.core.widget.recomposition.ReactsOnRecomposition
 import gui4s.core.widget.state.HasInnerStates
@@ -69,7 +69,8 @@ def processEvent[
 ](
     pathToRoot : Path,
     runRecomposition : Recomposition => IO[Unit],
-    widgetHandlesEvent : HandlesEvent[Widget, DownEvent, Update[Place[Widget]]],
+    widgetAsFree : AsFreeF[Widget, Place],
+    widgetHandlesEvent : HandlesEvent[Widget, DownEvent, Update[Option[Place[Widget]]]],
     widgetReactsToRecomposition : ReactsOnRecomposition[Widget, Recomposition],
     widgetHasInnerState : HasInnerStates[Widget, Recomposition],
     runPlacement: Place ~> IO
@@ -77,14 +78,18 @@ def processEvent[
   placedWidget: Widget,
   event: DownEvent
 ): Update[IO[Widget]] =
-  widgetHandlesEvent(placedWidget, pathToRoot, event).map(newWidget =>
-    for
-      newPlacedWidget <- runPlacement(newWidget)
-      _ <- runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, widgetHasInnerState(placedWidget)))
-      _ <- collectQuitCompositionReactions[Recomposition](
-        widgetHasInnerState(placedWidget),
-        widgetHasInnerState(newPlacedWidget)
-      ).traverse_(runRecomposition)
-    yield newPlacedWidget
-  )
+  widgetHandlesEvent(placedWidget, pathToRoot, event).map:
+    case Some(newWidget) =>
+      for
+        newPlacedWidget <- runPlacement(newWidget)
+        _ <- runRecomposition(widgetReactsToRecomposition(newPlacedWidget, pathToRoot, widgetHasInnerState(placedWidget)))
+        _ <- collectQuitCompositionReactions[Recomposition](
+          widgetHasInnerState(placedWidget),
+          widgetHasInnerState(newPlacedWidget)
+        ).traverse_(runRecomposition)
+      yield newPlacedWidget
+    case None => 
+      runPlacement(
+        widgetAsFree(placedWidget)
+      )
 end processEvent

@@ -2,7 +2,7 @@ package gui4s.desktop.widget.library.decorator
 
 import cats._
 
-import gui4s.core.layout.rowcolumn._
+import gui4s.core.layout._
 import gui4s.core.widget.library.LinearContainer
 import gui4s.core.widget.library.decorator.Decorator
 
@@ -29,8 +29,8 @@ def fixedSizeWidget[
     Axis
   ],
    mainAxis : Axis,
-   mainAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, BoundUnit, MeasurementUnit],
-   crossAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, BoundUnit, MeasurementUnit],
+   mainAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, MeasurementUnit, BoundUnit, MeasurementUnit],
+   crossAxisStrategy : OneElementPlacementStrategy[PlacementEffect, MeasurementUnit, MeasurementUnit, BoundUnit, MeasurementUnit],
 ) : Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]] =
   originalWidget =>
     placementDecorator[

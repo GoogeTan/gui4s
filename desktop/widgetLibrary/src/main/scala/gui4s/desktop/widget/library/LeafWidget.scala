@@ -28,8 +28,8 @@ def leafWidget[
         valueToDecorate = marker,
         valueAsFree = asFree,
         valueIsDrawable = (_ : Marker) => emptyDraw,
-        valueHandlesEvent = handlesNothing[Marker, EnvironmentalEvent, Update[Place[Marker]]](asFree andThen M.pure),
-        valueMergesWithOldState = anyHasNothingToMerge[Marker, Place[Marker]](asFree),
+        valueHandlesEvent = handlesNothing,
+        valueMergesWithOldState = anyHasNothingToMerge,
         valueReactsOnRecomposition = hasNoReactionOnRecomposition[RecompositionReaction](emptyRecomposition),
         valueHasInnerState = hasNoInnerState[Marker]
       )

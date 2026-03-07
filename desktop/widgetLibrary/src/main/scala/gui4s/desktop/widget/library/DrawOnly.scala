@@ -27,8 +27,8 @@ def drawOnlyWidget[
         valueToDecorate = draw,
         valueAsFree = asFree,
         valueIsDrawable = identity, 
-        valueHandlesEvent = handlesNothing[Draw, EnvironmentalEvent, Update[Place[Draw]]](asFree andThen M.pure),
-        valueMergesWithOldState = anyHasNothingToMerge(asFree),
+        valueHandlesEvent = handlesNothing,
+        valueMergesWithOldState = anyHasNothingToMerge,
         valueReactsOnRecomposition = hasNoReactionOnRecomposition[RecompositionReaction](emptyRecomposition),
         valueHasInnerState = hasNoInnerState[Draw]
       )

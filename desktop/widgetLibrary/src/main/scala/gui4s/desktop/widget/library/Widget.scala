@@ -59,8 +59,17 @@ enum Widget[
 ](
   val asFree : Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
   val draw : Draw,
-  val handleEvent : WidgetHandlesEvent[EnvironmentalEvent, Update[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]]],
-  val mergeWithOldState : (path: Path, oldState:  Map[String, StateTree[RecompositionReaction]]) => Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
+  val handleEvent : WidgetHandlesEvent[
+    EnvironmentalEvent,
+    Update[
+      Option[
+        Place[
+          Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
+        ]
+      ]
+    ]
+  ],
+  val mergeWithOldState : (path: Path, oldState:  Map[String, StateTree[RecompositionReaction]]) => Option[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]],
   val reactOnRecomposition : (pathToParent: Path, oldStates: Map[String, StateTree[RecompositionReaction]]) => RecompositionReaction,
   val innerStates: Map[String, StateTree[RecompositionReaction]]
 ):
@@ -70,15 +79,24 @@ enum Widget[
     valueToDecorate: T,
     valueAsFree: AsFree[T, Place_[T]],
     valueIsDrawable: Drawable[T, Draw_],
-    valueHandlesEvent: HandlesEvent[T, EnvironmentalEvent_, Update_[Place_[T]]],
-    valueMergesWithOldState: MergesWithOldStates[T, RecompositionReaction_, Place_[T]],
+    valueHandlesEvent: HandlesEvent[T, EnvironmentalEvent_, Update_[Option[Place_[T]]]],
+    valueMergesWithOldState: MergesWithOldStates[T, RecompositionReaction_, Option[Place_[T]]],
     valueReactsOnRecomposition: ReactsOnRecomposition[T, RecompositionReaction_],
     valueHasInnerState: HasInnerStates[T, RecompositionReaction_],
   ) extends Widget[Update_, Place_, Draw_, RecompositionReaction_, EnvironmentalEvent_](
     valueAsFree(valueToDecorate).map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState)),
     valueIsDrawable(valueToDecorate),
-    (a, b) => valueHandlesEvent(valueToDecorate, a, b).map(_.map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState))),
-    (a, b) => valueMergesWithOldState(valueToDecorate, a, b).map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState)),
+    (a, b) => valueHandlesEvent(valueToDecorate, a, b).map(
+      _.map(
+        _.map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState))
+      )
+    ),
+    (a, b) => valueMergesWithOldState(valueToDecorate, a, b)
+      .map(
+        _.map(
+          ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState)
+        )
+      ),
     valueReactsOnRecomposition(valueToDecorate, _, _),
     valueHasInnerState(valueToDecorate)
   )
@@ -119,7 +137,7 @@ def widgetHandlesEvent[
 ] : HandlesEventF[
   Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent],
   EnvironmentalEvent,
-  Update * Place
+  Update * Option * Place
 ] =
   _.handleEvent(_, _)
 end widgetHandlesEvent
@@ -133,7 +151,7 @@ def widgetMergesWithOldState[
 ] : MergesWithOldStates[
   Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent],
   RecompositionReaction,
-  Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
+  Option[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]],
 ] =
   _.mergeWithOldState(_, _)
 

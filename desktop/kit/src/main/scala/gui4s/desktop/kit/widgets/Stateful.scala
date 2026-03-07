@@ -3,15 +3,13 @@ package widgets
 
 import scala.reflect.Typeable
 
-import catnip.syntax.all.given
+import catnip.syntax.all.{*, given}
 import cats._
 import cats.data._
 import cats.effect.*
 
 import gui4s.core.layout.Sized.given
-import gui4s.core.widget.Path
 import gui4s.core.widget.StatefulState
-import gui4s.core.widget.given
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.StatefulWidget
 import gui4s.core.widget.library._
@@ -24,20 +22,20 @@ import gui4s.desktop.widget.library._
 
 def statefulWidget: StatefulWidget[
   DesktopWidget,
-  Update[IO, *, *],
-  [State] =>> State => RecompositionReaction[IO],
-  [State] =>> MergeStates[PlaceC[IO], State]
+  Update,
+  * => RecompositionReaction,
+  MergeStates[Place, *]
 ] =
   new StatefulWidget[
     DesktopWidget,
-    Update[IO, *, *],
-    [State] =>> State => RecompositionReaction[IO],
-    [State] =>> MergeStates[PlaceC[IO], State]
+    Update,
+    * => RecompositionReaction,
+    MergeStates[Place, *]
   ]:
     override def apply[State: {Equiv, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
+                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
                                                                       body: State => DesktopWidget[ChildEvent]
                                                                     ): DesktopWidget[Event] =
       apply(name, initialState, eventHandler, body, _ => RecompositionReaction.empty)
@@ -47,52 +45,65 @@ def statefulWidget: StatefulWidget[
     override def apply[State: {Equiv as EQ, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
+                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
                                                                       body: State => DesktopWidget[ChildEvent],
-                                                                      destructor: State => RecompositionReaction[IO]
+                                                                      destructor: State => RecompositionReaction
                                                                     ): DesktopWidget[Event] =
-      apply(
+      apply[State, Event, ChildEvent](
         name = name,
         initialState = initialState,
-        eventHandler = eventHandler,
+        eventHandler =
+          (originalState, path, events) =>
+            eventHandler(originalState, path, events).map(
+              resultingState =>
+                if EQ.equiv(originalState, resultingState) then
+                  None
+                else
+                  Some(resultingState)
+            ),
         body = body,
         destructor = destructor,
-        mergeStates = [T] => (oldState : StatefulState[State], newState : StatefulState[State], consumer : StatefulState[State] => Place[IO, T]) =>
+        mergeStates = [T] => (oldState, newState, consumer) =>
           if EQ.equiv(oldState.initialState, newState.initialState) then
-             consumer(oldState)  // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
+             Some(consumer(oldState))  // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
           else
-             consumer(newState)
+             None
       )
     end apply
 
     override def apply[State, Event, ChildEvent](
-                                                            name: String,
-                                                            initialState: State,
-                                                            eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[IO, Event]],
-                                                            body: State => DesktopWidget[ChildEvent],
-                                                            destructor: State => RecompositionReaction[IO],
-                                                            mergeStates: MergeStates[PlaceC[IO], State]
-                                                          ): DesktopWidget[Event] =
+                                                  name: String,
+                                                  initialState: State,
+                                                  eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event] * Option],
+                                                  body: State => DesktopWidget[ChildEvent],
+                                                  destructor: State => RecompositionReaction,
+                                                  mergeStates: MergeStates[Place, State]
+                                                ): DesktopWidget[Event] =
       library.stateful[
-        UpdateC[IO, Event],
-        UpdateC[IO, ChildEvent],
-        PlaceC[IO],
-        Draw[IO],
-        RecompositionReaction[IO],
+        UpdateC[Event],
+        UpdateC[ChildEvent],
+        Place,
+        Draw,
+        RecompositionReaction,
         DownEvent,
         State,
         ChildEvent
       ](
-        widgetsAreMergeable = widgetsCanUpdateStateFromTheOldOnes[
-          UpdateC[IO, ChildEvent],
-          PlacementEffect[IO, *],
-          Situated,
-          Draw[IO],
-          RecompositionReaction[IO],
-          DownEvent
-        ],
-        typeCheckState = Place.typecheck[IO, StatefulState[State]]((value: Any, path: Path) => new Exception("Error in stateful typechecking at " + path.toString + " with value [" + value.toString + "]")),
-        liftUpdate = Update.catchEvents[IO, ChildEvent, Event],
+        widgetsAreMergeable = widgetsCanUpdateStateFromTheOldOnes(
+          widgetMergesWithOldState,
+          widgetHasInnerStates
+        ),
+        typeCheckState = [T] => (valueToTypeCheck, path, consumer) =>
+          valueToTypeCheck match
+            case s : StatefulState[State] =>
+              consumer(s)
+            case _ =>
+              Some(
+                Place.raiseError[Throwable, T](
+                  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
+                )
+              ),
+      liftUpdate = Update.catchEvents[ChildEvent, Event],
         addNameToPath = Place.addNameToPath,
       )(
         name = name,

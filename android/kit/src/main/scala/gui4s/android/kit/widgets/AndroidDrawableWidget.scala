@@ -1,19 +1,18 @@
 package gui4s.android.kit.widgets
 
-import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import cats.effect.IO
 import gui4s.android.kit.AndroidMainThread
 import gui4s.android.kit.effects.PlacementEffect
 import gui4s.android.kit.effects.Draw
 import gui4s.core.layout.Sized
 
 def androidDrawableWidget[
-  IO[_] : Async as S,
   Event
-](drawable : Drawable) : AndroidWidget[IO, Event] =
+](drawable : Drawable) : AndroidWidget[Event] =
   drawOnlyWidget(
     PlacementEffect.liftFunction(bounds =>
-      S.delay {
+      IO.delay {
         drawable.setBounds(
           0,
           0,

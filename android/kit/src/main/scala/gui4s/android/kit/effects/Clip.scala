@@ -30,7 +30,7 @@ object Clip:
     )
   end moveClipToPoint
 
-  def drawClipped[IO[_] : Sync](path: Clip, original: Draw[IO]): Draw[IO] =
+  def drawClipped(path: Clip, original: Draw): Draw =
     withClipedPath(path, original)
   end drawClipped
 end Clip

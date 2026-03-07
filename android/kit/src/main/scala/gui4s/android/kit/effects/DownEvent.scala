@@ -1,6 +1,5 @@
 package gui4s.android.kit.effects
 
-import gui4s.core.geometry.Point2d
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
 

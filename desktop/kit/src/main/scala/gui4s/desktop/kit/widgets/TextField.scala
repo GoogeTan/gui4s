@@ -19,7 +19,7 @@ def textField[
   Event
 ](
   body : TextFieldState => DesktopWidget[TextFieldEvent],
-  copyTextToClipboard : String => Update[IO, Event, Unit],
+  copyTextToClipboard : String => Update[Event, Unit],
 )(
   name : String,
   text : String,
@@ -35,7 +35,7 @@ end textField
 def basicTextFieldBody[
   Event
 ](
-    placeText : TextFieldState => Place[IO, Paragraph],
+    placeText : TextFieldState => Place[Paragraph],
     systemEventCatcher : Sized[Float, Paragraph] => DesktopWidget[Event] => DesktopWidget[Event],
     drawText : (Path, TextFieldState, Sized[Float, Paragraph]) => DesktopWidget[Event]
 ) : TextFieldState => DesktopWidget[Event] =
@@ -44,10 +44,10 @@ def basicTextFieldBody[
       DesktopWidget[Event],
       Sized[Float, Paragraph]
     ](
-      (state, callback) => Monad[PlacementEffectC[IO]].flatMap(placeText(state))(callback),
+      (state, callback) => Monad[PlacementEffect].flatMap(placeText(state))(callback),
       systemEventCatcher,
       text =>
-        PlacementEffect.currentPath[IO].flatMap(path => drawText(path, state, text))
+        PlacementEffect.currentPath.flatMap(path => drawText(path, state, text))
     )(state)
 end basicTextFieldBody
 
@@ -61,7 +61,7 @@ def textFieldTextPlacement[
   selectionStyle : TextStyle
 )(
     state : TextFieldState
-) : Place[IO, Paragraph] =
+) : Place[Paragraph] =
   PlacementEffect.liftFunction(
     bounds =>
       textFieldParagraph(

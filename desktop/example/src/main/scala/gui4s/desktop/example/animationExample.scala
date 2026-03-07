@@ -3,7 +3,7 @@ package gui4s.desktop.example
 import cats.data.EitherT
 import cats.effect.*
 import cats.syntax.all.*
-import gui4s.core.widget.library.animation.NormedVectorSpace.numericNormedVectorSpace
+import gui4s.core.widget.library.animation.NormedVectorSpace.floatNormedVectorSpace
 import gui4s.core.widget.library.animation.{Animation, AnimationWidget, Easing, TweenAnimation}
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.desktop.kit.effects.*
@@ -33,7 +33,7 @@ def animationExample(
       statefulWidget[Int, Nothing, Unit](
         name = "counter",
         initialState = 0,
-        eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[IO, Nothing]],
+        eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[Nothing]],
         body = count =>
           animation(
             name = "animation",

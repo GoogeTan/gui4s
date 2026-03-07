@@ -12,11 +12,11 @@ import gui4s.desktop.kit.widgets.DesktopWidget
 
 def clipWidget[Event](value : DesktopWidget[Event], path : Rect[Float] => Clip) : DesktopWidget[Event] =
   gui4s.desktop.widget.library.decorator.clipWidget[
-    UpdateC[IO, Event],
-    PlacementEffect[IO, *],
+    UpdateC[Event],
+    PlacementEffect,
     Situated,
-    Draw[IO],
-    RecompositionReaction[IO],
+    Draw,
+    RecompositionReaction,
     DownEvent,
     Clip
   ](

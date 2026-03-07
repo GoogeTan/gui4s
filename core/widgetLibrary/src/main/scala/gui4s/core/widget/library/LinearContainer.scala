@@ -1,19 +1,12 @@
 package gui4s.core.widget.library
 
-import catnip.Get
-import catnip.Set
-import catnip.Zip
 import catnip.syntax.additional.*
-import cats.{Applicative, Monad, Order, Traverse}
+import catnip.{Get, Set, Zip}
 import cats.syntax.all.*
-import gui4s.core.geometry.Axis
-import gui4s.core.geometry.Point3d
-import gui4s.core.geometry.Rect
-import gui4s.core.layout.Placed
-import gui4s.core.layout.Sized
-import gui4s.core.layout.rowcolumn.OneElementPlacementStrategy
-import gui4s.core.layout.rowcolumn.PlacementStrategy
-import gui4s.core.layout.rowcolumn.rowColumnLayoutPlacement
+import cats.{Monad, Traverse}
+import gui4s.core.geometry.{Axis, Point3d, Rect}
+import gui4s.core.layout.*
+import gui4s.core.widget.free.AsFreeF
 
 /**
  * Линейный контейнер - это контейнер, который располагает свои дочерние виджеты вдоль одной из осей.
@@ -48,8 +41,8 @@ trait LinearContainer[
   def apply(
               children               : Collection[Widget],
               mainAxis               : Axis,
-              mainAxisStrategy       : PlacementStrategy[Place, MeasurementUnit, BoundUnit, Collection, MeasurementUnit],
-              additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit, BoundUnit, MeasurementUnit],
+              mainAxisStrategy       : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, BoundUnit, Collection, MeasurementUnit],
+              additionalAxisStrategy : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, BoundUnit, MeasurementUnit],
             ) : Widget
 end LinearContainer
 
@@ -62,45 +55,68 @@ end LinearContainer
  * @param setBounds Позволяет установить ограничения на доступное место
  * @param cut Уменьшает ограничения на заданную величину
  *
- * @tparam PlacedWidget Размещенный виджет.
- * @tparam Place Эффект устаовки виджета на экран
+ * @tparam Widget Размещенный виджет.
+ * @tparam PlacementEffect Эффект устаовки виджета на экран
  * @tparam Collection Множество виджетов
  * @tparam BoundUnit Ограничения на доступное место(может отличастья от MeasurementUnit, т.к. может быть бесконечным в случае скролла)
  * @tparam MeasurementUnit Единица измерения размеров на экране
  */
 def linearContainer[
-  PlacedWidget,
-  Place[_] : Monad,
-  Collection[_] : {Applicative as A, Traverse, Zip},
+  Widget,
+  PlacementEffect[_] : Monad,
+  Collection[_] : {Traverse, Zip},
   BoundUnit,
   MeasurementUnit : Numeric as N,
 ](
-  container : ContainerWidget[PlacedWidget, Collection, Place * Sized[MeasurementUnit, *], Point3d[MeasurementUnit]],
-  getBounds: Get[Place, Rect[BoundUnit]],
-  setBounds: Set[Place, Rect[BoundUnit]],
-  cut : (BoundUnit, MeasurementUnit) => BoundUnit 
-) : LinearContainer[Place[Sized[MeasurementUnit, PlacedWidget]], Place, Collection, BoundUnit, MeasurementUnit, Axis] =
+  container : ContainerWidget[
+    PlacementEffect[Sized[MeasurementUnit, Widget]],
+    Collection[
+      PlacementEffect[Sized[MeasurementUnit, Widget]],
+    ],
+    PlacementStrategy[
+      PlacementEffect,
+      PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]],
+      Rect[MeasurementUnit],
+      Rect[BoundUnit],
+      Collection,
+      (Widget, LayersMetadata[Point3d[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit]])
+    ]
+  ],
+  getBounds: Get[PlacementEffect, Rect[BoundUnit]],
+  setBounds: Set[PlacementEffect, Rect[BoundUnit]],
+  cut : (BoundUnit, MeasurementUnit) => BoundUnit,
+  widgetAsFree : AsFreeF[Widget, PlacementEffect * Sized[MeasurementUnit, *]]
+) : LinearContainer[PlacementEffect[Sized[MeasurementUnit, Widget]], PlacementEffect, Collection, BoundUnit, MeasurementUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
       children,
-      freeChildren =>
-        rowColumnLayoutPlacement[
-          Place, Collection, PlacedWidget, BoundUnit, MeasurementUnit
+      ContainerStrategy.combine(
+        measurementStrategy = MeasurementStrategy.linearMeasurementStrategy[
+          PlacementEffect,
+          Collection,
+          Rect[BoundUnit],
+          Measured[MeasurementUnit, BoundUnit, Widget]
         ](
           getBounds,
           setBounds,
-          cut,
+          (bounds, item) => bounds.mapAlong(mainAxis, cut(_, item.size.along(mainAxis))) 
+        ),
+        placementStrategy = PlacementStrategy.Zip(
           mainAxis,
-          freeChildren,
-          PlacementStrategy.Zip(
-            mainAxis,
-            mainAxisStrategy,
-            PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
-          ),
-        ).map(_.mapValue(elements => A.map(elements)(placedElementAsLayoutMetadata)))
+          mainAxisStrategy,
+          PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
+        ),
+        someMap = _.mapWithIndex:
+          case ((measuredWidget, point), index) =>
+            (
+              measuredWidget.value,
+              LayersMetadata(
+                new Point3d(point, N.fromInt(index)),
+                measuredWidget.size,
+                measuredWidget.bounds
+              )
+            ),
+        sizeOfItem = _.size
+      )
     )
 end linearContainer
-
-def placedElementAsLayoutMetadata[MeasurementUnit, T](placed : Placed[MeasurementUnit, T]) : (T, Point3d[MeasurementUnit]) =
-  (placed.value, placed.coordinate)
-end placedElementAsLayoutMetadata

@@ -21,13 +21,13 @@ def eventCatcherWithRect[
    updateDecorator: UpdateDecorator[Update, PlacementEffect, Situated[PlaceWidget], EnvironmentalEvent],
    markEventHandled : Update[Unit],
    widgetAsFree : AsFreeF[PlaceWidget, PlacementEffect * Situated],
-   widgetHandlesEvent : HandlesEventF[PlaceWidget, EnvironmentalEvent, Update * PlacementEffect * Situated]
+   widgetHandlesEvent : HandlesEventF[PlaceWidget, EnvironmentalEvent, Update * Option * PlacementEffect * Situated]
 ) : EventCatcherWithRect[PlacementEffect[Situated[PlaceWidget]], Update[Boolean], Situated[PlaceWidget], EnvironmentalEvent] =
   decorator =>
     updateDecorator(
       (self, path, event) =>
         decorator(path, self, event).ifM(
-          markEventHandled *> widgetAsFree(self.extract).pure[Update],
+          markEventHandled *> Some(widgetAsFree(self.extract)).pure[Update],
           widgetHandlesEvent(self.extract, path, event)
         )
     )

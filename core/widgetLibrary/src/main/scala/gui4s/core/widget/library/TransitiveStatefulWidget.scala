@@ -3,6 +3,7 @@ package gui4s.core.widget.library
 import scala.reflect.Typeable
 
 import catnip.BiMonad
+import catnip.syntax.all.*
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.syntax.all._
@@ -30,7 +31,7 @@ trait TransitiveStatefulWidget[Widget[_], -Update[Event, Value], -Destructor[_],
   def apply[State, TransitiveEvent, OwnEvent](
                                                          name: String,
                                                          initialState: State,
-                                                         eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
+                                                         eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *] * Option],
                                                          body: State => Widget[Either[OwnEvent, TransitiveEvent]],
                                                          destructor: Destructor[State],
                                                          mergeStates : MergeStates[State]
@@ -103,7 +104,7 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
   ](
     name: String, 
     initialState: State,
-    eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
+    eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *] * Option],
     body: State => Widget[Either[OwnEvent, TransitiveEvent]], 
     destructor: Destructor[State],
     mergeStates : MergeStates[State]
@@ -117,8 +118,8 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
         raiseEvents(transitiveEvents)
           *> NonEmptyList
           .fromList(ownEvents)
-          .map(eventHandler(state, path, _))
-          .getOrElse(state.pure)
+          .traverse[Update[TransitiveEvent, *], Option[State]](eventHandler(state, path, _))
+          .map(_.flatten)
       },
       body,
       destructor,
