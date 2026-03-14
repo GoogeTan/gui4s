@@ -4,7 +4,7 @@ import catnip.syntax.all.{*, given}
 import cats.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.{Measured, OneElementPlacementStrategy, PlacementStrategy, Sized, SizedC}
-import gui4s.core.widget.library.{ContainerWidget, LayersMetadata}
+import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.desktop.widget.library.decorator.{FreeWidgetWithSituated, WidgetWithSituated}
 
@@ -29,10 +29,12 @@ def layersWidget[
       Rect[MeasurementUnit],
       Rect[BoundUnit],
       List,
-      (
-        WidgetWithSituated[Update, PlacementEffect, SizedC[MeasurementUnit], Draw, RecompositionReaction, EnvironmentalEvent],
-        LayersMetadata[Point3d[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit]]
-      )
+       Measured[MeasurementUnit, BoundUnit,
+         (
+           WidgetWithSituated[Update, PlacementEffect, SizedC[MeasurementUnit], Draw, RecompositionReaction, EnvironmentalEvent],
+           Point3d[MeasurementUnit]
+         )
+       ]
     ]
   ],
   withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect

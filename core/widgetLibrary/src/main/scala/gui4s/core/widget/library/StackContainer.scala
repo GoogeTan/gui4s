@@ -41,7 +41,7 @@ def stackContainer[
       Rect[MeasurementUnit],
       Rect[BoundUnit],
       List,
-      (Widget, LayersMetadata[Point3d[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit]])
+      Measured[MeasurementUnit, BoundUnit, (Widget, Point3d[MeasurementUnit])]
     ]
   ],
   widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[MeasurementUnit]]
@@ -58,13 +58,10 @@ def stackContainer[
       placementStrategy = xyPlacementStrategy,
       someMap = _.mapWithIndex:
         case ((measuredWidget, point), index) =>
-          (
-            measuredWidget.value,
-            LayersMetadata(
-              new Point3d(point, MUN.fromInt(index)),
-              measuredWidget.size,
-              measuredWidget.bounds
-            )
+          Measured(
+            (measuredWidget.value, new Point3d(point, MUN.fromInt(index))),
+            measuredWidget.size,
+            measuredWidget.bounds
           ),
       sizeOfItem = _.size
     )

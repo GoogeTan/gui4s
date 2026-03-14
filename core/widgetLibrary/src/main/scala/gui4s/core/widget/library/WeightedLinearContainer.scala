@@ -58,7 +58,7 @@ def weightedLinearContainer[
       Rect[MeasurementUnit],
       Rect[BoundUnit],
       List,
-      (PlacedWidget, LayersMetadata[(Option[Float], Point3d[MeasurementUnit]), Rect[MeasurementUnit], Rect[BoundUnit]])
+      (PlacedWidget, Measured[MeasurementUnit, BoundUnit, (Option[Float], Point3d[MeasurementUnit])])
     ]
   ],
   getBounds: Get[PlacementEffect, Rect[BoundUnit]],
@@ -86,7 +86,7 @@ def weightedLinearContainer[
           case ((measuredWidget, point), index) =>
             (
               measuredWidget.value,
-              LayersMetadata(
+              Measured(
                 (None, new Point3d(point, N.fromInt(index))),
                 measuredWidget.size,
                 measuredWidget.bounds

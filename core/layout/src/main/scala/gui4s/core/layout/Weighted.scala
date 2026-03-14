@@ -20,7 +20,11 @@ enum Weighted[+T](val value: T):
     this match
       case Weighted.Rigid(value) => Rigid(f(value))
       case Weighted.Weight(value, weight) => Weight(f(value), weight)
-
+  
+  def optionWeight : Option[Float] = this match
+    case Weighted.Rigid(value) => None
+    case Weighted.Weight(value, weight) => Some(weight)
+  end optionWeight
 end Weighted
 
 object Weighted:

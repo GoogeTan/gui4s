@@ -7,7 +7,6 @@ import cats.syntax.all.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.*
 import gui4s.core.widget.free.AsFreeF
-import gui4s.core.widget.handle.LayoutIncrementalWidget
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 
@@ -39,7 +38,7 @@ def layersWidget[
       Rect[MeasurementUnit], 
       Rect[BoundUnit],
       List, 
-      (Widget, LayersMetadata[Point3d[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit]])
+      Measured[MeasurementUnit, BoundUnit, (Widget, Point3d[MeasurementUnit])]
     ]
   ],
   withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect,
@@ -83,28 +82,36 @@ def layersWidget[
         ),
         someMap = _.mapWithIndex:
           case ((measuredWidget, point), index) =>
-            (
-              measuredWidget.value,
-              LayersMetadata(
-                new Point3d(point, MUN.fromInt(index)),
-                measuredWidget.size,
-                measuredWidget.bounds
-              )
+            Measured(
+              (
+                measuredWidget.value,
+                new Point3d(point, MUN.fromInt(index))
+              ),
+              measuredWidget.size,
+              measuredWidget.bounds,
             ),
         sizeOfItem = _.size
       )
     )
 end layersWidget
 
-final case class LayersMetadata[Point, Size, Bounds](
-  point : Point,
-  size : Size,
-  bounds : Bounds
-)
+def measure[
+  PlacementEffect[_] : FlatMap,
+  Widget,
+  MeasurementUnit,
+  BoundUnit,
+  Point
+](
+  getBounds : PlacementEffect[Rect[BoundUnit]],
+  value : PlacementEffect[Sized[MeasurementUnit, Widget]]
+) : PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]] =
+  getBounds.flatMap(bounds =>
+    value.map(new Measured(_, bounds))
+  )
+end measure
 
-
-def placeOneIncrementally[
-  PlacementEffect[_] : Monad as PEM,
+def measureIncrementally[
+  PlacementEffect[_] : Monad,
   Widget,
   MeasurementUnit,
   BoundUnit,
@@ -112,18 +119,12 @@ def placeOneIncrementally[
 ](
   getBounds : PlacementEffect[Rect[BoundUnit]],
   widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[MeasurementUnit]],
-  widget: LayoutIncrementalWidget[
-    Widget,
-    PlacementEffect * SizedC[MeasurementUnit],
-    LayersMetadata[Point, Rect[MeasurementUnit], Rect[BoundUnit]]
-  ],
-): PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]] =
+  widget: Measured[MeasurementUnit, BoundUnit, Widget]
+): PlacementEffect[Sized[MeasurementUnit, Widget]] =
   getBounds.flatMap:
     bounds =>
-      if widget.meta.bounds == bounds then
-        Measured(widget.widget, widget.meta.size, bounds).pure[PlacementEffect]
+      if widget.bounds == bounds then
+        Sized(widget.value, widget.size).pure[PlacementEffect]
       else
-        PEM.map(
-            widget.newWidget.getOrElse(widgetAsFree(widget.widget))
-        )(new Measured(_, bounds))
-end placeOneIncrementally
+        widgetAsFree(widget.value)
+end measureIncrementally

@@ -12,4 +12,8 @@ final case class Measured[MeasurementUnit, BoundUnit, T](
   end this
 
   def asSized : Sized[MeasurementUnit, T] = Sized(value, size)
+
+  def map[B](f : T => B) : Measured[MeasurementUnit, BoundUnit, B] =
+    copy(value = f(value))
+  end map
 end Measured

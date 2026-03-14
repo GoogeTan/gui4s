@@ -13,10 +13,9 @@ type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
  */
 def gapPaddingWidget[
   Widget,
-  PlacedWidget,
+  PositionedWidget,
   PlacementEffect[_] : FlatMap,
   MeasuredWidget,
-  Meta,
   Size,
   Bounds,
   Point,
@@ -30,12 +29,12 @@ def gapPaddingWidget[
       Size,
       Bounds,
       Id,
-      (PlacedWidget, Meta)
+      PositionedWidget
     ]
   ],
   boundsWithPaddings : PlacementEffect ~> PlacementEffect,
   innerPlaceWithPaddings : OneElementPlacementStrategy[PlacementEffect, Size, Size, Bounds, Point],
-  makeMeta : (MeasuredWidget, Point) => (PlacedWidget, Meta),
+  makeMeta : (MeasuredWidget, Point) => PositionedWidget,
   sizeOfItem : MeasuredWidget => Size
 ): Decorator[Widget] =
   original =>

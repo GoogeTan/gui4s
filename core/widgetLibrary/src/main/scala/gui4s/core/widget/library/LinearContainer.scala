@@ -79,7 +79,7 @@ def linearContainer[
       Rect[MeasurementUnit],
       Rect[BoundUnit],
       Collection,
-      (Widget, LayersMetadata[Point3d[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit]])
+      Measured[MeasurementUnit, BoundUnit, (Widget, Point3d[MeasurementUnit])]
     ]
   ],
   getBounds: Get[PlacementEffect, Rect[BoundUnit]],
@@ -108,14 +108,7 @@ def linearContainer[
         ),
         someMap = _.mapWithIndex:
           case ((measuredWidget, point), index) =>
-            (
-              measuredWidget.value,
-              LayersMetadata(
-                new Point3d(point, N.fromInt(index)),
-                measuredWidget.size,
-                measuredWidget.bounds
-              )
-            ),
+            measuredWidget.map(widget => (widget, new Point3d(point, N.fromInt(index)))),
         sizeOfItem = _.size
       )
     )

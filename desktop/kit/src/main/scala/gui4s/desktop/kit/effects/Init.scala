@@ -9,7 +9,6 @@ import gui4s.desktop.kit.widgets.DesktopWidget
 opaque type Init[T] = Resource[IO, (Decorator[DesktopWidget[Nothing]], T)]
 
 object Init:
-  // --- Existing Helpers ---
   def evalResource[T](init: Resource[IO, T]): Init[T] =
     init.map(t => (identity, t))
 

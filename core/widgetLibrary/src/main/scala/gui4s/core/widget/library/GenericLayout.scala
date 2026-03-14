@@ -5,7 +5,6 @@ import cats.syntax.all.*
 import cats.{Functor, Monad}
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.{PlacementStrategy, Sized, SizedC}
-import gui4s.core.widget.handle.Layout
 
 class GenericLayout[
   PlacementEffect[_] : Monad as OPA,

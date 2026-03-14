@@ -6,7 +6,6 @@ import cats.effect.*
 import cats.syntax.all.*
 import gui4s.core.geometry.{Point2d, Point3d, Rect, InfinityOr}
 import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.core.widget.library.LayersMetadata
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.PlacementEffect.given
@@ -19,7 +18,6 @@ import cats.effect.*
 import cats.syntax.all.*
 import gui4s.core.geometry.{Point2d, Point3d, Rect, InfinityOr}
 import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.core.widget.library.LayersMetadata
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.PlacementEffect.given
@@ -29,8 +27,7 @@ def minSizeWidget[Event](
   minSize : Rect[Float],
   placeIfSmaller : OneElementPlacementStrategy[PlacementEffectC, Rect[Float], Rect[Float], Bounds, Point2d[Float]],
 ) : Decorator[AndroidWidget[Event]] =
-  type Meta = LayersMetadata[Point3d[Float], Rect[Float], Bounds]
-  type Res = (AndroidPlacedWidget[Event], Meta)
+  type Res = Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
   type Free = PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]]
   gui4s.core.widget.library.decorator.minSizeWidget[
     AndroidWidget[Event],
@@ -40,11 +37,11 @@ def minSizeWidget[Event](
     Rect[Float],
     Bounds,
     Point3d[Float],
-    Meta,
+    Res,
   ](
-    oneElementContainerWidget,
-    PlacementEffect.getBounds,
-    (childSize, bounds) =>
+    containerWidget = oneElementContainerWidget,
+    getBounds = PlacementEffect.getBounds,
+    ensureMinimalSize = (childSize, bounds) =>
       if childSize.width < minSize.width || childSize.height < minSize.height then
         placeIfSmaller(childSize, bounds)
           .map { case ElementPlacementResult(_, coordinatesOfStarts) =>
@@ -55,7 +52,7 @@ def minSizeWidget[Event](
           }
       else
         ElementPlacementResult[Id, Rect[Float], Point3d[Float]](minSize, Point3d.Zero[Float]).pure[PlacementEffectC],
-    makeMeta = (sizedWidget, bounds, point) => (sizedWidget.value, LayersMetadata(point, sizedWidget.size, bounds)),
+    makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
   )(minSize.map(new InfinityOr(_)))
 end minSizeWidget

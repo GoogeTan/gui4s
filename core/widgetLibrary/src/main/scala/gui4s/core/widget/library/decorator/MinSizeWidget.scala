@@ -28,7 +28,7 @@ def minSizeWidget[
   Size,
   Bounds,
   Point,
-  Meta
+  PositionedWidget
 ](
   containerWidget : ContainerWidget[
     Widget,
@@ -39,12 +39,12 @@ def minSizeWidget[
       Size,
       Bounds,
       Id,
-      (PlacedWidget, Meta)
+      PositionedWidget
     ]
   ],
   getBounds : PlacementEffect[Bounds],
   ensureMinimalSize : OneElementPlacementStrategy[PlacementEffect, Size, Size, Bounds, Point],
-  makeMeta : (MeasuredWidget, Bounds, Point) => (PlacedWidget, Meta),
+  makeMeta : (MeasuredWidget, Bounds, Point) => PositionedWidget,
   itemSize : MeasuredWidget => Size
 )(minSize : Bounds) : Decorator[Widget] =
   containerWidget(

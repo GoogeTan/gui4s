@@ -9,19 +9,19 @@ import cats.{Foldable, Functor}
 def containerMergesWithOldStates[
   Place[_] : Functor,
   Collection[_] : {Functor, Foldable, Zip},
-  Widget,
-  RecompositionAction,
-  Meta
+  FreeWidget,
+  PositionedWidget,
+  RecompositionAction
 ](
-   initial : MergesWithOldStates[Widget, RecompositionAction, Option[Place[Widget]]],
-   placeIncrementally : Collection[((Widget, Meta), Option[Place[Widget]])] => Place[Collection[(Widget, Meta)]]
+   initial : MergesWithOldStates[PositionedWidget, RecompositionAction, Option[FreeWidget]],
+   placeIncrementally : Collection[(PositionedWidget, Option[FreeWidget])] => Place[Collection[PositionedWidget]]
 ) : MergesWithOldStates[
-  Collection[(Widget, Meta)],
+  Collection[PositionedWidget],
   RecompositionAction,
-  Option[Place[Collection[(Widget, Meta)]]]
+  Option[Place[Collection[PositionedWidget]]]
 ] =
   (children, path, oldStates) =>
-    val newChildren = children.map((widget, _) => initial(widget, path, oldStates))
+    val newChildren = children.map(initial(_, path, oldStates))
     if newChildren.exists(_.isDefined) then
       Some(
         placeIncrementally(

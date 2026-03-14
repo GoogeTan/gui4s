@@ -6,7 +6,6 @@ import cats.effect.*
 import cats.syntax.all.*
 import gui4s.core.geometry.{InfinityOr, Point2d, Point3d, Rect}
 import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.core.widget.library.LayersMetadata
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.PlacementEffect.given
@@ -24,7 +23,7 @@ def minSizeWidget[Event](
     Rect[Float],
     Bounds,
     Point3d[Float],
-    LayersMetadata[Point3d[Float], Rect[Float], Bounds],
+    Measured[Float, InfinityOr[Float], (DesktopPlacedWidget[Event], Point3d[Float])],
   ](
     oneElementContainerWidget,
     PlacementEffect.getBounds,
@@ -40,7 +39,7 @@ def minSizeWidget[Event](
           }
       else
         ElementPlacementResult[Id, Rect[Float], Point3d[Float]](minSize, Point3d.Zero[Float]).pure[PlacementEffect],
-    makeMeta = (sizedWidget, bounds, point) => (sizedWidget.value, LayersMetadata(point, sizedWidget.size, bounds)),
+    makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
   )(minSize.map(new InfinityOr(_)))
 end minSizeWidget

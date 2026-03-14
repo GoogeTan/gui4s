@@ -6,7 +6,6 @@ import gui4s.android.kit.widgets.*
 import gui4s.core.geometry.{InfinityOr, Point3d, Rect}
 import gui4s.core.layout.{ElementPlacementResult, Measured}
 import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
-import gui4s.core.widget.library.LayersMetadata
 
 /**
  * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
@@ -21,7 +20,7 @@ def gapPaddingWidget[Event] : PaddingWidget[AndroidWidget[Event], Paddings[Float
       RecompositionReaction,
       DownEvent,
       Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]],
-      LayersMetadata[Point3d[Float], Rect[Float], Bounds],
+      Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])],
       Rect[Float],
       Bounds,
       Point3d[Float]
@@ -34,21 +33,21 @@ def gapPaddingWidget[Event] : PaddingWidget[AndroidWidget[Event], Paddings[Float
           child + paddings.addedBoundsRect,
           new Point3d(paddings.topLeftCornerShift, 0f)
         ).pure[PlacementEffect],
-      makeMeta = makeMeta[Float, InfinityOr[Float], Event, Point3d[Float]],
+      makeMeta = (measured, point) => Measured((measured.value, point), measured.size, measured.bounds),
       sizeOfItem = _.size
     )
 end gapPaddingWidget
 
 def makeMeta[
   MeasurementUnit,
-  Bounds,
+  BoundUnit,
   Event,
   Point
 ](
-   measured : Measured[MeasurementUnit, Bounds, AndroidPlacedWidget[Event]],
+   measured : Measured[MeasurementUnit, BoundUnit, AndroidPlacedWidget[Event]],
    point : Point
-) : (AndroidPlacedWidget[Event], LayersMetadata[Point, Rect[MeasurementUnit], Rect[Bounds]]) =
-  (measured.value, LayersMetadata(point, measured.size, measured.bounds))
+) : (AndroidPlacedWidget[Event], Measured[MeasurementUnit, BoundUnit, Point]) =
+  (measured.value, Measured(point, measured.size, measured.bounds))
 end makeMeta
 
 extension[Event](widget: AndroidWidget[Event])

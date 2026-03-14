@@ -9,34 +9,10 @@ import gui4s.android.kit.widgets.{AndroidPlacedWidget, AndroidWidget}
 import gui4s.android.skia.canvas.drawAt
 import gui4s.core.geometry.{InfinityOr, Point3d, Rect}
 import gui4s.core.layout.{Measured, OneElementPlacementStrategy, PlacementStrategy, Sized}
-import gui4s.core.widget.handle.{Layout, LayoutIncrementalWidget}
-import gui4s.core.widget.library.{GenericLayout, LayersMetadata}
-import gui4s.desktop.widget.library.{widgetAsFree, widgetIsDrawable, container as genericContainer}
+import gui4s.core.widget.library.{GenericLayout, Layout, LayoutIncrementalWidget}
+import gui4s.desktop.widget.library.{Layout2, widgetAsFree, widgetHandlesEvent, widgetIsDrawable, container as genericContainer}
+import gui4s.core.widget.library.*
 
-def measureWithBounds[T](value : Place[T]) : PlacementEffect[Measured[Float, InfinityOr[Float], T]] =
-  PlacementEffect.getBounds.flatMap(bounds =>
-    value.map(new Measured(_, bounds))
-  )
-end measureWithBounds
-
-def measureWithBoundsIncrementally[Event, Point](
-  child  : LayoutIncrementalWidget[
-    AndroidPlacedWidget[Event],
-    PlaceC,
-    LayersMetadata[Point, Rect[Float], Bounds]
-  ]
-) : PlacementEffect[
-  Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]
-] =
-  PlacementEffect.getBounds.flatMap(bounds =>
-    child.newWidget.getOrElse[AndroidWidget[Event]](
-      if bounds == child.meta.bounds then
-        Sized(child.widget, child.meta.size).pure[PlacementEffectC]
-      else
-        widgetAsFree(child.widget)
-    ).map(new Measured(_, bounds))
-  )
-end measureWithBoundsIncrementally
 
 def containerWidget[
   Collection[_] : {Traverse, Sortable, Zip},
@@ -49,44 +25,36 @@ def containerWidget[
     Rect[Float],
     Bounds,
     Collection,
-    (AndroidPlacedWidget[Event], LayersMetadata[Point3d[Float], Rect[Float], Bounds])
+    Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
   ]
 ) : AndroidWidget[Event] =
-  containerWidget2(
+  given Order[Point3d[Float]] = Order.by(_.z)
+  containerWidget2[
+    Collection,
+    Event
+  ](
     children,
-    GenericLayout(
-      measureWithBounds = measureWithBounds,
-      measureWithBoundsIncrementally = measureWithBoundsIncrementally[Event, Point3d[Float]],
-      getBounds = PlacementEffect.getBounds,
-      placementStrategy = placementStrategy,
-    ),
-    incrementalFreeChildrenFromPlaced = LayoutIncrementalWidget(_, _),
-    pointOfMeta = _.point
+    freeChildren =>
+      for
+        bounds <- PlacementEffect.getBounds
+        placed <- placementStrategy(freeChildren.map(_.map(new Measured(_, bounds))), bounds)
+      yield Sized(placed.coordinates, placed.size)
   )
 end containerWidget
 
 def containerWidget2[
   Collection[_] : {Traverse, Sortable, Zip},
-  Event,
-  FreeWidget,
-  IncrementalFreeWidget,
-  Meta
+  Event
 ](
-  childrenIn : Collection[FreeWidget],
-  layout : Layout[
+  childrenIn : Collection[AndroidWidget[Event]],
+  layout : Layout2[
     Place,
     Collection,
-    FreeWidget,
-    IncrementalFreeWidget,
-    (AndroidPlacedWidget[Event], Meta)
+    AndroidPlacedWidget[Event],
+    Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
   ],
-  incrementalFreeChildrenFromPlaced: (
-    (AndroidPlacedWidget[Event], Meta),
-      Option[AndroidWidget[Event]]
-    ) => IncrementalFreeWidget,
-  pointOfMeta : Meta => Point3d[Float]
 ) : AndroidWidget[Event] =
-  type WidgetAndItsPositionInContainer = (AndroidPlacedWidget[Event], Meta)
+  type WidgetAndItsPositionInContainer = Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
   genericContainer[
     UpdateC[Event],
     Place,
@@ -94,42 +62,47 @@ def containerWidget2[
     Draw,
     RecompositionReaction,
     DownEvent,
-    Meta,
-    FreeWidget,
-    IncrementalFreeWidget
+    WidgetAndItsPositionInContainer
   ](
-    [T] => (update, meta) =>
-      Update.withCornerCoordinates(update, _ + pointOfMeta(meta)),
-    Update.isEventHandled,
-    children => updateFunction =>
+    positionedChildHandlesEvent = { case (Measured((widget, position), _, _), path, event) =>
+      Update.withCornerCoordinates(widgetHandlesEvent(widget, path, event), _ + position)
+    },
+    isEventConsumed = Update.isEventHandled,
+    updateContainerOrdered = children => updateFunction =>
       //Обновляются сначала виджеты, лежащие выше.
-      given Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by((_, meta) => pointOfMeta(meta).z))
+      given Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by(_.value._2.z))
       traverseOrdered[
         UpdateC[Event],
         Collection,
         WidgetAndItsPositionInContainer
       ](children)(updateFunction),
-    children =>
+    drawOrdered = children =>
       // А рисуются вначале виджеты, лежащие ниже.
-      given Order[WidgetAndItsPositionInContainer] = Order.by((_, meta) => pointOfMeta(meta).z)
-      foldOrdered[Draw, Collection](children)((widget, meta) =>
-        val point = pointOfMeta(meta)
-        drawAt(point.x, point.y, widgetIsDrawable(widget))
+      given Order[WidgetAndItsPositionInContainer] = Order.by(_.value._2.z)
+      foldOrdered[Draw, Collection](children)(widget =>
+        val point = widget.value._2
+        drawAt(point.x, point.y, widgetIsDrawable(widget.value._1))
       ),
-    childrenIn,
-    layout,
-    incrementalFreeChildrenFromPlaced
+    children = childrenIn,
+    layout = layout,
+    incrementalFreeChildrenFromPlaced =
+      (oldWidget, newWidget) =>
+        newWidget.getOrElse(
+          measureIncrementally(PlacementEffect.getBounds, widgetAsFree, oldWidget.map(_._1))
+        ),
+    unplaceWidget = _.value._1
   )
 end containerWidget2
 
 def oneElementContainerWidget[Event](
                                       child : AndroidWidget[Event],
-                                      placementStrategy : OneElementPlacementStrategy[
-                                        PlacementEffectC,
+                                      placementStrategy : PlacementStrategy[
+                                        PlacementEffect,
                                         PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
                                         Rect[Float],
                                         Bounds,
-                                        (AndroidPlacedWidget[Event], LayersMetadata[Point3d[Float], Rect[Float], Bounds])
+                                        Id,
+                                        Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
                                       ]
                                     ) : AndroidWidget[Event]  =
   containerWidget[Id, Event](
@@ -143,12 +116,12 @@ def listContainerWidget[
 ](
   children : List[AndroidWidget[Event]],
   placementStrategy : PlacementStrategy[
-    PlacementEffectC,
+    PlacementEffect,
     PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
     Rect[Float],
     Bounds,
     List,
-    (AndroidPlacedWidget[Event], LayersMetadata[Point3d[Float], Rect[Float], Bounds])
+    Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
   ]
 ) : AndroidWidget[Event]  =
   containerWidget[List, Event](

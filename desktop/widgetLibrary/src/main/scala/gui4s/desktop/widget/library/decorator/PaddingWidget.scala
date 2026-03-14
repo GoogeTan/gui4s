@@ -17,7 +17,7 @@ def gapPaddingWidget[
   RecompositionReaction,
   EnvironmentalEvent,
   MeasuredWidget,
-  Meta,
+  PositionedWidget,
   Size,
   Bounds,
   Point,
@@ -31,7 +31,7 @@ def gapPaddingWidget[
       Size,
       Bounds,
       Id,
-      (WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent], Meta)
+      PositionedWidget
     ]
   ],
   boundsWithPaddings : PlacementEffect ~> PlacementEffect,
@@ -39,24 +39,12 @@ def gapPaddingWidget[
   makeMeta : (
     MeasuredWidget,
     Point
-  ) => (
-    WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
-    Meta
-  ),
+  ) => PositionedWidget,
   sizeOfItem : MeasuredWidget => Size
 ): Decorator[
   FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent]
 ] =
-  gui4s.core.widget.library.decorator.gapPaddingWidget[
-    FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
-    WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
-    PlacementEffect,
-    MeasuredWidget,
-    Meta,
-    Size,
-    Bounds,
-    Point,
-  ](
+  gui4s.core.widget.library.decorator.gapPaddingWidget(
     container = container,
     boundsWithPaddings = boundsWithPaddings,
     innerPlaceWithPaddings = innerPlaceWithPaddings,

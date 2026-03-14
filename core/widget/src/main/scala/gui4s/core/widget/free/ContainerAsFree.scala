@@ -3,10 +3,10 @@ package free
 
 import cats.Functor
 
-def containerAsFree[Place[_] : Functor, Collection[_] : Functor, Widget, Meta](
-  placeIncrementally: Collection[(Widget, Meta)] => Place[Collection[(Widget, Meta)]],
+def containerAsFree[Place[_] : Functor, Collection[_] : Functor, PositionedWidget](
+  placeIncrementally: Collection[PositionedWidget] => Place[Collection[PositionedWidget]],
 ) : AsFreeF[
-  Collection[(Widget, Meta)],
+  Collection[PositionedWidget],
   Place
 ] =
   children =>

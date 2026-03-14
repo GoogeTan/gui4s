@@ -8,7 +8,7 @@ import cats.syntax.all.*
 import gui4s.core.geometry.{Axis, InfinityOr, Point2d, Rect}
 import gui4s.core.layout.linear.*
 
-
+//TODO replace with Sized
 final case class ElementPlacementResult[Collection[_], Size, Point](size : Size, coordinates : Collection[Point])
 
 /**
