@@ -34,7 +34,7 @@ trait LinearContainer[
   Widget,
   Place[_],
   Collection[_],
-  BoundUnit,
+  BoundUnit,//TODO переставить их местами
   MeasurementUnit,
   Axis,
 ]:

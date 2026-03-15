@@ -71,7 +71,7 @@ object OneElementPlacementStrategy:
         using M : MonadError[Place, Error]
     )(
         original : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, MeasurementUnit],
-        error : Error
+        error : => Error
     ) : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, InfinityOr[MeasurementUnit], MeasurementUnit] =
         MaybeInInfiniteSpace(original, M.raiseError(error))
     end ErrorIfInfinity

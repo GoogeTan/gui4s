@@ -55,6 +55,17 @@ object PlacementEffect:
     }
   end withBoundsK
 
+  def withBoundsKF(f: Bounds => PlacementEffect[Bounds]): PlacementEffect ~> PlacementEffect =
+    new(PlacementEffect ~> PlacementEffect) {
+      def apply[A](original: PlacementEffect[A]): PlacementEffect[A] =
+        for
+          bounds <- getBounds
+          newBounds <- f(bounds)
+          res <- withBounds(original, _ => newBounds)
+        yield res
+    }
+  end withBoundsKF
+
   def raiseError[Error, Value](error: => Error)(using ME : MonadError[IO, Error]): PlacementEffect[Value] =
     GenericPlacementEffect.liftF(ME.raiseError(error))
   end raiseError

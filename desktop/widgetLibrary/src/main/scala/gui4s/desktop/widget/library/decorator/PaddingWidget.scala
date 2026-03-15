@@ -1,31 +1,27 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import cats.FlatMap
-import cats.Functor
-import cats.Id
-import cats.~>
-
-import gui4s.core.layout.OneElementPlacementStrategy
+import catnip.syntax.monad.MonadErrorC
+import cats.{Id, ~>}
+import gui4s.core.geometry.{InfinityOr, Point2d, Rect}
 import gui4s.core.layout.PlacementStrategy
 import gui4s.core.widget.library.ContainerWidget
-import gui4s.core.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
 
 /**
- * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
+ * Одноместный контейнер, добавляющий отступы вокруг виджета.
  */
-def gapPaddingWidget[
-  Update[_] : Functor,
-  PlacementEffect[_] : FlatMap,
+def paddingWidget[
+  Update[_],
+  PlacementEffect[_] : MonadErrorC[PlaceError],
   Situated[_],
   Draw,
   RecompositionReaction,
   EnvironmentalEvent,
   MeasuredWidget,
   PositionedWidget,
-  Size,
-  Bounds,
-  Point,
+  MeasurementUnit : Fractional,
+  PlaceError
 ](
   container : ContainerWidget[
     FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
@@ -33,27 +29,26 @@ def gapPaddingWidget[
     PlacementStrategy[
       PlacementEffect,
       PlacementEffect[MeasuredWidget],
-      Size,
-      Bounds,
+      Rect[MeasurementUnit],
+      Rect[InfinityOr[MeasurementUnit]],
       Id,
       PositionedWidget
     ]
   ],
   boundsWithPaddings : PlacementEffect ~> PlacementEffect,
-  innerPlaceWithPaddings : OneElementPlacementStrategy[PlacementEffect, Size, Size, Bounds, Point],
-  makeMeta : (
-    MeasuredWidget,
-    Point
-  ) => PositionedWidget,
-  sizeOfItem : MeasuredWidget => Size
-): Decorator[
-  FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent]
-] =
-  gui4s.core.widget.library.decorator.gapPaddingWidget(
+  makeMeta : (MeasuredWidget, Point2d[MeasurementUnit]) => PositionedWidget,
+  sizeOfItem : MeasuredWidget => Rect[MeasurementUnit],
+  infinitePaddingInInfiniteContainer : => PlaceError,
+  widget : FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
+  paddings : Paddings[InfinityOr[MeasurementUnit]]
+): FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent] =
+  gui4s.core.widget.library.decorator.paddingWidget(
     container = container,
+    infinitePaddingInInfiniteContainer = infinitePaddingInInfiniteContainer,
     boundsWithPaddings = boundsWithPaddings,
-    innerPlaceWithPaddings = innerPlaceWithPaddings,
+    sizeOfItem = sizeOfItem,
     makeMeta = makeMeta,
-    sizeOfItem = sizeOfItem
+    widget = widget,
+    paddings = paddings
   )
-end gapPaddingWidget
+end paddingWidget

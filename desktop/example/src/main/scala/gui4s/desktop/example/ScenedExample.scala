@@ -13,6 +13,7 @@ import io.github.humbleui.skija.Font
 
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.Paddings
+import gui4s.core.geometry.InfinityOr
 
 import gui4s.desktop.kit.UIApp
 import gui4s.desktop.kit.effects.DownEvent

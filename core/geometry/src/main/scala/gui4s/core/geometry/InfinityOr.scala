@@ -19,7 +19,18 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
       case None => this
     end match
   end minus
-  
+
+  def +[T >: MeasurementUnit](another: InfinityOr[T])(using N: Numeric[T]): InfinityOr[T] =
+    InfinityOr(
+      value.zip(another.value).map((a, b) => N.plus(a, b))
+    )
+  end +
+
+  def +[T >: MeasurementUnit](amount: T)(using N: Numeric[T]): InfinityOr[T] =
+    this + InfinityOr(Some(amount))
+  end +
+
+
   def *[T >: MeasurementUnit](another : InfinityOr[T])(using N : Numeric[T]) : InfinityOr[T] =
     InfinityOr(
       value.zip(another.value).map((a, b) => N.times(a, b))
@@ -31,4 +42,21 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
   end *
 
   def getUnsafe : MeasurementUnit = value.get
+end InfinityOr
+
+object InfinityOr:
+  object Infinity:
+    def unapply[T](value : InfinityOr[T]) : Option[Unit] =
+      if value.value.isEmpty then
+        Some(())
+      else
+        None
+    end unapply
+  end Infinity
+  
+  object FiniteValue:
+    def unapply[T](value : InfinityOr[T]) : Option[T] =
+      value.value
+    end unapply
+  end FiniteValue
 end InfinityOr

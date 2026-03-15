@@ -1,29 +1,60 @@
 package gui4s.core.widget.library.decorator
 
-import catnip.syntax.all.{_, given}
-import cats._
-
-import gui4s.core.geometry.Axis
-import gui4s.core.geometry.InfinityOr
-import gui4s.core.layout.ContainerStrategy
-import gui4s.core.layout.OneElementPlacementStrategy
-import gui4s.core.layout.PlacementStrategy
+import catnip.syntax.all.{*, given}
+import cats.*
+import cats.syntax.all.*
+import gui4s.core.geometry.{InfinityOr, Point2d, Rect}
+import gui4s.core.layout.{ContainerStrategy, OneElementPlacementStrategy, PlacementStrategy, Sized}
 import gui4s.core.widget.library.ContainerWidget
-import gui4s.core.widget.library.LinearContainer
+
+import scala.math.Fractional.Implicits.*
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 
+def paddingLayoutPlacementStrategy[
+  Place[_] : Applicative,
+  MeasurementUnit: Fractional as MUF,
+](
+   left : InfinityOr[MeasurementUnit],
+   right : InfinityOr[MeasurementUnit],
+   onInfinity : Place[Sized[MeasurementUnit, MeasurementUnit]]
+): OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, InfinityOr[MeasurementUnit], MeasurementUnit] =
+  (element, availableSizeOrInfinity) =>
+    (left, right, availableSizeOrInfinity) match//TODO это не верно, так как оно, не займет всё место.
+      case (InfinityOr(Some(l)), InfinityOr(Some(r)), _) =>
+        Sized(
+          value = l,
+          size = l + element + r
+        ).pure[Place]
+      case (InfinityOr(Some(l)), InfinityOr(None), InfinityOr(Some(availableSize))) =>
+        Sized(
+          value = l,
+          size = availableSize
+        ).pure[Place]
+      case (InfinityOr(None), InfinityOr(Some(r)), InfinityOr(Some(availableSizeOrInfinity))) =>
+        Sized(
+          value = availableSizeOrInfinity - element - r,
+          size = availableSizeOrInfinity
+        ).pure[Place]
+      case (InfinityOr(None), InfinityOr(None), InfinityOr(Some(availableSizeOrInfinity))) =>
+        Sized(
+          value = (availableSizeOrInfinity - element) / MUF.fromInt(2),
+          size = availableSizeOrInfinity
+        ).pure[Place]
+      case _ =>
+        onInfinity
+end paddingLayoutPlacementStrategy
+
 /**
- * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
+ * Одноместный контейнер, добавляющий отступы вокруг виджета.
  */
-def gapPaddingWidget[
+def paddingWidget[
   Widget,
-  PositionedWidget,
-  PlacementEffect[_] : FlatMap,
   MeasuredWidget,
-  Size,
-  Bounds,
-  Point,
+  PositionedWidget,
+  PlacementEffect[_] : MonadErrorC[PlaceError] as ME,
+  MeasurementUnit : Fractional as MUF,
+  PlaceError,
 ](
   container : ContainerWidget[
     Widget,
@@ -31,74 +62,30 @@ def gapPaddingWidget[
     PlacementStrategy[
       PlacementEffect,
       PlacementEffect[MeasuredWidget],
-      Size,
-      Bounds,
+      Rect[MeasurementUnit],
+      Rect[InfinityOr[MeasurementUnit]],
       Id,
       PositionedWidget
     ]
   ],
   boundsWithPaddings : PlacementEffect ~> PlacementEffect,
-  innerPlaceWithPaddings : OneElementPlacementStrategy[PlacementEffect, Size, Size, Bounds, Point],
-  makeMeta : (MeasuredWidget, Point) => PositionedWidget,
-  sizeOfItem : MeasuredWidget => Size
-): Decorator[Widget] =
-  original =>
-    container(
-      original,
-      ContainerStrategy.combine(
-        measurementStrategy = boundsWithPaddings(_),
-        placementStrategy = innerPlaceWithPaddings, 
-        someMap = makeMeta(_, _), 
-        sizeOfItem = sizeOfItem
-      )
+  makeMeta : (MeasuredWidget, Point2d[MeasurementUnit]) => PositionedWidget,
+  sizeOfItem : MeasuredWidget => Rect[MeasurementUnit],
+  infinitePaddingInInfiniteContainer : => PlaceError,
+  widget: Widget,
+  paddings : Paddings[InfinityOr[MeasurementUnit]]
+ ) : Widget =
+  lazy val error = ME.raiseError[Sized[MeasurementUnit, MeasurementUnit]](infinitePaddingInInfiniteContainer)
+  container(
+    widget,
+    ContainerStrategy.combine(
+      measurementStrategy = boundsWithPaddings(_),
+      placementStrategy = PlacementStrategy.Zip(
+        paddingLayoutPlacementStrategy(paddings.left, paddings.right, error),
+        paddingLayoutPlacementStrategy(paddings.top, paddings.bottom, error),
+      ),
+      someMap = makeMeta(_, _),
+      sizeOfItem = sizeOfItem
     )
-end gapPaddingWidget
-
-def paddingLayoutPlacementStrategy[
-  Place[_] : Applicative,
-  MeasurementUnit: Fractional,
-](
-   paddings: Paddings[Padding[MeasurementUnit]],
- ): OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, MeasurementUnit] =
-  (paddings.left, paddings.right) match
-    case (Padding.Gap(_), _) => OneElementPlacementStrategy.Begin[Place, MeasurementUnit, MeasurementUnit]
-    case (Padding.Fill, Padding.Gap(_)) => OneElementPlacementStrategy.End
-    case (Padding.Fill, Padding.Fill) => OneElementPlacementStrategy.Center
-end paddingLayoutPlacementStrategy
-
-def paddingWidget[
-  Widget,
-  PlacementEffect[_] : MonadErrorC[PlaceError],
-  Place[_],
-  MeasurementUnit : Fractional as MUF,
-  PlaceError
-](
-   innerGaps : PaddingWidget[
-     Place[Widget],
-     Paddings[MeasurementUnit]
-   ],
-   layout : LinearContainer[
-     Place[Widget],
-     PlacementEffect,
-     Id,
-     InfinityOr[MeasurementUnit],
-     MeasurementUnit,
-     Axis
-   ],
-   infinitePaddingInInfiniteContainer : PlaceError
- ) : PaddingWidget[
-  Place[Widget],
-  Paddings[Padding[MeasurementUnit]]
-] =
-  paddings => widget =>
-    val placementStrategy = OneElementPlacementStrategy.ErrorIfInfinity(
-      paddingLayoutPlacementStrategy(paddings),
-      infinitePaddingInInfiniteContainer
-    )
-    layout(
-      innerGaps(paddings.map(_.gapOrZero))(widget),
-      Axis.Vertical,
-      PlacementStrategy.PlaceListIndependently(placementStrategy),
-      placementStrategy
-    )
+  )
 end paddingWidget
