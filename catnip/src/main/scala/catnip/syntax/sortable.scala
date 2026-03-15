@@ -1,7 +1,8 @@
 package catnip.syntax
 
 import catnip.Sortable
-import cats.{Id, Order}
+import cats.Id
+import cats.Order
 
 object sortable:
   given idIsSortable: Sortable[Id] =

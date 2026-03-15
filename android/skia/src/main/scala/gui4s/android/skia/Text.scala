@@ -16,7 +16,7 @@ def placeText[F[_] : Sync as S](
                                  text : String,
                                  style : SkijaTextStyle,
                                  maxWidth : Option[Float]
-                               ) : F[Sized[Float, SkijaPlacedText]] =
+                               ) : F[Sized[Rect[Float], SkijaPlacedText]] =
   S.delay:
     val blob = maxWidth match
       case Some(value) => shaper.shape(text, style.font, value)

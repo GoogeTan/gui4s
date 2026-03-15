@@ -19,8 +19,8 @@ def gapPaddingWidget[Event] : PaddingWidget[AndroidWidget[Event], Paddings[Float
       Draw,
       RecompositionReaction,
       DownEvent,
-      Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]],
-      Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])],
+      Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]],
+      Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])],
       Rect[Float],
       Bounds,
       Point3d[Float]

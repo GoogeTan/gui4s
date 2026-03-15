@@ -5,7 +5,7 @@ import cats.effect.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Draw.drawAt
 import gui4s.android.kit.effects.Place.given
-import gui4s.core.geometry.{Axis, InfinityOr, Point3d}
+import gui4s.core.geometry.{Axis, InfinityOr, Point3d, Rect}
 import gui4s.core.layout.{Measured, Sized, Weighted}
 import gui4s.core.widget.library.{WeightedLinearContainer, measureIncrementally}
 import gui4s.desktop.widget.library.*
@@ -20,7 +20,7 @@ def weightedLinearContainer[
   Float,
   Axis
 ] =
-  type WidgetWithMeta = Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Option[Float], Point3d[Float])]
+  type WidgetWithMeta = Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Option[Float], Point3d[Float])]
   gui4s.core.widget.library.weightedLinearContainer(
     (children, placement) =>
       gui4s.desktop.widget.library.container[
@@ -92,8 +92,8 @@ def weightedLinearContainer[
               Weighted(measureIncrementally[
                 PlacementEffect,
                 AndroidPlacedWidget[Event],
-                Float,
-                InfinityOr[Float],
+                Rect[Float],
+                Bounds,
                 Point3d[Float]
               ](PlacementEffect.getBounds, widgetAsFree, oldWidget.map(_._1)), oldWidget.value._2)
             ),

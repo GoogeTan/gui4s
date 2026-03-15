@@ -1,7 +1,7 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats.effect.*
+import cats.effect._
 
 import gui4s.core.widget.library.MapEvent
 

@@ -1,11 +1,12 @@
 package gui4s.core.layout
 
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.*
-import gui4s.core.layout.linear.*
+import scala.math.Numeric.Implicits._
 
-import scala.math.Numeric.Implicits.*
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry._
+import gui4s.core.layout.linear._
 
 type OneElementPlacementStrategy[Place[_], Item, Size, Bounds, Point] = PlacementStrategy[Place, Item, Size, Bounds, Id, Point]
 

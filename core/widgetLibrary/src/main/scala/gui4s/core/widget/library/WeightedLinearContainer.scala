@@ -1,11 +1,15 @@
 package gui4s.core.widget.library
 
+import catnip.Get
+import catnip.Set
 import catnip.syntax.all.given
-import catnip.{Get, Set}
 import cats.Monad
-import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, Point3d, Rect}
-import gui4s.core.layout.*
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout._
 
 /**
  * Взвешенный линейный контейнер - это линейный контейнер, некоторые элементы которого имеют вес.
@@ -50,22 +54,22 @@ def weightedLinearContainer[
   MeasurementUnit : Numeric as N,
 ](
   container : ContainerWidget[
-    PlacementEffect[Sized[MeasurementUnit, PlacedWidget]],
-    List[Weighted[PlacementEffect[Sized[MeasurementUnit, PlacedWidget]]]],
+    PlacementEffect[Sized[Rect[MeasurementUnit], PlacedWidget]],
+    List[Weighted[PlacementEffect[Sized[Rect[MeasurementUnit], PlacedWidget]]]],
     PlacementStrategy[
       PlacementEffect,
-      Weighted[PlacementEffect[Measured[MeasurementUnit, BoundUnit, PlacedWidget]]],
+      Weighted[PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], PlacedWidget]]],
       Rect[MeasurementUnit],
       Rect[BoundUnit],
       List,
-      (PlacedWidget, Measured[MeasurementUnit, BoundUnit, (Option[Float], Point3d[MeasurementUnit])])
+      (PlacedWidget, Measured[Rect[MeasurementUnit], Rect[BoundUnit], (Option[Float], Point3d[MeasurementUnit])])
     ]
   ],
   getBounds: Get[PlacementEffect, Rect[BoundUnit]],
   setBounds: Set[PlacementEffect, Rect[BoundUnit]],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   weightedBounds : (BoundUnit, Float) => BoundUnit,
-) : WeightedLinearContainer[PlacementEffect[Sized[MeasurementUnit, PlacedWidget]], PlacementEffect, List, BoundUnit, MeasurementUnit, Axis] =
+) : WeightedLinearContainer[PlacementEffect[Sized[Rect[MeasurementUnit], PlacedWidget]], PlacementEffect, List, BoundUnit, MeasurementUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
       children,

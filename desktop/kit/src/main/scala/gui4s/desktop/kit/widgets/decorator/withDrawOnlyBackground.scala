@@ -1,12 +1,19 @@
 package gui4s.desktop.kit.widgets.decorator
 
+import catnip.syntax.all.given
 import cats.Id
-import cats.effect.*
-import catnip.syntax.all.given 
-import gui4s.core.geometry.{Point2d, Rect}
-import gui4s.core.layout.{OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.desktop.kit.effects.{Draw, Place, PlacementEffect}
-import gui4s.desktop.kit.widgets.{DesktopWidget, drawOnlyWidget}
+import cats.effect._
+
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.OneElementPlacementStrategy
+import gui4s.core.layout.PlacementStrategy
+
+import gui4s.desktop.kit.effects.Draw
+import gui4s.desktop.kit.effects.Place
+import gui4s.desktop.kit.effects.PlacementEffect
+import gui4s.desktop.kit.widgets.DesktopWidget
+import gui4s.desktop.kit.widgets.drawOnlyWidget
 
 extension[Event](widget : DesktopWidget[Event])
   def withDrawOnlyBackground(

@@ -1,14 +1,19 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats.*
-import cats.effect.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Point3d, Rect, InfinityOr}
-import gui4s.core.layout.{ElementPlacementResult, Measured}
-import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.*
+import cats._
+import cats.effect._
+import cats.syntax.all._
+
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.ElementPlacementResult
+import gui4s.core.layout.Measured
+import gui4s.core.widget.library.decorator.PaddingWidget
+import gui4s.core.widget.library.decorator.Paddings
+
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
 
 /**
  * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
@@ -22,8 +27,8 @@ def gapPaddingWidget[Event] : PaddingWidget[DesktopWidget[Event], Paddings[Float
       Draw,
       RecompositionReaction,
       DownEvent,
-      Measured[Float, InfinityOr[Float], DesktopPlacedWidget[Event]],
-      Measured[Float, InfinityOr[Float], (DesktopPlacedWidget[Event], Point3d[Float])],
+      Measured[Rect[Float], Bounds, DesktopPlacedWidget[Event]],
+      Measured[Rect[Float], Bounds, (DesktopPlacedWidget[Event], Point3d[Float])],
       Rect[Float],
       Bounds,
       Point3d[Float]

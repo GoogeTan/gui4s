@@ -1,14 +1,23 @@
 package gui4s.desktop.widget.library
 
 import catnip.Zip
-import cats.syntax.all.*
-import cats.{Functor, Monad, Monoid, Traverse}
+import cats.Functor
+import cats.Monad
+import cats.Monoid
+import cats.Traverse
+import cats.syntax.all._
+
 import gui4s.core.widget.free.containerAsFree
-import gui4s.core.widget.handle.{TraverseChildrenOrdered, childrenHandleEvent, containerHandlesEvent}
-import gui4s.core.widget.merge.{MergesWithOldStates, containerMergesWithOldStates}
-import gui4s.core.widget.recomposition.{ReactsOnRecomposition, containerReactsOnRecomposition}
-import gui4s.core.widget.state.{HasInnerStates, containerHasInnerStates}
 import gui4s.core.widget.handle.HandlesEvent
+import gui4s.core.widget.handle.TraverseChildrenOrdered
+import gui4s.core.widget.handle.childrenHandleEvent
+import gui4s.core.widget.handle.containerHandlesEvent
+import gui4s.core.widget.merge.MergesWithOldStates
+import gui4s.core.widget.merge.containerMergesWithOldStates
+import gui4s.core.widget.recomposition.ReactsOnRecomposition
+import gui4s.core.widget.recomposition.containerReactsOnRecomposition
+import gui4s.core.widget.state.HasInnerStates
+import gui4s.core.widget.state.containerHasInnerStates
 
 /**
  * Тип функции, описывающей установку множества виджетов в контейнер.

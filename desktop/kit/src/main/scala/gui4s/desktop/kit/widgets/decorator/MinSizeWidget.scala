@@ -1,15 +1,23 @@
 package gui4s.desktop.kit.widgets.decorator
 
 import catnip.syntax.all.given
-import cats.*
-import cats.effect.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{InfinityOr, Point2d, Point3d, Rect}
-import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
+import cats._
+import cats.effect._
+import cats.syntax.all._
+
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.ElementPlacementResult
+import gui4s.core.layout.Measured
+import gui4s.core.layout.OneElementPlacementStrategy
+import gui4s.core.layout.PlacementStrategy
 import gui4s.core.widget.library.decorator.Decorator
-import gui4s.desktop.kit.effects.*
+
 import gui4s.desktop.kit.effects.PlacementEffect.given
-import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
 
 def minSizeWidget[Event](
   minSize : Rect[Float],
@@ -18,12 +26,12 @@ def minSizeWidget[Event](
   gui4s.core.widget.library.decorator.minSizeWidget[
     DesktopWidget[Event],
     DesktopPlacedWidget[Event],
-    Measured[Float, InfinityOr[Float], DesktopPlacedWidget[Event]],
+    Measured[Rect[Float], Bounds, DesktopPlacedWidget[Event]],
     PlacementEffect,
     Rect[Float],
     Bounds,
     Point3d[Float],
-    Measured[Float, InfinityOr[Float], (DesktopPlacedWidget[Event], Point3d[Float])],
+    Measured[Rect[Float], Bounds, (DesktopPlacedWidget[Event], Point3d[Float])],
   ](
     oneElementContainerWidget,
     PlacementEffect.getBounds,

@@ -30,12 +30,12 @@ final class SizedComonadLawsSpec extends AnyFunSuiteLike with FunSuiteDiscipline
     Arbitrary(
       for {
         a <- Arbitrary.arbitrary[A]
-        s <- rectArbitrary[MU].arbitrary
+        s <- Arbitrary.arbitrary[MU]
       } yield Sized(a, s)
     )
 
   given sizedCogen[MU: Cogen, A: Cogen]: Cogen[Sized[MU, A]] =
-    Cogen[(A, MU, MU)].contramap(sz => (sz.value, sz.size.width, sz.size.height))
+    Cogen[(A, MU)].contramap(sz => (sz.value, sz.size))
 
   given sizedEq[MU, A]: Eq[Sized[MU, A]] =
     Eq.fromUniversalEquals

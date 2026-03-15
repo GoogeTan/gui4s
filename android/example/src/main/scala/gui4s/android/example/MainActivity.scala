@@ -26,6 +26,7 @@ import gui4s.android.kit.widgets.decorator.*
 import gui4s.android.skia.*
 import gui4s.android.skia.shaper.*
 import gui4s.core.layout.Sized
+import gui4s.core.geometry.Rect
 import gui4s.core.widget.library.decorator.Paddings
 import org.jetbrains.skia.{Font, Paint, Typeface}
 import org.typelevel.log4cats.*
@@ -47,7 +48,7 @@ class MainActivity extends Gui4sActivity:
     for
       supervisor <- Supervisor[IO]
       shaper <- createShaper[IO]
-      cache: TextCache[IO] <- RefCache.of[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]].eval
+      cache: TextCache[IO] <- RefCache.of[IO, (String, SkijaTextStyle, Option[Float]), Sized[Rect[Float], SkijaPlacedText]].eval
       paint =
         val res = new Paint()
         res.setColor(0xFF8484A4)

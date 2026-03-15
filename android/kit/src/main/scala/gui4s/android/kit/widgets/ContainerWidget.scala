@@ -21,11 +21,11 @@ def containerWidget[
   children : Collection[AndroidWidget[Event]],
   placementStrategy : PlacementStrategy[
     PlacementEffect,
-    PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
+    PlacementEffect[Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]]],
     Rect[Float],
     Bounds,
     Collection,
-    Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
+    Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
   ]
 ) : AndroidWidget[Event] =
   given Order[Point3d[Float]] = Order.by(_.z)
@@ -51,10 +51,10 @@ def containerWidget2[
     Place,
     Collection,
     AndroidPlacedWidget[Event],
-    Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
+    Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
   ],
 ) : AndroidWidget[Event] =
-  type WidgetAndItsPositionInContainer = Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
+  type WidgetAndItsPositionInContainer = Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
   genericContainer[
     UpdateC[Event],
     Place,
@@ -98,11 +98,11 @@ def oneElementContainerWidget[Event](
                                       child : AndroidWidget[Event],
                                       placementStrategy : PlacementStrategy[
                                         PlacementEffect,
-                                        PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
+                                        PlacementEffect[Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]]],
                                         Rect[Float],
                                         Bounds,
                                         Id,
-                                        Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
+                                        Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
                                       ]
                                     ) : AndroidWidget[Event]  =
   containerWidget[Id, Event](
@@ -117,11 +117,11 @@ def listContainerWidget[
   children : List[AndroidWidget[Event]],
   placementStrategy : PlacementStrategy[
     PlacementEffect,
-    PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]],
+    PlacementEffect[Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]]],
     Rect[Float],
     Bounds,
     List,
-    Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
+    Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
   ]
 ) : AndroidWidget[Event]  =
   containerWidget[List, Event](

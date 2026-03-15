@@ -27,12 +27,12 @@ def minSizeWidget[Event](
   minSize : Rect[Float],
   placeIfSmaller : OneElementPlacementStrategy[PlacementEffectC, Rect[Float], Rect[Float], Bounds, Point2d[Float]],
 ) : Decorator[AndroidWidget[Event]] =
-  type Res = Measured[Float, InfinityOr[Float], (AndroidPlacedWidget[Event], Point3d[Float])]
-  type Free = PlacementEffect[Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]]]
+  type Res = Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
+  type Free = PlacementEffect[Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]]]
   gui4s.core.widget.library.decorator.minSizeWidget[
     AndroidWidget[Event],
     AndroidPlacedWidget[Event],
-    Measured[Float, InfinityOr[Float], AndroidPlacedWidget[Event]],
+    Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]],
     PlacementEffectC,
     Rect[Float],
     Bounds,

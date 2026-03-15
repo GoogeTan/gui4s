@@ -1,7 +1,7 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats.effect.*
+import cats.effect._
 import cats.syntax.all._
 
 import gui4s.core.geometry.Rect

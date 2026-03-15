@@ -2,6 +2,7 @@ package gui4s.core.widget
 package handle
 
 import cats.Applicative
+
 import gui4s.core.widget.free.AsFree
 
 def handlesNothing[A, Event, B](asFree : AsFree[A, B]) : HandlesEvent[A, Event, B] =

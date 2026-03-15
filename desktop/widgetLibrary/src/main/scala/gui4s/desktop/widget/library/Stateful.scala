@@ -1,6 +1,6 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.*
+import catnip.syntax.all._
 import cats.Functor
 import cats.Monad
 import cats.Monoid

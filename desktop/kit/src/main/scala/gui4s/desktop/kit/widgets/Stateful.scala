@@ -3,10 +3,10 @@ package widgets
 
 import scala.reflect.Typeable
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.{_, given}
 import cats._
 import cats.data._
-import cats.effect.*
+import cats.effect._
 
 import gui4s.core.layout.Sized.given
 import gui4s.core.widget.StatefulState

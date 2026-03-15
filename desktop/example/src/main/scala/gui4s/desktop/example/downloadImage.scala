@@ -2,9 +2,10 @@ package gui4s.desktop.example
 
 import cats.effect.IO
 import io.github.humbleui.skija.Image
+
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
-import org.typelevel.log4cats.*
+import org.typelevel.log4cats._
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 def downloadImage(uri: String): IO[Image] =

@@ -1,7 +1,9 @@
 package gui4s.desktop.skija
 
-import gui4s.core.geometry.{Point2d, Rect}
-import io.github.humbleui.skija.*
+import io.github.humbleui.skija._
+
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
 
 @FunctionalInterface
 trait Brush:

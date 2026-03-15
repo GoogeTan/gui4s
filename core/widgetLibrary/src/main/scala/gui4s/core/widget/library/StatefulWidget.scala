@@ -3,7 +3,7 @@ package gui4s.core.widget.library
 import scala.reflect.Typeable
 
 import catnip.ContT
-import catnip.syntax.all.*
+import catnip.syntax.all._
 import cats.data.NonEmptyList
 
 import gui4s.core.widget.StatefulState

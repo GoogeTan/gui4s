@@ -1,14 +1,19 @@
 package gui4s.desktop.kit.widgets
 
-import catnip.{Sortable, Zip}
+import catnip.Sortable
+import catnip.Zip
 import catnip.syntax.all.given
-import cats.*
-import cats.data.*
-import cats.effect.*
-import gui4s.core.geometry.{Axis, InfinityOr}
-import gui4s.core.widget.library.{LinearContainer, linearContainer as genericLinearContainer}
+import cats._
+import cats.data._
+import cats.effect._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.widget.library.LinearContainer
+import gui4s.core.widget.library.{linearContainer => genericLinearContainer}
+
+import gui4s.desktop.kit.effects._
 import gui4s.desktop.widget.library.widgetAsFree
-import gui4s.desktop.kit.effects.*
 
 
 def linearContainerWidget[

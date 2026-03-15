@@ -4,6 +4,7 @@ import cats.effect.IO
 import gui4s.core.layout.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Place.given
+import gui4s.core.geometry.Rect
 
 def drawOnlyWidget[Event](
   draw : Place[Draw]
@@ -21,7 +22,7 @@ def drawOnlyWidget[Event](
 end drawOnlyWidget
 
 def constSizedDrawOnlyWidget[Event](
-  draw : Sized[Float, Draw]
+  draw : Sized[Rect[Float], Draw]
 ) : AndroidWidget[Event] =
   gui4s.desktop.widget.library.constanctSizeDrawOnlyWidget[
       UpdateC[Event],

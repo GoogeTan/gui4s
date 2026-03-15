@@ -1,16 +1,20 @@
 package gui4s.desktop.kit.widgets
 
-import cats.*
-import cats.data.NonEmptyList
-import cats.effect.*
-import cats.effect.std.{QueueSink, Supervisor}
-import cats.syntax.all.*
-import gui4s.core.widget.library.animation.*
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Init.given 
-import gui4s.desktop.kit.widgets.decorator.*
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import cats._
+import cats.data.NonEmptyList
+import cats.effect._
+import cats.effect.std.QueueSink
+import cats.effect.std.Supervisor
+import cats.syntax.all._
+
+import gui4s.core.widget.library.animation._
+
+import gui4s.desktop.kit.effects.Init.given
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets.decorator._
 
 def loopEach(
             calc : IO[Unit],

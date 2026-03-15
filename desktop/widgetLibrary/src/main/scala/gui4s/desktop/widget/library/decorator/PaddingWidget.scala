@@ -1,8 +1,13 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import cats.{FlatMap, Functor, Id, ~>}
-import gui4s.core.layout.{OneElementPlacementStrategy, PlacementStrategy}
+import cats.FlatMap
+import cats.Functor
+import cats.Id
+import cats.~>
+
+import gui4s.core.layout.OneElementPlacementStrategy
+import gui4s.core.layout.PlacementStrategy
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
 

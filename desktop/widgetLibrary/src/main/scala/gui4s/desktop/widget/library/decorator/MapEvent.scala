@@ -1,8 +1,10 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import cats.{Comonad, Functor, ~>}
-import cats.syntax.all.*
+import cats.Comonad
+import cats.Functor
+import cats.syntax.all._
+import cats.~>
 
 
 def mapUpdate[

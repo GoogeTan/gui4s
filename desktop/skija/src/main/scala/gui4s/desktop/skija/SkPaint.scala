@@ -1,6 +1,6 @@
 package gui4s.desktop.skija
 
-import io.github.humbleui.skija.*
+import io.github.humbleui.skija._
 
 final case class SkPaint(
   color: Int = 0xFF000000,

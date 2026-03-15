@@ -2,9 +2,12 @@ package gui4s.desktop.kit.widgets
 
 import catnip.syntax.all.given
 import cats.Id
+
 import gui4s.core.geometry.Axis
 import gui4s.core.kit.ContainerPlacementError
-import gui4s.desktop.kit.effects.{LinearContainerPlacementStrategy, OneElementLinearContainerPlacementStrategy}
+
+import gui4s.desktop.kit.effects.LinearContainerPlacementStrategy
+import gui4s.desktop.kit.effects.OneElementLinearContainerPlacementStrategy
 
 def boxWidget[Event](
                       child : DesktopWidget[Event],

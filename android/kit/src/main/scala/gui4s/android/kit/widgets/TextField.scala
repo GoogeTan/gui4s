@@ -12,7 +12,6 @@ import gui4s.android.kit.widgets.*
 import gui4s.android.skia.paragraph.*
 import gui4s.core.widget.library.textfield.{TextFieldEvent, TextFieldState}
 import org.jetbrains.skia.paragraph.*
-
 import cats.effect.IO
 import cats.*
 import cats.effect.*
@@ -23,6 +22,7 @@ import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
 import gui4s.android.skia.paragraph.*
+import gui4s.core.geometry.Rect
 import gui4s.core.widget.library.textfield.{TextFieldEvent, TextFieldState}
 import org.jetbrains.skia.paragraph.*
 
@@ -47,13 +47,13 @@ def basicTextFieldBody[
   Event
 ](
   placeText : TextFieldState => Place[Paragraph],
-  systemEventCatcher : Sized[Float, Paragraph] => AndroidWidget[Event] => AndroidWidget[Event],
-  drawText : (Path, TextFieldState, Sized[Float, Paragraph]) => AndroidWidget[Event]
+  systemEventCatcher : Sized[Rect[Float], Paragraph] => AndroidWidget[Event] => AndroidWidget[Event],
+  drawText : (Path, TextFieldState, Sized[Rect[Float], Paragraph]) => AndroidWidget[Event]
 ) : TextFieldState => AndroidWidget[Event] =
   state =>
     gui4s.core.widget.library.textfield.basicTextFieldBody[
       AndroidWidget[Event],
-      Sized[Float, Paragraph]
+      Sized[Rect[Float], Paragraph]
     ](
       (state, callback) => Monad[PlacementEffectC].flatMap(placeText(state))(callback),
       systemEventCatcher,
@@ -104,7 +104,7 @@ def textFieldParagraph(
   )
 end textFieldParagraph
 
-def sizeParagraph(paragraph : Paragraph, availablePlace : Option[Float]) : IO[Sized[Float, Paragraph]] =
+def sizeParagraph(paragraph : Paragraph, availablePlace : Option[Float]) : IO[Sized[Rect[Float], Paragraph]] =
   availablePlace.fold(().pure[IO])(layout[IO](_)(paragraph))
     *> size[IO](paragraph).map(size => Sized(paragraph, size))
 end sizeParagraph

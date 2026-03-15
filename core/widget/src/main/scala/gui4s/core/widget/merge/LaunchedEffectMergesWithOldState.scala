@@ -2,8 +2,10 @@ package gui4s.core.widget
 package merge
 
 import scala.reflect.Typeable
+
 import cats.Functor
-import cats.syntax.all.*
+import cats.syntax.all._
+
 import gui4s.core.widget.free.AsFreeF
 
 // TODO Думается мне, что это можно как-то разделить, но я пока не понимаю как.

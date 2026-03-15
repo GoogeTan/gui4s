@@ -2,7 +2,7 @@ package gui4s.desktop.kit
 package widgets
 
 import cats._
-import cats.effect.*
+import cats.effect._
 import io.github.humbleui.skija.Paint
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.shaper.Shaper
@@ -56,7 +56,7 @@ object TextWidget:
   end apply
 end TextWidget
 
-def placedText[Event](placedText : Sized[Float, SkijaPlacedText]) : DesktopWidget[Event] =
+def placedText[Event](placedText : Sized[gui4s.core.geometry.Rect[Float], SkijaPlacedText]) : DesktopWidget[Event] =
   constSizedDrawOnlyWidget(
     placedText.mapValue(Draw.drawText)
   )
@@ -69,13 +69,13 @@ def paragraph[Event](paragraph : Paragraph) : DesktopWidget[Event] =
   .flatMap(placedParagraph)
 end paragraph
 
-def placedParagraph[Event](placedText : Sized[Float, Paragraph]) : DesktopWidget[Event] =
+def placedParagraph[Event](placedText : Sized[gui4s.core.geometry.Rect[Float], Paragraph]) : DesktopWidget[Event] =
   constSizedDrawOnlyWidget(
     placedText.mapValue(Draw.drawParagraph)
   )
 end placedParagraph
 
-def drawCursor[Event](paragraph: Sized[Float, Paragraph], cursor: Int, cursorPaint : Paint) : DesktopWidget[Event] =
+def drawCursor[Event](paragraph: Sized[gui4s.core.geometry.Rect[Float], Paragraph], cursor: Int, cursorPaint : Paint) : DesktopWidget[Event] =
   constSizedDrawOnlyWidget(
      paragraph.mapValue(Draw.drawCursor(_, cursor, cursorPaint))
   )

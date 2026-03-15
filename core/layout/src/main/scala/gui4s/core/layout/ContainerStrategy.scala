@@ -2,8 +2,9 @@ package gui4s.core.layout
 
 import catnip.Zip
 import catnip.Zip.zip
-import cats.{FlatMap, Functor}
-import cats.syntax.all.*
+import cats.FlatMap
+import cats.Functor
+import cats.syntax.all._
 
 object ContainerStrategy:
   def combine[

@@ -1,13 +1,14 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.{_, given}
 import catnip.syntax.functor.nestedFunctorsAreFunctors
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.*
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry._
 import gui4s.core.layout.Sized
 import gui4s.core.layout.SizedC
-import gui4s.core.layout.*
+import gui4s.core.layout._
 import gui4s.core.widget.free.AsFreeF
 import gui4s.core.widget.library.ContainerWidget
 
@@ -19,37 +20,38 @@ import gui4s.core.widget.library.ContainerWidget
  * @param xyPlacementStrategy Правило расстановки дочерних виджетов
  * @tparam Widget Размещенный виджет
  * @tparam PlacementEffect Эффект установки виджета
- * @tparam BoundUnit Ограничения на доступное место
- * @tparam MeasurementUnit Единица измерения места на экране
+ * @tparam Bounds Ограничения на доступное место
+ * @tparam Size Единица измерения места на экране
  * @return
  */
 def stackContainer[
   Widget,
   PlacementEffect[_] : Monad as OPA,
-  BoundUnit,
+  Size,
+  Bounds,
   MeasurementUnit : Numeric as MUN
 ](
-  getBounds : PlacementEffect[Rect[BoundUnit]],
+  getBounds : PlacementEffect[Bounds],
   container : ContainerWidget[
-    PlacementEffect[Sized[MeasurementUnit, Widget]],
+    PlacementEffect[Sized[Size, Widget]],
     List[
-      PlacementEffect[Sized[MeasurementUnit, Widget]],
+      PlacementEffect[Sized[Size, Widget]],
     ],
     PlacementStrategy[
       PlacementEffect,
-      PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]],
-      Rect[MeasurementUnit],
-      Rect[BoundUnit],
+      PlacementEffect[Measured[Size, Bounds, Widget]],
+      Size,
+      Bounds,
       List,
-      Measured[MeasurementUnit, BoundUnit, (Widget, Point3d[MeasurementUnit])]
+      Measured[Size, Bounds, (Widget, Point3d[MeasurementUnit])]
     ]
   ],
-  widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[MeasurementUnit]]
+  widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[Size]]
 )(
-   children : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
-   xyPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], Rect[MeasurementUnit], Rect[BoundUnit], List, Point2d[MeasurementUnit]],
-) : PlacementEffect[Sized[MeasurementUnit, Widget]] =
-  given Functor[PlacementEffect * SizedC[MeasurementUnit]] = nestedFunctorsAreFunctors[PlacementEffect, SizedC[MeasurementUnit]]
+   children : List[PlacementEffect[Sized[Size, Widget]]],
+   xyPlacementStrategy : PlacementStrategy[PlacementEffect, Size, Size, Bounds, List, Point2d[MeasurementUnit]],
+) : PlacementEffect[Sized[Size, Widget]] =
+  given Functor[PlacementEffect * SizedC[Size]] = nestedFunctorsAreFunctors[PlacementEffect, SizedC[Size]]
   given Order[(Point2d[MeasurementUnit], Int)] = Order.by(_._2)
   container(
     children,

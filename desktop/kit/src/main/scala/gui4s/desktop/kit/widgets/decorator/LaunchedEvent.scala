@@ -4,8 +4,8 @@ package widgets.decorator
 import scala.reflect.Typeable
 
 import cats._
+import cats.effect._
 import cats.effect.std.Supervisor
-import cats.effect.*
 import cats.syntax.all._
 
 import gui4s.core.widget.library.LaunchedEffectWidget

@@ -3,9 +3,11 @@ package effects
 
 import catnip.Get
 import catnip.Set
-import cats.*
-import cats.effect.*
-import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
+import cats._
+import cats.effect._
+
+import gui4s.core.geometry.Rect
+import gui4s.core.kit.effects.{PlacementEffect => GenericPlacementEffect}
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
@@ -24,7 +26,7 @@ object PlacementEffect:
     liftK(value)
   end liftF
 
-  def liftSized[Value](value: Sized[Float, Value]): PlacementEffect[Sized[Float, Value]] =
+  def liftSized[Value](value: Sized[Rect[Float], Value]): PlacementEffect[Sized[Rect[Float], Value]] =
     monadThrowInstance.pure(value)
   end liftSized
 

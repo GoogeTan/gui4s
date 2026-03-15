@@ -1,19 +1,17 @@
 package gui4s.core.layout
 
-import gui4s.core.geometry.Rect
-
-final case class Measured[MeasurementUnit, BoundUnit, T](
+final case class Measured[Size, Bounds, T](
   value : T,
-  size : Rect[MeasurementUnit],
-  bounds : Rect[BoundUnit]
+  size : Size,
+  bounds : Bounds
 ):
-  def this(sized: Sized[MeasurementUnit, T], bounds : Rect[BoundUnit]) =
+  def this(sized: Sized[Size, T], bounds : Bounds) =
     this(sized.value, sized.size, bounds)
   end this
 
-  def asSized : Sized[MeasurementUnit, T] = Sized(value, size)
+  def asSized : Sized[Size, T] = Sized(value, size)
 
-  def map[B](f : T => B) : Measured[MeasurementUnit, BoundUnit, B] =
+  def map[B](f : T => B) : Measured[Size, Bounds, B] =
     copy(value = f(value))
   end map
 end Measured

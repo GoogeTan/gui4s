@@ -1,9 +1,11 @@
 package gui4s.desktop.kit.effects
 
-import cats.*
+import cats._
 import cats.arrow.FunctionK
-import cats.effect.*
+import cats.effect._
+
 import gui4s.core.widget.library.decorator.Decorator
+
 import gui4s.desktop.kit.widgets.DesktopWidget
 
 opaque type Init[T] = Resource[IO, (Decorator[DesktopWidget[Nothing]], T)]

@@ -3,19 +3,17 @@ package gui4s.android.kit
 import catnip.Cache
 import gui4s.core.layout.{Sized, SizedC}
 import gui4s.android.skia.{SkijaPlacedText, SkijaTextStyle, placeText}
-
 import org.jetbrains.skia.shaper.Shaper
-
 import cats.effect.IO
 import cats.effect.Sync
 import catnip.Cache
 import gui4s.core.layout.{Sized, SizedC}
 import gui4s.android.skia.{SkijaPlacedText, SkijaTextStyle, placeText}
-
+import gui4s.core.geometry.Rect
 import org.jetbrains.skia.shaper.Shaper
 
 type SizeText[Place[_]] = (text: String, options: SkijaTextStyle) => Place[SkijaPlacedText]
-type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Float, SkijaPlacedText]]
+type TextCache[IO[_]] = Cache[IO, (String, SkijaTextStyle, Option[Float]), Sized[Rect[Float], SkijaPlacedText]]
 
 def sizeTextFFI[
   PlacementEffect[_] : Sync
@@ -23,7 +21,7 @@ def sizeTextFFI[
   getAvailablePlace : PlacementEffect[Option[Float]],
   shaper: Shaper,
   cache : TextCache[PlacementEffect],
-) : SizeText[PlacementEffect * SizedC[Float]] =
+) : SizeText[PlacementEffect * SizedC[Rect[Float]]] =
   (text: String, options: SkijaTextStyle) =>
     getAvailablePlace.flatMap:
       bounds =>

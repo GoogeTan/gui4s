@@ -1,15 +1,16 @@
 package gui4s.desktop.example
 
-import scala.math.*
-import catnip.syntax.all.*
-import cats.*
-import cats.effect.*
-import cats.effect.std.*
-import cats.syntax.all.*
+import scala.math._
+
+import catnip.syntax.all._
+import cats._
+import cats.effect._
+import cats.effect.std._
+import cats.syntax.all._
 import glfw4s.core.GlfwConstants
 import glfw4s.core.KeyAction
 import glfw4s.core.WindowCreationSettings
-import glfw4s.core.pure.*
+import glfw4s.core.pure._
 import glfw4s.jna.bindings.types.GLFWcursor
 import glfw4s.jna.bindings.types.GLFWmonitor
 import glfw4s.jna.bindings.types.GLFWwindow
@@ -19,6 +20,7 @@ import io.github.humbleui.skija.paragraph.FontCollection
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.paragraph.ParagraphStyle
 import io.github.humbleui.skija.paragraph.TextStyle
+
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 import gui4s.core.kit.ContainerPlacementError
@@ -27,13 +29,15 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.widget.library.textfield.TextFieldEvent
+
 import gui4s.desktop.kit.UIApp
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
-import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.skija.{Brush, StrokeOptions}
+import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.skija.Brush
+import gui4s.desktop.skija.StrokeOptions
 
 enum TextInputOuterEvent:
   case CharInputEvent(key : Int)
@@ -229,7 +233,7 @@ object TextInputExample extends UIApp:
                              minimalClickableAreaSize : Rect[Float],
                              requestFocus : Path => Update[TextFieldEvent, Unit]
                            )(
-                             sizedParagraph : Sized[Float, Paragraph],
+                             sizedParagraph : Sized[Rect[Float], Paragraph],
                            ) : Decorator[DesktopWidget[TextFieldEvent]] =
     val emitEvent : List[TextFieldEvent] => Update[TextFieldEvent, Boolean] = events =>
       Update.emitEvents[TextFieldEvent](events).as(true)
@@ -263,14 +267,14 @@ object TextInputExample extends UIApp:
           cornerCoords =>
             val paragraphHeightShift =
               if textFieldTextAreaSize == minimalClickableAreaSize then
-                (textFieldTextAreaSize.height - sizedParagraph.height) / 2f
+                (textFieldTextAreaSize.height - sizedParagraph.size.height) / 2f
               else
                 0f
             val clickPos = Point2d[Float](x,y) - cornerCoords.projectToXY
             if textFieldTextAreaSize.contains(clickPos) then
               val pos = sizedParagraph.value.getGlyphPositionAtCoordinate(
-                min(sizedParagraph.width, clickPos.x),
-                min(sizedParagraph.height, clickPos.y - paragraphHeightShift)
+                min(sizedParagraph.size.width, clickPos.x),
+                min(sizedParagraph.size.height, clickPos.y - paragraphHeightShift)
               )
               if press then
                 requestFocus(currentPath).as(

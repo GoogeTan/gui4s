@@ -9,8 +9,8 @@ import cats._
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-type Place[IO[_], Bounds, MeasurementUnit, Value] = PlacementEffect[IO, Bounds, Sized[MeasurementUnit, Value]]
-type PlaceC[IO[_], Bounds, MeasurementUnit] = Place[IO, Bounds, MeasurementUnit, *]
+type Place[IO[_], Bounds, Size, Value] = PlacementEffect[IO, Bounds, Sized[Size, Value]]
+type PlaceC[IO[_], Bounds, Size] = Place[IO, Bounds, Size, *]
 
 object Place:
   def typecheck[

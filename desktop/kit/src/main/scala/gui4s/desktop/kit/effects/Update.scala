@@ -5,8 +5,8 @@ import catnip.BiMonad
 import cats._
 import cats.data.NonEmptyList
 import cats.effect.ExitCode
+import cats.effect._
 import cats.syntax.all._
-import cats.effect.*
 
 import gui4s.core.geometry.Point3d
 import gui4s.core.kit.effects.UpdateState

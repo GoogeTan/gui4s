@@ -1,15 +1,16 @@
 package gui4s.core.kit
 package effects
 
+import scala.util.NotGiven
+
 import catnip.Get
 import catnip.Set
-import catnip.syntax.transformer.{*, given}
-import catnip.transformer.*
-import cats.syntax.all.*
-import cats.*
-import gui4s.core.widget.Path
+import catnip.syntax.transformer.{_, given}
+import catnip.transformer._
+import cats._
+import cats.syntax.all._
 
-import scala.util.NotGiven
+import gui4s.core.widget.Path
 
 type PlacementEffectMonadTransformer[Bounds] = ReaderTransformer[Path] <> StateTransformer[Bounds]
 

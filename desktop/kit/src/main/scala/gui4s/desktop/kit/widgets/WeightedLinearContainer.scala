@@ -1,17 +1,24 @@
 package gui4s.desktop.kit.widgets
 
 import catnip.syntax.all.given
-import catnip.syntax.list.{foldOrdered, traverseOrdered}
+import catnip.syntax.list.foldOrdered
+import catnip.syntax.list.traverseOrdered
 import cats.Order
-import cats.effect.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, InfinityOr, Point3d}
-import gui4s.core.layout.{Measured, Sized, Weighted}
-import gui4s.core.widget.library.*
-import gui4s.desktop.kit.effects.*
+import cats.effect._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.Measured
+import gui4s.core.layout.Sized
+import gui4s.core.layout.Weighted
+import gui4s.core.widget.library._
+
 import gui4s.desktop.kit.effects.Draw.drawAt
 import gui4s.desktop.kit.effects.Place.given
-import gui4s.desktop.widget.library.*
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.widget.library._
 
 def weightedLinearContainer[
   Event
@@ -23,7 +30,7 @@ def weightedLinearContainer[
   Float,
   Axis
 ] =
-  type WidgetWithMeta = Measured[Float, InfinityOr[Float], (DesktopPlacedWidget[Event], Option[Float], Point3d[Float])]
+  type WidgetWithMeta = Measured[Rect[Float], Bounds, (DesktopPlacedWidget[Event], Option[Float], Point3d[Float])]
   gui4s.core.widget.library.weightedLinearContainer(
     (children, placement) =>
       gui4s.desktop.widget.library.container[
@@ -95,8 +102,8 @@ def weightedLinearContainer[
               Weighted(measureIncrementally[
                 PlacementEffect,
                 DesktopPlacedWidget[Event],
-                Float,
-                InfinityOr[Float],
+                Rect[Float],
+                Bounds,
                 Point3d[Float]
               ](PlacementEffect.getBounds, widgetAsFree, oldWidget.map(_._1)), oldWidget.value._2)
             ),

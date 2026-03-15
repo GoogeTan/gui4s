@@ -3,39 +3,21 @@ package gui4s.core.layout
 import cats.Comonad
 import cats.Eq
 
-import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Rect
 
-type SizedC[MeasurementUnit] = [Value] =>> Sized[MeasurementUnit, Value]
+type SizedC[Size] = Sized[Size, *]
 
-final case class Sized[+MeasurementUnit, +T](value : T, size : Rect[MeasurementUnit]):
-  def this(value : T, x : MeasurementUnit, y : MeasurementUnit) =
-    this(value, Rect(x, y))
-  end this
-
-  def width : MeasurementUnit = size.width
-  def height : MeasurementUnit = size.height
-
-  def mapValue[B](f : T => B) : Sized[MeasurementUnit, B] =
+final case class Sized[+Size, +T](value : T, size : Size):
+  def mapValue[B](f : T => B) : Sized[Size, B] =
     copy(value = f(value))
   end mapValue
-
-  /**
-   * Возвращает ширину вдоль оси
-   */
-  def lengthAlong(axis : Axis) : MeasurementUnit =
-    axis match
-      case Axis.Vertical => height
-      case Axis.Horizontal => width
-    end match
-  end lengthAlong
-  
-  def lengthAlongAnother(axis: Axis): MeasurementUnit =
-    lengthAlong(axis.another)
-  end lengthAlongAnother
 end Sized
 
 object Sized:
+  def apply[MeasurementUnit, T](value: T, x: MeasurementUnit, y: MeasurementUnit) =
+    new Sized(value, Rect(x, y))
+  end apply
+
   given sizedEq[MeasurementUnit : Eq, T : Eq] : Eq[Sized[MeasurementUnit, T]] =
     Eq.by(x => (x.value, x.size))
   end sizedEq

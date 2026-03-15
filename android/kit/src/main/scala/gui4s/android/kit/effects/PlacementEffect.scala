@@ -6,6 +6,7 @@ import cats.*
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
+import gui4s.core.geometry.Rect
 
 import scala.util.NotGiven
 
@@ -34,7 +35,7 @@ object PlacementEffect:
     liftK(value)
   end liftF
 
-  def liftSized[Value](value: Sized[Float, Value]): PlacementEffect[Sized[Float, Value]] =
+  def liftSized[Value](value: Sized[Rect[Float], Value]): PlacementEffect[Sized[Rect[Float], Value]] =
     monadThrowInstance.pure(value)
   end liftSized
 

@@ -3,10 +3,14 @@ package gui4s.core.layout
 import catnip.Zip
 import catnip.Zip.zip
 import catnip.syntax.all.given
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, InfinityOr, Point2d, Rect}
-import gui4s.core.layout.linear.*
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.linear._
 
 //TODO replace with Sized
 final case class ElementPlacementResult[Collection[_], Size, Point](size : Size, coordinates : Collection[Point])

@@ -2,10 +2,18 @@ package catnip
 package syntax
 
 import catnip.Zip.zip
-import cats.{Applicative, Foldable, Functor, Id, Monad, Monoid, Order, SemigroupK, Traverse}
+import cats.Applicative
+import cats.Foldable
+import cats.Functor
+import cats.Id
+import cats.Monad
+import cats.Monoid
+import cats.Order
+import cats.SemigroupK
+import cats.Traverse
 import cats.data.NonEmptyList
 import cats.data.StateT
-import cats.syntax.all.*
+import cats.syntax.all._
 
 object list:
   

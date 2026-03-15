@@ -1,7 +1,6 @@
 package gui4s.android.kit
 package effects
 
-
 import scala.reflect.Typeable
 import catnip.MapKCache
 import catnip.syntax.functor.nestedFunctorsAreFunctors
@@ -13,6 +12,7 @@ import gui4s.android.kit.effects.PlacementEffect.given
 import gui4s.android.kit.effects.Situated.given
 import org.jetbrains.skia.shaper.Shaper
 
+import gui4s.core.geometry.*
 import cats.effect.IO
 import scala.reflect.Typeable
 import catnip.MapKCache
@@ -25,11 +25,11 @@ import gui4s.android.kit.effects.PlacementEffect.given
 import gui4s.android.kit.effects.Situated.given
 import org.jetbrains.skia.shaper.Shaper
 
-type Place[T] = GenericPlace[IO, AndroidConfiguration[Bounds], Float, T]
+type Place[T] = GenericPlace[IO, AndroidConfiguration[Bounds], Rect[Float], T]
 type PlaceC = [Value] =>> Place[Value]
 
 object Place:
-  def run(path : Path,  bounds : IO[AndroidConfiguration[Bounds]]) : Place[*] ~> IO =
+  def run(path : Path,  bounds : IO[AndroidConfiguration[Bounds]]) : Place ~> IO =
     new ~>[Place[*], IO]:
       override def apply[A](fa : Place[A]) : IO[A] =
         PlacementEffect.run(path, bounds)(fa.map(_.value))

@@ -1,7 +1,9 @@
 package gui4s.desktop.kit
 package effects
 
-import cats.{Applicative, MonadError, Monoid}
+import cats.Applicative
+import cats.MonadError
+import cats.Monoid
 import cats.effect.IO
 
 type RecompositionReaction = gui4s.core.kit.effects.RecompositionReaction[IO]

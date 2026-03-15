@@ -24,7 +24,8 @@ def stackContainer[Event](
   gui4s.core.widget.library.stackContainer[
     AndroidPlacedWidget[Event],
     PlacementEffectC,
-    InfinityOr[Float],
+    Rect[Float],
+    Bounds,
     Float,
   ](
     getBounds = PlacementEffect.getBounds,

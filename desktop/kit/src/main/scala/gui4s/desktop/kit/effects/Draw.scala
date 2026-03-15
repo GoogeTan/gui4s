@@ -1,16 +1,18 @@
 package gui4s.desktop.kit
 package effects
 
-import cats.*
+import cats._
 import cats.data.ReaderT
-import cats.effect.*
-import gui4s.core.geometry.Rect
-import io.github.humbleui.skija.*
-import io.github.humbleui.skija.paragraph.*
+import cats.effect._
+import io.github.humbleui.skija._
+import io.github.humbleui.skija.paragraph._
 import io.github.humbleui.types.Rect.makeWH
+
+import gui4s.core.geometry.Rect
+
 import gui4s.desktop.skija
 import gui4s.desktop.skija.SkPaint
-import gui4s.desktop.skija.canvas.*
+import gui4s.desktop.skija.canvas._
 
 
 type DrawM[T] = ReaderT[IO, Canvas, T]

@@ -3,8 +3,9 @@ package merge
 
 import catnip.Zip
 import catnip.Zip.zip
-import cats.syntax.all.*
-import cats.{Foldable, Functor}
+import cats.Foldable
+import cats.Functor
+import cats.syntax.all._
 
 def containerMergesWithOldStates[
   Place[_] : Functor,

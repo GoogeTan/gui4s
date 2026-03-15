@@ -1,19 +1,25 @@
 package gui4s.desktop.example
 
-import cats.data.EitherT
-import cats.effect.*
-import cats.syntax.all.*
-import gui4s.core.widget.library.animation.NormedVectorSpace.floatNormedVectorSpace
-import gui4s.core.widget.library.animation.{Animation, AnimationWidget, Easing, TweenAnimation}
-import gui4s.core.widget.library.decorator.Paddings
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.skija.*
-import io.github.humbleui.skija.*
-
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.*
+
+import scala.concurrent.duration._
+
+import cats.data.EitherT
+import cats.effect._
+import cats.syntax.all._
+import io.github.humbleui.skija._
+
+import gui4s.core.widget.library.animation.Animation
+import gui4s.core.widget.library.animation.AnimationWidget
+import gui4s.core.widget.library.animation.Easing
+import gui4s.core.widget.library.animation.NormedVectorSpace.floatNormedVectorSpace
+import gui4s.core.widget.library.animation.TweenAnimation
+import gui4s.core.widget.library.decorator.Paddings
+
+import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.skija._
 
 def animationExample(
   initialization: InitializationWidget,

@@ -5,6 +5,7 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 
+import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.textfield.TextFieldEvent
@@ -36,13 +37,13 @@ def basicTextFieldBody[
   Event
 ](
     placeText : TextFieldState => Place[Paragraph],
-    systemEventCatcher : Sized[Float, Paragraph] => DesktopWidget[Event] => DesktopWidget[Event],
-    drawText : (Path, TextFieldState, Sized[Float, Paragraph]) => DesktopWidget[Event]
+    systemEventCatcher : Sized[Rect[Float], Paragraph] => DesktopWidget[Event] => DesktopWidget[Event],
+    drawText : (Path, TextFieldState, Sized[Rect[Float], Paragraph]) => DesktopWidget[Event]
 ) : TextFieldState => DesktopWidget[Event] =
   state =>
     gui4s.core.widget.library.textfield.basicTextFieldBody[
       DesktopWidget[Event],
-      Sized[Float, Paragraph]
+      Sized[Rect[Float], Paragraph]
     ](
       (state, callback) => Monad[PlacementEffect].flatMap(placeText(state))(callback),
       systemEventCatcher,
@@ -93,7 +94,7 @@ def textFieldParagraph(
   )
 end textFieldParagraph
 
-def sizeParagraph(paragraph : Paragraph, availablePlace : Option[Float]) : IO[Sized[Float, Paragraph]] =
+def sizeParagraph(paragraph : Paragraph, availablePlace : Option[Float]) : IO[Sized[Rect[Float], Paragraph]] =
   availablePlace.fold(
     ().pure[IO]
   )(

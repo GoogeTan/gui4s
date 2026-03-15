@@ -1,17 +1,20 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.additional.*
-import cats.syntax.all.*
-import cats.{Functor, Monad}
-import gui4s.core.geometry.Rect
-import gui4s.core.layout.{PlacementStrategy, Sized, SizedC}
+import catnip.syntax.additional._
+import cats.Functor
+import cats.Monad
+import cats.syntax.all._
+
+import gui4s.core.layout.PlacementStrategy
+import gui4s.core.layout.Sized
+import gui4s.core.layout.SizedC
 
 class GenericLayout[
   PlacementEffect[_] : Monad as OPA,
   Collection[_] : Functor,
   PlacedWidget,
   FreeWidget,
-  MeasurementUnit : Numeric as MUN,
+  Size,
   Bounds,
   IncrementalFreeWidget,
   NewFreeWidget
@@ -22,13 +25,13 @@ class GenericLayout[
   placementStrategy: PlacementStrategy[
     PlacementEffect,
     FreeWidget,
-    Rect[MeasurementUnit],
+    Size,
     Bounds,
     Collection,
     PlacedWidget
   ],
 ) extends Layout[
-  PlacementEffect * SizedC[MeasurementUnit],
+  PlacementEffect * SizedC[Size],
   Collection,
   NewFreeWidget,
   IncrementalFreeWidget,
@@ -38,7 +41,7 @@ class GenericLayout[
     widgets: Collection[NewFreeWidget]
   ): PlacementEffect[
     Sized[
-      MeasurementUnit,
+      Size,
       Collection[PlacedWidget]
     ]
   ] =
@@ -53,7 +56,7 @@ class GenericLayout[
 
   override def placeIncrementally(
     widgets: Collection[IncrementalFreeWidget]
-  ): PlacementEffect[Sized[MeasurementUnit, Collection[PlacedWidget]]] =
+  ): PlacementEffect[Sized[Size, Collection[PlacedWidget]]] =
     for
       bounds <- getBounds
       measuredElements <- placementStrategy(widgets.map(measureWithBoundsIncrementally), bounds)

@@ -2,17 +2,24 @@ package gui4s.desktop.kit
 package effects
 
 import scala.reflect.Typeable
+
 import catnip.MapKCache
 import catnip.syntax.functor.nestedFunctorsAreFunctors
-import cats.{Functor, MonadError, ~>}
-import cats.effect.*
-import gui4s.core.kit.effects.{Place as GenericPlace, PlacementEffect as GenericPlacementEffect}
+import cats.Functor
+import cats.MonadError
+import cats.effect._
+import cats.~>
+
+import gui4s.core.geometry.Rect
+import gui4s.core.kit.effects.{Place => GenericPlace}
+import gui4s.core.kit.effects.{PlacementEffect => GenericPlacementEffect}
 import gui4s.core.widget.Path
+
 import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects.Situated.given
 import gui4s.desktop.skija.shaper.Shaper
 
-type Place[T] = GenericPlace[IO, Bounds, Float, T]
+type Place[T] = GenericPlace[IO, Bounds, Rect[Float], T]
 
 object Place:
   def run(path : Path, bounds : IO[Bounds]) : Place[*] ~> IO =

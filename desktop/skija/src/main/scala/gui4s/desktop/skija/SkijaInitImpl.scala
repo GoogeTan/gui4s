@@ -3,7 +3,16 @@ package gui4s.desktop.skija
 import catnip.syntax.all.given
 import cats.effect.Resource
 import cats.effect.Sync
-import io.github.humbleui.skija.{BackendRenderTarget, Canvas, ColorSpace, ColorType, DirectContext, FramebufferFormat, PixelGeometry, Surface, SurfaceOrigin, SurfaceProps}
+import io.github.humbleui.skija.BackendRenderTarget
+import io.github.humbleui.skija.Canvas
+import io.github.humbleui.skija.ColorSpace
+import io.github.humbleui.skija.ColorType
+import io.github.humbleui.skija.DirectContext
+import io.github.humbleui.skija.FramebufferFormat
+import io.github.humbleui.skija.PixelGeometry
+import io.github.humbleui.skija.Surface
+import io.github.humbleui.skija.SurfaceOrigin
+import io.github.humbleui.skija.SurfaceProps
 import io.github.humbleui.skija.shaper.Shaper
 
 def createRenderTarget[

@@ -1,11 +1,12 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.additional.*
+import catnip.syntax.additional._
 import catnip.syntax.all.given
-import cats.*
-import cats.syntax.all.*
-import gui4s.core.geometry.*
-import gui4s.core.layout.*
+import cats._
+import cats.syntax.all._
+
+import gui4s.core.geometry._
+import gui4s.core.layout._
 import gui4s.core.widget.free.AsFreeF
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
@@ -19,49 +20,50 @@ import gui4s.core.widget.library.decorator.Decorator
  * @param decorationsPlacementStrategy То, как разместить виджеты
  * @tparam Widget Свободный виджет
  * @tparam PlacementEffect Эффект установки на экран
- * @tparam MeasurementUnit Единица измерения размеров на экране.
+ * @tparam Size Единица измерения размеров на экране.
  */
 def layersWidget[
   Widget,
   PlacementEffect[_] : Monad as OPA,
-  MeasurementUnit : Numeric as MUN,
-  BoundUnit
+  Size,
+  Bounds,
+  MeasurementUnit : Numeric as MUN
 ](
   container : ContainerWidget[
-    PlacementEffect[Sized[MeasurementUnit, Widget]],
+    PlacementEffect[Sized[Size, Widget]],
     List[
-      PlacementEffect[Sized[MeasurementUnit, Widget]],
+      PlacementEffect[Sized[Size, Widget]],
     ], 
     PlacementStrategy[
       PlacementEffect,
-      PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]],
-      Rect[MeasurementUnit], 
-      Rect[BoundUnit],
+      PlacementEffect[Measured[Size, Bounds, Widget]],
+      Size,
+      Bounds,
       List, 
-      Measured[MeasurementUnit, BoundUnit, (Widget, Point3d[MeasurementUnit])]
+      Measured[Size, Bounds, (Widget, Point3d[MeasurementUnit])]
     ]
   ],
-  withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect,
+  withBounds : Size => PlacementEffect ~> PlacementEffect,
 )(
-   background : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
-   foreground : List[PlacementEffect[Sized[MeasurementUnit, Widget]]],
+   background : List[PlacementEffect[Sized[Size, Widget]]],
+   foreground : List[PlacementEffect[Sized[Size, Widget]]],
    decorationsPlacementStrategy : PlacementStrategy[
      PlacementEffect,
-     Rect[MeasurementUnit],
-     Rect[MeasurementUnit],
-     Rect[MeasurementUnit],
+     Size,
+     Size,
+     Size,
      List,
      Point2d[MeasurementUnit]
    ],
    masterPlacementStrategy : OneElementPlacementStrategy[
      PlacementEffect,
-     Rect[MeasurementUnit],
-     Rect[MeasurementUnit],
-     Rect[BoundUnit],
+     Size,
+     Size,
+     Bounds,
      Point2d[MeasurementUnit]
    ],
 ) : Decorator[
-  PlacementEffect[Sized[MeasurementUnit, Widget]]
+  PlacementEffect[Sized[Size, Widget]]
 ] =
   original =>
     container(
@@ -69,7 +71,7 @@ def layersWidget[
       ContainerStrategy.combine(
         measurementStrategy = MeasurementStrategy.layeredPlace[
           PlacementEffect,
-          Measured[MeasurementUnit, BoundUnit, Widget]
+          Measured[Size, Bounds, Widget]
         ](
           background.size,
           (masterWidget, currentWidget) =>
@@ -98,13 +100,13 @@ end layersWidget
 def measure[
   PlacementEffect[_] : FlatMap,
   Widget,
-  MeasurementUnit,
-  BoundUnit,
+  Size,
+  Bounds,
   Point
 ](
-  getBounds : PlacementEffect[Rect[BoundUnit]],
-  value : PlacementEffect[Sized[MeasurementUnit, Widget]]
-) : PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]] =
+  getBounds : PlacementEffect[Bounds],
+  value : PlacementEffect[Sized[Size, Widget]]
+) : PlacementEffect[Measured[Size, Bounds, Widget]] =
   getBounds.flatMap(bounds =>
     value.map(new Measured(_, bounds))
   )
@@ -113,14 +115,14 @@ end measure
 def measureIncrementally[
   PlacementEffect[_] : Monad,
   Widget,
-  MeasurementUnit,
-  BoundUnit,
+  Size,
+  Bounds,
   Point
 ](
-  getBounds : PlacementEffect[Rect[BoundUnit]],
-  widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[MeasurementUnit]],
-  widget: Measured[MeasurementUnit, BoundUnit, Widget]
-): PlacementEffect[Sized[MeasurementUnit, Widget]] =
+  getBounds : PlacementEffect[Bounds],
+  widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[Size]],
+  widget: Measured[Size, Bounds, Widget]
+): PlacementEffect[Sized[Size, Widget]] =
   getBounds.flatMap:
     bounds =>
       if widget.bounds == bounds then

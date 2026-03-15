@@ -1,11 +1,17 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.additional.*
-import catnip.{Get, Set, Zip}
-import cats.syntax.all.*
-import cats.{Monad, Traverse}
-import gui4s.core.geometry.{Axis, Point3d, Rect}
-import gui4s.core.layout.*
+import catnip.Get
+import catnip.Set
+import catnip.Zip
+import catnip.syntax.additional._
+import cats.Monad
+import cats.Traverse
+import cats.syntax.all._
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout._
 import gui4s.core.widget.free.AsFreeF
 
 /**
@@ -69,24 +75,24 @@ def linearContainer[
   MeasurementUnit : Numeric as N,
 ](
   container : ContainerWidget[
-    PlacementEffect[Sized[MeasurementUnit, Widget]],
+    PlacementEffect[Sized[Rect[MeasurementUnit], Widget]],
     Collection[
-      PlacementEffect[Sized[MeasurementUnit, Widget]],
+      PlacementEffect[Sized[Rect[MeasurementUnit], Widget]],
     ],
     PlacementStrategy[
       PlacementEffect,
-      PlacementEffect[Measured[MeasurementUnit, BoundUnit, Widget]],
+      PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], Widget]],
       Rect[MeasurementUnit],
       Rect[BoundUnit],
       Collection,
-      Measured[MeasurementUnit, BoundUnit, (Widget, Point3d[MeasurementUnit])]
+      Measured[Rect[MeasurementUnit], Rect[BoundUnit], (Widget, Point3d[MeasurementUnit])]
     ]
   ],
   getBounds: Get[PlacementEffect, Rect[BoundUnit]],
   setBounds: Set[PlacementEffect, Rect[BoundUnit]],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
-  widgetAsFree : AsFreeF[Widget, PlacementEffect * Sized[MeasurementUnit, *]]
-) : LinearContainer[PlacementEffect[Sized[MeasurementUnit, Widget]], PlacementEffect, Collection, BoundUnit, MeasurementUnit, Axis] =
+  widgetAsFree : AsFreeF[Widget, PlacementEffect * Sized[Rect[MeasurementUnit], *]]
+) : LinearContainer[PlacementEffect[Sized[Rect[MeasurementUnit], Widget]], PlacementEffect, Collection, BoundUnit, MeasurementUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
       children,
@@ -95,7 +101,7 @@ def linearContainer[
           PlacementEffect,
           Collection,
           Rect[BoundUnit],
-          Measured[MeasurementUnit, BoundUnit, Widget]
+          Measured[Rect[MeasurementUnit], Rect[BoundUnit], Widget]
         ](
           getBounds,
           setBounds,

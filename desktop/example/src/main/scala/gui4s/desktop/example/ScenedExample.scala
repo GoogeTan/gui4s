@@ -1,23 +1,33 @@
 package gui4s.desktop.example
 
 import cats.data.NonEmptyList
-import cats.effect.std.Queue
 import cats.effect.IO
-import cats.syntax.all.*
+import cats.effect.std.Queue
+import cats.syntax.all._
 import glfw4s.core.WindowCreationSettings
 import glfw4s.core.pure.PurePostInit
 import glfw4s.jna.bindings.structs
-import glfw4s.jna.bindings.types.{GLFWmonitor, GLFWwindow}
-import gui4s.core.layout.OneElementPlacementStrategy
-import gui4s.desktop.kit.UIApp
-import gui4s.desktop.kit.effects.{DownEvent, Init, LinearContainerPlacementStrategy, Shapes, UpdateC}
-import gui4s.desktop.skija.typeface.defaultTypeface
-import gui4s.desktop.skija.{Brush, Paint, SkijaTextStyle, StrokeOptions}
+import glfw4s.jna.bindings.types.GLFWmonitor
+import glfw4s.jna.bindings.types.GLFWwindow
 import io.github.humbleui.skija.Font
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.kit.widgets.decorator.padding
+
+import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.Paddings
+
+import gui4s.desktop.kit.UIApp
+import gui4s.desktop.kit.effects.DownEvent
+import gui4s.desktop.kit.effects.Init
+import gui4s.desktop.kit.effects.LinearContainerPlacementStrategy
+import gui4s.desktop.kit.effects.Shapes
+import gui4s.desktop.kit.effects.UpdateC
+import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.kit.widgets.decorator.padding
+import gui4s.desktop.skija.Brush
+import gui4s.desktop.skija.Paint
+import gui4s.desktop.skija.SkijaTextStyle
+import gui4s.desktop.skija.StrokeOptions
+import gui4s.desktop.skija.typeface.defaultTypeface
 
 object ScenedExample extends UIApp:
   val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
