@@ -2,26 +2,14 @@ package gui4s.android.kit.widgets.decorator
 
 import catnip.syntax.all.given
 import cats.*
-import cats.effect.*
-import cats.syntax.all.*
-import gui4s.core.geometry.{Point2d, Point3d, Rect, InfinityOr}
-import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.core.widget.library.decorator.Decorator
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.effects.PlacementEffect.given
-import gui4s.android.kit.widgets.*
-
 import cats.effect.IO
-import catnip.syntax.all.given
-import cats.*
-import cats.effect.*
 import cats.syntax.all.*
-import gui4s.core.geometry.{Point2d, Point3d, Rect, InfinityOr}
-import gui4s.core.layout.{ElementPlacementResult, Measured, OneElementPlacementStrategy, PlacementStrategy}
-import gui4s.core.widget.library.decorator.Decorator
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.PlacementEffect.given
 import gui4s.android.kit.widgets.*
+import gui4s.core.geometry.{InfinityOr, Point2d, Point3d, Rect}
+import gui4s.core.layout.*
+import gui4s.core.widget.library.decorator.Decorator
 
 def minSizeWidget[Event](
   minSize : Rect[Float],
@@ -44,14 +32,14 @@ def minSizeWidget[Event](
     ensureMinimalSize = (childSize, bounds) =>
       if childSize.width < minSize.width || childSize.height < minSize.height then
         placeIfSmaller(childSize, bounds)
-          .map { case ElementPlacementResult(_, coordinatesOfStarts) =>
-            ElementPlacementResult(
+          .map { case Sized(coordinatesOfStarts, _) =>
+            Sized(
+              new Point3d(coordinatesOfStarts, 0.0),
               minSize,
-              new Point3d(coordinatesOfStarts, 0),
             )
           }
       else
-        ElementPlacementResult[Id, Rect[Float], Point3d[Float]](minSize, Point3d.Zero[Float]).pure[PlacementEffectC],
+        Sized[Rect[Float], Point3d[Float]](Point3d.Zero[Float], minSize).pure[PlacementEffectC],
     makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
   )(minSize.map(new InfinityOr(_)))

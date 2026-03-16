@@ -1,23 +1,18 @@
 package gui4s.desktop.kit.widgets.decorator
 
 import catnip.syntax.all.given
-import cats._
-import cats.effect._
-import cats.syntax.all._
-
+import cats.*
+import cats.effect.*
+import cats.syntax.all.*
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
-import gui4s.core.layout.ElementPlacementResult
-import gui4s.core.layout.Measured
-import gui4s.core.layout.OneElementPlacementStrategy
-import gui4s.core.layout.PlacementStrategy
+import gui4s.core.layout.{Measured, OneElementPlacementStrategy, PlacementStrategy, Sized}
 import gui4s.core.widget.library.decorator.Decorator
-
 import gui4s.desktop.kit.effects.PlacementEffect.given
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.widgets.*
 
 def minSizeWidget[Event](
   minSize : Rect[Float],
@@ -39,14 +34,14 @@ def minSizeWidget[Event](
       if childSize.width < minSize.width || childSize.height < minSize.height then
         PlacementEffect.getBounds
           .flatMap(placeIfSmaller(childSize, _))
-          .map { case ElementPlacementResult(_, coordinatesOfStarts) =>
-            ElementPlacementResult(
+          .map { case Sized(coordinatesOfStarts, _) =>
+            Sized(
+              new Point3d(coordinatesOfStarts, 0.0),
               minSize,
-              new Point3d(coordinatesOfStarts, 0),
             )
           }
       else
-        ElementPlacementResult[Id, Rect[Float], Point3d[Float]](minSize, Point3d.Zero[Float]).pure[PlacementEffect],
+        Sized(Point3d.Zero[Float], minSize).pure[PlacementEffect],
     makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
   )(minSize.map(new InfinityOr(_)))

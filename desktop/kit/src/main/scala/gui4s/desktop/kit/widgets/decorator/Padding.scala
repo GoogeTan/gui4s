@@ -1,19 +1,16 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
-import cats._
-import cats.effect._
-import cats.syntax.all._
-
+import cats.*
+import cats.effect.*
+import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
-import gui4s.core.layout.ElementPlacementResult
-import gui4s.core.layout.Measured
+import gui4s.core.layout.{Measured, Sized}
 import gui4s.core.widget.library.decorator.PaddingWidget
 import gui4s.core.widget.library.decorator.Paddings
-
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.widgets.*
 
 /**
  * Одноместный контейнер, добавляющий отступы фиксированной длины вокруг виджета.
@@ -37,9 +34,9 @@ def gapPaddingWidget[Event] : PaddingWidget[DesktopWidget[Event], Paddings[Float
       boundsWithPaddings =
         PlacementEffect.withBoundsK(_.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_))),
       innerPlaceWithPaddings = (child, bounds) =>
-        ElementPlacementResult[Id, Rect[Float], Point3d[Float]](
+        Sized(
+          new Point3d(paddings.topLeftCornerShift, 0f),
           child + paddings.addedBoundsRect,
-          new Point3d(paddings.topLeftCornerShift, 0f)
         ).pure[PlacementEffect],
       makeMeta = (measured, point) => Measured((measured.value, point), measured.size, measured.bounds),
       sizeOfItem = _.size

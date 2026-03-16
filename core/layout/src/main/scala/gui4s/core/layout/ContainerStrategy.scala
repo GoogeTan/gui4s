@@ -26,7 +26,7 @@ object ContainerStrategy:
       for 
         measuredChildren <- measurementStrategy(items)
         placedChildren <- placementStrategy(measuredChildren.map(sizeOfItem), bounds)
-      yield placedChildren.copy(coordinates = someMap(measuredChildren.zip(placedChildren.coordinates)))
+      yield placedChildren.copy(value = someMap(measuredChildren.zip(placedChildren.value)))
   end combine
 end ContainerStrategy
 

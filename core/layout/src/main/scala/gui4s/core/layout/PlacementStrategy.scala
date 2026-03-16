@@ -12,9 +12,6 @@ import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.linear._
 
-//TODO replace with Sized
-final case class ElementPlacementResult[Collection[_], Size, Point](size : Size, coordinates : Collection[Point])
-
 /**
  * Функция, описывающая расстановку элементов в контейнере. Принимает множество
  * размеров виджетов и возвращает размер всего контейнера и координаты расположения виджетов.
@@ -26,7 +23,7 @@ final case class ElementPlacementResult[Collection[_], Size, Point](size : Size,
  * при попытке установить виджет посередине бесконечного скролла)
  */
 type PlacementStrategy[Place[_], Item, Size, Bounds, Collection[_], Point] = 
-  (Collection[Item], Bounds) => Place[ElementPlacementResult[Collection, Size, Point]]
+  (Collection[Item], Bounds) => Place[Sized[Size, Collection[Point]]]
 
 object PlacementStrategy:
   def Begin[
@@ -38,7 +35,7 @@ object PlacementStrategy:
     (children, _) =>
       val placedChildren = placeBeginManyWithGap(children, gap)
       val size = placedChildren.map(_.coordinateOfTheEnd).maximumOption(using Order.fromOrdering(using summon)).getOrElse(Numeric[MeasurementUnit].zero)
-      ElementPlacementResult(size, placedChildren.map(_.coordinateOfTheBeginning)).pure[Place]
+      Sized(placedChildren.map(_.coordinateOfTheBeginning), size).pure[Place]
   end Begin
     
   def Center[
@@ -49,7 +46,7 @@ object PlacementStrategy:
     gap : MeasurementUnit,
   ) : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
     (children, maxSpace) =>
-      ElementPlacementResult(maxSpace, placeCenterManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
+      Sized(placeCenterManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning), maxSpace).pure[Place]
   end Center
 
   def End[
@@ -60,7 +57,7 @@ object PlacementStrategy:
     gap : MeasurementUnit,
   ) : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
     (children, maxSpace) =>
-      ElementPlacementResult(maxSpace, placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning)).pure[Place]
+      Sized(placeEndManyWithGap(children, maxSpace, gap).map(_.coordinateOfTheBeginning), maxSpace).pure[Place]
   end End
 
   def SpaceAround[
@@ -69,7 +66,7 @@ object PlacementStrategy:
     MeasurementUnit : Fractional,
   ] : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
     (children, maxSpace) =>
-      ElementPlacementResult(maxSpace, A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning)).pure[Place]
+      Sized(A.map(placeSpaceAround(children, maxSpace))(_.coordinateOfTheBeginning), maxSpace).pure[Place]
   end SpaceAround
 
   def SpaceBetween[
@@ -78,7 +75,7 @@ object PlacementStrategy:
     MeasurementUnit : Fractional,
   ] : PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit] =
     (children, maxSpace) =>
-      ElementPlacementResult(maxSpace, placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning)).pure[Place]
+      Sized(placeSpaceBetween(children, maxSpace).map(_.coordinateOfTheBeginning), maxSpace).pure[Place]
   end SpaceBetween
 
   def PlaceIndependently[
@@ -94,9 +91,9 @@ object PlacementStrategy:
     (elements, bounds) =>
       elements.traverse(oneElementPlacementStrategy(_, bounds)).map(
         placedElements =>
-          ElementPlacementResult(
+          Sized(
+            placedElements.map(_.value),
             combineSizes(placedElements.map(_.size)),
-            placedElements.map(_.coordinates),
           )
       )
   end PlaceIndependently
@@ -171,10 +168,10 @@ object PlacementStrategy:
         horizonal(elements.map(_.width), bounds.width),
         vertical(elements.map(_.height), bounds.height),
       ) {
-        case (ElementPlacementResult(xSize, xCoordinates), ElementPlacementResult(ySize, yCoordinates)) =>
-          ElementPlacementResult(
+        case (Sized(xCoordinates, xSize), Sized(yCoordinates, ySize)) =>
+          Sized(
+            xCoordinates.zip(yCoordinates).map(new Point2d(_, _)),
             new Rect(xSize, ySize),
-            xCoordinates.zip(yCoordinates).map(new Point2d(_, _))
           )
       }
   end Zip  
@@ -204,7 +201,7 @@ object PlacementStrategy:
     MeasurementUnit,
   ](
     original: PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit],
-    ifInfinity: Place[ElementPlacementResult[Collection, MeasurementUnit, MeasurementUnit]],
+    ifInfinity: Place[Sized[MeasurementUnit, Collection[MeasurementUnit]]],
   ): PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, InfinityOr[MeasurementUnit], Collection, MeasurementUnit] = {
     case (itemLength, InfinityOr(Some(space))) => original(itemLength, space)
     case _ => ifInfinity
@@ -242,11 +239,11 @@ object PlacementStrategy:
         background = items.take(masterIndex)
         foreground = items.drop(masterIndex + 1)
         itemsPlaced <- elementsStrategy(background ++ foreground, placedMaster.size)
-        backgroundCoordinates = itemsPlaced.coordinates.take(background.size)
-        foregroundCoordinates = itemsPlaced.coordinates.drop(background.size)
-      yield ElementPlacementResult(
+        backgroundCoordinates = itemsPlaced.value.take(background.size)
+        foregroundCoordinates = itemsPlaced.value.drop(background.size)
+      yield Sized(
+        backgroundCoordinates ++ (placedMaster.value :: foregroundCoordinates),
         placedMaster.size,
-        backgroundCoordinates ++ (placedMaster.coordinates :: itemsPlaced.coordinates)
       )
   end MasterBasedStack
 end PlacementStrategy

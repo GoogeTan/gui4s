@@ -17,7 +17,7 @@ object OneElementPlacementStrategy:
       MeasurementUnit : Numeric
     ](whereToPlace : MeasurementUnit) : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, BoundsUnit, MeasurementUnit] =
         (itemLength, _) =>
-            ElementPlacementResult[Id, MeasurementUnit, MeasurementUnit](whereToPlace + itemLength, whereToPlace).pure[Place]
+            Sized(whereToPlace, whereToPlace + itemLength).pure[Place]
     end Const
 
     def Begin[
@@ -28,16 +28,15 @@ object OneElementPlacementStrategy:
       PlacementStrategy.Begin[Place, BoundsUnit, Id, MeasurementUnit](N.zero)
     end Begin
 
-    //TODO оно не работает вообще, исправить
     def Center[
         Place[_] : Applicative,
         MeasurementUnit : Fractional,
     ] : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, MeasurementUnit] =
         (itemLength, space) =>
             val coordinatesOfStart = placeCenter(itemLength, space)
-            ElementPlacementResult[Id, MeasurementUnit, MeasurementUnit](
-                coordinates = coordinatesOfStart,
-                size = coordinatesOfStart + itemLength
+            Sized(
+                coordinatesOfStart,
+                coordinatesOfStart + itemLength,
             ).pure[Place]
     end Center
 
@@ -47,9 +46,9 @@ object OneElementPlacementStrategy:
     ] : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, MeasurementUnit] =
         (itemLength, space) =>
             val coordinatesOfStart = placeEnd(itemLength, space)
-            ElementPlacementResult[Id, MeasurementUnit, MeasurementUnit](
-                coordinates = coordinatesOfStart,
-                size = coordinatesOfStart + itemLength
+            Sized(
+                coordinatesOfStart,
+                coordinatesOfStart + itemLength
             ).pure[Place]
     end End
     
@@ -58,7 +57,7 @@ object OneElementPlacementStrategy:
         MeasurementUnit,
     ](
         original : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, MeasurementUnit],
-        ifInfinity : Place[ElementPlacementResult[Id, MeasurementUnit, MeasurementUnit]],
+        ifInfinity : Place[Sized[MeasurementUnit, MeasurementUnit]],
     ) : OneElementPlacementStrategy[Place, MeasurementUnit, MeasurementUnit, InfinityOr[MeasurementUnit], MeasurementUnit] = {
         case (itemLength, InfinityOr(Some(space))) => original(itemLength, space)
         case _ => ifInfinity  

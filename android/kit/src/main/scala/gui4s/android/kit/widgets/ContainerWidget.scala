@@ -9,7 +9,7 @@ import gui4s.android.kit.widgets.{AndroidPlacedWidget, AndroidWidget}
 import gui4s.android.skia.canvas.drawAt
 import gui4s.core.geometry.{InfinityOr, Point3d, Rect}
 import gui4s.core.layout.{Measured, OneElementPlacementStrategy, PlacementStrategy, Sized}
-import gui4s.core.widget.library.{GenericLayout, Layout, LayoutIncrementalWidget}
+import gui4s.core.widget.library.{Layout, LayoutIncrementalWidget}
 import gui4s.desktop.widget.library.{Layout2, widgetAsFree, widgetHandlesEvent, widgetIsDrawable, container as genericContainer}
 import gui4s.core.widget.library.*
 
@@ -35,10 +35,9 @@ def containerWidget[
   ](
     children,
     freeChildren =>
-      for
-        bounds <- PlacementEffect.getBounds
-        placed <- placementStrategy(freeChildren.map(_.map(new Measured(_, bounds))), bounds)
-      yield Sized(placed.coordinates, placed.size)
+      PlacementEffect.getBounds.flatMap(bounds =>
+        placementStrategy(freeChildren.map(_.map(new Measured(_, bounds))), bounds)
+      )
   )
 end containerWidget
 

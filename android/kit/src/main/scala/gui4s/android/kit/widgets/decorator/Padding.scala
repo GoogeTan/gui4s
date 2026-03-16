@@ -4,7 +4,7 @@ import cats.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
 import gui4s.core.geometry.{InfinityOr, Point3d, Rect}
-import gui4s.core.layout.{ElementPlacementResult, Measured}
+import gui4s.core.layout.{Measured, Sized}
 import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
 
 /**
@@ -29,9 +29,9 @@ def gapPaddingWidget[Event] : PaddingWidget[AndroidWidget[Event], Paddings[Float
       boundsWithPaddings =
         PlacementEffect.withBoundsK(_.cut(paddings.horizontalLength, paddings.verticalLength, _.minus(_))),
       innerPlaceWithPaddings = (child, bounds) =>
-        ElementPlacementResult[Id, Rect[Float], Point3d[Float]](
+        Sized(
+          new Point3d(paddings.topLeftCornerShift, 0f),
           child + paddings.addedBoundsRect,
-          new Point3d(paddings.topLeftCornerShift, 0f)
         ).pure[PlacementEffect],
       makeMeta = (measured, point) => Measured((measured.value, point), measured.size, measured.bounds),
       sizeOfItem = _.size
