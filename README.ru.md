@@ -88,6 +88,6 @@ statefulWidget[AppIO][Int, ApplicationRequest, Unit](
 ./mill android.example.androidInstall    
 ```
 
-# Ссылки на документацию
+## Ссылки на документацию
 
-# Контрибьюция
+## Контрибьюция
