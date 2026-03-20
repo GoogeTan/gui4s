@@ -25,6 +25,13 @@ import gui4s.core.layout.linear._
 type PlacementStrategy[Place[_], Item, Size, Bounds, Collection[_], Point] = 
   (Collection[Item], Bounds) => Place[Sized[Size, Collection[Point]]]
 
+extension[Place[_], Item, Size, Bounds, Collection[_], Point](value : PlacementStrategy[Place, Item, Size, Bounds, Collection, Point])
+  def andThen[Point2](f : Collection[Point] => Collection[Point2])(using Functor[Place]) : PlacementStrategy[Place, Item, Size, Bounds, Collection, Point2] =
+    (items, bounds) =>
+      value(items, bounds).map(_.map(f))
+  end andThen
+end extension
+
 object PlacementStrategy:
   def Begin[
       Place[_] : Applicative,

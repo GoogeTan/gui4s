@@ -33,10 +33,11 @@ object AnimatedExample extends UIApp:
       textWidget <- TextWidget()
       resourceWidget <- ResourceWidget(eventBus)
       initializationWidget = InitializationWidget(resourceWidget)
-      animation <- animationWidget[Unit, Float](eventBus)
+      animation <- animationWidget[Float](eventBus)
       text <- TextWidget()
       typeface <- Init.evalResource(defaultTypeface[IO])
+      scroll <- scrollWidget(glfw, window, eventBus, animation)
     yield
-      animationExample(initializationWidget, onClick, animation, text, typeface)
+      animationExample(initializationWidget, onClick, animation, text, typeface)(using scroll)
   end main
 end AnimatedExample

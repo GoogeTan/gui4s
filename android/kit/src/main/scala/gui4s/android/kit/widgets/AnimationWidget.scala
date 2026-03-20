@@ -19,6 +19,7 @@ import cats.effect.std.{QueueSink, Supervisor}
 import cats.syntax.all.*
 import gui4s.core.widget.library.animation.*
 import gui4s.android.kit.effects.*
+import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.eventCatcher
 
 import java.util.concurrent.TimeUnit
@@ -33,11 +34,10 @@ end loopEach
 
 //TODO
 def animationWidget[
-  Event,
   AnimatedValue : Eq
 ](
   eventBus : QueueSink[IO, DownEvent]
-) : Init[AnimationWidget[AndroidWidget[Event], AnimatedValue, Duration]] =
+) : Init[AnimationWidget[AndroidWidget, AnimatedValue, Duration]] =
   for
     supervisor <- Init.evalResource(Supervisor[IO])
     timer : Ref[IO, FiniteDuration] <- Init.eval(Ref.ofEffect(Clock[IO].realTime))
@@ -69,14 +69,13 @@ def animationWidget[
     gui4s.core.widget.library.animation.animationWidget[
       AndroidWidget,
       Duration,
-      Update[Event, *],
+      Update,
       Place,
       * => RecompositionReaction,
-      AnimatedValue,
-      Event
+      AnimatedValue
     ](
       statefulWidget =
-        (
+        [Event] => (
           name,
           initialState,
           handleEvents,
@@ -92,7 +91,7 @@ def animationWidget[
             mergeStates
           ),
       currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
-      timeSourceWidget = original =>
+      timeSourceWidget = [Event] => original =>
         eventCatcher[Either[Duration, Event]](
           _ =>
             Update

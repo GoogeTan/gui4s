@@ -1,12 +1,8 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import cats.effect._
-import io.github.humbleui.skija.Path
-
-import gui4s.core.geometry.Rect
+import cats.effect.*
 import gui4s.core.layout.Sized
-
-import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.skija.Brush
 

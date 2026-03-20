@@ -7,22 +7,16 @@ import cats.syntax.all.*
 import glfw4s.core.WindowCreationSettings
 import glfw4s.core.pure.PurePostInit
 import glfw4s.jna.bindings.structs
-import glfw4s.jna.bindings.types.GLFWmonitor
-import glfw4s.jna.bindings.types.GLFWwindow
-import io.github.humbleui.skija.Font
+import glfw4s.jna.bindings.types.{GLFWmonitor, GLFWwindow}
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.Paddings
-import gui4s.core.geometry.InfinityOr
 import gui4s.desktop.kit.UIApp
-import gui4s.desktop.kit.effects.{DownEvent, Init, LinearContainerPlacementStrategy, Shape, UpdateC}
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.kit.widgets.decorator.padding
-import gui4s.desktop.skija.Brush
-import gui4s.desktop.skija.Paint
-import gui4s.desktop.skija.SkijaTextStyle
-import gui4s.desktop.skija.StrokeOptions
+import gui4s.desktop.skija.{Brush, Paint, SkijaTextStyle, StrokeOptions}
 import gui4s.desktop.skija.typeface.defaultTypeface
+import io.github.humbleui.skija.Font
 
 object ScenedExample extends UIApp:
   val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
@@ -46,7 +40,7 @@ object ScenedExample extends UIApp:
     yield
       resourceWidget(
         "scenes",
-        Init.run(scenes(eventBus, onClick))
+        Init.run(scenes(glfw, window, eventBus, onClick))
       ):
         case Some(baseDecorations, loadedScenes) =>
           baseDecorations(
@@ -109,6 +103,8 @@ object ScenedExample extends UIApp:
   end button
 
   def scenes(
+    glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, structs.GLFWcursor, Int],
+    window: GLFWwindow,
     eventBus : Queue[IO, DownEvent],
     clickCatcher : ClickCatcher,
   ) : Init[NonEmptyList[DesktopWidget[Nothing]]] =
@@ -116,11 +112,12 @@ object ScenedExample extends UIApp:
       textWidget <- TextWidget()
       resourceWidget <- ResourceWidget(eventBus)
       initializationWidget = InitializationWidget(resourceWidget)
-      animation <- animationWidget[Unit, Float](eventBus)
+      animation <- animationWidget[Float](eventBus)
       text <- TextWidget()
       typeface <- Init.evalResource(defaultTypeface[IO])
+      scroll <- scrollWidget(glfw, window, eventBus, animation)
     yield NonEmptyList.of(
-      animationExample(initializationWidget, clickCatcher, animation, text, typeface),
+      animationExample(initializationWidget, clickCatcher, animation, text, typeface)(using scroll),
       imageExample(text, typeface, initializationWidget),
       gridExample(text, typeface),
       statefulExample(text, clickCatcher, typeface)

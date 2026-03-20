@@ -3,6 +3,8 @@ package effects
 
 import cats.Monoid
 import gui4s.core.widget.Path
+import cats.kernel.Semigroup
+import cats.syntax.all.*
 
 final case class UpdateContext[Point, Clip](
   widgetCornerCoordinates : Point,
@@ -35,6 +37,10 @@ final case class UpdateState[EnvironmentalEvents](
   def withEnvironmentalEvents(events : EnvironmentalEvents) : UpdateState[EnvironmentalEvents] =
     copy(environmentalEvents = events)
   end withEnvironmentalEvents
+  
+  def emitEnvironmentalEvents(events : EnvironmentalEvents)(using Semigroup[EnvironmentalEvents]) : UpdateState[EnvironmentalEvents] =
+    withEnvironmentalEvents(environmentalEvents |+| events)
+  end emitEnvironmentalEvents
 end UpdateState
 
 object UpdateState:

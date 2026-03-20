@@ -14,6 +14,7 @@ import gui4s.core.widget.library.animation._
 
 import gui4s.desktop.kit.effects.Init.given
 import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.effects.Update.given 
 import gui4s.desktop.kit.widgets.decorator._
 
 def loopEach(
@@ -24,11 +25,10 @@ def loopEach(
 end loopEach
 
 def animationWidget[
-  Event,
   AnimatedValue : Eq
 ](
   eventBus : QueueSink[IO, DownEvent]
-) : Init[AnimationWidget[DesktopWidget[Event], AnimatedValue, Duration]] =
+) : Init[AnimationWidget[DesktopWidget, AnimatedValue, Duration]] =
   for
     supervisor <- Init.evalResource(Supervisor[IO])
     /*
@@ -61,14 +61,13 @@ def animationWidget[
     gui4s.core.widget.library.animation.animationWidget[
       DesktopWidget,
       Duration,
-      UpdateC[Event],
+      Update,
       Place,
       * => RecompositionReaction,
-      AnimatedValue,
-      Event
+      AnimatedValue
     ](
       statefulWidget =
-        (
+        [Event] => (
           name,
           initialState,
           handleEvents,
@@ -84,7 +83,7 @@ def animationWidget[
             mergeStates
           ),
       currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
-      timeSourceWidget = original =>
+      timeSourceWidget = [Event] => original =>
         eventCatcher[Either[Duration, Event]](
           _ =>
             Update

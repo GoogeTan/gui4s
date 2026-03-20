@@ -46,7 +46,11 @@ object Update:
   def liftK[Event]: IO ~> UpdateC[Event] =
     mt.liftK
   end liftK
-
+  
+  def getContext[Event]: Update[Event, UpdateContext[Point3d[Float], Clip]] =
+    ReaderTransformer.ask_
+  end getContext
+  
   def getState[Event]: Update[Event, UpdateState[List[DownEvent]]] =
     StateTransformer.get
   end getState
@@ -58,6 +62,10 @@ object Update:
   def updateState[Event](f: UpdateState[List[DownEvent]] => UpdateState[List[DownEvent]]): Update[Event, Unit] =
     StateTransformer.modify_(f)
   end updateState
+
+  def emitEnvironmentalEvents[Event](events: List[DownEvent]): Update[Event, Unit] =
+    updateState(_.emitEnvironmentalEvents(events))
+  end emitEnvironmentalEvents
 
   def emitEvents[Event](events : List[Event]): Update[Event, Unit] =
     EventsTransformer.raiseEvents(events)
@@ -73,13 +81,23 @@ object Update:
 
   def catchEvents[Event, NewEvent]: [T] => Update[Event, T] => Update[NewEvent, (T, List[Event])] =
     [T] => update =>
-      EventsTransformer.catchEvents(update)
+      for
+        context <- getContext
+        stateBefore <- getState[NewEvent]
+        resWithEventsAndState <- liftK[NewEvent](Update.run[Event](context, stateBefore)(update))
+        (events, (stateAfter, res)) = resWithEventsAndState
+        _ <- setState(stateAfter)
+      yield (res, events)
   end catchEvents
 
-  def mapEvents[Event, NewEvent](f : Event => NewEvent) : UpdateC[Event] ~> UpdateC[NewEvent] =
+  def mapEvents[Event, NewEvent](f: Event => NewEvent): UpdateC[Event] ~> UpdateC[NewEvent] =
     FunctionK.lift(
       [T] => update =>
-        EventsTransformer.mapEvents(update, _.map(f))
+        for
+          tmp <- catchEvents[Event, NewEvent](update)
+          (res, events) = tmp
+          _ <- emitEvents(events.map(f))
+        yield res
     )
   end mapEvents
 
@@ -222,7 +240,7 @@ object Update:
         UpdateState.empty[List[DownEvent]].withEnvironmentalEvents(events)
       )(update)
         .map {
-        case (_, (_, widget)) => Right(widget)
+        case (_, (state, widget)) => Right(widget)
       }
   end runUpdate
 end Update

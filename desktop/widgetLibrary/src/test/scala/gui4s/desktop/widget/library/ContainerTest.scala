@@ -1,8 +1,8 @@
 package gui4s.desktop.widget.library
 
 import catnip.syntax.all.nestedFunctorsAreFunctors
-import cats.data.{Reader, ReaderT}
 import cats.Functor
+import cats.data.{Reader, ReaderT}
 import gui4s.core.geometry.{Point3d, Rect}
 import gui4s.core.layout.Sized.given
 import gui4s.core.layout.{Measured, PlacementStrategy, Sized}

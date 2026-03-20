@@ -29,6 +29,16 @@ final case class Point2d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
     end match
   end along
 
+  def mapAlong[NewMeasurementUnit >: MeasurementUnit](
+                                                       axis: Axis,
+                                                       f : MeasurementUnit => NewMeasurementUnit
+                                                     ): Point2d[NewMeasurementUnit] =
+    axis match
+      case Axis.Vertical => Point2d(x, f(y))
+      case Axis.Horizontal =>  Point2d(f(x), y)
+    end match
+  end mapAlong
+
   def toRect : Rect[MeasurementUnit] =
      Rect(x, y)
   end toRect  

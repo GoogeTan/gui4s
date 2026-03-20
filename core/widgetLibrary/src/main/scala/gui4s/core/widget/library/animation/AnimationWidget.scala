@@ -1,13 +1,8 @@
 package gui4s.core.widget.library.animation
 
-import cats.Applicative
-import cats.Eq
-import cats.Group
-import cats.Order
-import cats.data.NonEmptyList
-import cats.syntax.all._
-import scala.Ordering.Implicits.given
-
+import catnip.BiMonad
+import cats.syntax.all.*
+import cats.{Eq, Group}
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.MergeStates
@@ -26,33 +21,33 @@ import gui4s.core.widget.library.MergeStates
  * @tparam AnimatedValue Анимируемое значение
  * @tparam Time Время. На практике будет либо [[Double]], либо [[scala.concurrent.duration.Duration]]
  */
-type AnimationWidget[Widget, AnimatedValue, Time] =
-  (name : String, targetValue : AnimatedValue, animation : Animation[AnimatedValue, Time], body : AnimatedValue => Widget) => Widget
+type AnimationWidget[Widget[_], AnimatedValue, Time] =
+  [Event] => (name : String, targetValue : AnimatedValue, animation : Animation[AnimatedValue, Time], body : AnimatedValue => Widget[Event]) => Widget[Event]
 
+//TODO Удалить событие для времени .Теперь обработчик виджета состояния вызывается на каждое обновление, даже без событий.
 def animationWidget[
   Widget[_],
   Time : {Group, Ordering},
-  Update[_] : Applicative,
+  Update[_, _] : BiMonad as UBM,
   Place[_],
   Destructor[_],
-  AnimatedValue : Eq,
-  Event
+  AnimatedValue : Eq
 ](
-  statefulWidget: (
+  statefulWidget: [Event] => (
     name : String,
     initialState: AnimationWidgetState[AnimatedValue, Time],
-    handleEvents : HandlesEventF[AnimationWidgetState[AnimatedValue, Time], List[Time], Update],
+    handleEvents : HandlesEventF[AnimationWidgetState[AnimatedValue, Time], List[Time], Update[Event, *]],
     body: AnimationWidgetState[AnimatedValue, Time] => Widget[Either[Time, Event]],
     mergeStates : MergeStates[Place, AnimationWidgetState[AnimatedValue, Time]]
   ) => Widget[Event],
   currentTime: [T] => (Time => Place[T]) => Place[T],
-  timeSourceWidget : Widget[Event] => Widget[Either[Time, Event]]
-) : AnimationWidget[Widget[Event], AnimatedValue, Time] =
-  (name, targetValue, animation, body) =>
+  timeSourceWidget : [Event] => Widget[Event] => Widget[Either[Time, Event]]
+) : AnimationWidget[Widget, AnimatedValue, Time] =
+  [Event] => (name, targetValue, animation, body) =>
     statefulWidget(
       name,
       AnimationWidgetState(targetValue, animation, None),
-      (state, events) => events.maxOption.map(state.withTime).getOrElse(state).pure[Update],
+      (state, events) => UBM().pure(events.maxOption.map(state.withTime).getOrElse(state)),
       state => timeSourceWidget(body(state.valueNow)),
       [T] => (
         oldState : StatefulState[AnimationWidgetState[AnimatedValue, Time]],
