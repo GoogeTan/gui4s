@@ -1,36 +1,26 @@
 package gui4s.android.kit.widgets
 
-import catnip.{Sortable, Zip}
 import catnip.syntax.all.given
+import catnip.{Sortable, Zip}
 import cats.*
 import cats.data.*
-import cats.effect.*
-import gui4s.core.geometry.{Axis, InfinityOr}
-import gui4s.core.widget.library.{LinearContainer, linearContainer as genericLinearContainer}
-import gui4s.desktop.widget.library.widgetAsFree
-import gui4s.android.kit.effects.*
-
 import cats.effect.IO
-import catnip.{Sortable, Zip}
-import catnip.syntax.all.given
-import cats.*
-import cats.data.*
-import cats.effect.*
+import gui4s.android.kit.effects.*
 import gui4s.core.geometry.{Axis, InfinityOr}
 import gui4s.core.widget.library.{LinearContainer, linearContainer as genericLinearContainer}
+import gui4s.core.widget.library.{LinearContainer, linearContainer as genericLinearContainer}
 import gui4s.desktop.widget.library.widgetAsFree
-import gui4s.android.kit.effects.*
 
 def linearContainerWidget[
   Event,
   Collection[_] : {Traverse, Zip, Sortable}
-] : LinearContainer[AndroidWidget[Event], PlacementEffect[*], Collection, InfinityOr[Float], Float, Axis] =
+] : LinearContainer[AndroidWidget[Event], PlacementEffect[*], Collection, Float, InfinityOr[Float], Axis] =
   genericLinearContainer[
     AndroidPlacedWidget[Event],
     PlacementEffect[*],
     Collection,
-    InfinityOr[Float],
     Float,
+    InfinityOr[Float],
   ](
     container = containerWidget[Collection, Event],
     getBounds = PlacementEffect.getBounds,

@@ -34,8 +34,8 @@ trait LinearContainer[
   Widget,
   Place[_],
   Collection[_],
-  BoundUnit,//TODO переставить их местами
   MeasurementUnit,
+  BoundUnit,
   Axis,
 ]:
   /**
@@ -71,8 +71,8 @@ def linearContainer[
   Widget,
   PlacementEffect[_] : Monad,
   Collection[_] : {Traverse, Zip},
-  BoundUnit,
   MeasurementUnit : Numeric as N,
+  BoundUnit,
 ](
   container : ContainerWidget[
     PlacementEffect[Sized[Rect[MeasurementUnit], Widget]],
@@ -92,7 +92,7 @@ def linearContainer[
   setBounds: Set[PlacementEffect, Rect[BoundUnit]],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   widgetAsFree : AsFreeF[Widget, PlacementEffect * Sized[Rect[MeasurementUnit], *]]
-) : LinearContainer[PlacementEffect[Sized[Rect[MeasurementUnit], Widget]], PlacementEffect, Collection, BoundUnit, MeasurementUnit, Axis] =
+) : LinearContainer[PlacementEffect[Sized[Rect[MeasurementUnit], Widget]], PlacementEffect, Collection, MeasurementUnit, BoundUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(
       children,

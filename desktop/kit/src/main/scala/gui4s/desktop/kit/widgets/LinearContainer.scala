@@ -19,13 +19,13 @@ import gui4s.desktop.widget.library.widgetAsFree
 def linearContainerWidget[
   Event,
   Collection[_] : {Traverse, Zip, Sortable}//TODO Refactor me. Лучше стоит принимать более конкретные операции. Это слишком сильное требование
-] : LinearContainer[DesktopWidget[Event], PlacementEffect, Collection, InfinityOr[Float], Float, Axis] =
+] : LinearContainer[DesktopWidget[Event], PlacementEffect, Collection, Float, InfinityOr[Float], Axis] =
   genericLinearContainer[
     DesktopPlacedWidget[Event],
     PlacementEffect,
     Collection,
-    InfinityOr[Float],
     Float,
+    InfinityOr[Float],
   ](
     container = containerWidget[Collection, Event],
     getBounds = PlacementEffect.getBounds,

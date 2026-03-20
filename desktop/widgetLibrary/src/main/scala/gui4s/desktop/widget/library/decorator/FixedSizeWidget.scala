@@ -15,8 +15,8 @@ def fixedSizeWidget[
   Draw,
   RecompositionReaction,
   EnvironmentalEvent,
-  BoundUnit,
   MeasurementUnit,
+  BoundUnit,
   Axis,
 ](
    withPreferredSize : Place ~> Place,
@@ -24,8 +24,8 @@ def fixedSizeWidget[
     Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
     PlacementEffect,
     Id,
-    BoundUnit,
     MeasurementUnit,
+    BoundUnit,
     Axis
   ],
    mainAxis : Axis,
