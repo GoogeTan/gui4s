@@ -24,29 +24,30 @@ import gui4s.core.widget.library.decorator.Decorator
  */
 def layersWidget[
   Widget,
+  SizedWidget,
   PlacementEffect[_] : Monad as OPA,
   Size,
   Bounds,
   MeasurementUnit : Numeric as MUN
 ](
   container : ContainerWidget[
-    PlacementEffect[Sized[Size, Widget]],
+    Widget,
     List[
-      PlacementEffect[Sized[Size, Widget]],
+      Widget,
     ], 
     PlacementStrategy[
       PlacementEffect,
-      PlacementEffect[Measured[Size, Bounds, Widget]],
+      PlacementEffect[Measured[Size, Bounds, SizedWidget]],
       Size,
       Bounds,
       List, 
-      Measured[Size, Bounds, (Widget, Point3d[MeasurementUnit])]
+      Measured[Size, Bounds, (SizedWidget, Point3d[MeasurementUnit])]
     ]
   ],
   withBounds : Size => PlacementEffect ~> PlacementEffect,
 )(
-   background : List[PlacementEffect[Sized[Size, Widget]]],
-   foreground : List[PlacementEffect[Sized[Size, Widget]]],
+   background : List[Widget],
+   foreground : List[Widget],
    decorationsPlacementStrategy : PlacementStrategy[
      PlacementEffect,
      Size,
@@ -63,7 +64,7 @@ def layersWidget[
      Point2d[MeasurementUnit]
    ],
 ) : Decorator[
-  PlacementEffect[Sized[Size, Widget]]
+  Widget
 ] =
   original =>
     container(
@@ -71,7 +72,7 @@ def layersWidget[
       ContainerStrategy.combine(
         measurementStrategy = MeasurementStrategy.layeredPlace[
           PlacementEffect,
-          Measured[Size, Bounds, Widget]
+          Measured[Size, Bounds, SizedWidget]
         ](
           background.size,
           (masterWidget, currentWidget) =>
