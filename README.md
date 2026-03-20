@@ -1,15 +1,31 @@
 # Gui4s
-[English](README.md) | [Русский](README.ru.md) 
-Gui4s — это библиотека для создания графических интерфейсов, фокусирующаяся на гибкости, переносимости, стабильности и тестируемости. Вам НЕ потребуются плагины компилятора, рефлексия, мутабельность,
-аннотации и другие трюки для построения интерфейсов: библиотека на 99% состоит из чистых функций, поэтому код будет работать, как вы ожидаете. 
-# Установка
+[English](README.md) | [Русский](README.ru.md)
+Gui4s is cross-platform declarative GUI library focused on expressiveness and maintainability.
+
+## Features
+* Simple and extendable API
+* State management in Elm/MVI style.
+* Support for windows, macOS, linux, android(в активной разработке)
+* Pure functions to build UI(macro-free and compiler plugin-free!)
+* Cats effect for asynchronous tasks
+* Animations
+
+## Installation
+### sbt
 ```
-libraryDependencies ++== List(
+libraryDependencies ++= List(
 	"todo" % "todo" % "1.0.0"	
 )
 ```
-# Примеры
-## Аватарка
+
+### Mill
+```
+mvnDeps:
+- todo::todo:1.0.0
+```
+
+## Examples
+### User profile
 ```scala 3
 def userProfile[Event](picture : Url, userName : String, userStatus : String) : Widget[Event] =
   row(	    
@@ -22,8 +38,8 @@ def userProfile[Event](picture : Url, userName : String, userStatus : String) : 
     )
   )
 ```
-## Пример с коллекциями, ифами и всем-всем-всем
-Так как построение интерфейса является чистой функцией, можно использовать любые конструкции языка, коллекции и библиотеки:
+### Conditions, collections and other stuff
+As Ui is built using pure functions, you can use any language means to achieve your goals:
 ```scala 3
 def images[Event](images : List[Url]) : Widget[Event] =	  
   column(	    
@@ -44,31 +60,45 @@ def loadingUserProfile[Event](maybeUser : Option[User]) : Widget[Event] =
     case None =>
       loadingAnimation
 ```
-## Виджет с внутренним состоянием
+### States
+State management in Gui4s is Elm inspired:
 ```scala 3
 final case class UserFormState(name : String, email: String, password : String)
+
 def registrationForm[Event](formIsComplete : UserFormState => Event) : Widget[Event] =
   stateful(
+    name = "user_form",
     initialState = UserFormState("", "", ""),
     eventHandler = {
-      case (state, NameInput(newName)) => state.copy(name = newName).eventResult
-      case (state, EmailInput(newEmail)) => state.copy(email = newEmail).eventResult
-      case (state, PasswordInput(newPassowrd)) => state.copy(name = newPassword).eventResult
-      case (state, Submit) => formIsSomplete(state).raiseEvent
+      case (state, NameInput(newName)) => state.copy(name = newName).pure
+      case (state, EmailInput(newEmail)) => state.copy(email = newEmail).pure
+      case (state, PasswordInput(newPassword)) => state.copy(name = newPassword).pure
+      case (state, Submit) => formIsComplete(state).raiseEvent
     },
     body = {
-      case UserFormState(currentName, currentEmail, currentPassowrd) =>
+      case UserFormState(currentName, currentEmail, currentPassword) =>
         column(
           textInput(title = "Имя", currentValue = currentName, onChange = NameInput(_)),
           emailInput(title = "Почта", currentValue = currentEmail, onChange = EmailInput(_)),
           passwordInput(title = "Пароль", currentValue = currentPassword, onChange = PasswordInput(_)),
-          subminButton(onClick = Submit)
+          submitButton(onClick = Submit)
         )
     }
   )
 ```
-## Большие примеры
-TODO Ссылки на репозитории с крупными примерами.
-# Ссылки на документацию
+### Bigger examples
+#### [Deskop](https://github.com/GoogeTan/gui4s/tree/master/desktop/example/)
+To run the example execute:
+```bash
+./mill desktop.example.run
+```
+#### [Desktop](https://github.com/GoogeTan/gui4s/tree/master/android/example)
+To run the example execute:
+```bash
+./mill android.example.startAndroidEmulator
+./mill android.example.androidInstall
+```
 
-# Контрибьюция
+## Documentation
+
+## Contribution

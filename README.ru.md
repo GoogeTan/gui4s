@@ -1,12 +1,32 @@
 # Gui4s
 [English](README.md) | [Русский](README.ru.md)
 
-Gui4s — это библиотека для создания графических интерфейсов, фокусирующаяся на гибкости, переносимости, стабильности и тестируемости. Вам НЕ потребуются плагины компилятора, рефлексия, мутабельность,
-аннотации и другие трюки для построения интерфейсов: библиотека на 99% состоит из чистых функций, поэтому код будет работать, как вы ожидаете.
-# Установка
-TODO
-# Примеры
-## Аватарка
+Gui4s — это библиотека для создания графических интерфейсов, фокусирующаяся на выразительности и поддерживаемости.
+
+## Функциональность
+* Простой и расширяемы API
+* Управление состоянием в стиле Elm/MVI.
+* Поддержка windows, macOS, linux, android(в активной разработке)
+* Построение интерфейса чистыми функциями(ни макросов, ни плагинов на компилятор!)
+* Cats effect для асинхронных задач
+* Анимации
+
+## Установка
+### sbt
+```
+libraryDependencies ++= List(
+	"todo" % "todo" % "1.0.0"
+)
+```
+
+### Mill
+```
+mvnDeps:
+- todo::todo:1.0.0
+```
+
+## Примеры
+### Аватарка
 ```scala 3
 def userProfile[Event](picture : Url, userName : String, userStatus : String) : Widget[Event] =
   row(	    
@@ -19,7 +39,7 @@ def userProfile[Event](picture : Url, userName : String, userStatus : String) : 
     )
   )
 ```
-## Пример с коллекциями, ифами и всем-всем-всем
+### Условия, циклы и всё-всё-всё
 Так как построение интерфейса является чистой функцией, можно использовать любые конструкции языка, коллекции и библиотеки:
 ```scala 3
 def images[Event](images : List[Url]) : Widget[Event] =	  
@@ -41,7 +61,7 @@ def loadingUserProfile[Event](maybeUser : Option[User]) : Widget[Event] =
     case None =>
       loadingAnimation
 ```
-## Виджет с внутренним состоянием
+### Управление состоянием
 ```scala 3
 statefulWidget[AppIO][Int, ApplicationRequest, Unit](
   name = "state_name",
@@ -56,13 +76,13 @@ statefulWidget[AppIO][Int, ApplicationRequest, Unit](
     )
 )
 ```
-## Большие примеры
-### [Десктоп](https://github.com/GoogeTan/gui4s/tree/master/desktop/example/)
+### Большие примеры
+#### [Десктоп](https://github.com/GoogeTan/gui4s/tree/master/desktop/example/)
 Для запуска используйте 
 ```bash 
 ./mill desktop.example.run
 ```
-### [Андроид](https://github.com/GoogeTan/gui4s/tree/master/android/example)
+#### [Андроид](https://github.com/GoogeTan/gui4s/tree/master/android/example)
 ```bash 
 ./mill android.example.startAndroidEmulator
 ./mill android.example.androidInstall    
