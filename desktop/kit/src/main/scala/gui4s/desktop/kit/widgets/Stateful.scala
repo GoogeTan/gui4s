@@ -85,7 +85,6 @@ def statefulWidget: StatefulWidget[
         Place,
         Draw,
         RecompositionReaction,
-        DownEvent,
         State,
         ChildEvent
       ](

@@ -13,8 +13,7 @@ import gui4s.desktop.widget.library.decorator.*
 def updateDecorator[Event]: UpdateDecorator[
   UpdateC[Event],
   PlacementEffect,
-  Situated[AndroidPlacedWidget[Event]],
-  DownEvent
+  Situated[AndroidPlacedWidget[Event]]
 ] = updateDecoratorWithRect[
-  UpdateC[Event], PlacementEffect, Situated, Draw, RecompositionReaction, DownEvent
+  UpdateC[Event], PlacementEffect, Situated, Draw, RecompositionReaction
 ]

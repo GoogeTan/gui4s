@@ -18,20 +18,23 @@ def eventMemory[
   Widget[_], 
   Update[_, _],
   Rect,
-  Event,
-  HandlableEvent, 
+  Event, 
   Memories : Typeable,
   MemorableEvent,
   T
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], Rect, HandlableEvent],
+  eventCatcherWithRect: EventCatcherWithRect[
+    Widget[Either[MemorableEvent, Event]], 
+    Update[Either[MemorableEvent, Event], T],
+    Rect
+  ],
   statefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
   mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,
   initialMemories : Memories,
   handleEvent : HandlesEventF[Memories, NonEmptyList[MemorableEvent], Update[Event, *]],
-  catchEvent : (Path, Rect, HandlableEvent) => Update[MemorableEvent, T]
+  catchEvent : (Path, Rect) => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Memories] =
   widget =>
     statefulWidget[Memories, Event, MemorableEvent](
@@ -41,7 +44,8 @@ def eventMemory[
       body =
         memories =>
             eventCatcherWithRect(
-              (path, rect, handlableEvent) => mapUpdate[MemorableEvent, Either[MemorableEvent, Event]](Left(_))(catchEvent(path, rect, handlableEvent))
+              (rect, path) =>
+                mapUpdate[MemorableEvent, Either[MemorableEvent, Event]](Left(_))(catchEvent(path, rect))
             )(
               mapEvent[Event, Either[MemorableEvent, Event]](Right(_))(
                 widget(memories)
@@ -60,19 +64,18 @@ def rememberLastEventOfTheType[
   Update[_, _] : BiMonad as UBM,
   Rect,
   Event,
-  HandlableEvent,
   MemorableEvent : Typeable,
   T
 ](
-  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], Rect, HandlableEvent],
+  eventCatcherWithRect: EventCatcherWithRect[Widget[Either[MemorableEvent, Event]], Update[Either[MemorableEvent, Event], T], Rect],
   statefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
   mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,
-  catchEvent : (Path, Rect, HandlableEvent) => Update[MemorableEvent, T]
+  catchEvent : (Path, Rect) => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Option[MemorableEvent]] =
   eventMemory[
-    Widget, Update, Rect, Event, HandlableEvent, Option[MemorableEvent], MemorableEvent, T
+    Widget, Update, Rect, Event, Option[MemorableEvent], MemorableEvent, T
   ](
     eventCatcherWithRect,
     statefulWidget,

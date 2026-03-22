@@ -119,7 +119,7 @@ trait Gui4sActivity extends Activity:
           androidWidgetLoops[Nothing](
             Update.runUpdate[Nothing],
             runPlaceK,
-          )(_, newWidget => widgetRef.update(_ => newWidget), liftCallbackIOToAppIO(eventBus.take))
+          )(_, newWidget => widgetRef.update(_ => newWidget), liftCallbackIOToAppIO(eventBus.tryTakeN(None)))
         )
       ).eval
       _ = Log.e("Gui4sActivity", "onCreate created loop")

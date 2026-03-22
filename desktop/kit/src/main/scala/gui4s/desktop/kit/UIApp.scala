@@ -124,8 +124,7 @@ trait UIApp extends IOApp:
       exitCode <- desktopWidgetLoops[Nothing](
         runDraw =  runDrawK,
         runPlace = runPlaceK,
-        waitForTheNextEvent =
-          eventBus.tryTake.map(_.getOrElse(DownEvent.WindowShouldBeRedrawn)),
+        waitForTheNextEvent = eventBus.tryTakeN(None),
         updateLoopExecutionContext = this.runtime.compute,
         drawLoopExecutionContext = MainThread,
         widget = widgetCell,

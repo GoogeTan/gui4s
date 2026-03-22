@@ -10,7 +10,7 @@ import gui4s.desktop.widget.library.decorator.{mapUpdate => genericMapUpdate}
 
 def mapEventWidget : MapEvent[DesktopWidget] =
   [Event, NewEvent] => f => original =>
-    genericMapUpdate[UpdateC[Event], UpdateC[NewEvent], PlacementEffect, Situated, Draw, RecompositionReaction, DownEvent](
+    genericMapUpdate[UpdateC[Event], UpdateC[NewEvent], PlacementEffect, Situated, Draw, RecompositionReaction](
       original,
       Update.mapEvents[Event, NewEvent](f)
     )

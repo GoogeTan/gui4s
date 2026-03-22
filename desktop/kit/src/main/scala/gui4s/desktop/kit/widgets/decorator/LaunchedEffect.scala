@@ -26,7 +26,6 @@ def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : Launche
     Place,
     Draw,
     RecompositionReaction,
-    DownEvent,
     Key
   ](
     [T] => (path : Path, value : Any) =>

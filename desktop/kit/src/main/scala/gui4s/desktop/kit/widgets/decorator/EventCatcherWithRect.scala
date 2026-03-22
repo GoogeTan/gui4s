@@ -6,24 +6,21 @@ import cats.effect.IO
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
 import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets.DesktopPlacedWidget
+import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.widget.library._
 import gui4s.desktop.widget.library.decorator.eventCatcherWithRect
 
 def eventCatcher[Event]: EventCatcherWithRect[
-  PlacementEffect[Situated[DesktopPlacedWidget[Event]]],
-  Update[Event, Boolean],
-  Situated[DesktopPlacedWidget[Event]],
-  DownEvent
+  DesktopWidget[Event],
+  Update[Event, Unit],
+  Situated[DesktopPlacedWidget[Event]]
 ] = eventCatcherWithRect[
   DesktopPlacedWidget[Event],
   UpdateC[Event],
   PlacementEffect,
-  Situated,
-  DownEvent
+  Situated
 ](
   updateDecorator[Event],
-  Update.markEventHandled[Event],
-  widgetAsFree[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent],
-  widgetHandlesEvent[UpdateC[Event], Place, Draw, RecompositionReaction, DownEvent]
+  widgetAsFree[UpdateC[Event], Place, Draw, RecompositionReaction],
+  widgetHandlesEvent[UpdateC[Event], Place, Draw, RecompositionReaction]
 )

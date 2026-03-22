@@ -35,7 +35,6 @@ object TextWidget:
           Place,
           Draw,
           RecompositionReaction,
-          DownEvent,
           SkijaPlacedText
         ](
           Place.sizeText(shaper, textCache)(text, style),

@@ -2,117 +2,179 @@ package gui4s.desktop.kit
 package effects
 
 import catnip.BiMonad
-import cats._
+import catnip.syntax.transformer as stateT2Instance
+import catnip.syntax.transformer.{*, given}
+import catnip.transformer.*
+import cats.*
+import cats.arrow.FunctionK
 import cats.data.NonEmptyList
-import cats.effect.ExitCode
-import cats.effect._
-import cats.syntax.all._
-
+import cats.effect.*
+import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
+import gui4s.core.kit.EventsTransformer
 import gui4s.core.kit.effects.UpdateState
-import gui4s.core.kit.{effects => generic_effects}
+import gui4s.core.widget.Path
+import gui4s.desktop.kit.effects.Clip.given
+import gui4s.desktop.kit.effects.DownEvent.UserEvent
 
-import gui4s.desktop.kit.effects.Clip$package.Clip.given
+import scala.reflect.Typeable
 
-type Update[Event, A] = generic_effects.Update[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable, A]
+type UpdateTransformer[Event] =
+  (StateTransformer[UpdateState[List[DownEvent], Point3d[Float], Clip]] <> EventsTransformer[List[Event]])
+
+type Update[Event, A] = UpdateTransformer[Event][IO, A]
 type UpdateC[Event] = Update[Event, *]
 
 object Update:
-  given biMonadInstance : BiMonad[[A, B] =>> Update[A, B]] =
-    generic_effects.Update.biMonadInstance
+  given mt[Event]: MonadTransformer[UpdateTransformer[Event]] =
+    composedMonadTransformerInstance
 
-  def pure[Event, A](a : A) : Update[Event, A] =
+  given biMonadInstance: BiMonad[[A, B] =>> Update[A, B]] =
+    [T] => () => mt.monadInstance[IO]
+
+  def pure[Event, A](a: A): Update[Event, A] =
     biMonadInstance().pure(a)
   end pure
 
-  def liftK[Event] : IO ~> UpdateC[Event] =
-    generic_effects.Update.liftK
+  def liftK[Event]: IO ~> UpdateC[Event] =
+    mt.liftK
   end liftK
 
-  def getState[Event]: Update[Event, UpdateState[Point3d[Float], Clip]] =
-    generic_effects.Update.getState
+  def getState[Event]: Update[Event, UpdateState[List[DownEvent], Point3d[Float], Clip]] =
+    StateTransformer.get_
   end getState
 
-  def setState[Event](state: UpdateState[Point3d[Float], Clip]): Update[Event, Unit] =
-    generic_effects.Update.setState(state)
+  def setState[Event](state: UpdateState[List[DownEvent], Point3d[Float], Clip]): Update[Event, Unit] =
+    StateTransformer.set_(state)
   end setState
 
-  def updateState[Event](f: UpdateState[Point3d[Float], Clip] => UpdateState[Point3d[Float], Clip]): Update[Event, Unit] =
-    generic_effects.Update.updateState(f)
+  def updateState[Event](f: UpdateState[List[DownEvent], Point3d[Float], Clip] => UpdateState[List[DownEvent], Point3d[Float], Clip]): Update[Event, Unit] =
+    StateTransformer.modify_(f)
   end updateState
 
   def emitEvents[Event](events : List[Event]): Update[Event, Unit] =
-    generic_effects.Update.emitEvents(events)
+    EventsTransformer.raiseEvents(events)
   end emitEvents
 
   def emitEvents[Event](events : NonEmptyList[Event]): Update[Event, Unit] =
-    generic_effects.Update.emitEvents(events.toList)
+    EventsTransformer.raiseEvents(events.toList)
   end emitEvents
 
   def catchEvents[Event, NewEvent]: [T] => Update[Event, T] => Update[NewEvent, (T, List[Event])] =
-    generic_effects.Update.catchEvents[IO, UpdateState[Point3d[Float], Clip], List[Event], List[NewEvent], Throwable]
+    [T] => update =>
+      EventsTransformer.catchEvents(update)
   end catchEvents
 
   def mapEvents[Event, NewEvent](f : Event => NewEvent) : UpdateC[Event] ~> UpdateC[NewEvent] =
-    generic_effects.Update.mapEvents(_.map(f))
+    FunctionK.lift(
+      [T] => update =>
+        EventsTransformer.mapEvents(update, _.map(f))
+    )
   end mapEvents
 
-  def run[Event](initialState : UpdateState[Point3d[Float], Clip])
-      : [T] => Update[Event, T] => IO[Either[Throwable, (List[Event], (UpdateState[Point3d[Float], Clip],  T))]] =
-    generic_effects.Update.run[IO, UpdateState[Point3d[Float], Clip], List[Event], Throwable](initialState)
+  def run[Event](initialState : UpdateState[List[DownEvent], Point3d[Float], Clip])
+      : [T] => Update[Event, T] => IO[(List[Event], (UpdateState[List[DownEvent], Point3d[Float], Clip],  T))] =
+    [T] => update =>
+      update.run(initialState).run
   end run
 
   def raiseError[Event, Value](error : Throwable) : Update[Event, Value] =
-    generic_effects.Update.raiseError(error)
+    liftK(IO.raiseError(error))
   end raiseError
 
   def getCornerCoordinates[Event] : Update[Event, Point3d[Float]] =
-    generic_effects.Update.getCornerCoordinates
+    getState.map(_.widgetCoordinates)
   end getCornerCoordinates
 
   def getClip[Event] : Update[Event, Clip] =
-    generic_effects.Update.getClip
+    getState.map(_.clip)
   end getClip
 
   def setClip[Event](clip : Clip) : Update[Event, Unit] =
-    generic_effects.Update.setClip[IO, Point3d[Float], Clip, List[Event], Throwable](clip)
+    updateState(_.withClip(clip))
   end setClip
 
-  def markEventHandled[Event] : Update[Event, Unit] =
-    generic_effects.Update.markEventHandled
-  end markEventHandled
 
-  def isEventHandled[Event] : Update[Event, Boolean] =
-    generic_effects.Update.isEventHandled
-  end isEventHandled
+  def withState[Event, Value](
+                               original: Update[Event, Value],
+                               f: UpdateState[List[DownEvent], Point3d[Float], Clip] => UpdateState[List[DownEvent], Point3d[Float], Clip]
+                             ): Update[Event, Value] =
+    for
+      oldState <- getState
+      _ <- setState(f(oldState))
+      res <- original
+      newState <- getState
+      _ <- setState(newState.withCoordinates(oldState.widgetCoordinates).withClip(oldState.clip))
+    yield res
+  end withState
 
   //TODO А почему тут вообще 3д точка?
   def withCornerCoordinates[
     Event,
     Value
   ](
-    original : Update[Event, Value],
-    f : Point3d[Float] => Point3d[Float]
-  ) : Update[Event, Value] =
-    generic_effects.Update.withCornerCoordinates(original, f)
+    original: Update[Event, Value],
+    f: Point3d[Float] => Point3d[Float]
+  ): Update[Event, Value] =
+    withState(
+      original,
+      state =>
+        state.withCoordinates(f(state.widgetCoordinates))
+    )
   end withCornerCoordinates
 
   def withClip[
     Event,
     Value
   ](
-      original : Update[Event, Value],
-      f : (Clip, Point3d[Float]) => Clip
-  ) : Update[Event, Value] =
-    generic_effects.Update.withClip(original, f)
+    original: Update[Event, Value],
+    f: (Clip, Point3d[Float]) => Clip
+  ): Update[Event, Value] =
+    withState(
+      original,
+      state =>
+        state.withClip(f(state.clip, state.widgetCoordinates))
+    )
   end withClip
+  
+  def updateEnvironmentalEventsM[Event](f : List[DownEvent] => Update[Event, List[DownEvent]]) : Update[Event, Unit] =
+    for
+      state <- getState
+      newDownEvents <- f(state.environmentalEvents)
+      _ <- setState(state.withEnvironmentalEvents(newDownEvents))
+    yield ()
+  end updateEnvironmentalEventsM
 
+  def handleEnvironmentalEvents[Event](consumed : DownEvent => Update[Event, Boolean]) : Update[Event, Unit] =
+    updateEnvironmentalEventsM(events =>
+      events.filterA(event => consumed(event).map(!_))
+    )
+  end handleEnvironmentalEvents
 
-  def runUpdate[Event]: [T] => Update[Event, T] => IO[Either[ExitCode, T]] =
-    [T] => update =>
-      run[Event](UpdateState.empty[Point3d[Float], Clip])(update).flatMap {
-        case Right((_, (_, widget))) => Right(widget).pure[IO]
-        case Left(error) => error.raiseError[IO, ExitCode].as(Left(ExitCode.Error))
+  def handleUserEvents[Event, T : Typeable](f: T => Update[Event, Boolean]): Update[Event, Unit] =
+    handleEnvironmentalEvents:
+      case UserEvent(value : T) =>
+        f(value)
+      case _ =>
+        false.pure[UpdateC[Event]]
+  end handleUserEvents
+
+  def handleExternalEvents[Event](f: Any => Update[Event, Boolean], path: Path): Update[Event, Unit] =
+    handleEnvironmentalEvents(event =>
+      DownEvent.catchExternalEvent(path, event).fold(
+        false.pure[UpdateC[Event]]
+      )(f)
+    )
+  end handleExternalEvents
+
+  def runUpdate[Event]: [T] => (Update[Event, T], List[DownEvent]) => IO[Either[ExitCode, T]] =
+    [T] => (update, events) =>
+      run[Event](UpdateState.empty[
+        List[DownEvent], Point3d[Float], Clip
+      ]
+        .withEnvironmentalEvents(events))(update)
+        .map {
+        case (_, (_, widget)) => Right(widget)
       }
   end runUpdate
 end Update

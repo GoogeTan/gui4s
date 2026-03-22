@@ -18,7 +18,6 @@ def drawOnlyWidget[Event](
       Place,
       Draw,
       RecompositionReaction,
-      DownEvent,
   ](
       draw,
       RecompositionReaction.empty
@@ -34,7 +33,6 @@ def constSizedDrawOnlyWidget[Event](
       Situated,
       Draw,
       RecompositionReaction,
-      DownEvent,
   ](
       draw,
       RecompositionReaction.empty

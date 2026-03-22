@@ -291,10 +291,12 @@ object TextInputExample extends UIApp:
         )
     }
 
-    eventCatcher[TextFieldEvent] {
-      case (path, textFieldTextArea, DownEvent.UserEvent(event : TextInputOuterEvent)) =>
-        convertFocusedEvent(textFieldTextArea.size, path)(event).flatMap(emitEvent)
-      case _ => false.pure[UpdateC[TextFieldEvent]]
-    }
+    eventCatcher[TextFieldEvent]:
+      (textFieldTextArea, path) =>
+        Update.handleEnvironmentalEvents {
+          case DownEvent.UserEvent(event : TextInputOuterEvent) =>
+            convertFocusedEvent(textFieldTextArea.size, path)(event).flatMap(emitEvent).as(true)
+          case _ => false.pure[UpdateC[TextFieldEvent]]
+        }
   end textFieldEventCatcher
 end TextInputExample

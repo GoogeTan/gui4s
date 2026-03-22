@@ -8,7 +8,7 @@ import cats.Id
 import cats.syntax.all._
 
 import gui4s.core.widget.Path
-import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.handle.HandlesEventF_
 import gui4s.core.widget.library.decorator.Decorator
 
 /**
@@ -22,8 +22,8 @@ import gui4s.core.widget.library.decorator.Decorator
  * @tparam Widget Размещенный виджет
  * @tparam EnvironmentalEvent Внешнее событие
  */
-type UpdateDecorator[Update[_], Place[_], Widget, EnvironmentalEvent] =
-  HandlesEventF[Widget, EnvironmentalEvent, Update * Option * Place] => Decorator[Place[Widget]]
+type UpdateDecorator[Update[_], Place[_], Widget] =
+  HandlesEventF_[Widget, Update * Option * Place] => Decorator[Place[Widget]]
 
 /**
  * Декоратор, позволяющий задекорировать обновление виджета. Отличается от [[updateDecoratorWithRect]] тем, что
@@ -33,26 +33,22 @@ def updateDecorator[
   Update[_] : Functor as UF,
   Place[_] : Functor as PF,
   Draw,
-  RecompositionReaction,
-  EnvironmentalEvent,
+  RecompositionReaction
 ](
   decorator : Decorator[
-    WidgetHandlesEvent[
-      EnvironmentalEvent,
-      Update[Option[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]]]
-    ]
+    (Widget[Update, Place, Draw, RecompositionReaction], Path) =>
+      Update[Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]]]
   ]
-): Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]] =
+): Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction]]] =
   updateDecoratorWithRect[
     Update,
     Place,
     Id,
     Draw,
-    RecompositionReaction,
-    EnvironmentalEvent
+    RecompositionReaction
   ](
-    (self : Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent], path : Path, event : EnvironmentalEvent) =>
-      decorator(self.handleEvent(_, _))(path, event)
+    (self : Widget[Update, Place, Draw, RecompositionReaction], path : Path) =>
+      decorator(_.handleEvent(_))(self, path)
   )
 end updateDecorator
 
@@ -65,13 +61,11 @@ def updateDecoratorWithRect[
   PlacementEffect[_] : Functor as PF,
   Situated[_] : Comonad,
   Draw,
-  RecompositionReaction,
-  EnvironmentalEvent,
+  RecompositionReaction
 ] : UpdateDecorator[
   Update,
   PlacementEffect,
-  Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]],
-  EnvironmentalEvent
+  Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction]]
 ] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   decorator => original =>
@@ -87,10 +81,9 @@ type WidgetWithSituated[
   Situated[_],
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
 ] =
   Widget[
-    Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent
+    Update, PlacementEffect * Situated, Draw, RecompositionReaction
   ]
 
 type FreeWidgetWithSituated[
@@ -99,24 +92,14 @@ type FreeWidgetWithSituated[
   Situated[_],
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
 ] =
   PlacementEffect[
     Situated[
       WidgetWithSituated[
-        Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+        Update, PlacementEffect, Situated, Draw, RecompositionReaction
       ]
     ]
   ]
-
-type UpdateDecoratorFunction[
-  EnvironmentalEvent,
-  Widget[_[_]],
-  OldUpdate[_],
-  NewUpdate[_]
-] =
-  WidgetHandlesEvent[EnvironmentalEvent, Widget[OldUpdate]]
-    => WidgetHandlesEvent[EnvironmentalEvent, Widget[NewUpdate]]
 
 def trueUpdateDecoratorWithRect[
   OldUpdate[_],
@@ -125,50 +108,47 @@ def trueUpdateDecoratorWithRect[
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
 ](
   original : FreeWidgetWithSituated[
-    OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+    OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction
   ],
   decorator :
   (
     Situated[
-      WidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent]
+      WidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction]
     ],
-    Path,
-    EnvironmentalEvent
+    Path
   ) =>
     NewUpdate[
       Option[
         FreeWidgetWithSituated[
-          OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+          OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction
         ]
       ]
     ],
 ) : FreeWidgetWithSituated[
-  NewUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent
+  NewUpdate, PlacementEffect, Situated, Draw, RecompositionReaction
 ] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   PF.map(original)(_.coflatMap(
     sizedWidget =>
       Widget.ValueWrapper[
-        Situated[Widget[OldUpdate, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]],
+        Situated[Widget[OldUpdate, PlacementEffect * Situated, Draw, RecompositionReaction]],
         NewUpdate,
         PlacementEffect * Situated,
         Draw,
-        RecompositionReaction,
-        EnvironmentalEvent
+        RecompositionReaction
       ](
         valueToDecorate = sizedWidget,
         valueAsFree = self => PF.map(self.extract.asFree)(_.coflatten),
         valueIsDrawable = _.extract.draw,
-        valueHandlesEvent = (self, path, event) =>
-          NUF.map(decorator(self, path, event))(
+        valueHandlesEvent = (self, path) =>
+          NUF.map(decorator(self, path))(
             _.map(
               PF.map(_)(_.coflatten)
             )
           ),
-        valueMergesWithOldState = (self, path, event) => self.extract.mergeWithOldState(path, event).map(PF.map(_)(_.coflatten)),
+        valueMergesWithOldState = (self, path, oldStates) => self.extract.mergeWithOldState(path, oldStates).map(PF.map(_)(_.coflatten)),
         valueReactsOnRecomposition = _.extract.reactOnRecomposition(_, _),
         valueHasInnerState = _.extract.innerStates
       )

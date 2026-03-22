@@ -11,16 +11,15 @@ final def runWidgetForTheFirstTime[
   Update[_],
   Place[_],
   Draw,
-  RecompositionReaction,
-  DownEvent,
+  RecompositionReaction
 ](
-  widget: Place[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
+  widget: Place[Widget[Update, Place, Draw, RecompositionReaction]],
   runPlace: Place ~> IO,
   runRecompositionReaction: RecompositionReaction => IO[Unit],
-): IO[Widget[Update, Place, Draw, RecompositionReaction, DownEvent]] =
+): IO[Widget[Update, Place, Draw, RecompositionReaction]] =
   placeForTheFirstTime[
     IO,
-    Widget[Update, Place, Draw, RecompositionReaction, DownEvent],
+    Widget[Update, Place, Draw, RecompositionReaction],
     Place,
     RecompositionReaction
   ](
@@ -30,8 +29,7 @@ final def runWidgetForTheFirstTime[
       Update,
       Place,
       Draw,
-      RecompositionReaction,
-      DownEvent,
+      RecompositionReaction
     ],
     runRecompositionReaction,
     runPlace,

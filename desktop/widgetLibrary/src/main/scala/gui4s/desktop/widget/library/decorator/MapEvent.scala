@@ -14,14 +14,13 @@ def mapUpdate[
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
 ](
-  original : FreeWidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
+  original : FreeWidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction],
   mapEventInUpdate : OldUpdate ~> NewUpdate
-) : FreeWidgetWithSituated[NewUpdate, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent] =
+) : FreeWidgetWithSituated[NewUpdate, PlacementEffect, Situated, Draw, RecompositionReaction] =
   trueUpdateDecoratorWithRect(
     original,
-    (self, path, event) =>
-      mapEventInUpdate(self.extract.handleEvent(path, event))
+    (self, path) =>
+      mapEventInUpdate(self.extract.handleEvent(path))
   )
 end mapUpdate

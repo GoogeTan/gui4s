@@ -8,7 +8,6 @@ import gui4s.android.kit.widgets.{AndroidPlacedWidget, AndroidWidget}
 import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
 
 import scala.reflect.Typeable
-
 import cats.effect.IO
 import cats.*
 import cats.effect.std.Supervisor
@@ -49,16 +48,19 @@ object LaunchedEvent:
       launchedEffectWidget = launchedEffect(supervisor),
       eventCatcher = eventCatcher,
       pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
-      catchEvent = (path, event) =>
-        DownEvent.catchExternalEvent(path, event) match
-          case None =>
-            false.pure[UpdateC[Event]]
-          case Some[Any](valueFound : Any) =>
-            eventFromAny(valueFound).fold(
-              Update.raiseError(new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
-            )(
-              event => Update.emitEvents(List(event)).as(true)
-            )
+      catchEvent = path =>
+        Update.handleEnvironmentalEvents(
+          event =>
+            DownEvent.catchExternalEvent(path, event) match
+              case None =>
+                false.pure[UpdateC[Event]]
+              case Some[Any](valueFound : Any) =>
+                eventFromAny(valueFound).fold(
+                  Update.raiseError[Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+                )(
+                  event => Update.emitEvents[Event](List(event)).as(true)
+                )
+        )
     )
   end apply
 end LaunchedEvent

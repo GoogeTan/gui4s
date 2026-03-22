@@ -20,7 +20,6 @@ def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : Launche
     Place,
     Draw,
     RecompositionReaction,
-    DownEvent,
     Key
   ](
     [T] => (path : Path, value : Any) => Place.raiseError[Throwable, T](new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),

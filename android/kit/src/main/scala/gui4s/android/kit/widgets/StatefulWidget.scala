@@ -92,13 +92,12 @@ def statefulWidget
         PlaceC,
         Draw,
         RecompositionReaction,
-        DownEvent,
         State,
         ChildEvent
       ](
         widgetsAreMergeable = new widgetsCanUpdateStateFromTheOldOnes(
-          widgetMergesWithOldState[UpdateC[ChildEvent], Place, Draw, RecompositionReaction, DownEvent],
-          widgetHasInnerStates[UpdateC[ChildEvent], Place, Draw, RecompositionReaction, DownEvent]
+          widgetMergesWithOldState[UpdateC[ChildEvent], Place, Draw, RecompositionReaction],
+          widgetHasInnerStates[UpdateC[ChildEvent], Place, Draw, RecompositionReaction]
         ),
         typeCheckState = [T] => (valueToTypeCheck, path, consumer) =>
           valueToTypeCheck match

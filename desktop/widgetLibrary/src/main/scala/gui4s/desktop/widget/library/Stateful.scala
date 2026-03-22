@@ -29,7 +29,6 @@ import gui4s.core.widget.state.statefulHasInnerStates
  * @tparam Place Эффект установки виджета на экран.(см. TODO ссылка)
  * @tparam Draw Эффект отрисовки
  * @tparam RecompositionReaction Реакция на рекомпозицию(см. документацию по композиции TODO ссылка).
- * @tparam HandlableEvent Обрабатываемые внешние/системные события
  *
  * @param name Имя состояния в дереве состояний(см. дерево состояний TODO ссылка на документацию)
  * @param initialState Начальное состояние
@@ -62,13 +61,12 @@ def stateful[
   Place[_] : Functor as PF,
   Draw,
   RecompositionReaction : Monoid as M,
-  HandlableEvent,
   State,
   ChildEvent
 ](
   widgetsAreMergeable : UpdateWidgetStateFromTheOldOne[
     Place,
-    Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]
+    Widget[ChildUpdate, Place, Draw, RecompositionReaction]
   ],
   typeCheckState : [T] => (Any, Path, StatefulState[State] => Option[Place[T]]) => Option[Place[T]],
   liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])],
@@ -77,7 +75,7 @@ def stateful[
   name : String,
   initialState : State,
   handleEvent : HandlesEventF[State, NonEmptyList[ChildEvent], Update * Option],
-  render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]],
+  render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction]],
   destructor : State => RecompositionReaction,
   mergeStates : MergeStates[Place, State]
 ) : Place[
@@ -85,8 +83,7 @@ def stateful[
     Update,
     Place,
     Draw,
-    RecompositionReaction,
-    HandlableEvent
+    RecompositionReaction
   ]
 ] =
   given Functor[Update * Option] = nestedFunctorsAreFunctors()
@@ -96,8 +93,7 @@ def stateful[
       ChildUpdate,
       Place,
       Draw,
-      RecompositionReaction,
-      HandlableEvent
+      RecompositionReaction
     ]
     type StState = StatefulBehaviour[
       State,
@@ -125,8 +121,7 @@ def stateful[
       Update,
       Place,
       Draw,
-      RecompositionReaction,
-      HandlableEvent
+      RecompositionReaction
     ](
       valueToDecorate = stateful,
       valueAsFree = statefulAsFree,
@@ -135,8 +130,8 @@ def stateful[
         stateHandlesEvents = statefulStateHandlesEvents,
         drawStateIntoWidget = statefulStateDrawsIntoWidget,
         childWidgetHandlesEvent =
-          mapEventHandle(
-            widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]
+          mapEventHandle_(
+            widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction]
           )(
             _.map(_.map(addNameToPath(name)[ChildWidget](_)))
           ).andThen(liftUpdate(_)),
@@ -175,7 +170,7 @@ def stateful[
         widgetStateAsFree = statefulAsFree
       ),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
-        widgetReactsOnRecomposition[ChildUpdate, Place, Draw, RecompositionReaction, HandlableEvent]
+        widgetReactsOnRecomposition[ChildUpdate, Place, Draw, RecompositionReaction]
       ),
       valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
     )

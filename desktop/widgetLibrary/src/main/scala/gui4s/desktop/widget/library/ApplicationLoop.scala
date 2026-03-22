@@ -23,8 +23,8 @@ def widgetLoops[
   ExitCode
 ](
    waitForTheNextEvent : IO[DownEvent],
-   widget : Ref[IO, Widget[Update, Place, Draw, RecompositionReaction, DownEvent]],
-   runUpdate : [T] => Update[T] => IO[Either[ExitCode, T]],
+   widget : Ref[IO, Widget[Update, Place, Draw, RecompositionReaction]],
+   runUpdate : [T] => (Update[T], DownEvent) => IO[Either[ExitCode, T]],
    runPlace : Place ~> IO,
    runDraw : Draw => IO[Boolean],
    runRecomposition : RecompositionReaction => IO[Unit],
@@ -32,15 +32,13 @@ def widgetLoops[
    updateLoopExecutionContext : ExecutionContext,
    successExitCode : ExitCode
  ) : IO[ExitCode] =
-  type PlacedWidget = Widget[
-    Update, Place, Draw, RecompositionReaction, DownEvent
-  ]
+  type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction]
   applicationLoop(
     waitForTheNextEvent,
     widget,
     runDrawLoopOnExecutionContext(
       drawableBasedDrawLoop[IO, Draw, PlacedWidget, ExitCode](
-        widgetIsDrawable[Update, Place, Draw, RecompositionReaction, DownEvent],
+        widgetIsDrawable[Update, Place, Draw, RecompositionReaction],
         runDraw,
         successExitCode
       ),
@@ -51,14 +49,7 @@ def widgetLoops[
         (widget, event) =>
           flattenRight(
             runUpdate[IO[PlacedWidget]](
-              processEvent[
-                IO,
-                PlacedWidget,
-                Place,
-                Update,
-                RecompositionReaction,
-                DownEvent
-              ](
+              processEvent(
                 Path(Nil),
                 runRecomposition,
                 widgetAsFree,
@@ -66,7 +57,9 @@ def widgetLoops[
                 widgetReactsOnRecomposition,
                 widgetHasInnerStates,
                 runPlace,
-              )(widget, event)
+                widget
+              ),
+              event
             )
           )
       ),

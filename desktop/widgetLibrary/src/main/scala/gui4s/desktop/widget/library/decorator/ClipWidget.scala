@@ -24,13 +24,12 @@ def clipWidget[
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
   Shape,
 ](
     withClip : [T] => (Shape, Update[T]) => Update[T],
     drawModifier : (Shape, Draw) => Draw,
     shapeFabric : Situated[Unit] => Shape
-) : Decorator[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]]]] =
+) : Decorator[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction]]]] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
 
   placementDecorator[
@@ -38,8 +37,7 @@ def clipWidget[
     PlacementEffect * Situated,
     PlacementEffect * Situated,
     Draw,
-    RecompositionReaction,
-    EnvironmentalEvent
+    RecompositionReaction
   ](
     PF.flatMap(_)(placement =>
       val shape = shapeFabric(placement.as(()))
@@ -48,8 +46,7 @@ def clipWidget[
         PlacementEffect,
         Situated,
         Draw,
-        RecompositionReaction,
-        EnvironmentalEvent
+        RecompositionReaction
       ](
        originalSituatedDraw =>drawModifier(shape, originalSituatedDraw.extract)
       )(
@@ -57,8 +54,7 @@ def clipWidget[
           Update,
           PlacementEffect * Situated,
           Draw,
-          RecompositionReaction,
-          EnvironmentalEvent
+          RecompositionReaction
         ](
           old => (path, event) =>
             withClip(shape, old(path, event))

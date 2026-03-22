@@ -18,6 +18,7 @@ import gui4s.core.widget.library.decorator.EventCatcherWithRect
  * @tparam Rect Положение виджета на экране.
  * @tparam EnvironmentalEvent Внещнее событие.
  * @tparam Event Событие, бросаемое виджетом.
+ * @todo Тут rect никак не используется, вероятно, стоит использовать более простой event catcher              
  */
 def launchedEvent[
   IO[_] : Monad,
@@ -29,16 +30,16 @@ def launchedEvent[
   Event
 ](
   launchedEffectWidget: LaunchedEffectWidget[Widget, Key, Path => IO[Unit]],
-  eventCatcher : EventCatcherWithRect[Widget, Update[Event, Boolean], Rect, EnvironmentalEvent],
+  eventCatcher : EventCatcherWithRect[Widget, Update[Event, Unit], Rect],
   pushEvent : (Path, Event) => IO[Unit],
-  catchEvent : (Path, EnvironmentalEvent) => Update[Event, Boolean]
+  catchEvent : Path => Update[Event, Unit]
 ) : LaunchedEffectWidget[Widget, Key, IO[Event]] =
   (name, widget, key, task) =>
     launchedEffectWidget(
       name,
       eventCatcher(
-        (path, _, environmentalEvent) =>
-          catchEvent(path, environmentalEvent)
+        (_, path) =>
+          catchEvent(path)
       )(widget),
       key,
       path => task.flatMap(pushEvent(path, _))

@@ -17,15 +17,14 @@ def paddingWidget[
   Situated[_],
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
   MeasuredWidget,
   PositionedWidget,
   MeasurementUnit : Fractional,
   PlaceError
 ](
   container : ContainerWidget[
-    FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
-    FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
+    FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction],
+    FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction],
     PlacementStrategy[
       PlacementEffect,
       PlacementEffect[MeasuredWidget],
@@ -39,9 +38,9 @@ def paddingWidget[
   makeMeta : (MeasuredWidget, Point2d[MeasurementUnit]) => PositionedWidget,
   sizeOfItem : MeasuredWidget => Rect[MeasurementUnit],
   infinitePaddingInInfiniteContainer : => PlaceError,
-  widget : FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent],
+  widget : FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction],
   paddings : Paddings[InfinityOr[MeasurementUnit]]
-): FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction, EnvironmentalEvent] =
+): FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction] =
   gui4s.core.widget.library.decorator.paddingWidget(
     container = container,
     infinitePaddingInInfiniteContainer = infinitePaddingInInfiniteContainer,

@@ -53,7 +53,7 @@ def animationWidget[
     _ <- Init.emitDecorator(
       eventCatcher[Nothing](
         (_, _, _) =>
-          Update.liftK[Nothing](IO.realTime.flatMap(timer.set)).as(false)
+          Update.liftK[Nothing](IO.realTime.flatMap(timer.set))
       )
     )*/
   yield {
@@ -86,13 +86,12 @@ def animationWidget[
       currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
       timeSourceWidget = original =>
         eventCatcher[Either[Duration, Event]](
-          (path, _, _) =>
+          (path, _) =>
             Update
               .liftK[Either[Duration, Event]](Clock[IO].monotonic)
               .map(Left[Duration, Event])
               .map(NonEmptyList.one)
               .flatMap(Update.emitEvents(_))
-              .as(false)
         )(
           original.mapEvent(Right(_))
         )

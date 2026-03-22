@@ -16,9 +16,8 @@ class ContainerTest extends AnyFlatSpec:
   given Functor[Place] = nestedFunctorsAreFunctors[PlacementEffect, Sized[Rect[Float], *]]
   type Draw = List[Any]// Запоминаем порядок вызова
   type RecompositionReaction = Unit
-  type EnvironmentalEvent = Unit
 
-  type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
+  type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction]
   type FreeWidget = Place[PlacedWidget]
 
   val getBounds : PlacementEffect[Rect[Float]] = ReaderT.ask

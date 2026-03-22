@@ -13,7 +13,11 @@ def clickCatcher[Event, MouseEvent](
   genericClickCatcher(
     eventCatcherWithRect = eventCatcher,
     currentMousePosition = Update.liftK[Event](mousePosition),
-    appropriateEvent = extractEvent,
+    catchMouseEvent = path => callback =>
+      Update.handleEnvironmentalEvents(
+        event =>
+          extractEvent(event).fold(false.pure[UpdateC[Event]])(callback)
+      ),
     onClick = {
       (_, _) => Update.emitEvents(List(eventOnClick)).as(true)
     },

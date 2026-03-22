@@ -1,12 +1,11 @@
 package gui4s.core.widget.library
 
-import cats._
+import cats.*
 import cats.syntax.all.given
-
 import gui4s.core.widget.Path
 import gui4s.core.widget.collectQuitCompositionReactions
 import gui4s.core.widget.free.AsFreeF
-import gui4s.core.widget.handle.HandlesEvent
+import gui4s.core.widget.handle.{HandlesEvent, HandlesEvent_}
 import gui4s.core.widget.recomposition.ReactsOnRecomposition
 import gui4s.core.widget.state.HasInnerStates
 
@@ -65,21 +64,18 @@ def processEvent[
   Widget,
   Place[_],
   Update[_] : Monad,
-  Recomposition,
-  DownEvent,
+  Recomposition
 ](
     pathToRoot : Path,
     runRecomposition : Recomposition => IO[Unit],
     widgetAsFree : AsFreeF[Widget, Place],
-    widgetHandlesEvent : HandlesEvent[Widget, DownEvent, Update[Option[Place[Widget]]]],
+    widgetHandlesEvent : HandlesEvent_[Widget, Update[Option[Place[Widget]]]],
     widgetReactsToRecomposition : ReactsOnRecomposition[Widget, Recomposition],
     widgetHasInnerState : HasInnerStates[Widget, Recomposition],
-    runPlacement: Place ~> IO
-)(
-  placedWidget: Widget,
-  event: DownEvent
+    runPlacement: Place ~> IO,
+    placedWidget: Widget
 ): Update[IO[Widget]] =
-  widgetHandlesEvent(placedWidget, pathToRoot, event).map:
+  widgetHandlesEvent(placedWidget, pathToRoot).map:
     case Some(newWidget) =>
       for
         newPlacedWidget <- runPlacement(newWidget)
@@ -89,7 +85,7 @@ def processEvent[
           widgetHasInnerState(newPlacedWidget)
         ).traverse_(runRecomposition)
       yield newPlacedWidget
-    case None => 
+    case None =>
       runPlacement(
         widgetAsFree(placedWidget)
       )

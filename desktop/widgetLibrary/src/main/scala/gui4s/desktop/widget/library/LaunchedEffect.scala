@@ -23,14 +23,13 @@ def launchedEffect[
   Place[_] : Functor as PF,
   Draw,
   RecompositionReaction : Monoid as M,
-  HandlableEvent,
   Key : {Typeable as KT, Equiv}
 ](
   keyTypeError : [T] => (Path, Any) => Place[T],
   keysTypeMismatchError : Any => RecompositionReaction,
   addNameToPath : String => Place ~> Place
-) : LaunchedEffectWidget[Place[Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]], Key, Path => RecompositionReaction] =
-  type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction, HandlableEvent]
+) : LaunchedEffectWidget[Place[Widget[Update, Place, Draw, RecompositionReaction]], Key, Path => RecompositionReaction] =
+  type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction]
   given updateOptionFunctor : Functor[Update * Option] = nestedFunctorsAreFunctors[Update, Option]()
   given updateOptionPlaceFunctor : Functor[Update * Option * Place] = nestedFunctorsAreFunctors[Update * Option, Place]()
   (name, freeChild, key, task) =>
@@ -47,16 +46,15 @@ def launchedEffect[
           Update, 
           Place, 
           Draw, 
-          RecompositionReaction,
-          HandlableEvent
+          RecompositionReaction
         ](
           valueToDecorate = (LaunchedEffect(name, key, task), child),
           valueAsFree = Strong[[A, B] =>> A => Place[B]].second(widgetAsFree),
           valueIsDrawable = Contravariant[* => Draw].contramap(widgetIsDrawable)(_._2),
           valueHandlesEvent =
-            handlesEventFIsStrong[Update * Option * Place, HandlableEvent]
+            handlesEventF_IsStrong[Update * Option * Place]
               .second(
-                mapEventHandle(
+                mapEventHandle_(
                   widgetHandlesEvent
                 )(_.map(_.map(addNameToPath(name)(_))))
               ),

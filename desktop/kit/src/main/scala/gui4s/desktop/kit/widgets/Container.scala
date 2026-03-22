@@ -77,13 +77,11 @@ def containerWidget2[
     Collection,
     Draw,
     RecompositionReaction,
-    DownEvent,
     WidgetAndItsPositionInContainer
   ](
-    positionedChildHandlesEvent = { case (Measured((widget, position), _, _), path, event) =>
-      Update.withCornerCoordinates(widgetHandlesEvent(widget, path, event), _ + position)
+    positionedChildHandlesEvent = { case (Measured((widget, position), _, _), path) =>
+      Update.withCornerCoordinates(widgetHandlesEvent(widget, path), _ + position)
     },
-    isEventConsumed = Update.isEventHandled,
     updateContainerOrdered = children => updateFunction =>
       //Обновляются сначала виджеты, лежащие выше.
       given Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by(_.value._2.z))

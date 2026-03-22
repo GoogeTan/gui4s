@@ -7,28 +7,27 @@ import cats.Monad
 import cats.syntax.all._
 
 import gui4s.core.widget.free.AsFreeF
-import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.handle.HandlesEventF_
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
 
 def eventCatcherWithRect[
-  PlaceWidget,
+  PlacedWidget,
   Update[_] : Monad,
   PlacementEffect[_],
-  Situated[_] : Comonad,
-  EnvironmentalEvent,
+  Situated[_] : Comonad
 ](
-   updateDecorator: UpdateDecorator[Update, PlacementEffect, Situated[PlaceWidget], EnvironmentalEvent],
-   markEventHandled : Update[Unit],
-   widgetAsFree : AsFreeF[PlaceWidget, PlacementEffect * Situated],
-   widgetHandlesEvent : HandlesEventF[PlaceWidget, EnvironmentalEvent, Update * Option * PlacementEffect * Situated]
-) : EventCatcherWithRect[PlacementEffect[Situated[PlaceWidget]], Update[Boolean], Situated[PlaceWidget], EnvironmentalEvent] =
+   updateDecorator: UpdateDecorator[Update, PlacementEffect, Situated[PlacedWidget]],
+   widgetAsFree : AsFreeF[PlacedWidget, PlacementEffect * Situated],
+   widgetHandlesEvent : HandlesEventF_[PlacedWidget, Update * Option * PlacementEffect * Situated]
+) : EventCatcherWithRect[
+  PlacementEffect[Situated[PlacedWidget]], 
+  Update[Unit],
+  Situated[PlacedWidget]
+] =
   decorator =>
     updateDecorator(
-      (self, path, event) =>
-        decorator(path, self, event).ifM(
-          markEventHandled *> Some(widgetAsFree(self.extract)).pure[Update],
-          widgetHandlesEvent(self.extract, path, event)
-        )
+      (self, path) =>
+        decorator(self, path) *> widgetHandlesEvent(self.extract, path)
     )
 end eventCatcherWithRect

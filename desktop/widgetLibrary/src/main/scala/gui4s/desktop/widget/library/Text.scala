@@ -9,15 +9,14 @@ def text[
   Place[_] : Functor,
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
   PlacedText
 ](
     text : Place[PlacedText],
     draw : PlacedText => Draw,
     emptyRecomposition : RecompositionReaction,
 ) : Place[
-  Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
+  Widget[Update, Place, Draw, RecompositionReaction]
 ] =
-  drawOnlyWidget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent](text.map(draw), emptyRecomposition)
+  drawOnlyWidget[Update, Place, Draw, RecompositionReaction](text.map(draw), emptyRecomposition)
 end text
 

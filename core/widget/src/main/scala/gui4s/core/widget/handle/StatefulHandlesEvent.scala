@@ -18,28 +18,24 @@ def statefulHandlesEvent[
   Place[_] : Functor,
   Widget,
   State,
-  ChildEvent,
-  EnvironmentalEvent
+  ChildEvent
 ](
     stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Option[State]]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childWidgetHandlesEvent  : HandlesEvent[Widget, EnvironmentalEvent, Update[(Option[Place[Widget]], List[ChildEvent])]],
+    childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(Option[Place[Widget]], List[ChildEvent])]],
     widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place, Widget],
-) : HandlesEvent[
+) : HandlesEvent_[
   Stateful[Widget, State],
-  EnvironmentalEvent,
   Update[Option[Place[Stateful[Widget, State]]]]
 ] =
   (
     self: Stateful[Widget, State],
-    pathToParent: Path,
-    event: EnvironmentalEvent
+    pathToParent: Path
   ) =>
     for
       (newChildWidget, events) <- childWidgetHandlesEvent(
         self.child,
-        pathToParent / self.name,
-        event
+        pathToParent / self.name
       )
       newState : Option[State] <-
         NonEmptyList.fromList(events)

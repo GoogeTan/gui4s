@@ -11,8 +11,7 @@ import gui4s.desktop.widget.library.decorator._
 def updateDecorator[Event]: UpdateDecorator[
   UpdateC[Event],
   PlacementEffect,
-  Situated[DesktopPlacedWidget[Event]],
-  DownEvent
+  Situated[DesktopPlacedWidget[Event]]
 ] = updateDecoratorWithRect[
-  UpdateC[Event], PlacementEffect, Situated, Draw, RecompositionReaction, DownEvent
+  UpdateC[Event], PlacementEffect, Situated, Draw, RecompositionReaction
 ]

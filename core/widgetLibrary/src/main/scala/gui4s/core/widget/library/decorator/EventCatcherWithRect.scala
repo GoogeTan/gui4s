@@ -4,12 +4,12 @@ import gui4s.core.widget.Path
 
 /**
  * Виджет, позволяющий обрабатывать внешние события.
- * Обработчик принимает нынешний путь, разположение виджета и событие.
+ * Обработчик принимает нынешний путь и расположение виджета.
  *
  * @tparam Widget
  * @tparam Update
  * @tparam WidgetPositionAndBounds
  * @tparam HandlableEvent
  */
-type EventCatcherWithRect[Widget, Update, WidgetPositionAndBounds, HandlableEvent] =
-  ((Path, WidgetPositionAndBounds, HandlableEvent) => Update) => Decorator[Widget]
+type EventCatcherWithRect[Widget, Update, WidgetPositionAndBounds] =
+  ((WidgetPositionAndBounds, Path) => Update) => Decorator[Widget]

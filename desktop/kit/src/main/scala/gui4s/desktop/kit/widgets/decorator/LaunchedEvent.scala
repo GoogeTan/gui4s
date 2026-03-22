@@ -45,16 +45,16 @@ object LaunchedEvent:
       launchedEffectWidget = launchedEffect(supervisor),
       eventCatcher = eventCatcher,
       pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
-      catchEvent = (path, event) =>
-        DownEvent.catchExternalEvent(path, event) match
-          case None =>
-            false.pure[UpdateC[Event]]
-          case Some[Any](valueFound : Any) =>
+      catchEvent = path =>
+        Update.handleExternalEvents(
+          valueFound =>
             eventFromAny(valueFound).fold(
-              Update.raiseError[Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+               Update.raiseError[Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
             )(
               event => Update.emitEvents[Event](List(event)).as(true)
-            )
+            ),
+          path
+        )
     )
   end apply
 end LaunchedEvent

@@ -5,5 +5,5 @@ import gui4s.core.kit.effects.RecompositionReaction
 import gui4s.android.kit.effects.*
 import gui4s.desktop.widget.library.Widget
 
-type AndroidPlacedWidget[Event] = Widget[UpdateC[Event], PlaceC, Draw, RecompositionReaction[IO], DownEvent]
+type AndroidPlacedWidget[Event] = Widget[UpdateC[Event], PlaceC, Draw, RecompositionReaction[IO]]
 type AndroidWidget[Event] = Place[AndroidPlacedWidget[Event]]

@@ -25,7 +25,6 @@ def imageWidget[
     Place,
     Draw,
     RecompositionReaction,
-    DownEvent,
   ](
     Sized(drawImage[DrawM](image), Rect(image.getWidth.toFloat, image.getHeight.toFloat)).pure[PlacementEffect],
     RecompositionReaction.empty[IO],

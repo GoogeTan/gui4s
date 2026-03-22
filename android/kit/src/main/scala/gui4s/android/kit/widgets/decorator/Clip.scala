@@ -12,7 +12,6 @@ def clipWidget[Event](value : AndroidWidget[Event], path : Rect[Float] => Clip) 
     Situated,
     Draw,
     RecompositionReaction,
-    DownEvent,
     Clip
   ](
     [T] => (shape, update) =>

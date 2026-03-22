@@ -71,6 +71,12 @@ object list:
       List(value)
     end one
   end extension
+
+  def traverseState[Collection[_] : Traverse, F[_] : Monad, A, B, C](a: Collection[A], f: (A, C) => F[(B, C)], initial: C): F[(Collection[B], C)] =
+    val liftedF: A => StateT[F, C, B] = item => StateT(s => f(item, s).map((a, b) => (b, a)))
+
+    a.traverse(liftedF).run(initial).map((a, b) => (b, a))
+  end traverseState
 end list
 
   

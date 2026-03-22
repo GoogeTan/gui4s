@@ -27,7 +27,6 @@ def layersWidget[Event](
    PlacementEffect,
    Draw,
    RecompositionReaction,
-   DownEvent,
    Float,
    InfinityOr[Float]
  ](

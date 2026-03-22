@@ -36,7 +36,6 @@ def textWidget(
       PlaceC,
       Draw,
       RecompositionReaction,
-      DownEvent,
       SkijaPlacedText
     ](
       Place.sizeText(shaper, textCache)(text, style),

@@ -39,11 +39,9 @@ def weightedLinearContainer[
         List,
         Draw,
         RecompositionReaction,
-        DownEvent,
         Weighted[DesktopWidget[Event]],
         WidgetWithMeta
       ](
-        isEventConsumed = Update.isEventHandled,
         updateContainerOrdered = children => updateFunction =>
           //Обновляются сначала виджеты, лежащие выше.
           given Order[WidgetWithMeta] = Order.reverse(Order.by(_.value._3.z))
@@ -60,8 +58,8 @@ def weightedLinearContainer[
               drawAt(widgetIsDrawable(widget), point.x, point.y)
           },
         positionedChildHandlesEvent = {
-          case (Measured((widget, weight, position), _, _), path, event) =>
-            Update.withCornerCoordinates(widgetHandlesEvent(widget, path, event), _ + position)
+          case (Measured((widget, weight, position), _, _), path) =>
+            Update.withCornerCoordinates(widgetHandlesEvent(widget, path), _ + position)
               .map(
                 _.map(
                   Weighted(_, weight)

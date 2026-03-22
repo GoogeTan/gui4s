@@ -17,7 +17,6 @@ def clipWidget[Event](value : DesktopWidget[Event], path : Rect[Float] => Clip) 
     Situated,
     Draw,
     RecompositionReaction,
-    DownEvent,
     Clip
   ](
     [T] => (shape, update) =>

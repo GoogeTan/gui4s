@@ -14,10 +14,9 @@ def drawDecorator[
   Situated[_] : Comonad,
   Draw,
   RecompositionReaction,
-  EnvironmentalEvent,
 ](
   toDraw : Situated[Draw] => Draw
-) : Decorator[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction, EnvironmentalEvent]]]] =
+) : Decorator[PlacementEffect[Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction]]]] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   original =>
     PF.map(
@@ -28,8 +27,8 @@ def drawDecorator[
           valueToDecorate = placedWidget,
           valueAsFree = placed => PF.map(placed.extract.asFree)(_.coflatten),
           valueIsDrawable = self => toDraw(self.map(_.draw)),
-          valueHandlesEvent = (self, path, event) =>
-            self.extract.handleEvent(path, event).map(_.map(PF.map(_)(_.coflatten))),
+          valueHandlesEvent = (self, path) =>
+            self.extract.handleEvent(path).map(_.map(PF.map(_)(_.coflatten))),
           valueMergesWithOldState = (self, path, states) =>
             self.extract.mergeWithOldState(path, states).map(PF.map(_)(_.coflatten)),
           valueReactsOnRecomposition = (self, path, states) =>

@@ -21,24 +21,23 @@ def layersWidget[
   PlacementEffect[_] : Monad as OPA,
   Draw : Monoid,
   RecompositionReaction : Monoid,
-  EnvironmentalEvent,
   MeasurementUnit : Numeric,
   BoundUnit,
 ](
   container : ContainerWidget[
-    FreeWidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction, EnvironmentalEvent],
+    FreeWidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction],
     List[
-      FreeWidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction, EnvironmentalEvent],
+      FreeWidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction],
     ],
     PlacementStrategy[
       PlacementEffect,
-      PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], WidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction, EnvironmentalEvent]]],
+      PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], WidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction]]],
       Rect[MeasurementUnit],
       Rect[BoundUnit],
       List,
        Measured[Rect[MeasurementUnit], Rect[BoundUnit],
          (
-           WidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction, EnvironmentalEvent],
+           WidgetWithSituated[Update, PlacementEffect, SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction],
            Point3d[MeasurementUnit]
          )
        ]
@@ -46,11 +45,11 @@ def layersWidget[
   ],
   withBounds : Rect[MeasurementUnit] => PlacementEffect ~> PlacementEffect
 )(
-   background : List[PlacementEffect[Sized[Rect[MeasurementUnit], Widget[Update, PlacementEffect * SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction, EnvironmentalEvent]]]],
-   foreground : List[PlacementEffect[Sized[Rect[MeasurementUnit], Widget[Update, PlacementEffect * SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction, EnvironmentalEvent]]]],
+   background : List[PlacementEffect[Sized[Rect[MeasurementUnit], Widget[Update, PlacementEffect * SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction]]]],
+   foreground : List[PlacementEffect[Sized[Rect[MeasurementUnit], Widget[Update, PlacementEffect * SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction]]]],
    decorationsPlacementStrategy : PlacementStrategy[PlacementEffect, Rect[MeasurementUnit], Rect[MeasurementUnit], Rect[MeasurementUnit], List, Point2d[MeasurementUnit]],
 ) : Decorator[
-  PlacementEffect[Sized[Rect[MeasurementUnit], Widget[Update, PlacementEffect * SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction, EnvironmentalEvent]]]
+  PlacementEffect[Sized[Rect[MeasurementUnit], Widget[Update, PlacementEffect * SizedC[Rect[MeasurementUnit]], Draw, RecompositionReaction]]]
 ] =
   gui4s.core.widget.library.layersWidget(container, withBounds)(
     background, 

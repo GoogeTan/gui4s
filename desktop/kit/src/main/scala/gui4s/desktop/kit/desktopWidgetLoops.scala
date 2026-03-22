@@ -16,7 +16,7 @@ def desktopWidgetLoops[
 ](
    runDraw : Draw => IO[Boolean],
    runPlace : Place ~> IO,
-   waitForTheNextEvent : IO[DownEvent],
+   waitForTheNextEvent : IO[List[DownEvent]],
    drawLoopExecutionContext : ExecutionContext,
    updateLoopExecutionContext : ExecutionContext,
    widget : Ref[IO, DesktopPlacedWidget[Event]],
@@ -28,7 +28,7 @@ def desktopWidgetLoops[
     Place,
     Draw,
     RecompositionReaction,
-    DownEvent,
+    List[DownEvent],
     ExitCode
   ](
     waitForTheNextEvent = waitForTheNextEvent,

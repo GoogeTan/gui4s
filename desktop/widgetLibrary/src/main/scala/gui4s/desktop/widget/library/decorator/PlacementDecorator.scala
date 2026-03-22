@@ -10,34 +10,32 @@ def placementDecorator[
   OldPlace[_] : Functor,
   NewPlace[_] : Functor,
   Draw,
-  RecompositionReaction,
-  EnvironmentalEvent,
+  RecompositionReaction
 ](
-  placementShift : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]] =>
-    NewPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]]
+  placementShift : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction]] =>
+    NewPlace[Widget[Update, OldPlace, Draw, RecompositionReaction]]
 )(
-  original : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]]
-) : NewPlace[Widget[Update, NewPlace, Draw, RecompositionReaction, EnvironmentalEvent]] =
+  original : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction]]
+) : NewPlace[Widget[Update, NewPlace, Draw, RecompositionReaction]] =
   placementShift(
     original,
   ).map(
     placedWidget =>
       Widget.ValueWrapper[
-        Widget[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent],
+        Widget[Update, OldPlace, Draw, RecompositionReaction],
         Update,
         NewPlace,
         Draw,
-        RecompositionReaction,
-        EnvironmentalEvent
+        RecompositionReaction
       ](
         valueToDecorate = placedWidget,
         valueAsFree = placed => placementShift(placed.asFree),
         valueIsDrawable = widgetIsDrawable,
         valueHandlesEvent =
-          widgetHandlesEvent[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]
+          widgetHandlesEvent[Update, OldPlace, Draw, RecompositionReaction]
             .andThen(_.map(_.map(placementShift))),
         valueMergesWithOldState =
-          widgetMergesWithOldState[Update, OldPlace, Draw, RecompositionReaction, EnvironmentalEvent]
+          widgetMergesWithOldState[Update, OldPlace, Draw, RecompositionReaction]
             .andThen(_.map(placementShift(_))),
         valueReactsOnRecomposition = widgetReactsOnRecomposition,
         valueHasInnerState = widgetHasInnerStates

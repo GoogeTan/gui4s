@@ -8,7 +8,7 @@ import cats.Traverse
 import cats.syntax.all._
 
 import gui4s.core.widget.free.containerAsFree
-import gui4s.core.widget.handle.HandlesEvent
+import gui4s.core.widget.handle.HandlesEvent_
 import gui4s.core.widget.handle.TraverseChildrenOrdered
 import gui4s.core.widget.handle.childrenHandleEvent
 import gui4s.core.widget.handle.containerHandlesEvent
@@ -41,18 +41,16 @@ def container[
   Collection[_] : {Traverse, Zip},
   Draw : Monoid,
   RecompositionReaction : Monoid,
-  EnvironmentalEvent,
   FreeWidget,
   PositionedWidget
 ](
-  isEventConsumed : Update[Boolean],
   updateContainerOrdered : TraverseChildrenOrdered[
     Update,
     Collection,
     FreeWidget,
     PositionedWidget
   ],
-  positionedChildHandlesEvent : HandlesEvent[PositionedWidget, EnvironmentalEvent, Update[Option[FreeWidget]]],
+  positionedChildHandlesEvent : HandlesEvent_[PositionedWidget, Update[Option[FreeWidget]]],
   positionedMergesWithOldStates : MergesWithOldStates[PositionedWidget, RecompositionReaction, Option[FreeWidget]],
   positionedReactsOnRecomposition : ReactsOnRecomposition[PositionedWidget, RecompositionReaction],
   positionedHasInnerStates : HasInnerStates[PositionedWidget, RecompositionReaction],
@@ -63,7 +61,7 @@ def container[
     PositionedWidget,
     Option[FreeWidget]
   ) => FreeWidget,
-) : Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]] =
+) : Place[Widget[Update, Place, Draw, RecompositionReaction]] =
   layout(children).map(
     positionedChildren =>
       Widget.ValueWrapper(
@@ -77,11 +75,9 @@ def container[
             Collection,
             Update,
             FreeWidget,
-            PositionedWidget,
-            EnvironmentalEvent,
+            PositionedWidget
           ](
             widgetHandlesEvent = positionedChildHandlesEvent,
-            isEventConsumed = isEventConsumed,
             traverseContainerOrdered = updateContainerOrdered
           ),
           children =>
@@ -113,23 +109,21 @@ def container[
   Collection[_] : {Traverse, Zip},
   Draw : Monoid,
   RecompositionReaction : Monoid,
-  EnvironmentalEvent,
   PositionedChild
 ](
-  isEventConsumed : Update[Boolean],
   updateContainerOrdered : TraverseChildrenOrdered[
     Update,
     Collection,
-    Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
+    Place[Widget[Update, Place, Draw, RecompositionReaction]],
     PositionedChild
   ],
-  positionedChildHandlesEvent : HandlesEvent[PositionedChild, EnvironmentalEvent, Update[Option[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]]]],
+  positionedChildHandlesEvent : HandlesEvent_[PositionedChild, Update[Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]]]],
   drawOrdered : Collection[PositionedChild] => Draw,
-  children: Collection[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]],
+  children: Collection[Place[Widget[Update, Place, Draw, RecompositionReaction]]],
   layout:
     Collection[
       Place[
-        Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
+        Widget[Update, Place, Draw, RecompositionReaction]
       ]
     ] => Place[
       Collection[
@@ -138,10 +132,10 @@ def container[
     ],
   incrementalFreeChildrenFromPlaced: (
     PositionedChild,
-      Option[Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]]]
-    ) => Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]],
-  unplaceWidget : PositionedChild => Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]
-) : Place[Widget[Update, Place, Draw, RecompositionReaction, EnvironmentalEvent]] =
+      Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]]
+    ) => Place[Widget[Update, Place, Draw, RecompositionReaction]],
+  unplaceWidget : PositionedChild => Widget[Update, Place, Draw, RecompositionReaction]
+) : Place[Widget[Update, Place, Draw, RecompositionReaction]] =
   container(
     positionedChildHandlesEvent = positionedChildHandlesEvent,
     positionedMergesWithOldStates  = (positionedChild, pathToParent, oldStates) =>
@@ -150,7 +144,6 @@ def container[
       widgetReactsOnRecomposition(unplaceWidget(positionedChild), pathToParent, states),
     positionedHasInnerStates  = positionedChild =>
       widgetHasInnerStates(unplaceWidget(positionedChild)),
-    isEventConsumed = isEventConsumed,
     updateContainerOrdered = updateContainerOrdered,
     drawOrdered = drawOrdered,
     children = children,

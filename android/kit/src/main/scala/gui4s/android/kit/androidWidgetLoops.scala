@@ -21,47 +21,24 @@ import cats.effect.IO
 def androidWidgetLoops[
   Event,
 ](
-  runUpdate : [T] => Update[Event, T] => IO[Either[ExitCode, T]],
+  runUpdate : [T] => (Update[Event, T], List[DownEvent]) => IO[Either[ExitCode, T]],
   runPlace : PlaceC ~> IO,
-) : UpdateLoop[IO, AndroidPlacedWidget[Event], DownEvent, ExitCode] =
-  updateLoop[IO, AndroidPlacedWidget[Event], DownEvent, ExitCode](
+) : UpdateLoop[IO, AndroidPlacedWidget[Event], List[DownEvent], ExitCode] =
+  updateLoop[IO, AndroidPlacedWidget[Event], List[DownEvent], ExitCode](
     (widget, event) =>
       flattenRight(
         runUpdate[IO[AndroidPlacedWidget[Event]]](
-          processEvent[
-            IO,
-            AndroidPlacedWidget[Event],
-            PlaceC,
-            Update[Event, *],
-            RecompositionReaction,
-            DownEvent
-          ](
+          processEvent(
             Path(Nil),
             RecompositionReaction.run[IO],
             widgetAsFree,
-            widgetHandlesEvent[
-              Update[Event, *],
-              PlaceC,
-              Draw,
-              RecompositionReaction,
-              DownEvent
-            ],
-            widgetReactsOnRecomposition[
-              Update[Event, *],
-              PlaceC,
-              Draw,
-              RecompositionReaction,
-              DownEvent
-            ],
-            widgetHasInnerStates[
-              Update[Event, *],
-              PlaceC,
-              Draw,
-              RecompositionReaction,
-              DownEvent
-            ],
+            widgetHandlesEvent,
+            widgetReactsOnRecomposition,
+            widgetHasInnerStates,
             runPlace,
-          )(widget, event)
+            widget
+          ),
+          event
         )
       )
   )

@@ -12,3 +12,7 @@ end handlesNothing
 def handlesNothing[A, Event, B, Update[_] : Applicative as A] : HandlesEvent[A, Event, Update[Option[B]]] =
   (_, _, _) => A.pure(None)
 end handlesNothing
+
+def handlesNothing_[A, B, Update[_] : Applicative as A] : HandlesEvent_[A, Update[Option[B]]] =
+  (_, _) => A.pure(None)
+end handlesNothing_
