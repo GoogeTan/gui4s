@@ -33,7 +33,7 @@ def eventMemory[
   mapEvent: MapEvent[Widget],
   name : String,
   initialMemories : Memories,
-  handleEvent : HandlesEventF[Memories, NonEmptyList[MemorableEvent], Update[Event, *]],
+  handleEvent : HandlesEventF[Memories, List[MemorableEvent], Update[Event, *]],
   catchEvent : (Path, Rect) => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Memories] =
   widget =>

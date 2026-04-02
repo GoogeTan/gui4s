@@ -130,31 +130,70 @@ object Update:
     )
   end withClip
 
-  def handleEnvironmentalEvents[Event](consumed : DownEvent => Update[Event, Boolean]) : Update[Event, Unit] =
+  def updateEnvironmentalEventsM[Event, Result](f: List[DownEvent] => Update[Event, (Result, List[DownEvent])]): Update[Event, Result] =
     for
       state <- getState
-      newDownEvents <- state.environmentalEvents.filterA(event => consumed(event).map(!_))
+      (res, newDownEvents) <- f(state.environmentalEvents)
+      _ <- setState(state.withEnvironmentalEvents(newDownEvents))
+    yield res
+  end updateEnvironmentalEventsM
+
+  def updateEnvironmentalEventsM_[Event](f: List[DownEvent] => Update[Event, List[DownEvent]]): Update[Event, Unit] =
+    for
+      state <- getState
+      newDownEvents <- f(state.environmentalEvents)
       _ <- setState(state.withEnvironmentalEvents(newDownEvents))
     yield ()
+  end updateEnvironmentalEventsM_
+
+  def handleEnvironmentalEvents[Event, Result](consumed: DownEvent => Update[Event, (Result, Boolean)]): Update[Event, List[Result]] =
+    updateEnvironmentalEventsM(events =>
+      events.traverse(consumed).map((smth: List[(Result, Boolean)]) =>
+        val (results, isConsumed) = smth.unzip
+        (results, events.zip(isConsumed).filter(!_._2).map(_._1))
+      )
+    )
   end handleEnvironmentalEvents
 
-  def handleExternalEvents[Event](consumed : Any => Update[Event, Boolean], path : Path) : Update[Event, Unit] =
-    handleEnvironmentalEvents(
-      event =>
-        DownEvent.catchExternalEvent(path, event).fold(
-          false.pure[UpdateC[Event]]
-        )(consumed)
+  def handleEnvironmentalEvents_[Event](consumed: DownEvent => Update[Event, Boolean]): Update[Event, Unit] =
+    updateEnvironmentalEventsM_(events =>
+      events.filterA(event => consumed(event).map(!_))
     )
-  end handleExternalEvents
+  end handleEnvironmentalEvents_
 
-
-  def handleUserEvents[Event, T : Typeable](f: T => Update[Event, Boolean]): Update[Event, Unit] =
-    handleEnvironmentalEvents:
-      case DownEvent.UserEvent(value : T) =>
+  def handleUserEvents_[Event, T: Typeable](f: T => Update[Event, Boolean]): Update[Event, Unit] =
+    handleEnvironmentalEvents_ {
+      case DownEvent.UserEvent(value: T) =>
         f(value)
       case _ =>
         false.pure[UpdateC[Event]]
+    }
+  end handleUserEvents_
+
+  def handleUserEvents[Event, T: Typeable, Result](f: T => Update[Event, (Result, Boolean)]): Update[Event, List[Result]] =
+    handleEnvironmentalEvents {
+      case DownEvent.UserEvent(value: T) =>
+        f(value).map((result, isConsumed) => (List(result), isConsumed))
+      case _ =>
+        (Nil, false).pure[UpdateC[Event]]
+    }.map(_.flatten)
   end handleUserEvents
+
+  def handleExternalEvents_[Event](f: Any => Update[Event, Boolean], path: Path): Update[Event, Unit] =
+    handleEnvironmentalEvents_(event =>
+      DownEvent.catchExternalEvent(path, event).fold(
+        false.pure[UpdateC[Event]]
+      )(f)
+    )
+  end handleExternalEvents_
+
+  def handleExternalEvents[Event, Result](f: Any => Update[Event, (Result, Boolean)], path: Path): Update[Event, List[Result]] =
+    handleEnvironmentalEvents(event =>
+      DownEvent.catchExternalEvent(path, event).fold(
+        (Nil, false).pure[UpdateC[Event]]
+      )(value => f(value).map((result, isConsumed) => (List(result), isConsumed)))
+    ).map(_.flatten)
+  end handleExternalEvents
 
   def runUpdate[Event]: [T] => (Update[Event, T], List[DownEvent]) => IO[Either[ExitCode, T]] =
     [T] => (update, events) =>

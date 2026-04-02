@@ -12,7 +12,7 @@ final case class AnimationWidgetState[
   animation: Animation[AnimatedValue, Time],
   playingAnimation : Option[AnimationState[AnimatedValue, Time]]
 ):
-  def withTime(time: Time)(using Group[Time], Order[Time]) : AnimationWidgetState[AnimatedValue, Time] =
+  def withTime(time: Time)(using Group[Time], Ordering[Time]) : AnimationWidgetState[AnimatedValue, Time] =
     playingAnimation.fold(this)(animationState =>
       val newState = this.copy(playingAnimation = Some(animationState.withTime(time)))
       if newState.isAnimationFinished then
@@ -62,13 +62,15 @@ final case class AnimationWidgetState[
       )
   end velocityAtMoment
 
-  def isAnimationFinished(using G : Group[Time], O : Order[Time]) : Boolean =
+  def isAnimationFinished(using G : Group[Time], O : Ordering[Time]) : Boolean =
     playingAnimation.fold(true)(state =>
-      G.remove(state.currentTime, state.startTime)
-        > animation.duration(
-        initialValue = startValue,
-        targetValue = state.targetValue,
-        initialVelocity = state.startVelocity
+      O.gt(
+        G.remove(state.currentTime, state.startTime),
+        animation.duration(
+          initialValue = startValue,
+          targetValue = state.targetValue,
+          initialVelocity = state.startVelocity
+        )
       )
     )
   end isAnimationFinished

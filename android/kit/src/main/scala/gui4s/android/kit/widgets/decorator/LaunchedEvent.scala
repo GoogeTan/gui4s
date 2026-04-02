@@ -49,7 +49,7 @@ object LaunchedEvent:
       eventCatcher = eventCatcher,
       pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
       catchEvent = path =>
-        Update.handleEnvironmentalEvents(
+        Update.handleEnvironmentalEvents_(
           event =>
             DownEvent.catchExternalEvent(path, event) match
               case None =>

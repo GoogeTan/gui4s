@@ -54,7 +54,7 @@ def clickCatcher[
             yield Point2d(x.toFloat * scaleX, y.toFloat * scaleY)
           ),
           catchMouseEvent = path => callback =>
-            Update.handleEnvironmentalEvents(
+            Update.handleEnvironmentalEvents_(
               event =>
                 source(event).fold(false.pure[UpdateC[Event]])(callback)
             ),

@@ -65,8 +65,9 @@ def destructibleResourceWidget[
         name = name,
         initialState = None,
         eventHandler = {
-          case (None, _, NonEmptyList(event, Nil)) =>
+          case (None, _, event :: Nil) =>
             updateBiMonad[Event]().pure(Some(event))
+          case (state, _, Nil) => updateBiMonad[Event]().pure(state)
           case (_, path, _) => doubleAllocError(path)
         },
         body = state =>
@@ -112,7 +113,7 @@ def initializeResourceWidget[
         name = name,
         initialState = None,
         eventHandler = {
-          case (None, _, NonEmptyList(event, Nil)) =>
+          case (None, _, event :: Nil) =>
             updateBiMonad[Event]().pure(Some(event))
           case (_, path, _) => doubleAllocError(path)
         },

@@ -19,7 +19,7 @@ def statefulExample(
   statefulWidget(
     name = "state",
     initialState = 0,
-    eventHandler = (state, _, _) => (state + 1).pure,
+    eventHandler = (state, _, events) => (state + events.length).pure,
     body = state =>
       onClick(())(
         text(

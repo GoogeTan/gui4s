@@ -6,6 +6,7 @@ import cats.Group
 import cats.Order
 import cats.data.NonEmptyList
 import cats.syntax.all._
+import scala.Ordering.Implicits.given
 
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
@@ -30,7 +31,7 @@ type AnimationWidget[Widget, AnimatedValue, Time] =
 
 def animationWidget[
   Widget[_],
-  Time : {Group, Order},
+  Time : {Group, Ordering},
   Update[_] : Applicative,
   Place[_],
   Destructor[_],
@@ -40,7 +41,7 @@ def animationWidget[
   statefulWidget: (
     name : String,
     initialState: AnimationWidgetState[AnimatedValue, Time],
-    handleEvents : HandlesEventF[AnimationWidgetState[AnimatedValue, Time], NonEmptyList[Time], Update],
+    handleEvents : HandlesEventF[AnimationWidgetState[AnimatedValue, Time], List[Time], Update],
     body: AnimationWidgetState[AnimatedValue, Time] => Widget[Either[Time, Event]],
     mergeStates : MergeStates[Place, AnimationWidgetState[AnimatedValue, Time]]
   ) => Widget[Event],
@@ -51,7 +52,7 @@ def animationWidget[
     statefulWidget(
       name,
       AnimationWidgetState(targetValue, animation, None),
-      (state, path, events) => state.withTime(events.maximum).pure[Update],
+      (state, path, events) => events.maxOption.map(state.withTime).getOrElse(state).pure[Update],
       state => timeSourceWidget(body(state.valueNow)),
       [T] => (
         oldState : StatefulState[AnimationWidgetState[AnimatedValue, Time]],

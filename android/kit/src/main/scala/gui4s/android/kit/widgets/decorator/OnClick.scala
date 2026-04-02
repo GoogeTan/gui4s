@@ -14,7 +14,7 @@ def clickCatcher[Event, MouseEvent](
     eventCatcherWithRect = eventCatcher,
     currentMousePosition = Update.liftK[Event](mousePosition),
     catchMouseEvent = path => callback =>
-      Update.handleEnvironmentalEvents(
+      Update.handleEnvironmentalEvents_(
         event =>
           extractEvent(event).fold(false.pure[UpdateC[Event]])(callback)
       ),

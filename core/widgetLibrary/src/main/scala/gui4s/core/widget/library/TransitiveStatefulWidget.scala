@@ -15,7 +15,7 @@ trait TransitiveStatefulWidget[Widget[_], -Update[Event, Value], -Destructor[_],
   def apply[State: Typeable, TransitiveEvent, OwnEvent](
                                                           name: String,
                                                           initialState: State,
-                                                          eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
+                                                          eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *]],
                                                           body: State => Widget[Either[OwnEvent, TransitiveEvent]],
                                                         ): Widget[TransitiveEvent]
 
@@ -23,7 +23,7 @@ trait TransitiveStatefulWidget[Widget[_], -Update[Event, Value], -Destructor[_],
   def apply[State: Typeable, TransitiveEvent, OwnEvent](
                                                          name: String,
                                                          initialState: State,
-                                                         eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
+                                                         eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *]],
                                                          body: State => Widget[Either[OwnEvent, TransitiveEvent]],
                                                          destructor: Destructor[State],
                                                        ): Widget[TransitiveEvent]
@@ -31,7 +31,7 @@ trait TransitiveStatefulWidget[Widget[_], -Update[Event, Value], -Destructor[_],
   def apply[State, TransitiveEvent, OwnEvent](
                                                          name: String,
                                                          initialState: State,
-                                                         eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *] * Option],
+                                                         eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
                                                          body: State => Widget[Either[OwnEvent, TransitiveEvent]],
                                                          destructor: Destructor[State],
                                                          mergeStates : MergeStates[State]
@@ -50,7 +50,7 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
   override def apply[State: Typeable, TransitiveEvent, OwnEvent](
                                                                   name: String,
                                                                   initialState: State,
-                                                                  eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
+                                                                  eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *]],
                                                                   body: State => Widget[Either[OwnEvent, TransitiveEvent]]
                                                                 ): Widget[TransitiveEvent] =
     given Monad[Update[TransitiveEvent, *]] = updateBiMonad()
@@ -58,12 +58,9 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
       name,
       initialState,
       (state, path, events) => {
-        val (ownEvents, transitiveEvents) = events.toList.partitionMap(identity)
+        val (ownEvents, transitiveEvents) = events.partitionMap(identity)
         raiseEvents(transitiveEvents)
-          *> NonEmptyList
-              .fromList(ownEvents)
-              .map(eventHandler(state, path, _))
-              .getOrElse(state.pure)
+          *> eventHandler(state, path, ownEvents)
       },
       body
     )
@@ -76,7 +73,7 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
   ](
     name: String,
     initialState: State,
-    eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *]],
+    eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *]],
     body: State => Widget[Either[OwnEvent, TransitiveEvent]], 
     destructor: Destructor[State]
   ): Widget[TransitiveEvent] =
@@ -85,12 +82,9 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
       name,
       initialState,
       (state, path, events) => {
-        val (ownEvents, transitiveEvents) = events.toList.partitionMap(identity)
+        val (ownEvents, transitiveEvents) = events.partitionMap(identity)
         raiseEvents(transitiveEvents)
-          *> NonEmptyList
-          .fromList(ownEvents)
-          .map(eventHandler(state, path, _))
-          .getOrElse(state.pure)
+          *> eventHandler(state, path, ownEvents)
       },
       body,
       destructor,
@@ -104,7 +98,7 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
   ](
     name: String, 
     initialState: State,
-    eventHandler: HandlesEventF[State, NonEmptyList[OwnEvent], Update[TransitiveEvent, *] * Option],
+    eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
     body: State => Widget[Either[OwnEvent, TransitiveEvent]], 
     destructor: Destructor[State],
     mergeStates : MergeStates[State]
@@ -114,12 +108,9 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
       name,
       initialState,
       (state, path, events) => {
-        val (ownEvents, transitiveEvents) = events.toList.partitionMap(identity)
+        val (ownEvents, transitiveEvents) = events.partitionMap(identity)
         raiseEvents(transitiveEvents)
-          *> NonEmptyList
-          .fromList(ownEvents)
-          .traverse[Update[TransitiveEvent, *], Option[State]](eventHandler(state, path, _))
-          .map(_.flatten)
+          *> eventHandler(state, path, ownEvents)
       },
       body,
       destructor,

@@ -46,7 +46,7 @@ object LaunchedEvent:
       eventCatcher = eventCatcher,
       pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
       catchEvent = path =>
-        Update.handleExternalEvents(
+        Update.handleExternalEvents_(
           valueFound =>
             eventFromAny(valueFound).fold(
                Update.raiseError[Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
