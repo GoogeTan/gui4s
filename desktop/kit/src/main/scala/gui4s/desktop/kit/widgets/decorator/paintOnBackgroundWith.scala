@@ -23,13 +23,13 @@ extension[Event](widget : DesktopWidget[Event])
     )
   end paintOnBackgroundWith
 
-  def paintOnBackgroundWith(brush: Brush, shape : Rect[Float] => Path): DesktopWidget[Event] =
+  def paintOnBackgroundWith(brush: Brush, shape : Shape): DesktopWidget[Event] =
     widget.withDrawOnlyBackground(
       PlacementEffect.getBounds.map:
         bounds =>
           val finiteBounds = bounds.map(_.getUnsafe)
           Sized(
-            Draw.drawBrush(brush, finiteBounds, shape(finiteBounds)),
+            Draw.drawBrush(brush, finiteBounds, shape(finiteBounds).value),
             finiteBounds,
           )
     )

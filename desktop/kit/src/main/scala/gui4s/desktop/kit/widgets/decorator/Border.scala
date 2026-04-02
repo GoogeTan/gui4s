@@ -14,7 +14,7 @@ import gui4s.desktop.skija.StrokeOptions
 
 extension[Event](widget : DesktopWidget[Event])
   def border(
-    shape : Rect[Float] => Clip,
+    shape : Shape,
     brush: Brush,
     style : SkPaint = SkPaint(style = PaintMode.STROKE)
   ) : DesktopWidget[Event] =
@@ -23,14 +23,14 @@ extension[Event](widget : DesktopWidget[Event])
         bounds =>
           val finiteBounds = bounds.map(_.getUnsafe)
           Sized(
-            Draw.drawBorder(shape(finiteBounds), finiteBounds, brush, style),
+            Draw.drawBorder(shape(finiteBounds).value, finiteBounds, brush, style),
             finiteBounds,
           )
     )
   end border
 
   def border(
-    shape: Rect[Float] => Clip,
+    shape: Shape,
     brush: Brush,
     stroke : StrokeOptions,
   ): DesktopWidget[Event] =

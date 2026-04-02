@@ -32,7 +32,7 @@ def userProfile[Event](picture : Url, userName : String, userStatus : String) : 
   row(	    
     imageUrl(url = picture)
       .maxSize(width = 100, height = 100)
-      .clip(Shapes.circle),
+      .clip(Shape.circle),
     column(
       text(text = userName, style = TextStyle(size = 24)),
       text(text = userStatus, style = TextStyle(size = 12, color = Color.Gray)),

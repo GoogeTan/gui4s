@@ -3,26 +3,20 @@ package gui4s.desktop.example
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.std.Queue
-import cats.syntax.all._
+import cats.syntax.all.*
 import glfw4s.core.WindowCreationSettings
 import glfw4s.core.pure.PurePostInit
 import glfw4s.jna.bindings.structs
 import glfw4s.jna.bindings.types.GLFWmonitor
 import glfw4s.jna.bindings.types.GLFWwindow
 import io.github.humbleui.skija.Font
-
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.geometry.InfinityOr
-
 import gui4s.desktop.kit.UIApp
-import gui4s.desktop.kit.effects.DownEvent
-import gui4s.desktop.kit.effects.Init
-import gui4s.desktop.kit.effects.LinearContainerPlacementStrategy
-import gui4s.desktop.kit.effects.Shapes
-import gui4s.desktop.kit.effects.UpdateC
-import gui4s.desktop.kit.widgets._
-import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.kit.effects.{DownEvent, Init, LinearContainerPlacementStrategy, Shape, UpdateC}
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.kit.widgets.decorator.*
 import gui4s.desktop.kit.widgets.decorator.padding
 import gui4s.desktop.skija.Brush
 import gui4s.desktop.skija.Paint
@@ -104,10 +98,10 @@ object ScenedExample extends UIApp:
         .padding(Paddings(10f, 10f, 10f, 10f))
         .paintOnBackgroundWith(
           Brush.solid(0xFFCCCCCC),
-          Shapes.roundedCorners(50f),
+          Shape.roundedCorners(50f),
         )
         .border(
-          Shapes.roundedCorners(50f),
+          Shape.roundedCorners(50f),
           Brush.solid(0xFF454649),
           StrokeOptions()
         )

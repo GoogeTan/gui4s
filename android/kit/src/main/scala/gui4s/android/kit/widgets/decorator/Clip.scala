@@ -5,7 +5,9 @@ import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Clip.given
 import gui4s.android.kit.widgets.AndroidWidget
 
-def clipWidget[Event](value : AndroidWidget[Event], path : Rect[Float] => Clip) : AndroidWidget[Event] =
+import scala.annotation.targetName
+
+def clipWidget[Event](value : AndroidWidget[Event], path : ShapeInBounds) : AndroidWidget[Event] =
   gui4s.desktop.widget.library.decorator.clipWidget[
     UpdateC[Event],
     PlacementEffect,
@@ -26,7 +28,12 @@ def clipWidget[Event](value : AndroidWidget[Event], path : Rect[Float] => Clip) 
 end clipWidget
 
 extension[Event](value : AndroidWidget[Event])
-  def clip(path : Rect[Float] => Clip) : AndroidWidget[Event] =
+  def clip(path : Shape) : AndroidWidget[Event] =
+    clipWidget[Event](value, rect => path(rect).pure[PlacementEffect])
+  end clip
+
+  @targetName("clipF")
+  def clip(path: ShapeInBounds): AndroidWidget[Event] =
     clipWidget[Event](value, path)
   end clip
 end extension

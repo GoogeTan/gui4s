@@ -63,7 +63,7 @@ class MainActivity extends Gui4sActivity:
       initialization(
         name = "image",
         effectToRun = downloadImage,
-        body = data => androidDrawableWidget[Nothing](data).clip(Shapes.roundedCorners(80f)),
+        body = data => androidDrawableWidget[Nothing](data).clip(Shape.roundedCorners(80f)),
         placeholder = text("Wait.", SkijaTextStyle(new Font(Typeface.Companion.makeEmpty(), 28), paint)),
       ).padding(
         Paddings(10f, 10f, 10f, 10f)

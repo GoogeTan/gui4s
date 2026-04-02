@@ -113,7 +113,7 @@ object TextInputExample extends UIApp:
                     textFieldWidget("text-field", state)
                       .padding(Paddings(6f, 6f, 6f, 6f))
                       .border(
-                        Shapes.roundedCorners(50f),
+                        Shape.roundedCorners(50f),
                         Brush.solid(0xFF454649),
                         StrokeOptions()
                       )

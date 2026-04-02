@@ -47,7 +47,7 @@ def animationExample(
             animation = floatAnimation,
             body = cornerRadius =>
               onClick[Unit](())(
-                imageWidget[Unit](data).clip(Shapes.roundedCorners(cornerRadius))
+                imageWidget[Unit](data).clip(Shape.roundedCorners(cornerRadius))
               )
           )
       ),

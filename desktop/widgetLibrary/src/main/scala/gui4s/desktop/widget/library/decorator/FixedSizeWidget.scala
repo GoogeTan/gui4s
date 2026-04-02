@@ -39,8 +39,7 @@ def fixedSizeWidget[
       Draw,
       RecompositionReaction
     ](
-      withPreferredSize(_)
-    )(
+      withPreferredSize(_),
       linearContainer(
         originalWidget,
         mainAxis,

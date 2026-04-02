@@ -13,8 +13,7 @@ def placementDecorator[
   RecompositionReaction
 ](
   placementShift : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction]] =>
-    NewPlace[Widget[Update, OldPlace, Draw, RecompositionReaction]]
-)(
+    NewPlace[Widget[Update, OldPlace, Draw, RecompositionReaction]],
   original : OldPlace[Widget[Update, OldPlace, Draw, RecompositionReaction]]
 ) : NewPlace[Widget[Update, NewPlace, Draw, RecompositionReaction]] =
   placementShift(

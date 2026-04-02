@@ -40,7 +40,7 @@ def grid[A, B, Event](as: List[A], bs: List[B])(f: (A, B) => DesktopWidget[Event
                 rowElement =>
                   f(columnElement, rowElement)
                     .border(
-                      Shapes.roundedCorners(50f),
+                      Shape.roundedCorners(50f),
                       Brush.solid(0xFF454649),
                       StrokeOptions(width = 4f)
                     )
