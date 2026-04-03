@@ -24,7 +24,7 @@ def textField[
   stateful[TextFieldState, Event, TextFieldEvent](
     name = name,
     initialState = TextFieldState(text.split("\n").toList, TextPosition(0, 0), TextPosition(0, 0)),
-    eventHandler = { (stateDontTouch : TextFieldState, path, events : NonEmptyList[TextFieldEvent]) =>
+    eventHandler = { (stateDontTouch : TextFieldState, path, events : List[TextFieldEvent]) =>
       events.reverse.foldM(stateDontTouch) {
         case (currentState, TextFieldEvent.CharInput(newChar)) if currentState.isFocused(path) =>
           currentState.insert(newChar.toString).pure

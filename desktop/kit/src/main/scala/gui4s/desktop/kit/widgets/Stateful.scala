@@ -35,7 +35,7 @@ def statefulWidget: StatefulWidget[
     override def apply[State: {Equiv, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                      eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event]],
                                                                       body: State => DesktopWidget[ChildEvent]
                                                                     ): DesktopWidget[Event] =
       apply(name, initialState, eventHandler, body, _ => RecompositionReaction.empty)
@@ -45,7 +45,7 @@ def statefulWidget: StatefulWidget[
     override def apply[State: {Equiv as EQ, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                      eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event]],
                                                                       body: State => DesktopWidget[ChildEvent],
                                                                       destructor: State => RecompositionReaction
                                                                     ): DesktopWidget[Event] =
@@ -74,7 +74,7 @@ def statefulWidget: StatefulWidget[
     override def apply[State, Event, ChildEvent](
                                                   name: String,
                                                   initialState: State,
-                                                  eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event] * Option],
+                                                  eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event] * Option],
                                                   body: State => DesktopWidget[ChildEvent],
                                                   destructor: State => RecompositionReaction,
                                                   mergeStates: MergeStates[Place, State]

@@ -15,6 +15,7 @@ import scala.reflect.Typeable
 import cats.effect.IO
 import gui4s.core.layout.Sized.given
 import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.handle.HandlesEvent
 import gui4s.core.widget.library.*
 import gui4s.core.widget.StatefulState
 import gui4s.android.kit.effects.*
@@ -26,8 +27,7 @@ import cats.data.NonEmptyList
 import scala.reflect.Typeable
 
 
-def statefulWidget
-: StatefulWidget[
+def statefulWidget: StatefulWidget[
   AndroidWidget,
   Update,
   * => RecompositionReaction,
@@ -42,7 +42,7 @@ def statefulWidget
     override def apply[State: {Equiv, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                      eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event]],
                                                                       body: State => AndroidWidget[ChildEvent]
                                                                     ): AndroidWidget[Event] =
       apply(name, initialState, eventHandler, body, _ => RecompositionReaction.empty)
@@ -52,7 +52,7 @@ def statefulWidget
     override def apply[State: {Equiv as EQ, Typeable}, Event, ChildEvent](
                                                                       name: String,
                                                                       initialState: State,
-                                                                      eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], UpdateC[Event]],
+                                                                      eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event]],
                                                                       body: State => AndroidWidget[ChildEvent],
                                                                       destructor: State => RecompositionReaction
                                                                     ): AndroidWidget[Event] =
@@ -81,7 +81,7 @@ def statefulWidget
     override def apply[State, Event, ChildEvent](
                                                             name: String,
                                                             initialState: State,
-                                                            eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *] * Option],
+                                                            eventHandler: HandlesEventF[State, List[ChildEvent], Update[Event, *] * Option],
                                                             body: State => AndroidWidget[ChildEvent],
                                                             destructor: State => RecompositionReaction,
                                                             mergeStates: MergeStates[PlaceC, State]

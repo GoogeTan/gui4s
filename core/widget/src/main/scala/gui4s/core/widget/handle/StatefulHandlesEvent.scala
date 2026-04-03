@@ -20,7 +20,7 @@ def statefulHandlesEvent[
   State,
   ChildEvent
 ](
-    stateHandlesEvents  : HandlesEvent[State, NonEmptyList[ChildEvent], Update[Option[State]]],
+    stateHandlesEvents  : HandlesEvent[State, List[ChildEvent], Update[Option[State]]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
     childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(Option[Place[Widget]], List[ChildEvent])]],
     widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place, Widget],
@@ -37,10 +37,7 @@ def statefulHandlesEvent[
         self.child,
         pathToParent / self.name
       )
-      newState : Option[State] <-
-        NonEmptyList.fromList(events)
-          .traverse(stateHandlesEvents(self.stateBehaviour, pathToParent / self.name, _))
-          .map(_.flatten)
+      newState : Option[State] <- stateHandlesEvents(self.stateBehaviour, pathToParent / self.name, events)
     yield (newState, newChildWidget) match
       case (Some(newState), Some(newChildWidget)) =>
         widgetsAreMergable.mergeUpdatedAndRerenderedWidgets(

@@ -4,7 +4,6 @@ import catnip.syntax.all._
 import cats.Functor
 import cats.Monad
 import cats.Monoid
-import cats.data.NonEmptyList
 import cats.syntax.all._
 import cats.~>
 
@@ -74,7 +73,7 @@ def stateful[
 )(
   name : String,
   initialState : State,
-  handleEvent : HandlesEventF[State, NonEmptyList[ChildEvent], Update * Option],
+  handleEvent : HandlesEventF[State, List[ChildEvent], Update * Option],
   render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction]],
   destructor : State => RecompositionReaction,
   mergeStates : MergeStates[Place, State]
@@ -98,7 +97,7 @@ def stateful[
     type StState = StatefulBehaviour[
       State,
       State => Place[ChildWidget],
-      HandlesEventF[State, NonEmptyList[ChildEvent], Update * Option],
+      HandlesEventF[State, List[ChildEvent], Update * Option],
       State => RecompositionReaction
     ]
     val stateful = Stateful[ChildWidget, StState](

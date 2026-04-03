@@ -8,6 +8,7 @@ import cats.data.NonEmptyList
 
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.handle.HandlesEvent
 
 type MergeStates[Place[_], State] = [T] => (StatefulState[State], StatefulState[State], StatefulState[State] => Place[T]) => Option[Place[T]]
 type MergeStates2[Place[_], State] =
@@ -23,7 +24,7 @@ trait StatefulWidget[Widget[_], Update[Event, Value], -Destructor[_], -MergeStat
   ](
     name : String,
     initialState : State,
-    eventHandler : HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
+    eventHandler : HandlesEventF[State, List[ChildEvent], Update[Event, *]],
     body : State => Widget[ChildEvent]
   ) : Widget[Event]
 
@@ -34,7 +35,7 @@ trait StatefulWidget[Widget[_], Update[Event, Value], -Destructor[_], -MergeStat
   ](
     name: String,
     initialState: State,
-    eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *]],
+    eventHandler: HandlesEventF[State, List[ChildEvent], Update[Event, *]],
     body: State => Widget[ChildEvent],
     destructor: Destructor[State]
   ): Widget[Event]
@@ -47,7 +48,7 @@ trait StatefulWidget[Widget[_], Update[Event, Value], -Destructor[_], -MergeStat
   ](
      name: String,
      initialState: State,
-     eventHandler: HandlesEventF[State, NonEmptyList[ChildEvent], Update[Event, *] * Option],
+     eventHandler: HandlesEventF[State, List[ChildEvent], Update[Event, *] * Option],
      body: State => Widget[ChildEvent],
      destructor: Destructor[State],
      mergeStates : MergeStates[State]
