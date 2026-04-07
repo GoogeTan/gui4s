@@ -11,7 +11,7 @@ import gui4s.core.widget.free.AsFreeF
 // TODO Думается мне, что это можно как-то разделить, но я пока не понимаю как.
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 def launchedEffectMergesWithOldState[Key : Equiv as KE, Place[_], Recomposition, Task, Widget](using Typeable[Key], Functor[Place])(
-  keyTypeError : [T] => (Path, Any) => Place[T],
+  keyTypeError : [T] => Any => Place[T],//TODO add path
   widgetMergesWithOldState : MergesWithOldStates[Widget, Recomposition, Option[Place[Widget]]],
   widgetAsFree : AsFreeF[Widget, Place]
 ): MergesWithOldStates[
@@ -34,7 +34,7 @@ def launchedEffectMergesWithOldState[Key : Equiv as KE, Place[_], Recomposition,
                 widgetAsFree(widgetSelf).map((launchedEffectSelf.copy(key = key), _))
               )
       case Some(valueFound) =>
-        Some(keyTypeError(pathToParent / launchedEffectSelf.name, valueFound))
+        Some(keyTypeError(valueFound))
       case None =>
         widgetMergesWithOldState(widgetSelf, pathToParent, oldStates)
           .map(

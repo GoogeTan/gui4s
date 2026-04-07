@@ -25,7 +25,7 @@ def launchedEffect[
   RecompositionReaction : Monoid as M,
   Key : {Typeable as KT, Equiv}
 ](
-  keyTypeError : [T] => (Path, Any) => Place[T],
+  keyTypeError : [T] => Any => Place[T],
   keysTypeMismatchError : Any => RecompositionReaction,
   addNameToPath : String => Place ~> Place
 ) : LaunchedEffectWidget[Place[Widget[Update, Place, Draw, RecompositionReaction]], Key, Path => RecompositionReaction] =

@@ -80,5 +80,11 @@ object Place:
   def raiseError[Error, Value](error: => Error)(using ME: MonadError[IO, Error]): Place[Value] =
     GenericPlacementEffect.liftF(ME.raiseError(error))
   end raiseError
-end Place
 
+  def raiseError[Error, Value](error: Path => Error)(using ME: MonadError[IO, Error]): Place[Value] =
+    for
+      path <- PlacementEffect.currentPath
+      res <- GenericPlacementEffect.liftF(ME.raiseError[Situated[Value]](error(path)))
+    yield res  
+  end raiseError
+end Place

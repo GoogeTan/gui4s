@@ -22,7 +22,7 @@ def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : Launche
     RecompositionReaction,
     Key
   ](
-    [T] => (path : Path, value : Any) => Place.raiseError[Throwable, T](new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
+    [T] => (value : Any) => Place.raiseError[Throwable, T](path => new Exception("Key has changed type at " + path.toString + " value found " + value.toString)),
     (valueFound : Any) => RecompositionReaction.lift[IO, Any](
       IO.raiseError[Any](Exception("Key changed the type: " + valueFound.toString))
     ),

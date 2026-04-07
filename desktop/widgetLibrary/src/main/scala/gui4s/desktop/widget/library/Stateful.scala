@@ -69,7 +69,7 @@ def stateful[
   ],
   typeCheckState : [T] => (Any, StatefulState[State] => Option[Place[T]]) => Option[Place[T]],
   liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])],
-  addNameToPath : String => Place ~> Place
+  addNameToPlacePath : String => Place ~> Place,
 )(
   name : String,
   initialState : State,
@@ -87,7 +87,7 @@ def stateful[
 ] =
   given Functor[Update * Option] = nestedFunctorsAreFunctors()
 
-  addNameToPath(name)(render(initialState)).map(initialChild =>
+  addNameToPlacePath(name)(render(initialState)).map(initialChild =>
     type ChildWidget = Widget[
       ChildUpdate,
       Place,
@@ -108,7 +108,7 @@ def stateful[
           initialState = initialState,
           currentState = initialState,
         ),
-        draw = (state : State) => addNameToPath(name)(render(state)),
+        draw = (state : State) => addNameToPlacePath(name)(render(state)),
         handleEvents = handleEvent,
         destructor = destructor
       ),
@@ -132,9 +132,10 @@ def stateful[
           mapEventHandle_(
             widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction]
           )(
-            _.map(_.map(addNameToPath(name)[ChildWidget](_)))
+            _.map(_.map(addNameToPlacePath(name)[ChildWidget](_)))
           ).andThen(liftUpdate(_)),
         widgetsAreMergable = widgetsAreMergeable,
+        addNameToPlacePath = addNameToPlacePath
       ),
       valueMergesWithOldState = statefulMergesWithOldStates[
         Place,

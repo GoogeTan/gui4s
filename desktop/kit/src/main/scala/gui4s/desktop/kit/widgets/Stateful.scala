@@ -92,11 +92,11 @@ def statefulWidget: StatefulWidget[
           widgetMergesWithOldState,
           widgetHasInnerStates
         ),
-        addNameToPath = Place.addNameToPath,
         typeCheckState = Place.typecheck[StatefulState[State]](
           (valueToTypeCheck, path) =>  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
         ),
         liftUpdate = Update.catchEvents[ChildEvent, Event],
+        addNameToPlacePath = Place.addNameToPath,
       )(
         name = name,
         initialState = initialState,

@@ -24,6 +24,7 @@ def statefulHandlesEvent[
     drawStateIntoWidget: Drawable[State, Place[Widget]],
     childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(Option[Place[Widget]], List[ChildEvent])]],
     widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place, Widget],
+   addNameToPlacePath : String => Place ~> Place
 ) : HandlesEvent_[
   Stateful[Widget, State],
   Update[Option[Place[Stateful[Widget, State]]]]
@@ -40,22 +41,29 @@ def statefulHandlesEvent[
       newState : Option[State] <- stateHandlesEvents(self.stateBehaviour, pathToParent / self.name, events)
     yield (newState, newChildWidget) match
       case (Some(newState), Some(newChildWidget)) =>
-        widgetsAreMergable.mergeUpdatedAndRerenderedWidgets(
-          pathToParent / self.name,
-          newChildWidget,
-          drawStateIntoWidget(newState)
-        ).map(newChild =>
-          self.copy(stateBehaviour = newState, child = newChild)
+        addNameToPlacePath(self.name)(
+          widgetsAreMergable.mergeUpdatedAndRerenderedWidgets(
+            pathToParent / self.name,
+            newChildWidget,
+            drawStateIntoWidget(newState)
+          ).map(newChild =>
+            self.copy(stateBehaviour = newState, child = newChild)
+          )
         ).some
       case (None, Some(newChildWidget)) =>
         newChildWidget.map(newChildWidgetPlaced => self.copy(child = newChildWidgetPlaced)).some
+        addNameToPlacePath(self.name)(
+          newChildWidget.map(newChildWidgetPlaced => self.copy(child = newChildWidgetPlaced))
+        ).some
       case (Some(newState), None) =>
-        widgetsAreMergable.mergeOldAndRerenderedWidgets(
-          pathToParent / self.name,
-          self.child,
-          drawStateIntoWidget(newState)
-        ).map(newChild =>
-          self.copy(stateBehaviour = newState, child = newChild)
+        addNameToPlacePath(self.name)(
+          widgetsAreMergable.mergeOldAndRerenderedWidgets(
+            pathToParent / self.name,
+            self.child,
+            drawStateIntoWidget(newState)
+          ).map(newChild =>
+            self.copy(stateBehaviour = newState, child = newChild)
+          )
         ).some
       case (None, None) =>
         None
