@@ -96,7 +96,7 @@ def weightedLinearContainer[
             ),
       ),
     PlacementEffect.getBounds,
-    PlacementEffect.setBounds,
+    (rect, effect) => PlacementEffect.withBounds(effect, _ => rect),
     _.minus(_),
     (bounds, weight) => bounds * weight,
   )

@@ -65,8 +65,9 @@ def weightedLinearContainer[
       (PlacedWidget, Measured[Rect[MeasurementUnit], Rect[BoundUnit], (Option[Float], Point3d[MeasurementUnit])])
     ]
   ],
-  getBounds: Get[PlacementEffect, Rect[BoundUnit]],
-  setBounds: Set[PlacementEffect, Rect[BoundUnit]],
+  getBounds: PlacementEffect[Rect[BoundUnit]],
+  withBounds: (Rect[BoundUnit], PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], PlacedWidget]]) =>
+    PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], PlacedWidget]],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   weightedBounds : (BoundUnit, Float) => BoundUnit,
 ) : WeightedLinearContainer[PlacementEffect[Sized[Rect[MeasurementUnit], PlacedWidget]], PlacementEffect, List, BoundUnit, MeasurementUnit, Axis] =
@@ -76,7 +77,7 @@ def weightedLinearContainer[
       ContainerStrategy.combine(
         measurementStrategy = MeasurementStrategy.weightedLinearMeasurementStrategy(
           getBounds,
-          setBounds,
+          withBounds,
           cut,
           weightedBounds,
           mainAxis

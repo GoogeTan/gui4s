@@ -88,8 +88,9 @@ def linearContainer[
       Measured[Rect[MeasurementUnit], Rect[BoundUnit], (Widget, Point3d[MeasurementUnit])]
     ]
   ],
-  getBounds: Get[PlacementEffect, Rect[BoundUnit]],
-  setBounds: Set[PlacementEffect, Rect[BoundUnit]],
+  getBounds: PlacementEffect[Rect[BoundUnit]],
+  withBounds: (Rect[BoundUnit], PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], Widget]]) =>
+    PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], Widget]],
   cut : (BoundUnit, MeasurementUnit) => BoundUnit,
   widgetAsFree : AsFreeF[Widget, PlacementEffect * Sized[Rect[MeasurementUnit], *]]
 ) : LinearContainer[PlacementEffect[Sized[Rect[MeasurementUnit], Widget]], PlacementEffect, Collection, MeasurementUnit, BoundUnit, Axis] =
@@ -104,7 +105,7 @@ def linearContainer[
           Measured[Rect[MeasurementUnit], Rect[BoundUnit], Widget]
         ](
           getBounds,
-          setBounds,
+          withBounds,
           (bounds, item) => bounds.mapAlong(mainAxis, cut(_, item.size.along(mainAxis))) 
         ),
         placementStrategy = PlacementStrategy.Zip(

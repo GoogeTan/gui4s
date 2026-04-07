@@ -5,8 +5,8 @@ import cats.Applicative
 import cats.Foldable
 import cats.Monad
 import cats.Traverse
-import cats.syntax.all._
-
+import cats.data.StateT
+import cats.syntax.all.*
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Rect
 
@@ -21,18 +21,18 @@ object MeasurementStrategy:
     Item,
   ](
     getBounds : Measure[Bounds],
-    setBounds : Bounds => Measure[Unit],
+    withBounds : (Bounds, Measure[Item]) => Measure[Item],
     updateBoundsAccordingToItem : (Bounds, Item) => Bounds,
   ) : MeasurementStrategy[Measure, Collection, Measure[Item], Item] =
     items =>
-      for
-        initialBounds <- getBounds
-        res <- measureItemsDirty[Measure, Collection, Item](
-          item => update(getBounds, setBounds)(updateBoundsAccordingToItem(_, item)),
+      getBounds.flatMap(
+        measureItems(
           items,
+          _,
+          updateBoundsAccordingToItem,
+          withBounds
         )
-        _ <- setBounds(initialBounds)
-      yield res
+      )
   end linearMeasurementStrategy
 
   def independentMeasurementStrategy[
@@ -65,7 +65,7 @@ object MeasurementStrategy:
     Item
   ](
     getBounds: Measure[Rect[BoundUnit]],
-    setBounds: Rect[BoundUnit] => Measure[Unit],
+    withBounds: (Rect[BoundUnit], Measure[Measured[Rect[MeasurementUnit], Rect[BoundUnit], Item]]) => Measure[Measured[Rect[MeasurementUnit], Rect[BoundUnit], Item]],
     cut : (BoundUnit, MeasurementUnit) => BoundUnit,
     weightedSize : (BoundUnit, Float) => BoundUnit,
     mainAxis : Axis,
@@ -85,7 +85,7 @@ object MeasurementStrategy:
           Measured[Rect[MeasurementUnit], Rect[BoundUnit], Item]
         ](
           getBounds = getBounds,
-          setBounds = setBounds,
+          withBounds = withBounds,
           updateBoundsAccordingToItem = (bounds, item) => bounds.mapAlong(mainAxis, cut(_, item.size.along(mainAxis))),
         )(rigidChildren)
 
@@ -95,7 +95,7 @@ object MeasurementStrategy:
 
         sizedWeightedItems <- measureWeighted[
           Measure, List, Measured[Rect[MeasurementUnit], Rect[BoundUnit], Item], BoundUnit, MeasurementUnit
-        ](getBounds, setBounds, weightedSize, mainAxis, remainingSize)(weightedChildren)
+        ](getBounds, withBounds, weightedSize, mainAxis, remainingSize)(weightedChildren)
 
         itemsPositions = children.map(_.isRigid)
 
@@ -128,7 +128,7 @@ object MeasurementStrategy:
     MeasurementUnit: Numeric as MUN
   ](
     getBounds: Place[Rect[BoundUnit]],
-    setBounds: Rect[BoundUnit] => Place[Unit],
+    withBounds: (Rect[BoundUnit], Place[Widget]) => Place[Widget],
     weightedSize: (BoundUnit, Float) => BoundUnit,
     mainAxis: Axis,
     remainingSize: BoundUnit,
@@ -143,10 +143,8 @@ object MeasurementStrategy:
         originalBounds <- getBounds
         totalWeight = children.map(_._2).sumAll
         sizedWeightedChildren <- children.traverse((widget, weight) =>
-          setBounds(originalBounds.withLengthAlong(mainAxis, weightedSize(remainingSize, weight / totalWeight)))
-            *> widget
+          withBounds(originalBounds.withLengthAlong(mainAxis, weightedSize(remainingSize, weight / totalWeight)), widget)
         )
-        _ <- setBounds(originalBounds)
       yield sizedWeightedChildren
   end measureWeighted
 
@@ -170,24 +168,28 @@ object MeasurementStrategy:
 
   /**
    * Измеряет размеры виджетов, изменяя количество свободного пространства в соответствии с их размерами.
-   * После своей работы оставляет количество свободного пространства измененным.
    *
    * @param updateBounds Обновляет ограничения на размеры виджета
    */
-  def measureItemsDirty[
+  def measureItems[
     Measure[_] : Monad,
     Collection[_] : Traverse,
-    Item
+    Item,
+    Bounds,
   ](
-    updateBounds: Item => Measure[Unit],
-    items: Collection[Measure[Item]]
+    items: Collection[Measure[Item]],
+    initialBounds : Bounds,
+    updateBounds: (Bounds, Item) => Bounds,
+    withBounds : (Bounds, Measure[Item]) => Measure[Item]
   ): Measure[Collection[Item]] =
-    items.traverse(current =>
-      for
-        currentItem <- current
-        _ <- updateBounds(currentItem)
-      yield currentItem
-    )
-  end measureItemsDirty
+    items.traverse[StateT[Measure, Bounds, *], Item](
+      freeItem =>
+        for
+          bounds <- StateT.get[Measure, Bounds]
+          item <- StateT.liftF(withBounds(bounds, freeItem))
+          _ <- StateT.set(updateBounds(bounds, item))
+        yield item  
+    ).runA(initialBounds)
+  end measureItems
 end MeasurementStrategy
 

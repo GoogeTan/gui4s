@@ -29,7 +29,7 @@ def linearContainerWidget[
   ](
     container = containerWidget[Collection, Event],
     getBounds = PlacementEffect.getBounds,
-    setBounds = PlacementEffect.setBounds,
+    withBounds = (newBounds, effect) => PlacementEffect.withBounds(effect, _ => newBounds),
     cut = _.minus(_),
     widgetAsFree = widgetAsFree
   )
