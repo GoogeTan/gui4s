@@ -58,11 +58,14 @@ def launchedEffect[
                   widgetHandlesEvent
                 )(_.map(_.map(addNameToPath(name)(_))))
               ),
-          valueMergesWithOldState = launchedEffectMergesWithOldState(using KT, PF)(
-            keyTypeError, 
-            widgetMergesWithOldState,
-            widgetAsFree
-          ),
+          valueMergesWithOldState =
+            (self, path, states) =>
+              launchedEffectMergesWithOldState(using KT, PF)(
+                keyTypeError,
+                widgetMergesWithOldState,
+                widgetAsFree
+              )(self, path, states)
+                .map(addNameToPath(name)(_)),
           valueReactsOnRecomposition = reactsOnRecompositionIsContravariantMonoidal.product(
             launchedEffectReactsOnRecomposition(M.empty, keysTypeMismatchError),
             widgetReactsOnRecomposition
