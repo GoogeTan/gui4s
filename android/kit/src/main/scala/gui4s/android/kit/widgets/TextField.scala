@@ -55,7 +55,7 @@ def basicTextFieldBody[
       AndroidWidget[Event],
       Sized[Rect[Float], Paragraph]
     ](
-      (state, callback) => Monad[PlacementEffectC].flatMap(placeText(state))(callback),
+      (state, callback) => Monad[PlacementEffect].flatMap(placeText(state))(callback),
       systemEventCatcher,
       text =>
         PlacementEffect.currentPath.flatMap(path => drawText(path, state, text))

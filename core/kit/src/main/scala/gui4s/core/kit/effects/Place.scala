@@ -10,7 +10,6 @@ import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
 type Place[IO[_], Bounds, Size, Value] = PlacementEffect[IO, Bounds, Sized[Size, Value]]
-type PlaceC[IO[_], Bounds, Size] = Place[IO, Bounds, Size, *]
 
 object Place:
   def typecheck[
@@ -27,8 +26,8 @@ object Place:
   end typecheck
 
   def addNameToPath[IO[_] : Monad, Bounds, MeasurementUnit, Error](name : String)
-    : PlaceC[IO, Bounds, MeasurementUnit] ~> PlaceC[IO, Bounds, MeasurementUnit] =
-    new (PlaceC[IO, Bounds, MeasurementUnit] ~> PlaceC[IO, Bounds, MeasurementUnit]):
+    : Place[IO, Bounds, MeasurementUnit, *] ~> Place[IO, Bounds, MeasurementUnit, *] =
+    new (Place[IO, Bounds, MeasurementUnit, *] ~> Place[IO, Bounds, MeasurementUnit, *]):
       override def apply[A](p: Place[IO, Bounds, MeasurementUnit, A]) : Place[IO, Bounds, MeasurementUnit, A] =
         PlacementEffect.addNameToPath[IO, Bounds](name)[Sized[MeasurementUnit, A]](p)
       end apply

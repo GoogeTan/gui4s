@@ -13,9 +13,9 @@ import gui4s.core.layout.{OneElementPlacementStrategy as GenericOneElementPlacem
 import gui4s.android.kit.effects.PlacementEffect.given
 
 type LinearContainerPlacementStrategy[Collection[_]]
-    = GenericPlacementStrategy[PlacementEffectC, Float, Float, InfinityOr[Float], Collection, Float]
+    = GenericPlacementStrategy[PlacementEffect, Float, Float, InfinityOr[Float], Collection, Float]
 type OneElementLinearContainerPlacementStrategy
-    = GenericOneElementPlacementStrategy[PlacementEffectC, Float, Float, InfinityOr[Float], Float]
+    = GenericOneElementPlacementStrategy[PlacementEffect, Float, Float, InfinityOr[Float], Float]
 
 object LinearContainerPlacementStrategy:
   def Begin[

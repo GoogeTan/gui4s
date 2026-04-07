@@ -70,7 +70,7 @@ def animationWidget[
       AndroidWidget,
       Duration,
       Update[Event, *],
-      PlaceC,
+      Place,
       * => RecompositionReaction,
       AnimatedValue,
       Event

@@ -84,7 +84,7 @@ trait Gui4sActivity extends Activity:
     )
   end getConfiguration
 
-  final def runPlaceK : PlaceC ~> IO =
+  final def runPlaceK : Place ~> IO =
     Place.run(Path(Nil), getConfiguration)
   end runPlaceK
 

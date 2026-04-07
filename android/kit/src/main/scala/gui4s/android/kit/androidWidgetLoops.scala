@@ -22,7 +22,7 @@ def androidWidgetLoops[
   Event,
 ](
   runUpdate : [T] => (Update[Event, T], List[DownEvent]) => IO[Either[ExitCode, T]],
-  runPlace : PlaceC ~> IO,
+  runPlace : Place ~> IO,
 ) : UpdateLoop[IO, AndroidPlacedWidget[Event], List[DownEvent], ExitCode] =
   updateLoop[IO, AndroidPlacedWidget[Event], List[DownEvent], ExitCode](
     (widget, event) =>

@@ -11,7 +11,7 @@ def drawOnlyWidget[Event](
 ) : AndroidWidget[Event] =
   gui4s.desktop.widget.library.drawOnlyWidget[
       UpdateC[Event],
-      PlaceC,
+      Place,
       Draw,
       RecompositionReaction,
   ](
@@ -25,7 +25,7 @@ def constSizedDrawOnlyWidget[Event](
 ) : AndroidWidget[Event] =
   gui4s.desktop.widget.library.constanctSizeDrawOnlyWidget[
       UpdateC[Event],
-      PlacementEffectC,
+      PlacementEffect,
       Situated,
       Draw,
       RecompositionReaction,

@@ -31,13 +31,13 @@ def statefulWidget: StatefulWidget[
   AndroidWidget,
   Update,
   * => RecompositionReaction,
-  MergeStates[PlaceC, *]
+  MergeStates[Place, *]
 ] =
   new StatefulWidget[
     AndroidWidget,
     Update,
     * => RecompositionReaction,
-    MergeStates[PlaceC, *]
+    MergeStates[Place, *]
   ]:
     override def apply[State: {Equiv, Typeable}, Event, ChildEvent](
                                                                       name: String,
@@ -84,12 +84,12 @@ def statefulWidget: StatefulWidget[
                                                             eventHandler: HandlesEventF[State, List[ChildEvent], Update[Event, *] * Option],
                                                             body: State => AndroidWidget[ChildEvent],
                                                             destructor: State => RecompositionReaction,
-                                                            mergeStates: MergeStates[PlaceC, State]
+                                                            mergeStates: MergeStates[Place, State]
                                                           ): AndroidWidget[Event] =
       library.stateful[
         UpdateC[Event],
         UpdateC[ChildEvent],
-        PlaceC,
+        Place,
         Draw,
         RecompositionReaction,
         State,

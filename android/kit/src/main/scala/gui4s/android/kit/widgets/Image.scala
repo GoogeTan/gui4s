@@ -19,7 +19,7 @@ def image[
 ): AndroidWidget[Event] =
   drawOnlyWidget[
     UpdateC[Event],
-    PlaceC,
+    Place,
     Draw,
     RecompositionReaction,
   ](

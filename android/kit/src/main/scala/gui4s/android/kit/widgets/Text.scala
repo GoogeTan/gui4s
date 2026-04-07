@@ -33,7 +33,7 @@ def textWidget(
   [Event] => (text : String, style : SkijaTextStyle) =>
     genericText[
       UpdateC[Event],
-      PlaceC,
+      Place,
       Draw,
       RecompositionReaction,
       SkijaPlacedText

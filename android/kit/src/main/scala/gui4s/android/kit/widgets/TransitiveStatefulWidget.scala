@@ -9,7 +9,7 @@ def transitiveStatefulWidget: TransitiveStatefulWidget[
   AndroidWidget[*],
   Update[*, *],
   * => RecompositionReaction,
-  MergeStates[PlaceC, *]
+  MergeStates[Place, *]
 ] =
   TransitiveStatefulWidgetFromStatefulWidget(
     statefulWidget,

@@ -26,7 +26,6 @@ import gui4s.android.kit.effects.Situated.given
 import org.jetbrains.skia.shaper.Shaper
 
 type Place[T] = GenericPlace[IO, AndroidConfiguration[Bounds], Rect[Float], T]
-type PlaceC = [Value] =>> Place[Value]
 
 object Place:
   def run(path : Path,  bounds : IO[AndroidConfiguration[Bounds]]) : Place ~> IO =

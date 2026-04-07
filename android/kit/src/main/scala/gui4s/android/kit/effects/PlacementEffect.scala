@@ -20,14 +20,13 @@ import gui4s.core.widget.Path
 import scala.util.NotGiven
 
 type PlacementEffect[T] = GenericPlacementEffect[IO, AndroidConfiguration[Bounds], T]
-type PlacementEffectC = [Value] =>> PlacementEffect[Value]
 
 object PlacementEffect:
-  given monadThrowInstance : MonadThrow[PlacementEffectC] =
+  given monadThrowInstance : MonadThrow[PlacementEffect] =
     GenericPlacementEffect.monadThrowInstance
   end monadThrowInstance
 
-  def liftK : IO ~> PlacementEffectC =
+  def liftK : IO ~> PlacementEffect =
     GenericPlacementEffect.liftK
   end liftK
 
@@ -45,11 +44,11 @@ object PlacementEffect:
     )
   end liftFunction
 
-  def getBounds : Get[PlacementEffectC, Bounds] =
+  def getBounds : Get[PlacementEffect, Bounds] =
     GenericPlacementEffect.getBounds[IO, AndroidConfiguration[Bounds]].map(_.bounds)
   end getBounds
 
-  def setBounds : Set[PlacementEffectC, Bounds] =
+  def setBounds : Set[PlacementEffect, Bounds] =
     newBounds =>
       GenericPlacementEffect
         .getBounds[IO, AndroidConfiguration[Bounds]]
@@ -75,11 +74,11 @@ object PlacementEffect:
     GenericPlacementEffect.liftF(ME.raiseError(error))
   end raiseError
 
-  def run(path : Path, bounds: IO[AndroidConfiguration[Bounds]]): PlacementEffectC ~> IO =
+  def run(path : Path, bounds: IO[AndroidConfiguration[Bounds]]): PlacementEffect ~> IO =
     GenericPlacementEffect.run[IO, AndroidConfiguration[Bounds]](path, bounds)
   end run
 
-  def addNameToPath(name: String): PlacementEffectC ~> PlacementEffectC =
+  def addNameToPath(name: String): PlacementEffect ~> PlacementEffect =
     GenericPlacementEffect.addNameToPath(name)
   end addNameToPath
 

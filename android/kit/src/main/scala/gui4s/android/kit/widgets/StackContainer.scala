@@ -23,7 +23,7 @@ def stackContainer[Event](
   given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.height))
   gui4s.core.widget.library.stackContainer[
     AndroidPlacedWidget[Event],
-    PlacementEffectC,
+    PlacementEffect,
     Rect[Float],
     Bounds,
     Float,

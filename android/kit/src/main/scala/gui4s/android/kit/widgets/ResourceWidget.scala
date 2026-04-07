@@ -41,7 +41,7 @@ object ResourceWidget:
         body => genericResourceWidget[
           AndroidWidget,
           Update[*, *],
-          PlaceC,
+          Place,
           RecompositionReaction,
           IO,
           Event

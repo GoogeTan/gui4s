@@ -13,7 +13,7 @@ import gui4s.core.widget.library.decorator.Decorator
 
 def minSizeWidget[Event](
   minSize : Rect[Float],
-  placeIfSmaller : OneElementPlacementStrategy[PlacementEffectC, Rect[Float], Rect[Float], Bounds, Point2d[Float]],
+  placeIfSmaller : OneElementPlacementStrategy[PlacementEffect, Rect[Float], Rect[Float], Bounds, Point2d[Float]],
 ) : Decorator[AndroidWidget[Event]] =
   type Res = Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
   type Free = PlacementEffect[Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]]]
@@ -21,7 +21,7 @@ def minSizeWidget[Event](
     AndroidWidget[Event],
     AndroidPlacedWidget[Event],
     Measured[Rect[Float], Bounds, AndroidPlacedWidget[Event]],
-    PlacementEffectC,
+    PlacementEffect,
     Rect[Float],
     Bounds,
     Point3d[Float],
@@ -39,7 +39,7 @@ def minSizeWidget[Event](
             )
           }
       else
-        Sized[Rect[Float], Point3d[Float]](Point3d.Zero[Float], minSize).pure[PlacementEffectC],
+        Sized[Rect[Float], Point3d[Float]](Point3d.Zero[Float], minSize).pure[PlacementEffect],
     makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
   )(minSize.map(new InfinityOr(_)))
@@ -51,5 +51,5 @@ def minSizeWidget[Event](
                           placeVertically : OneElementLinearContainerPlacementStrategy,
                         )
 : Decorator[AndroidWidget[Event]] =
-    minSizeWidget[Event](minSize, PlacementStrategy.Zip[PlacementEffectC, Float, InfinityOr[Float], Id, Float](placeHorizontally, placeVertically))
+    minSizeWidget[Event](minSize, PlacementStrategy.Zip[PlacementEffect, Float, InfinityOr[Float], Id, Float](placeHorizontally, placeVertically))
 end minSizeWidget
