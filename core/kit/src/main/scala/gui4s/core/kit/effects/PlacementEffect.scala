@@ -62,15 +62,8 @@ object PlacementEffect:
     ReaderTransformer.ask_
   end currentPath
 
-  def addNameToPath[IO[_] : Monad, Bounds](name : String)
-    : PlacementEffectC[IO, Bounds] ~> PlacementEffectC[IO, Bounds] =
-      new ~>[PlacementEffectC[IO, Bounds], PlacementEffectC[IO, Bounds]]:
-        override def apply[A](fa: PlacementEffectC[IO, Bounds][A]): PlacementEffectC[IO, Bounds][A] =
-          currentPath[IO, Bounds].map(path => path / name).flatMap(
-              path => ReaderTransformer.withValue_(fa, path)
-          )
-        end apply
-      end new
+  def addNameToPath[IO[_] : Monad, Bounds](name : String): PlacementEffectC[IO, Bounds] ~> PlacementEffectC[IO, Bounds] =
+      ReaderTransformer.withValueK_[StateTransformer[Bounds][IO, *], Path, Path](_ / name)
   end addNameToPath
 end PlacementEffect
 

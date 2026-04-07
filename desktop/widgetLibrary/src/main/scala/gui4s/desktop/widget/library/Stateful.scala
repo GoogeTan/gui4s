@@ -69,6 +69,7 @@ def stateful[
   ],
   typeCheckState : [T] => (Any, StatefulState[State] => Option[Place[T]]) => Option[Place[T]],
   liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])],
+  addNameToUpdatePath : String => Update ~> Update,
   addNameToPlacePath : String => Place ~> Place,
 )(
   name : String,
@@ -135,7 +136,8 @@ def stateful[
             _.map(_.map(addNameToPlacePath(name)[ChildWidget](_)))
           ).andThen(liftUpdate(_)),
         widgetsAreMergable = widgetsAreMergeable,
-        addNameToPlacePath = addNameToPlacePath
+        addNameToPlacePath = addNameToPlacePath,
+        addNameToUpdatePath = addNameToUpdatePath,
       ),
       valueMergesWithOldState = statefulMergesWithOldStates[
         Place,

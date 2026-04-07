@@ -52,7 +52,7 @@ def destructibleResourceWidget[
 ](
   transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, [State] =>> State => Destruction, Nothing],
   launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
-  doubleAllocError : [T] => Path => Update[Event, T],
+  doubleAllocError : [T] => () => Update[Event, T],
   emptyDesctructor : Destruction
 ) : ResourceWidget[Widget[Event], [T] =>> IO[(T, Destruction)]] =
   [Value : Typeable] => (name, resource) =>
@@ -68,7 +68,7 @@ def destructibleResourceWidget[
           case (None, _, event :: Nil) =>
             updateBiMonad[Event]().pure(Some(event))
           case (state, _, Nil) => updateBiMonad[Event]().pure(state)
-          case (_, path, _) => doubleAllocError(path)
+          case (_, _, _) => doubleAllocError()
         },
         body = state =>
           launchedEvent[(Value, Destruction)](
@@ -101,7 +101,7 @@ def initializeResourceWidget[
 ](
   transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
   launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
-  doubleAllocError : [T] => Path => Update[Event, T],
+  doubleAllocError : [T] => () => Update[Event, T],
 ) : ResourceWidget[Widget[Event], IO] =
   [Value : Typeable] => (name, resource) =>
     (widget : Option[Value] => Widget[Event]) =>
@@ -115,7 +115,7 @@ def initializeResourceWidget[
         eventHandler = {
           case (None, _, event :: Nil) =>
             updateBiMonad[Event]().pure(Some(event))
-          case (_, path, _) => doubleAllocError(path)
+          case (_, _, _) => doubleAllocError()
         },
         body = state =>
           launchedEvent[Value](

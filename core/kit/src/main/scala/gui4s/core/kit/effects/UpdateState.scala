@@ -2,27 +2,43 @@ package gui4s.core.kit
 package effects
 
 import cats.Monoid
+import gui4s.core.widget.Path
 
-final case class UpdateState[EnvironmentalEvents, Point, Clip](
-  environmentalEvents : EnvironmentalEvents,
-  widgetCoordinates : Point, 
+final case class UpdateContext[Point, Clip](
+  widgetCornerCoordinates : Point,
+  path : Path,
   clip: Clip
 ):
-  def withCoordinates(point: Point): UpdateState[EnvironmentalEvents, Point, Clip] =
-    copy(widgetCoordinates = point)
+  def withCoordinates(point: Point): UpdateContext[Point, Clip] =
+    copy(widgetCornerCoordinates = point)
   end withCoordinates
 
-  def withClip(path : Clip) : UpdateState[EnvironmentalEvents, Point, Clip] =
+  def withClip(path : Clip) : UpdateContext[Point, Clip] =
     copy(clip = path)
   end withClip
   
-  def withEnvironmentalEvents(events : EnvironmentalEvents) : UpdateState[EnvironmentalEvents, Point, Clip] =
+  def addNameToThePath(name: String) : UpdateContext[Point, Clip] =
+    copy(path = path / name)
+  end addNameToThePath  
+end UpdateContext
+
+object UpdateContext:
+  def empty[Point : Monoid as N, Clip : Monoid as ClipM] : UpdateContext[Point, Clip] =
+    UpdateContext(N.empty, Path(Nil), ClipM.empty)
+  end empty
+end UpdateContext
+
+
+final case class UpdateState[EnvironmentalEvents](
+  environmentalEvents : EnvironmentalEvents
+):
+  def withEnvironmentalEvents(events : EnvironmentalEvents) : UpdateState[EnvironmentalEvents] =
     copy(environmentalEvents = events)
   end withEnvironmentalEvents
 end UpdateState
 
 object UpdateState:
-  def empty[EnvironmentalEvents : Monoid as M, Point : Monoid as N, Clip : Monoid as ClipM] : UpdateState[EnvironmentalEvents, Point, Clip] =
-    UpdateState(M.empty, N.empty, ClipM.empty)
+  def empty[EnvironmentalEvents : Monoid as M] : UpdateState[EnvironmentalEvents] =
+    UpdateState(M.empty)
   end empty
 end UpdateState

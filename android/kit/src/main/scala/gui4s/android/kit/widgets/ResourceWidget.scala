@@ -61,7 +61,7 @@ object ResourceWidget:
                 (),
                 task.map(Left(_))
               ),
-          doubleAllocError = [T] => (path : Path) => Update.raiseError(new Exception("Double resource alloc at " + path.toString)),
+          doubleAllocError = [T] => () => Update.raiseError(path => new Exception("Double resource alloc at " + path.toString)),
           emptyDesctructor = RecompositionReaction.empty
         )(name, init.allocated)(body)
       end apply

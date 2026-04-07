@@ -104,6 +104,7 @@ def statefulWidget: StatefulWidget[
         ),
         liftUpdate = Update.catchEvents[ChildEvent, Event],
         addNameToPlacePath = Place.addNameToPath,
+        addNameToUpdatePath = Update.addNameToPath
       )(
         name = name,
         initialState = initialState,

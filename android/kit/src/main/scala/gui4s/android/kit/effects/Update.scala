@@ -2,7 +2,7 @@ package gui4s.android.kit.effects
 
 import catnip.syntax.all.{*, given}
 import catnip.syntax.transformer.{*, given}
-import catnip.transformer.{MonadTransformer, StateTransformer}
+import catnip.transformer.{MonadTransformer, StateTransformer, ReaderTransformer}
 import cats.effect.IO
 import cats.syntax.all.*
 import gui4s.core.geometry.Point3d
@@ -13,15 +13,25 @@ import gui4s.core.widget.Path
 
 import scala.reflect.Typeable
 
+import cats.data.ReaderT
+
 type UpdateTransformer[Event] =
-  (StateTransformer[UpdateState[List[DownEvent], Point3d[Float], Clip]] <> EventsTransformer[List[Event]])
+  (
+    ReaderTransformer[generic_effects.UpdateContext[Point3d[Float], Clip]]
+      <> StateTransformer[UpdateState[List[DownEvent]]]
+      <> EventsTransformer[List[Event]]
+  )
 
 type Update[Event, A] = UpdateTransformer[Event][IO, A]
 type UpdateC[Event] = Update[Event, *]
 
 object Update:
   given mt[Event]: MonadTransformer[UpdateTransformer[Event]] =
-    composedMonadTransformerInstance
+    import catnip.syntax.transformer.{given, *}
+    composedMonadTransformerInstance[
+      ReaderTransformer[generic_effects.UpdateContext[Point3d[Float], Clip]],
+      [IO[_], T] =>> (StateTransformer[UpdateState[List[DownEvent]]] <> EventsTransformer[List[Event]])[IO, T]
+    ]
 
   given biMonadInstance : BiMonad[[A, B] =>> Update[A, B]] =
     [T] => () => mt.monadInstance[IO]
@@ -34,16 +44,16 @@ object Update:
     mt.liftK
   end liftK
 
-  def getState[Event]: Update[Event, UpdateState[List[DownEvent], Point3d[Float], Clip]] =
-    StateTransformer.get_
+  def getState[Event]: Update[Event, UpdateState[List[DownEvent]]] =
+    ReaderT.liftK[ (StateTransformer[UpdateState[List[DownEvent]]] <> EventsTransformer[List[Event]])[IO, *], generic_effects.UpdateContext[Point3d[Float], Clip] ].apply(StateTransformer.get_)
   end getState
 
-  def setState[Event](state: UpdateState[List[DownEvent], Point3d[Float], Clip]): Update[Event, Unit] =
-    StateTransformer.set_(state)
+  def setState[Event](state: UpdateState[List[DownEvent]]): Update[Event, Unit] =
+    ReaderT.liftK[ (StateTransformer[UpdateState[List[DownEvent]]] <> EventsTransformer[List[Event]])[IO, *], generic_effects.UpdateContext[Point3d[Float], Clip] ].apply(StateTransformer.set_(state))
   end setState
 
-  def updateState[Event](f: UpdateState[List[DownEvent], Point3d[Float], Clip] => UpdateState[List[DownEvent], Point3d[Float], Clip]): Update[Event, Unit] =
-    StateTransformer.modify_(f)
+  def updateState[Event](f: UpdateState[List[DownEvent]] => UpdateState[List[DownEvent]]): Update[Event, Unit] =
+    ReaderT.liftK[ (StateTransformer[UpdateState[List[DownEvent]]] <> EventsTransformer[List[Event]])[IO, *], generic_effects.UpdateContext[Point3d[Float], Clip] ].apply(StateTransformer.modify_(f))
   end updateState
 
   def emitEvents[Event](events : List[Event]): Update[Event, Unit] =
@@ -66,38 +76,45 @@ object Update:
     )
   end mapEvents
 
-  def run[Event](initialState : UpdateState[List[DownEvent], Point3d[Float], Clip])
-  : [T] => Update[Event, T] => IO[(List[Event], (UpdateState[List[DownEvent], Point3d[Float], Clip],  T))] =
+  def run[Event](initialContext: generic_effects.UpdateContext[Point3d[Float], Clip], initialState : UpdateState[List[DownEvent]])
+  : [T] => Update[Event, T] => IO[(List[Event], (UpdateState[List[DownEvent]],  T))] =
     [T] => update =>
-      update.run(initialState).run
+      update.run(initialContext).run(initialState).run
   end run
 
-  def raiseError[Event, Value](error : Throwable) : Update[Event, Value] =
+  def raiseError[Event, Value](error : => Throwable) : Update[Event, Value] =
     liftK(IO.raiseError(error))
   end raiseError
 
+  def raiseError[Event, Value](error: Path => Throwable): Update[Event, Value] =
+    currentPath.flatMap(path => raiseError(error(path)))
+  end raiseError
+
   def getCornerCoordinates[Event] : Update[Event, Point3d[Float]] =
-    getState.map(_.widgetCoordinates)
+    ReaderTransformer.ask_.map(_.widgetCornerCoordinates)
   end getCornerCoordinates
 
   def getClip[Event] : Update[Event, Clip] =
-    getState.map(_.clip)
+    ReaderTransformer.ask_.map(_.clip)
   end getClip
 
-  def setClip[Event](clip : Clip) : Update[Event, Unit] =
-    updateState(_.withClip(clip))
-  end setClip
+  def currentPath[Event]: Update[Event, Path] =
+    ReaderTransformer.ask_.map(_.path)
+  end currentPath
+
+  def addNameToPath[Event](name: String): Update[Event, *] ~> Update[Event, *] =
+    ReaderTransformer.withValueK_(_.addNameToThePath(name))
+  end addNameToPath
 
   def withState[Event, Value](
                                original : Update[Event, Value],
-                               f : UpdateState[List[DownEvent], Point3d[Float], Clip] => UpdateState[List[DownEvent], Point3d[Float], Clip]
+                               f : UpdateState[List[DownEvent]] => UpdateState[List[DownEvent]]
                              ) : Update[Event, Value] =
     for
       oldState <- getState
       _ <- setState(f(oldState))
       res <- original
-      newState <- getState
-      _ <- setState(newState.withCoordinates(oldState.widgetCoordinates).withClip(oldState.clip))
+      _ <- setState(oldState)
     yield res
   end withState
 
@@ -109,11 +126,7 @@ object Update:
      original : Update[Event, Value],
      f : Point3d[Float] => Point3d[Float]
    ) : Update[Event, Value] =
-    withState(
-      original,
-      state =>
-        state.withCoordinates(f(state.widgetCoordinates))
-    )
+    ReaderTransformer.withValue_(original, ctx => ctx.withCoordinates(f(ctx.widgetCornerCoordinates)))
   end withCornerCoordinates
 
   def withClip[
@@ -123,11 +136,7 @@ object Update:
      original : Update[Event, Value],
      f : (Clip, Point3d[Float]) => Clip
    ) : Update[Event, Value] =
-    withState(
-      original,
-      state =>
-        state.withClip(f(state.clip, state.widgetCoordinates))
-    )
+    ReaderTransformer.withValue_(original, ctx => ctx.withClip(f(ctx.clip, ctx.widgetCornerCoordinates)))
   end withClip
 
   def updateEnvironmentalEventsM[Event, Result](f: List[DownEvent] => Update[Event, (Result, List[DownEvent])]): Update[Event, Result] =
@@ -179,27 +188,32 @@ object Update:
     }.map(_.flatten)
   end handleUserEvents
 
-  def handleExternalEvents_[Event](f: Any => Update[Event, Boolean], path: Path): Update[Event, Unit] =
-    handleEnvironmentalEvents_(event =>
-      DownEvent.catchExternalEvent(path, event).fold(
-        false.pure[UpdateC[Event]]
-      )(f)
+  def handleExternalEvents_[Event](f: Any => Update[Event, Boolean]): Update[Event, Unit] =
+    currentPath.flatMap(path =>
+      handleEnvironmentalEvents_(event =>
+        DownEvent.catchExternalEvent(path, event).fold(
+          false.pure[UpdateC[Event]]
+        )(f)
+      )
     )
   end handleExternalEvents_
 
-  def handleExternalEvents[Event, Result](f: Any => Update[Event, (Result, Boolean)], path: Path): Update[Event, List[Result]] =
-    handleEnvironmentalEvents(event =>
-      DownEvent.catchExternalEvent(path, event).fold(
-        (Nil, false).pure[UpdateC[Event]]
-      )(value => f(value).map((result, isConsumed) => (List(result), isConsumed)))
-    ).map(_.flatten)
+  def handleExternalEvents[Event, Result](f: Any => Update[Event, (Result, Boolean)]): Update[Event, List[Result]] =
+    currentPath.flatMap(path =>
+      handleEnvironmentalEvents(event =>
+        DownEvent.catchExternalEvent(path, event).fold(
+          (Nil, false).pure[UpdateC[Event]]
+        )(value => f(value).map((result, isConsumed) => (List(result), isConsumed)))
+      ).map(_.flatten)
+    )
   end handleExternalEvents
 
   def runUpdate[Event]: [T] => (Update[Event, T], List[DownEvent]) => IO[Either[ExitCode, T]] =
     [T] => (update, events) =>
-      run[Event](UpdateState.empty[
-        List[DownEvent], Point3d[Float], Clip
-      ].withEnvironmentalEvents(events))(update)
+      run[Event](
+        generic_effects.UpdateContext.empty[Point3d[Float], Clip],
+        UpdateState.empty[List[DownEvent]].withEnvironmentalEvents(events)
+      )(update)
         .map {
           case (_, (_, widget)) => Right(widget)
         }

@@ -49,11 +49,10 @@ object LaunchedEvent:
         Update.handleExternalEvents_(
           valueFound =>
             eventFromAny(valueFound).fold(
-               Update.raiseError[Event, Boolean](new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
+               Update.raiseError[Event, Boolean](path => new Exception("Event type mismatch in launched event at " + path + " with value found: " + valueFound.toString))
             )(
               event => Update.emitEvents[Event](List(event)).as(true)
-            ),
-          path
+            )
         )
     )
   end apply
