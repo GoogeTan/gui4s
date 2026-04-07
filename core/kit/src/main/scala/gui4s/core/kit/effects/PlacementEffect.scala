@@ -12,58 +12,52 @@ import cats.syntax.all._
 
 import gui4s.core.widget.Path
 
-type PlacementEffectMonadTransformer[Bounds] = ReaderTransformer[Path] <> StateTransformer[Bounds]
 
-given[Bounds]: MonadTransformer[PlacementEffectMonadTransformer[Bounds]] =
-  composedMonadTransformerInstance[ReaderTransformer[Path], StateTransformer[Bounds]]
+type PlacementEffectMonadTransformer[Context] = ReaderTransformer[Context]
 
-type PlacementEffect[IO[_], Bounds, Value] = PlacementEffectMonadTransformer[Bounds][IO, Value]
+given[Context]: MonadTransformer[PlacementEffectMonadTransformer[Context]] = summon
 
-type PlacementEffectC[IO[_], Bounds] = PlacementEffect[IO, Bounds, *]
+type PlacementEffect[IO[_], Context, Value] = PlacementEffectMonadTransformer[Context][IO, Value]
+
+type PlacementEffectC[IO[_], Context] = PlacementEffect[IO, Context, *]
 
 object PlacementEffect:
-  given monadThrowInstance[IO[_] : MonadThrow, Bounds] : MonadThrow[PlacementEffectC[IO, Bounds]] =
+  given monadThrowInstance[IO[_] : MonadThrow, Context] : MonadThrow[PlacementEffectC[IO, Context]] =
     summon
 
-  given monadInstance[IO[_] : Monad, Bounds](using NotGiven[MonadThrow[IO]]): Monad[PlacementEffectC[IO, Bounds]] =
+  given monadInstance[IO[_] : Monad, Context](using NotGiven[MonadThrow[IO]]): Monad[PlacementEffectC[IO, Context]] =
     summon
 
-  def liftK[IO[_] : Monad, Bounds] : IO ~> PlacementEffectC[IO, Bounds] =
-    MonadTransformer[PlacementEffectMonadTransformer[Bounds]].liftK
+  def liftK[IO[_] : Monad, Context] : IO ~> PlacementEffectC[IO, Context] =
+    MonadTransformer[PlacementEffectMonadTransformer[Context]].liftK
   end liftK
 
-  def liftF[IO[_] : Monad, Bounds, Value](value : IO[Value]) : PlacementEffect[IO, Bounds, Value] =
+  def liftF[IO[_] : Monad, Context, Value](value : IO[Value]) : PlacementEffect[IO, Context, Value] =
     liftK(value)
   end liftF
 
-  def getBounds[IO[_] : Monad, Bounds]: Get[PlacementEffect[IO, Bounds, *], Bounds] =
-    StateTransformer.get
-  end getBounds
-
-  def setBounds[IO[_] : Monad, Bounds]: Set[PlacementEffect[IO, Bounds, *], Bounds] =
-    StateTransformer.set
-  end setBounds
+  def getContext[IO[_] : Monad, Context]: Get[PlacementEffect[IO, Context, *], Context] =
+    ReaderTransformer.ask_
+  end getContext
   
-  def withBounds[IO[_] : Monad, Bounds, T](original : PlacementEffect[IO, Bounds, T], f : Bounds => Bounds) : PlacementEffect[IO, Bounds, T] =
-    StateTransformer.modifyScoped(original, f)
-  end withBounds
+  def withContext[IO[_] : Monad, C1, C2, T](original : PlacementEffect[IO, C2, T], f : C1 => C2) : PlacementEffect[IO, C1, T] =
+    ReaderTransformer.withValue_(original, f)
+  end withContext
 
-  def run[IO[_] : Monad, Bounds](path : Path, bounds : IO[Bounds]) : PlacementEffectC[IO, Bounds] ~> IO =
+  def withContextK[IO[_] : Monad, C1, C2, T](
+                                               f: C1 => C2
+                                             ): PlacementEffect[IO, C2, *] ~> PlacementEffect[IO, C1, *] =
+    ReaderTransformer.withValueK_(f)
+  end withContextK
+
+  def run[IO[_] : Monad, Context](bounds : IO[Context]) : PlacementEffectC[IO, Context] ~> IO =
     new ~>[
-      PlacementEffectC[IO, Bounds], IO
+      PlacementEffectC[IO, Context], IO
     ]:
-      override def apply[A](fa: PlacementEffectC[IO, Bounds][A]): IO[A] =
-        bounds.flatMap(fa.run(path).runA)
+      override def apply[A](fa: PlacementEffectC[IO, Context][A]): IO[A] =
+        bounds.flatMap(fa.run(_))
       end apply
     end new
   end run
-
-  def currentPath[IO[_] : Monad, Bounds] : PlacementEffect[IO, Bounds, Path] =
-    ReaderTransformer.ask_
-  end currentPath
-
-  def addNameToPath[IO[_] : Monad, Bounds](name : String): PlacementEffectC[IO, Bounds] ~> PlacementEffectC[IO, Bounds] =
-      ReaderTransformer.withValueK_[StateTransformer[Bounds][IO, *], Path, Path](_ / name)
-  end addNameToPath
 end PlacementEffect
 

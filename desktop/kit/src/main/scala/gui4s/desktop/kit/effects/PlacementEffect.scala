@@ -11,7 +11,7 @@ import gui4s.core.kit.effects.{PlacementEffect => GenericPlacementEffect}
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-type PlacementEffect[T] = GenericPlacementEffect[IO, Bounds, T]
+type PlacementEffect[T] = GenericPlacementEffect[IO, (Bounds, Path), T]
 
 object PlacementEffect:
   given monadThrowInstance: MonadThrow[PlacementEffect] =
@@ -36,16 +36,16 @@ object PlacementEffect:
     )
   end liftFunction
 
+  def getContext : PlacementEffect[(Bounds, Path)] =
+    GenericPlacementEffect.getContext
+  end getContext
+
   def getBounds: Get[PlacementEffect, Bounds] =
-    GenericPlacementEffect.getBounds
+    getContext.map(_._1)
   end getBounds
 
-  def setBounds: Set[PlacementEffect, Bounds] =
-    GenericPlacementEffect.setBounds
-  end setBounds
-
   def withBounds[T](original: PlacementEffect[T], f: Bounds => Bounds): PlacementEffect[T] =
-    GenericPlacementEffect.withBounds(original, f)
+    GenericPlacementEffect.withContext(original, (bounds, path) => (f(bounds), path))
   end withBounds
 
   def withBoundsK(f: Bounds => Bounds): PlacementEffect ~> PlacementEffect =
@@ -71,14 +71,14 @@ object PlacementEffect:
   end raiseError
 
   def run(path : Path, bounds: IO[Bounds]): PlacementEffect ~> IO =
-    GenericPlacementEffect.run(path, bounds)
+    GenericPlacementEffect.run(bounds.map((_, path)))
   end run
 
   def addNameToPath(name: String): PlacementEffect ~> PlacementEffect =
-    GenericPlacementEffect.addNameToPath(name)
+    GenericPlacementEffect.withContextK((bounds, path) => (bounds, path / name))
   end addNameToPath
 
-  def currentPath: PlacementEffect[Path]  =
-    GenericPlacementEffect.currentPath
+  def currentPath: PlacementEffect[Path] =
+    getContext.map(_._2)
   end currentPath
 end PlacementEffect

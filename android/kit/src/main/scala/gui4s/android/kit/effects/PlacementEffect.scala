@@ -1,28 +1,19 @@
 package gui4s.android.kit
 package effects
 
-import catnip.{Get, Set}
+import catnip.Get
 import cats.*
-import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
-import gui4s.core.layout.Sized
-import gui4s.core.widget.Path
-import gui4s.core.geometry.Rect
-
-import scala.util.NotGiven
-
 import cats.effect.IO
-import catnip.{Get, Set}
-import cats.*
+import gui4s.core.geometry.Rect
+import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
-import scala.util.NotGiven
-
-type PlacementEffect[T] = GenericPlacementEffect[IO, AndroidConfiguration[Bounds], T]
+type PlacementEffect[T] = GenericPlacementEffect[IO, (AndroidConfiguration[Bounds], Path), T]
 
 object PlacementEffect:
-  given monadThrowInstance : MonadThrow[PlacementEffect] =
+  given monadThrowInstance: MonadThrow[PlacementEffect] =
     GenericPlacementEffect.monadThrowInstance
   end monadThrowInstance
 
@@ -43,46 +34,50 @@ object PlacementEffect:
       bounds => liftF(value(bounds))
     )
   end liftFunction
+  
+  def getContext : PlacementEffect[(AndroidConfiguration[Bounds], Path)] =
+    GenericPlacementEffect.getContext
+  end getContext
 
-  def getBounds : Get[PlacementEffect, Bounds] =
-    GenericPlacementEffect.getBounds[IO, AndroidConfiguration[Bounds]].map(_.bounds)
+  def getBounds: Get[PlacementEffect, Bounds] =
+    getContext.map(_._1.bounds)
   end getBounds
 
-  def setBounds : Set[PlacementEffect, Bounds] =
-    newBounds =>
-      GenericPlacementEffect
-        .getBounds[IO, AndroidConfiguration[Bounds]]
-        .flatMap(configuration =>
-          GenericPlacementEffect.setBounds[IO, AndroidConfiguration[Bounds]](
-            configuration.withBounds(newBounds)
-          )
-        )
-  end setBounds
-
   def withBounds[T](original: PlacementEffect[T], f: Bounds => Bounds): PlacementEffect[T] =
-    GenericPlacementEffect.withBounds(original, _.withTransformedBounds(f))
+    GenericPlacementEffect.withContext(original, (bounds, path) => (bounds.withTransformedBounds(f), path))
   end withBounds
 
-  def withBoundsK(f: Bounds => Bounds): PlacementEffect[*] ~> PlacementEffect[*] =
-    new (PlacementEffect[*] ~> PlacementEffect[*]) {
+  def withBoundsK(f: Bounds => Bounds): PlacementEffect ~> PlacementEffect =
+    new (PlacementEffect ~> PlacementEffect) {
       def apply[A](original: PlacementEffect[A]): PlacementEffect[A] =
         withBounds(original, f)
     }
   end withBoundsK
 
+  def withBoundsKF(f: Bounds => PlacementEffect[Bounds]): PlacementEffect ~> PlacementEffect =
+    new(PlacementEffect ~> PlacementEffect) {
+      def apply[A](original: PlacementEffect[A]): PlacementEffect[A] =
+        for
+          bounds <- getBounds
+          newBounds <- f(bounds)
+          res <- withBounds(original, _ => newBounds)
+        yield res
+    }
+  end withBoundsKF
+
   def raiseError[Error, Value](error: => Error)(using ME : MonadError[IO, Error]): PlacementEffect[Value] =
     GenericPlacementEffect.liftF(ME.raiseError(error))
   end raiseError
-
+  
   def run(path : Path, bounds: IO[AndroidConfiguration[Bounds]]): PlacementEffect ~> IO =
-    GenericPlacementEffect.run[IO, AndroidConfiguration[Bounds]](path, bounds)
+    GenericPlacementEffect.run(bounds.map((_, path)))
   end run
-
+  
   def addNameToPath(name: String): PlacementEffect ~> PlacementEffect =
-    GenericPlacementEffect.addNameToPath(name)
+    GenericPlacementEffect.withContextK((bounds, path) => (bounds, path / name))
   end addNameToPath
 
-  def currentPath : PlacementEffect[Path]  =
-    GenericPlacementEffect.currentPath
+  def currentPath: PlacementEffect[Path] =
+    getContext.map(_._2)
   end currentPath
 end PlacementEffect
