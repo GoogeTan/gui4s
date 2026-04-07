@@ -26,7 +26,7 @@ object PlacementEffect:
     GenericPlacementEffect.monadThrowInstance
   end monadThrowInstance
 
-  def liftK : IO ~> PlacementEffect =
+  def liftK: IO ~> PlacementEffect =
     GenericPlacementEffect.liftK
   end liftK
 

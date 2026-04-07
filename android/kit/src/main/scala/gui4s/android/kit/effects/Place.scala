@@ -55,8 +55,18 @@ object Place:
     )
   end sizeText
 
-  def typecheck[TypeToCheck : Typeable](error : (Any, Path) => Throwable) : [Res] => (Any, Path, TypeToCheck => Place[Res]) => Place[Res] =
-    GenericPlace.typecheck[PlacementEffect, Situated, Throwable, TypeToCheck](error)
+  def typecheck[TypeToCheck : Typeable](error : (Any, Path) => Throwable) : [Res] => (Any, TypeToCheck => Option[Place[Res]]) => Option[Place[Res]] =
+    [Res] => (valueToCheck, callback) =>
+      valueToCheck match
+        case v : TypeToCheck =>
+          callback(v)
+        case valueFound =>
+          Some(
+            PlacementEffect.currentPath.flatMap(path =>
+              PlacementEffect.raiseError(error(valueFound, path))
+            )
+          )
+      end match
   end typecheck
 
   given functorInstance : Functor[Place] =

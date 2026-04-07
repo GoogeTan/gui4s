@@ -99,16 +99,9 @@ def statefulWidget: StatefulWidget[
           widgetMergesWithOldState[UpdateC[ChildEvent], Place, Draw, RecompositionReaction],
           widgetHasInnerStates[UpdateC[ChildEvent], Place, Draw, RecompositionReaction]
         ),
-        typeCheckState = [T] => (valueToTypeCheck, path, consumer) =>
-          valueToTypeCheck match
-            case s : StatefulState[State] =>
-              consumer(s)
-            case _ =>
-              Some(
-                Place.raiseError[Throwable, T](
-                  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
-                )
-              ),
+        typeCheckState = Place.typecheck[StatefulState[State]](
+          (valueToTypeCheck, path) =>  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
+        ),
         liftUpdate = Update.catchEvents[ChildEvent, Event],
         addNameToPath = Place.addNameToPath,
       )(

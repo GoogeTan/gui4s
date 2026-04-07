@@ -11,8 +11,8 @@ def statefulMergesWithOldStates[
   SavedState,
   RecompositionReaction
 ](
-   typeCheckState: [T] => (Any, Path, SavedState => Option[Place[T]]) =>  Option[Place[T]],
    mergeStates : (Path, SavedState, WidgetState) => Option[Place[WidgetState]],
+   typeCheckState: [T] => (Any, SavedState => Option[Place[T]]) =>  Option[Place[T]],
    stateName : WidgetState => String,
    widgetStateAsFree : AsFreeF[WidgetState, Place]
 ) : MergesWithOldStates[
@@ -26,7 +26,6 @@ def statefulMergesWithOldStates[
     )(oldState =>
       typeCheckState(
         oldState.state,//TODO проверить, что происходит, если раньше состояния не было.
-        path,
         mergeStates(path, _, self)
       )
     )
