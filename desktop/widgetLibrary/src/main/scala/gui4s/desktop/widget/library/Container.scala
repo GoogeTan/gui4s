@@ -138,8 +138,8 @@ def container[
 ) : Place[Widget[Update, Place, Draw, RecompositionReaction]] =
   container(
     positionedChildHandlesEvent = positionedChildHandlesEvent,
-    positionedMergesWithOldStates  = (positionedChild, pathToParent, oldStates) =>
-      widgetMergesWithOldState(unplaceWidget(positionedChild), pathToParent, oldStates),
+    positionedMergesWithOldStates  = (positionedChild, oldStates) =>
+      widgetMergesWithOldState(unplaceWidget(positionedChild), oldStates),
     positionedReactsOnRecomposition  = (positionedChild, pathToParent, states) =>
       widgetReactsOnRecomposition(unplaceWidget(positionedChild), pathToParent, states),
     positionedHasInnerStates  = positionedChild =>

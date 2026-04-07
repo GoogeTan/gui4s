@@ -149,13 +149,12 @@ def stateful[
         RecompositionReaction
       ](
         typeCheckState = typeCheckState,
-        mergeStates = (path, savedState, newState) =>
+        mergeStates = (savedState, newState) =>
           mergeStates(
             savedState,
             newState.stateBehaviour.state,
             newStState =>
               widgetsAreMergeable.mergeUpdatedAndRerenderedWidgets(
-                path,
                 widgetAsFree(newState.child),
                 render(newStState.currentState)
               ).map(

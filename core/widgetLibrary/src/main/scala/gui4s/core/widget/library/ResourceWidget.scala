@@ -1,14 +1,10 @@
 package gui4s.core.widget.library
 
-import scala.reflect.Typeable
-
 import catnip.BiMonad
 import cats.Functor
-import cats.data._
+import gui4s.core.widget.library.{TransitiveStatefulWidget, WithContext}
 
-import gui4s.core.widget.Path
-import gui4s.core.widget.library.TransitiveStatefulWidget
-import gui4s.core.widget.library.WithContext
+import scala.reflect.Typeable
 
 /**
  * Тип виджета, позволяющего безопасно создавать ресурсы.
@@ -65,10 +61,10 @@ def destructibleResourceWidget[
         name = name,
         initialState = None,
         eventHandler = {
-          case (None, _, event :: Nil) =>
+          case (None, event :: Nil) =>
             updateBiMonad[Event]().pure(Some(event))
-          case (state, _, Nil) => updateBiMonad[Event]().pure(state)
-          case (_, _, _) => doubleAllocError()
+          case (state, Nil) => updateBiMonad[Event]().pure(state)
+          case (_, _) => doubleAllocError()
         },
         body = state =>
           launchedEvent[(Value, Destruction)](
@@ -113,9 +109,9 @@ def initializeResourceWidget[
         name = name,
         initialState = None,
         eventHandler = {
-          case (None, _, event :: Nil) =>
+          case (None, event :: Nil) =>
             updateBiMonad[Event]().pure(Some(event))
-          case (_, _, _) => doubleAllocError()
+          case (_, _) => doubleAllocError()
         },
         body = state =>
           launchedEvent[Value](

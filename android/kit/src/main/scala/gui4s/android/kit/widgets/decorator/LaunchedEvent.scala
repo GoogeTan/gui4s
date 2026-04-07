@@ -48,7 +48,7 @@ object LaunchedEvent:
       launchedEffectWidget = launchedEffect(supervisor),
       eventCatcher = eventCatcher,
       pushEvent = (path, event) => raiseExternalEvent(DownEvent.ExternalEventForWidget(path, event)),
-      catchEvent = path =>
+      catchEvent =
         Update.handleExternalEvents_(
           valueFound =>
             eventFromAny(valueFound).fold(

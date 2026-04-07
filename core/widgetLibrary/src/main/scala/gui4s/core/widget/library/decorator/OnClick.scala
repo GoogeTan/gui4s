@@ -1,11 +1,8 @@
 package gui4s.core.widget.library.decorator
 
-import cats._
-import cats.syntax.all._
-
-import gui4s.core.widget.Path
-import gui4s.core.widget.library.decorator.Decorator
-import gui4s.core.widget.library.decorator.EventCatcherWithRect
+import cats.*
+import cats.syntax.all.*
+import gui4s.core.widget.library.decorator.{Decorator, EventCatcherWithRect}
 
 /**
  * Виджет, позволяющий ловить событий мышки. Если событие произошло, пока мышь находится за пределами виджета,
@@ -21,17 +18,17 @@ def clickCatcher[
 ](
    eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Unit], WidgetBoundingBox],
    currentMousePosition : Update[Point],
-   catchMouseEvent : Path => (MouseClick => Update[Boolean]) => Update[Unit],
-   onClick : (Path, MouseClick) => Update[Boolean],
+   catchMouseEvent : (MouseClick => Update[Boolean]) => Update[Unit],
+   onClick : MouseClick => Update[Boolean],
    isIn : Point => WidgetBoundingBox => Update[Boolean]
 ) : Decorator[Widget] =
   eventCatcherWithRect:
-    (widgetBoundingBox, path) =>
-      catchMouseEvent(path)(
+    widgetBoundingBox =>
+      catchMouseEvent(
         click =>
           currentMousePosition.flatMap:
             mousePosition => isIn(mousePosition)(widgetBoundingBox).ifM(
-              ifTrue = onClick(path, click),
+              ifTrue = onClick(click),
               ifFalse = false.pure[Update],
             )
       )

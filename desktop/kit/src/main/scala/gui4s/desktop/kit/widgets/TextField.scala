@@ -29,6 +29,7 @@ def textField[
   gui4s.core.widget.library.textfield.textField(
     statefulWidget,
     body,
+    Update.currentPath,
     copyTextToClipboard
   )(name, text, onChange)
 end textField

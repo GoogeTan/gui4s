@@ -13,14 +13,12 @@ def clickCatcher[Event, MouseEvent](
   genericClickCatcher(
     eventCatcherWithRect = eventCatcher,
     currentMousePosition = Update.liftK[Event](mousePosition),
-    catchMouseEvent = path => callback =>
+    catchMouseEvent = callback =>
       Update.handleEnvironmentalEvents_(
         event =>
           extractEvent(event).fold(false.pure[UpdateC[Event]])(callback)
       ),
-    onClick = {
-      (_, _) => Update.emitEvents(List(eventOnClick)).as(true)
-    },
+    onClick = _ => Update.emitEvents(List(eventOnClick)).as(true),
     isIn = point => shape =>
       Update.getCornerCoordinates.map(
         coordinatesOfTopLeftCornet =>

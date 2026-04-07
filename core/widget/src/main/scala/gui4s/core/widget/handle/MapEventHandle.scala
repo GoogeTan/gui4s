@@ -6,7 +6,7 @@ def mapEventHandle[T, EnvironmentalEvent, UpdatedWidget, NewUpdatedWidget](
 )(
   f : UpdatedWidget => NewUpdatedWidget
 ) : HandlesEvent[T, EnvironmentalEvent, NewUpdatedWidget] =
-  (self, path, event) => f(original(self, path, event))
+  (self, event) => f(original(self, event))
 end mapEventHandle
 
 
@@ -19,5 +19,5 @@ def mapEventHandle_[
 )(
   f : UpdatedWidget => NewUpdatedWidget
 ) : HandlesEvent_[T, NewUpdatedWidget] =
-  (self, path) => f(original(self, path))
+  self => f(original(self))
 end mapEventHandle_

@@ -1,13 +1,10 @@
 package gui4s.core.widget.library
 
-import scala.reflect.Typeable
-
 import catnip.BiMonad
-import cats.data.NonEmptyList
-
-import gui4s.core.widget.Path
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
+
+import scala.reflect.Typeable
 
 /**
  * Виджет, помнящий последнее событие заданного типа
@@ -34,7 +31,7 @@ def eventMemory[
   name : String,
   initialMemories : Memories,
   handleEvent : HandlesEventF[Memories, List[MemorableEvent], Update[Event, *]],
-  catchEvent : (Path, Rect) => Update[MemorableEvent, T]
+  catchEvent : Rect => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Memories] =
   widget =>
     statefulWidget[Memories, Event, MemorableEvent](
@@ -44,8 +41,8 @@ def eventMemory[
       body =
         memories =>
             eventCatcherWithRect(
-              (rect, path) =>
-                mapUpdate[MemorableEvent, Either[MemorableEvent, Event]](Left(_))(catchEvent(path, rect))
+              rect =>
+                mapUpdate[MemorableEvent, Either[MemorableEvent, Event]](Left(_))(catchEvent(rect))
             )(
               mapEvent[Event, Either[MemorableEvent, Event]](Right(_))(
                 widget(memories)
@@ -72,7 +69,7 @@ def rememberLastEventOfTheType[
   mapUpdate : [A, B] => (A => B) => Update[A, T] => Update[B, T],
   mapEvent: MapEvent[Widget],
   name : String,
-  catchEvent : (Path, Rect) => Update[MemorableEvent, T]
+  catchEvent : Rect => Update[MemorableEvent, T]
 ) : WithContext[Widget[Event], Option[MemorableEvent]] =
   eventMemory[
     Widget, Update, Rect, Event, Option[MemorableEvent], MemorableEvent, T
@@ -83,7 +80,7 @@ def rememberLastEventOfTheType[
     mapEvent,
     name,
     None,
-    (_, _, events) => UBM().pure(Some(events.last)),
+    (_, events) => UBM().pure(Some(events.last)),
     catchEvent
   )
 

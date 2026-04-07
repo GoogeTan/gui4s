@@ -20,7 +20,7 @@ def mapUpdate[
 ) : FreeWidgetWithSituated[NewUpdate, PlacementEffect, Situated, Draw, RecompositionReaction] =
   trueUpdateDecoratorWithRect(
     original,
-    (self, path) =>
-      mapEventInUpdate(self.extract.handleEvent(path))
+    self =>
+      mapEventInUpdate(self.extract.handleEvent)
   )
 end mapUpdate

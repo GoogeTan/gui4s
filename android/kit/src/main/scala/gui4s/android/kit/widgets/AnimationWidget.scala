@@ -60,7 +60,7 @@ def animationWidget[
     )
     _ <- Init.emitDecorator(
       eventCatcher[Nothing](
-        (_, _) =>
+        _ =>
           Update.liftK[Nothing](Clock[IO].realTime.flatMap(timer.set))
       )
     )
@@ -86,7 +86,7 @@ def animationWidget[
           stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
             name,
             initialState,
-            (a, b, c) => handleEvents(a, b, c).map(Some(_)),
+            (a, b) => handleEvents(a, b).map(Some(_)),
             body,
             _ => RecompositionReaction.empty,
             mergeStates
@@ -94,7 +94,7 @@ def animationWidget[
       currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
       timeSourceWidget = original =>
         eventCatcher[Either[Duration, Event]](
-          (path, _) =>
+          _ =>
             Update
               .liftK[Either[Duration, Event]](Clock[IO].monotonic)
               .map(Left[Duration, Event])

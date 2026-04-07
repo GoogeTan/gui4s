@@ -53,7 +53,7 @@ object ScenedExample extends UIApp:
             statefulWidget[Int, Nothing, Int](
               name = "currentScene",
               initialState = 0,
-              eventHandler = (state : Int, _, events : List[Int]) =>
+              eventHandler = (state : Int, events : List[Int]) =>
                 ((state + events.sum + loadedScenes.length) % loadedScenes.length).pure[UpdateC[Nothing]],
               body = state =>
                 scener(

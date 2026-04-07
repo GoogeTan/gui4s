@@ -21,8 +21,8 @@ def containerMergesWithOldStates[
   RecompositionAction,
   Option[Place[Collection[PositionedWidget]]]
 ] =
-  (children, path, oldStates) =>
-    val newChildren = children.map(initial(_, path, oldStates))
+  (children, oldStates) =>
+    val newChildren = children.map(initial(_, oldStates))
     if newChildren.exists(_.isDefined) then
       Some(
         placeIncrementally(

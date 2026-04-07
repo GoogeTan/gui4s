@@ -15,8 +15,8 @@ def statefulStateHandlesEvents[
   Event,
   Update,
 ] =
-  (self, pathToParent, event) =>
+  (self, event) =>
     self
-      .handleEvents(self.state.currentState, pathToParent, event)
+      .handleEvents(self.state.currentState, event)
       .map(self.withNewState)
 end statefulStateHandlesEvents

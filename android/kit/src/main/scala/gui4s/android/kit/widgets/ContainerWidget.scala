@@ -62,8 +62,8 @@ def containerWidget2[
     RecompositionReaction,
     WidgetAndItsPositionInContainer
   ](
-    positionedChildHandlesEvent = { case (Measured((widget, position), _, _), path) =>
-      Update.withCornerCoordinates(widgetHandlesEvent(widget, path), _ + position)
+    positionedChildHandlesEvent = { case Measured((widget, position), _, _) =>
+      Update.withCornerCoordinates(widgetHandlesEvent(widget), _ + position)
     },
     updateContainerOrdered = children => updateFunction =>
       //Обновляются сначала виджеты, лежащие выше.

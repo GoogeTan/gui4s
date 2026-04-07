@@ -48,8 +48,8 @@ def weightedLinearContainer[
               drawAt(widgetIsDrawable(widget), point.x, point.y)
           },
         positionedChildHandlesEvent = {
-          case (Measured((widget, weight, position), _, _), path) =>
-            Update.withCornerCoordinates(widgetHandlesEvent(widget, path), _ + position)
+          case Measured((widget, weight, position), _, _) =>
+            Update.withCornerCoordinates(widgetHandlesEvent(widget), _ + position)
               .map(
                 _.map(
                   Weighted(_, weight)
@@ -57,8 +57,8 @@ def weightedLinearContainer[
               )
         },
         positionedMergesWithOldStates = {
-          case (Measured((widget, weight, position), _, _), path, states) =>
-            widgetMergesWithOldState(widget, path, states)
+          case (Measured((widget, weight, position), _, _), states) =>
+            widgetMergesWithOldState(widget, states)
               .map(
                 Weighted(_, weight)
               )

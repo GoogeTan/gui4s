@@ -107,7 +107,7 @@ object TextInputExample extends UIApp:
               stateful[String, Nothing, String](
                 name = "basic-state-" + i.toString,
                 initialState = "A",
-                eventHandler = (_, _, newString) => newString.last.pure[UpdateC[Nothing]],
+                eventHandler = (_, newString) => newString.last.pure[UpdateC[Nothing]],
                 body =
                   state =>
                     textFieldWidget("text-field", state)
@@ -292,11 +292,14 @@ object TextInputExample extends UIApp:
     }
 
     eventCatcher[TextFieldEvent]:
-      (textFieldTextArea, path) =>
-        Update.handleEnvironmentalEvents_ {
-          case DownEvent.UserEvent(event : TextInputOuterEvent) =>
-            convertFocusedEvent(textFieldTextArea.size, path)(event).flatMap(emitEvent).as(true)
-          case _ => false.pure[UpdateC[TextFieldEvent]]
-        }
+      textFieldTextArea =>
+        Update.currentPath.flatMap(path =>
+          Update.handleEnvironmentalEvents_ {
+            case DownEvent.UserEvent(event : TextInputOuterEvent) =>
+              convertFocusedEvent(textFieldTextArea.size, path)(event).flatMap(emitEvent).as(true)
+            case _ => false.pure[UpdateC[TextFieldEvent]]
+          }
+        )
+
   end textFieldEventCatcher
 end TextInputExample

@@ -32,14 +32,13 @@ def launchedEvent[
   launchedEffectWidget: LaunchedEffectWidget[Widget, Key, Path => IO[Unit]],
   eventCatcher : EventCatcherWithRect[Widget, Update[Event, Unit], Rect],
   pushEvent : (Path, Event) => IO[Unit],
-  catchEvent : Path => Update[Event, Unit]
+  catchEvent :  Update[Event, Unit]
 ) : LaunchedEffectWidget[Widget, Key, IO[Event]] =
   (name, widget, key, task) =>
     launchedEffectWidget(
       name,
       eventCatcher(
-        (_, path) =>
-          catchEvent(path)
+        _ => catchEvent
       )(widget),
       key,
       path => task.flatMap(pushEvent(path, _))

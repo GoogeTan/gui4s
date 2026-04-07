@@ -53,8 +53,8 @@ def statefulWidget: StatefulWidget[
         name = name,
         initialState = initialState,
         eventHandler =
-          (originalState, path, events) =>
-            eventHandler(originalState, path, events).map(
+          (originalState, events) =>
+            eventHandler(originalState, events).map(
               resultingState =>
                 if EQ.equiv(originalState, resultingState) then
                   None

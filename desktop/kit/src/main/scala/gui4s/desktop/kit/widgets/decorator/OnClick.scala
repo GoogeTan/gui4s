@@ -53,13 +53,13 @@ def clickCatcher[
               (x, y) <- glfw.getCursorPos(window)
             yield Point2d(x.toFloat * scaleX, y.toFloat * scaleY)
           ),
-          catchMouseEvent = path => callback =>
+          catchMouseEvent = callback =>
             Update.handleEnvironmentalEvents_(
               event =>
                 source(event).fold(false.pure[UpdateC[Event]])(callback)
             ),
           onClick = {
-            case (_, MouseEvent(_, KeyAction.Release, _)) => Update.emitEvents[Event](List(eventOnClick)).as(true)
+            case MouseEvent(_, KeyAction.Release, _) => Update.emitEvents[Event](List(eventOnClick)).as(true)
             case _ => false.pure[UpdateC[Event]]
           },
           isIn = point => shape =>

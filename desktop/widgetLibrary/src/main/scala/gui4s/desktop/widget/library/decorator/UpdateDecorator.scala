@@ -36,7 +36,7 @@ def updateDecorator[
   RecompositionReaction
 ](
   decorator : Decorator[
-    (Widget[Update, Place, Draw, RecompositionReaction], Path) =>
+    Widget[Update, Place, Draw, RecompositionReaction] =>
       Update[Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]]]
   ]
 ): Decorator[Place[Widget[Update, Place, Draw, RecompositionReaction]]] =
@@ -47,8 +47,8 @@ def updateDecorator[
     Draw,
     RecompositionReaction
   ](
-    (self : Widget[Update, Place, Draw, RecompositionReaction], path : Path) =>
-      decorator(_.handleEvent(_))(self, path)
+    (self : Widget[Update, Place, Draw, RecompositionReaction]) =>
+      decorator(_.handleEvent)(self)
   )
 end updateDecorator
 
@@ -113,12 +113,9 @@ def trueUpdateDecoratorWithRect[
     OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction
   ],
   decorator :
-  (
-    Situated[
-      WidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction]
-    ],
-    Path
-  ) =>
+  Situated[
+    WidgetWithSituated[OldUpdate, PlacementEffect, Situated, Draw, RecompositionReaction]
+  ] =>
     NewUpdate[
       Option[
         FreeWidgetWithSituated[
@@ -142,13 +139,13 @@ def trueUpdateDecoratorWithRect[
         valueToDecorate = sizedWidget,
         valueAsFree = self => PF.map(self.extract.asFree)(_.coflatten),
         valueIsDrawable = _.extract.draw,
-        valueHandlesEvent = (self, path) =>
-          NUF.map(decorator(self, path))(
+        valueHandlesEvent = self =>
+          NUF.map(decorator(self))(
             _.map(
               PF.map(_)(_.coflatten)
             )
           ),
-        valueMergesWithOldState = (self, path, oldStates) => self.extract.mergeWithOldState(path, oldStates).map(PF.map(_)(_.coflatten)),
+        valueMergesWithOldState = (self, oldStates) => self.extract.mergeWithOldState(oldStates).map(PF.map(_)(_.coflatten)),
         valueReactsOnRecomposition = _.extract.reactOnRecomposition(_, _),
         valueHasInnerState = _.extract.innerStates
       )

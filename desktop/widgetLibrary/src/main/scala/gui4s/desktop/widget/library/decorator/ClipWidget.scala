@@ -55,8 +55,8 @@ def clipWidget[
           Draw,
           RecompositionReaction
         ](
-          old => (path, event) =>
-            withClip(shape.extract, old(path, event))
+          old => event =>
+            withClip(shape.extract, old(event))
         )(PF.pure(shape.as(placement.extract)))
       )
     ),

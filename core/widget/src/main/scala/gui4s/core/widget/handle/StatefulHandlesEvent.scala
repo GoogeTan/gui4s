@@ -1,16 +1,12 @@
 package gui4s.core.widget
 package handle
 
-import scala.collection.immutable.List
-
-import cats.Functor
-import cats.Monad
-import cats._
-import cats.data.NonEmptyList
-import cats.syntax.all._
-
+import cats.*
+import cats.syntax.all.*
 import gui4s.core.widget.draw.Drawable
 import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
+
+import scala.collection.immutable.List
 
 // TODO добавить тесты на добавление имен
 def statefulHandlesEvent[
@@ -31,22 +27,19 @@ def statefulHandlesEvent[
   Update[Option[Place[Stateful[Widget, State]]]]
 ] =
   (
-    self: Stateful[Widget, State],
-    pathToParent: Path
+    self: Stateful[Widget, State]
   ) =>
     for
       (newChildWidget, events) <- addNameToUpdatePath(self.name)(
         childWidgetHandlesEvent(
-          self.child,
-          pathToParent / self.name
+          self.child
         )
       )
-      newState : Option[State] <- addNameToUpdatePath(self.name)(stateHandlesEvents(self.stateBehaviour, pathToParent / self.name, events))
+      newState : Option[State] <- addNameToUpdatePath(self.name)(stateHandlesEvents(self.stateBehaviour, events))
     yield (newState, newChildWidget) match
       case (Some(newState), Some(newChildWidget)) =>
         addNameToPlacePath(self.name)(
           widgetsAreMergable.mergeUpdatedAndRerenderedWidgets(
-            pathToParent / self.name,
             newChildWidget,
             drawStateIntoWidget(newState)
           ).map(newChild =>
@@ -54,14 +47,12 @@ def statefulHandlesEvent[
           )
         ).some
       case (None, Some(newChildWidget)) =>
-        newChildWidget.map(newChildWidgetPlaced => self.copy(child = newChildWidgetPlaced)).some
         addNameToPlacePath(self.name)(
           newChildWidget.map(newChildWidgetPlaced => self.copy(child = newChildWidgetPlaced))
         ).some
       case (Some(newState), None) =>
         addNameToPlacePath(self.name)(
           widgetsAreMergable.mergeOldAndRerenderedWidgets(
-            pathToParent / self.name,
             self.child,
             drawStateIntoWidget(newState)
           ).map(newChild =>

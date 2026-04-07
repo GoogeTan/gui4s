@@ -35,7 +35,6 @@ import gui4s.core.widget.{Path, StateTree}
  * @tparam Place Эффект установки на экран
  * @tparam Draw Графическое представление (например, IO[Unit], рисующий при помощи open gl, или текст на html).
  * @tparam RecompositionReaction Реакция на рекомпозицию.
- * @tparam EnvironmentalEvent Внешнее событие
  * 
  * @param asFree Возвращает виджет в свободное состояние до установки на экран.
  * @param draw Возвращает графическое представление виджета.
@@ -52,7 +51,7 @@ enum Widget[
 ](
   val asFree : Place[Widget[Update, Place, Draw, RecompositionReaction]],
   val draw : Draw,
-  val handleEvent : Path =>
+  val handleEvent :
     Update[
       Option[
         Place[
@@ -60,7 +59,7 @@ enum Widget[
         ]
       ]
     ],
-  val mergeWithOldState : (path: Path, oldState:  Map[String, StateTree[RecompositionReaction]]) => Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]],
+  val mergeWithOldState : (oldState:  Map[String, StateTree[RecompositionReaction]]) => Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]],
   val reactOnRecomposition : (pathToParent: Path, oldStates: Map[String, StateTree[RecompositionReaction]]) => RecompositionReaction,
   val innerStates: Map[String, StateTree[RecompositionReaction]]
 ):
@@ -70,19 +69,19 @@ enum Widget[
     valueToDecorate: T,
     valueAsFree: AsFree[T, Place_[T]],
     valueIsDrawable: Drawable[T, Draw_],
-    valueHandlesEvent: (T, Path) => Update_[Option[Place_[T]]],
+    valueHandlesEvent: T => Update_[Option[Place_[T]]],
     valueMergesWithOldState: MergesWithOldStates[T, RecompositionReaction_, Option[Place_[T]]],
     valueReactsOnRecomposition: ReactsOnRecomposition[T, RecompositionReaction_],
     valueHasInnerState: HasInnerStates[T, RecompositionReaction_],
   ) extends Widget[Update_, Place_, Draw_, RecompositionReaction_](
     valueAsFree(valueToDecorate).map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState)),
     valueIsDrawable(valueToDecorate),
-    path => valueHandlesEvent(valueToDecorate, path).map(
+    valueHandlesEvent(valueToDecorate).map(
       _.map(
         _.map(ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState))
       )
     ),
-    (a, b) => valueMergesWithOldState(valueToDecorate, a, b)
+    oldStates => valueMergesWithOldState(valueToDecorate, oldStates)
       .map(
         _.map(
           ValueWrapper(_, valueAsFree, valueIsDrawable, valueHandlesEvent, valueMergesWithOldState, valueReactsOnRecomposition, valueHasInnerState)
@@ -128,7 +127,7 @@ def widgetHandlesEvent[
     Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]]
   ]
 ] =
-  _.handleEvent(_)
+  _.handleEvent
 end widgetHandlesEvent
 
 def widgetMergesWithOldState[
@@ -141,7 +140,7 @@ def widgetMergesWithOldState[
   RecompositionReaction,
   Option[Place[Widget[Update, Place, Draw, RecompositionReaction]]],
 ] =
-  _.mergeWithOldState(_, _)
+  _.mergeWithOldState(_)
 
 def widgetReactsOnRecomposition[
   Update[_],

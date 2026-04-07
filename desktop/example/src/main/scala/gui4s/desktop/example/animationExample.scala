@@ -39,7 +39,7 @@ def animationExample(
       statefulWidget[Int, Nothing, Unit](
         name = "counter",
         initialState = 0,
-        eventHandler = (state, _, events) => (state + events.size).pure[UpdateC[Nothing]],
+        eventHandler = (state, events) => (state + events.size).pure[UpdateC[Nothing]],
         body = count =>
           animation(
             name = "animation",

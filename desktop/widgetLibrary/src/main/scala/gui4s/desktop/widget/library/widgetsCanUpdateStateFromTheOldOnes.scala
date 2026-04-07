@@ -19,7 +19,6 @@ class widgetsCanUpdateStateFromTheOldOnes[
   innerStates : HasInnerStates[Widget, RecompositionReaction]
 ) extends UpdateWidgetStateFromTheOldOne[PlacementEffect * Situated, Widget]:
   override def mergeUpdatedAndRerenderedWidgets(
-    pathToWidget: Path,
     oldWidget: PlacementEffect[Situated[Widget]],
     newWidget: PlacementEffect[Situated[Widget]]
   ): PlacementEffect[Situated[Widget]] =
@@ -27,14 +26,12 @@ class widgetsCanUpdateStateFromTheOldOnes[
       (situatedOld, situatedNew) =>
         merge(
           situatedNew.extract,
-          pathToWidget,
           innerStates(situatedOld.extract)
         ).getOrElse(situatedNew.pure)
     )
   end mergeUpdatedAndRerenderedWidgets
 
   override def mergeOldAndRerenderedWidgets(
-    pathToWidget: Path,
     oldWidget: Widget,
     newWidget: PlacementEffect[Situated[Widget]]
   ): PlacementEffect[Situated[Widget]] =
@@ -42,7 +39,6 @@ class widgetsCanUpdateStateFromTheOldOnes[
       situatedNew =>
         merge(
           situatedNew.extract,
-          pathToWidget,
           innerStates(oldWidget)
         ).getOrElse(situatedNew.pure)
     )

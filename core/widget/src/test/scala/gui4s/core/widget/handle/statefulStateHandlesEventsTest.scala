@@ -13,9 +13,9 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
 
   "StatefulStateHandlesEvents" should "update state when handling events" in {
     type TestState = Int
-    type TestHandler = (TestState, Path, String) => Id[TestState]
+    type TestHandler = (TestState, String) => Id[TestState]
 
-    val handler: TestHandler = (state, _, events) => state + events.length
+    val handler: TestHandler = (state, events) => state + events.length
 
     val initial = StatefulBehaviour(
       name = "test",
@@ -29,15 +29,15 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
     )
 
     val event = "event1"
-    val result = statefulStateHandlesEvents[Id, TestState, Unit, String, Unit](initial, path, event)
+    val result = statefulStateHandlesEvents[Id, TestState, Unit, String, Unit](initial, event)
     result.state should be(StatefulState(0, 6))
   }
 
   it should "preserve other fields when updating state" in {
     case class TestState(value: Int)
-    type TestHandler = (TestState, Path, String) => Id[TestState]
+    type TestHandler = (TestState, String) => Id[TestState]
 
-    val handler: TestHandler = (state, _, events) =>
+    val handler: TestHandler = (state, events) =>
       TestState(state.value + events.length)
 
     val initial = StatefulBehaviour(
@@ -55,6 +55,6 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
       String,
       String,
       String
-    ](initial, path, events) should be(initial.copy(state = StatefulState(TestState(0), TestState(6))))
+    ](initial, events) should be(initial.copy(state = StatefulState(TestState(0), TestState(6))))
   }
 

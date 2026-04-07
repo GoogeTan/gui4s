@@ -58,6 +58,7 @@ def containerWidget[
   )
 end containerWidget
 
+//TODO rename me
 def containerWidget2[
   Collection[_] : {Traverse, Sortable, Zip},
   Event
@@ -79,8 +80,8 @@ def containerWidget2[
     RecompositionReaction,
     WidgetAndItsPositionInContainer
   ](
-    positionedChildHandlesEvent = { case (Measured((widget, position), _, _), path) =>
-      Update.withCornerCoordinates(widgetHandlesEvent(widget, path), _ + position)
+    positionedChildHandlesEvent = { case Measured((widget, position), _, _) =>
+      Update.withCornerCoordinates(widgetHandlesEvent(widget), _ + position)
     },
     updateContainerOrdered = children => updateFunction =>
       //Обновляются сначала виджеты, лежащие выше.

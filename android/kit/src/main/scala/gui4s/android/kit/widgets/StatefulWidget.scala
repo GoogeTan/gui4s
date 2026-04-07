@@ -1,28 +1,14 @@
 package gui4s.android.kit.widgets
 
-import gui4s.core.layout.Sized.given
-import gui4s.core.widget.handle.HandlesEventF
-import gui4s.core.widget.library.*
-import gui4s.core.widget.StatefulState
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.effects.Place.given
-import gui4s.desktop.widget.library
-import gui4s.desktop.widget.library.*
-
-import scala.reflect.Typeable
-
-
 import cats.effect.IO
-import gui4s.core.layout.Sized.given
-import gui4s.core.widget.handle.HandlesEventF
-import gui4s.core.widget.handle.HandlesEvent
-import gui4s.core.widget.library.*
-import gui4s.core.widget.StatefulState
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Place.given
+import gui4s.core.layout.Sized.given
+import gui4s.core.widget.StatefulState
+import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.library.*
 import gui4s.desktop.widget.library
 import gui4s.desktop.widget.library.*
-import cats.data.NonEmptyList
 
 import scala.reflect.Typeable
 
@@ -60,8 +46,8 @@ def statefulWidget: StatefulWidget[
         name = name,
         initialState = initialState,
         eventHandler =
-          (originalState, path, events) =>
-            eventHandler(originalState, path, events).map(
+          (originalState, events) =>
+            eventHandler(originalState, events).map(
               resultingState =>
                 if EQ.equiv(originalState, resultingState) then
                   None

@@ -52,7 +52,7 @@ def animationWidget[
     statefulWidget(
       name,
       AnimationWidgetState(targetValue, animation, None),
-      (state, path, events) => events.maxOption.map(state.withTime).getOrElse(state).pure[Update],
+      (state, events) => events.maxOption.map(state.withTime).getOrElse(state).pure[Update],
       state => timeSourceWidget(body(state.valueNow)),
       [T] => (
         oldState : StatefulState[AnimationWidgetState[AnimatedValue, Time]],

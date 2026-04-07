@@ -27,7 +27,7 @@ def eventCatcherWithRect[
 ] =
   decorator =>
     updateDecorator(
-      (self, path) =>
-        decorator(self, path) *> widgetHandlesEvent(self.extract, path)
+      self =>
+        decorator(self) *> widgetHandlesEvent(self.extract)
     )
 end eventCatcherWithRect

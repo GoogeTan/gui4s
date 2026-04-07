@@ -21,8 +21,8 @@ def containerHandlesEvent[
   Collection[PositionedWidget],
   Update * Option * Place
 ] =
-  (children, pathToParent) =>
-    childrenHandleEvent(children, pathToParent)
+  children =>
+    childrenHandleEvent(children)
       .map(childrenUnplaced =>
         if childrenUnplaced.forall(_.isEmpty) then
           None
@@ -45,9 +45,9 @@ def childrenHandleEvent[
     widgetHandlesEvent : HandlesEvent_[PositionedWidget, Update[Option[FreeWidget]]],
     traverseContainerOrdered : TraverseChildrenOrdered[Update, Collection, FreeWidget, PositionedWidget]
 ) : HandlesEvent_[Collection[PositionedWidget], Update[Collection[Option[FreeWidget]]]] =
-  (children, pathToParent) =>
+  children =>
     traverseContainerOrdered(children)(
       orderedChildren =>
-        orderedChildren.traverse(widgetHandlesEvent(_, pathToParent))
+        orderedChildren.traverse(widgetHandlesEvent)
     )
 end childrenHandleEvent
