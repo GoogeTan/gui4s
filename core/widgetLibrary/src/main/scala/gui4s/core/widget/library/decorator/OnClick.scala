@@ -13,23 +13,20 @@ def clickCatcher[
   Update[_] : Monad,
   EnvironmentalEvent,
   MouseClick,
-  Point,
   WidgetBoundingBox
 ](
    eventCatcherWithRect: EventCatcherWithRect[Widget, Update[Unit], WidgetBoundingBox],
-   currentMousePosition : Update[Point],
    catchMouseEvent : (MouseClick => Update[Boolean]) => Update[Unit],
    onClick : MouseClick => Update[Boolean],
-   isIn : Point => WidgetBoundingBox => Update[Boolean]
+   isMouseIn : (WidgetBoundingBox, MouseClick) => Update[Boolean]
 ) : Decorator[Widget] =
   eventCatcherWithRect:
     widgetBoundingBox =>
       catchMouseEvent(
         click =>
-          currentMousePosition.flatMap:
-            mousePosition => isIn(mousePosition)(widgetBoundingBox).ifM(
-              ifTrue = onClick(click),
-              ifFalse = false.pure[Update],
-            )
+          isMouseIn(widgetBoundingBox, click).ifM(
+            ifTrue = onClick(click),
+            ifFalse = false.pure[Update],
+          )
       )
 end clickCatcher
