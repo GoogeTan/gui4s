@@ -19,6 +19,7 @@ object `package` extends Module:
     def skija = "0.143.9"
     def scalaCache = "1.0.0-M6"
     def glfw4s = "0.1.51"
+    def jwm = "0.4.24"
     def scalaCheck = "1.19.0"
     def scalaTest = "3.2.19"
     def disciplineCore = "1.7.0"
@@ -58,9 +59,13 @@ object `package` extends Module:
       mvn"com.github.cb372::scalacache-caffeine:${versions.scalaCache}",
       mvn"com.github.cb372::scalacache-core:${versions.scalaCache}"
     )
-    
+     
     def glfw4s = Seq(
       mvn"glfw4s::core:${versions.glfw4s}"
+    )
+
+    def jwm = Seq(
+      mvn"io.github.humbleui:jwm:${versions.jwm}"
     )
     
     def test = Seq(

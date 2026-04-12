@@ -1,0 +1,44 @@
+package build.desktop.windowing.jwm
+
+import coursier.Repository
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+import build.dependencies.catsEffect
+import com.goyeau.mill.scalafix.ScalafixModule
+
+object `package` extends SbtModule with PublishModule with ScalafixModule:
+  def artifactName = "desktop-jwm-windowing"
+
+  def scalaVersion = build.versions.scala
+
+  def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
+    "-Wunused:imports",
+    "-Xkind-projector",
+    //"-Vprofile",
+  )
+
+  def repositoriesTask: Task[Seq[Repository]] = Task.Anon:
+    super.repositoriesTask() ++ Seq(
+    build.myMavenRepository
+  )
+
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffect ++ build.dependencies.jwm ++ build.dependencies.scalaCache
+
+  def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
+    build.catnip,
+    build.core.kit,
+    build.core.layout,
+    build.core.loop,
+    build.core.widget,
+    build.core.widgetLibrary,
+    build.desktop.skija,
+    build.desktop.widgetLibrary,
+    build.desktop.kit
+  )
+
+  def pomSettings: T[PomSettings] = build.pomSettings("desktop-kit")
+
+  def publishVersion = build.publishVersion
+end `package`
