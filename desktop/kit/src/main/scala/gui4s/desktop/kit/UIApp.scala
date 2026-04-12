@@ -109,8 +109,8 @@ trait UIApp extends IOApp:
         draw =>
           surface.drawFrame(sur =>
             for
-              _ <- clear[ReaderT[IO, Canvas, *]](0xFFFFFFFF).run(sur.canvas)
-              _ <- draw.run(sur.canvas)
+              _ <- clear[DrawM](0xFFFFFFFF).run(sur.canvas).to[IO]
+              _ <- draw.run(sur.canvas).to[IO]
               _ <- flush[IO](sur.directContext)
               _ <- glfw.swapBuffers(window)
               _ <- glfw.pollEvents

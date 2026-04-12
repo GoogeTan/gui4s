@@ -15,14 +15,14 @@ import gui4s.desktop.skija.SkPaint
 import gui4s.desktop.skija.canvas._
 
 
-type DrawM[T] = ReaderT[IO, Canvas, T]
+type DrawM[T] = ReaderT[SyncIO, Canvas, T]
 type Draw = DrawM[Unit]
 
 object Draw:
-  given Canvased[ReaderT[IO, Canvas, *]] = Canvased.given_Canvased_ReaderT
+  given Canvased[ReaderT[SyncIO, Canvas, *]] = Canvased.given_Canvased_ReaderT
 
   given monoidInstance : Monoid[Draw] =
-    catnip.syntax.all.applicativesAreMonoids[ReaderT[IO, Canvas, *]]
+    catnip.syntax.all.applicativesAreMonoids[ReaderT[SyncIO, Canvas, *]]
   end monoidInstance
 
   def drawAt(whatToDraw : Draw, x : Float, y : Float) : Draw =
