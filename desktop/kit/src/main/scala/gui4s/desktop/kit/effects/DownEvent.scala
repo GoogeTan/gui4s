@@ -1,15 +1,12 @@
 package gui4s.desktop.kit
 package effects
 
-import cats.syntax.all._
-
+import cats.syntax.all.*
+import gui4s.core.geometry.Point2d
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
 
-@SuppressWarnings(Array("org.wartremover.warts.Any"))
 enum DownEvent:
-  case WindowShouldBeRedrawn
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   case ExternalEventForWidget(destination: Path, event: Any)
   case UserEvent(event: Any)
 end DownEvent
