@@ -18,7 +18,7 @@ object `package` extends Module:
     def slf4jReload4j = "2.0.17"
     def skija = "0.143.9"
     def scalaCache = "1.0.0-M6"
-    def glfw4s = "0.1.42"
+    def glfw4s = "0.1.51"
     def scalaCheck = "1.19.0"
     def scalaTest = "3.2.19"
     def disciplineCore = "1.7.0"
@@ -60,7 +60,7 @@ object `package` extends Module:
     )
     
     def glfw4s = Seq(
-      mvn"glfw4s:core-jvm_3:${versions.glfw4s}"
+      mvn"glfw4s::core:${versions.glfw4s}"
     )
     
     def test = Seq(
