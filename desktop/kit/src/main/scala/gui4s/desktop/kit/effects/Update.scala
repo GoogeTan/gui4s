@@ -43,6 +43,10 @@ object Update:
     biMonadInstance().pure(a)
   end pure
 
+  def unit[Event]: Update[Event, Unit] =
+    pure(())
+  end unit
+
   def liftK[Event]: IO ~> UpdateC[Event] =
     mt.liftK
   end liftK
@@ -243,4 +247,8 @@ object Update:
         case (_, (state, widget)) => Right(widget)
       }
   end runUpdate
+
+  def println[Event](text : String) : Update[Event, Unit] =
+    liftK(IO.println(text))
+  end println
 end Update
