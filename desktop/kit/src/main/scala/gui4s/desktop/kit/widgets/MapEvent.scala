@@ -21,4 +21,8 @@ extension[Event](value : DesktopWidget[Event])
   def mapEvent[NewEvent](f : Event => NewEvent) : DesktopWidget[NewEvent] =
     mapEventWidget(f)(value)
   end mapEvent
+  
+  def downcastEvent[NewEvent >: Event] : DesktopWidget[NewEvent] =
+    value.mapEvent(identity)
+  end downcastEvent
 end extension
