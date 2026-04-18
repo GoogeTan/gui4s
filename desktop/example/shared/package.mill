@@ -1,0 +1,33 @@
+package build.desktop.example.shared
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+import mill.scalalib.{AssemblyModule, SbtModule}
+import mill.util.JarManifest
+import com.goyeau.mill.scalafix.ScalafixModule
+
+object `package` extends SbtModule with PublishModule  with AssemblyModule with ScalafixModule:
+  override def artifactName = "desktop-example-shared"
+
+  override def scalaVersion = build.versions.scala
+
+  def scalacOptions = super.scalacOptions() ++ Seq(
+    "-Wunused:imports",
+    "-Xkind-projector",
+    //"-Ximplicit-search-limit", "10",
+    "-Vprofile",
+  )
+
+  override def mvnDeps = super.mvnDeps() ++ build.dependencies.http4s ++ build.dependencies.logging
+
+  override def forkArgs = Seq(
+    "-XstartOnFirstThread"
+  )
+
+  override def moduleDeps = super.moduleDeps ++ Seq(build.desktop.kit)
+
+  override def pomSettings = build.pomSettings("desktop-example-shared")
+
+  override def publishVersion = build.publishVersion
+end `package`

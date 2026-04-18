@@ -26,75 +26,44 @@ end loopEach
 
 def animationWidget[
   AnimatedValue : Eq
-](
-  eventBus : QueueSink[IO, DownEvent]
-) : Init[AnimationWidget[DesktopWidget, AnimatedValue, Duration]] =
-  for
-    supervisor <- Init.evalResource(Supervisor[IO])
-    /*
-    timer : Ref[IO, FiniteDuration] <- Init.eval(Ref.ofEffect(IO.realTime))
-    _ <- 
-    Init.eval(
-      supervisor.supervise(
-        loopEach(
-          for
-            currentTime <- IO.realTime
-            lastUpdate <- timer.get
-            shouldUpdate = (currentTime - lastUpdate) >= FiniteDuration(15, TimeUnit.MILLISECONDS)
-            _ <- if shouldUpdate then
-              timer.set(currentTime) *> eventBus.offer(DownEvent.WindowShouldBeRedrawn)
-            else
-              IO.unit
-          yield (),
-          FiniteDuration(2, TimeUnit.MILLISECONDS)
-        )
-      )
-    )
-    _ <- Init.emitDecorator(
-      eventCatcher[Nothing](
-        (_, _, _) =>
-          Update.liftK[Nothing](IO.realTime.flatMap(timer.set))
-      )
-    )*/
-  yield {
-    val stateful = transitiveStatefulWidget
-    gui4s.core.widget.library.animation.animationWidget[
-      DesktopWidget,
-      Duration,
-      Update,
-      Place,
-      * => RecompositionReaction,
-      AnimatedValue
-    ](
-      statefulWidget =
-        [Event] => (
+] : AnimationWidget[DesktopWidget, AnimatedValue, Duration] =
+  val stateful = transitiveStatefulWidget
+  gui4s.core.widget.library.animation.animationWidget[
+    DesktopWidget,
+    Duration,
+    Update,
+    Place,
+    * => RecompositionReaction,
+    AnimatedValue
+  ](
+    statefulWidget =
+      [Event] => (
+        name,
+        initialState,
+        handleEvents,
+        body,
+        mergeStates
+      ) =>
+        stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
           name,
           initialState,
-          handleEvents,
+          (state, events) => handleEvents(state, events).map(Some(_)),
           body,
+          _ => RecompositionReaction.empty,
           mergeStates
-        ) =>
-          stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
-            name,
-            initialState,
-            (state, events) => handleEvents(state, events).map(Some(_)),
-            body,
-            _ => RecompositionReaction.empty,
-            mergeStates
-          ),
-      currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
-      timeSourceWidget = [Event] => original =>
-        eventCatcher[Either[Duration, Event]](
-          _ =>
-            Update
-              .liftK[Either[Duration, Event]](Clock[IO].monotonic)
-              .map(Left[Duration, Event])
-              .map(NonEmptyList.one)
-              .flatMap(Update.emitEvents(_))
-        )(
-          original.mapEvent(Right(_))
-        )
-    )
-  }
+        ),
+    currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
+    timeSourceWidget = [Event] => original =>
+      eventCatcher[Either[Duration, Event]](
+        _ =>
+          Update
+            .liftK[Either[Duration, Event]](Clock[IO].monotonic)
+            .map(Left[Duration, Event])
+            .map(NonEmptyList.one)
+            .flatMap(Update.emitEvents(_))
+      )(
+        original.mapEvent(Right(_))
+      )
+  )
 end animationWidget
 

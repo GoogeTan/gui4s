@@ -1,0 +1,6 @@
+package build.desktop.windowing
+
+import mill._
+
+object `package` extends Module:
+end `package`

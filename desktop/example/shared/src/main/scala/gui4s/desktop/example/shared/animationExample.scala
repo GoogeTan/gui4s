@@ -1,11 +1,9 @@
-package gui4s.desktop.example
+package gui4s.desktop.example.shared
 
-import gui4s.core.geometry.Axis.Vertical
 import gui4s.core.widget.library.animation.NormedVectorSpace.floatNormedVectorSpace
 import gui4s.core.widget.library.animation.{Animation, AnimationWidget, Easing, TweenAnimation}
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.ClickCatcher
 import gui4s.desktop.skija.{Font, Image, Paint, SkijaTextStyle, Typeface}
 
 import java.util.concurrent.TimeUnit
@@ -13,13 +11,9 @@ import scala.concurrent.duration.*
 
 def animationExample[Event](
   initialization: InitializationWidget,
-  onClick: ClickCatcher,
-  animation: AnimationWidget[DesktopWidget, Float, Duration],
   text: TextWidget,
-  typeface: Typeface
-)(
-  using ScrollWidget,
-): DesktopWidget[Event] =
+  typeface: Typeface,
+)(using ScrollWidget): DesktopWidget[Event] =
 
   val floatAnimation: Animation[Float, Duration] = TweenAnimation(
     easing = Easing.FastOutSlowIn,

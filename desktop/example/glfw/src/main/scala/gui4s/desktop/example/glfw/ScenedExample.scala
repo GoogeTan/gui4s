@@ -1,4 +1,4 @@
-package gui4s.desktop.example
+package gui4s.desktop.example.glfw
 
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -10,13 +10,14 @@ import glfw4s.jna.bindings.structs
 import glfw4s.jna.bindings.types.{GLFWmonitor, GLFWwindow}
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.Paddings
-import gui4s.desktop.kit.UIApp
 import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.skija.{Brush, Paint, SkijaTextStyle, StrokeOptions}
+import gui4s.desktop.kit.widgets.decorator.{clickCatcher as _, *}
+import gui4s.desktop.kit.widgets.{scrollWidget as _, *}
 import gui4s.desktop.skija.typeface.defaultTypeface
+import gui4s.desktop.skija.{Brush, Paint, SkijaTextStyle, StrokeOptions}
+import gui4s.desktop.windowing.glfw.*
 import io.github.humbleui.skija.Font
+import gui4s.desktop.example.shared.*
 
 object ScenedExample extends UIApp:
   val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
@@ -112,15 +113,14 @@ object ScenedExample extends UIApp:
       textWidget <- TextWidget()
       resourceWidget <- ResourceWidget(eventBus)
       initializationWidget = InitializationWidget(resourceWidget)
-      animation <- animationWidget[Float](eventBus)
       text <- TextWidget()
       typeface <- Init.evalResource(defaultTypeface[IO])
-      scroll <- scrollWidget(glfw, window, eventBus, animation)
+      scroll <- scrollWidget(glfw, window, eventBus)
     yield NonEmptyList.of(
-      animationExample(initializationWidget, clickCatcher, animation, text, typeface)(using scroll),
+      animationExample(initializationWidget, text, typeface)(using scroll),
       imageExample(text, typeface, initializationWidget),
       gridExample(text, typeface),
-      statefulExample(text, clickCatcher, typeface)
+      statefulExample(text, typeface)(using clickCatcher)
     )
   end scenes
 end ScenedExample

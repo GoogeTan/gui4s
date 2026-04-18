@@ -4,7 +4,6 @@ import catnip.ResourceCell
 import cats.data.Kleisli
 import cats.effect._
 import cats.~>
-import glfw4s.core.pure.PurePostInit
 
 import gui4s.core.geometry.Rect
 
@@ -20,19 +19,20 @@ final case class SkijaSurface[
     renderTargetCell.get
   end getRenderTarget
 
+  /*
   def drawFrame[G[_]](
                        frame : SkiaRenderTarget => G[Unit],
                        lift : IO ~> G
                      )(using MonadCancel[IO, Throwable], MonadCancel[G, Throwable]) : G[Unit] =
     getRenderTarget.mapK(lift).use(frame)
-  end drawFrame
+  end drawFrame*/
 
-  def drawFrameKleisli[G[_]](
-                              frame : Kleisli[G, SkiaRenderTarget, Unit],
-                              lift : IO ~> G
-                            )(using MonadCancel[IO, Throwable], MonadCancel[G, Throwable]) : G[Unit] =
-    drawFrame(frame.run, lift)
-  end drawFrameKleisli
+  def drawFrame[G[_]](
+    frame: SkiaRenderTarget => G[Unit],
+    lift: G ~> IO
+  )(using MonadCancel[IO, Throwable]): IO[Unit] =
+    getRenderTarget.use(target => lift(frame(target)))
+  end drawFrame
 
   def recreateRenderTarget(newSize : Rect[Float])(using Sync[IO]) : IO[Unit] =
     renderTargetCell.evalReplace(state =>
@@ -58,21 +58,5 @@ object SkijaSurface:
         ),
       )
     yield SkijaSurface(renderTargetCell)
-  end create
-
-  def create[
-    IO[_] : Async,
-    CallbackIO[_] : Async,
-    Monitor,
-    Window,
-    Cursor,
-    Joystick
-  ](
-     window  : Window,
-     glfw : PurePostInit[IO, CallbackIO[Unit], Monitor, Window, Cursor, Joystick],
-     liftToIO : CallbackIO ~> IO
-    ) : Resource[IO, SkijaSurface[CallbackIO]] =
-    Resource.eval(glfw.getFramebufferSize(window))
-      .flatMap((width, height) => create[CallbackIO](width, height).mapK(liftToIO))
   end create
 end SkijaSurface

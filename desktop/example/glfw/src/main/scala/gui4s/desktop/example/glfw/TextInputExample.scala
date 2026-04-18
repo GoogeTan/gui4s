@@ -1,4 +1,4 @@
-package gui4s.desktop.example
+package gui4s.desktop.example.glfw
 
 import scala.math._
 
@@ -30,7 +30,7 @@ import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.widget.library.textfield.TextFieldEvent
 
-import gui4s.desktop.kit.UIApp
+import gui4s.desktop.windowing.glfw.UIApp
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
 import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets

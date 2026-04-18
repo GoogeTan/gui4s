@@ -1,4 +1,4 @@
-package build.desktop.kit
+package build.desktop.windowing.glfw
 
 import coursier.Repository
 import mill._
@@ -9,7 +9,7 @@ import build.dependencies.catsEffect
 import com.goyeau.mill.scalafix.ScalafixModule
 
 object `package` extends SbtModule with PublishModule with ScalafixModule:
-  def artifactName = "desktop-kit"
+  def artifactName = "desktop-glfw-windowing"
 
   def scalaVersion = build.versions.scala
 
@@ -24,7 +24,7 @@ object `package` extends SbtModule with PublishModule with ScalafixModule:
       build.myMavenRepository
     )
 
-  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffect ++ build.dependencies.scalaCache
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffect ++ build.dependencies.glfw4s ++ build.dependencies.scalaCache
 
   def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
     build.catnip,
@@ -34,7 +34,8 @@ object `package` extends SbtModule with PublishModule with ScalafixModule:
     build.core.widget,
     build.core.widgetLibrary,
     build.desktop.skija,
-    build.desktop.widgetLibrary
+    build.desktop.widgetLibrary,
+    build.desktop.kit
   )
 
   def pomSettings: T[PomSettings] = build.pomSettings("desktop-kit")
