@@ -53,13 +53,23 @@ object StateTransformer:
     yield res
   end modifyScoped
 
-  def run[F[_[_], _] : {MonadTransformer as FMT}, IO[_] : Monad, State, T](original : (F <> StateTransformer[State])[IO, T], initialState: State) : F[IO, (T, State)] =
-    FMT.innerTransform[StateT[IO, State, *], IO, T, (T, State)](
+  def run[
+    F[_[_], _], 
+    Inner[_], 
+    IO[_] : Monad,
+    State, 
+    T
+  ](
+    original : (F <> StateTransformer[State])[IO, T], 
+    initialState: State
+  )(using FIT : InnerTransform[F, Inner])(using Functor[Inner]) : F[IO, (T, State)] =
+    FIT.innerTransform[StateT[IO, State, *], IO, T, (T, State)](
       original,
-      [Inner[_] : Functor] => value =>
+      value =>
         value.run(initialState).map((state, innerT) =>
           innerT.map(t => (t, state))
         )
     )
+  end run
 end StateTransformer
 

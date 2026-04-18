@@ -1,18 +1,13 @@
 package catnip
 package syntax
 
-import catnip.resource.Allocate
-import catnip.resource.Eval
-import catnip.resource.EvalC
-import catnip.resource.Make
-import cats.FlatMap
-import cats.Functor
-import cats.effect.IO
-import cats.effect.LiftIO
-import cats.effect.MonadCancel
-import cats.effect.Resource
-import cats.syntax.all._
-import cats.~>
+import catnip.resource.*
+import catnip.syntax.transformer.given
+import catnip.transformer.MonadTransformer
+import cats.data.*
+import cats.effect.{IO, LiftIO, MonadCancel, Resource}
+import cats.syntax.all.*
+import cats.{Applicative, FlatMap, Functor, Monad, Semigroup, ~>}
 
 object resource:
   extension [IO[_], Resource[_] : {FlatMap, EvalC[IO]}, A](value: Resource[A])
@@ -45,6 +40,26 @@ object resource:
     end evalK
   end eval
 
+  given evalRMT[
+    Resource[_] : {Monad, EvalC[F] as E},
+    F[_],
+    MT[_[_], _] : MonadTransformer as MT
+  ]: Eval[MT[Resource, *], F] with
+    override def evalK: F ~> MT[Resource, *] =
+      E.evalK.andThen(MT.liftK)
+    end evalK
+  end evalRMT
+
+  given evalMT[
+    Resource[_] : {Monad, EvalC[F] as E},
+    F[_],
+    MT[_[_], _] : MonadTransformer as MT
+  ](using Monad[F]): Eval[MT[Resource, *], MT[F, *]] with
+    override def evalK: MT[F, *] ~> MT[Resource, *] =
+      MT.liftFunctionK(E.evalK)
+    end evalK
+  end evalMT
+
   given liftEval[F[_] : LiftIO as L]: Eval[Resource[F, *], IO] with
     override def evalK: IO ~> Resource[F, *] =
       new ~>[IO, Resource[F, *]]:
@@ -54,4 +69,102 @@ object resource:
       end new
     end evalK
   end liftEval
+
+  given use[IO[_]](using MonadCancel[IO, Throwable]) : Use[Resource[IO, *], IO] with
+    override def useResource[T, B](value: Resource[IO, T])(f: T => IO[B]): IO[B] =
+      value.use(f)
+    end useResource
+  end use
+
+  given useOptionT[
+    IO[_],
+    Resource[_]
+  ](
+    using use: Use[Resource, IO]
+  )(
+    using Monad[Resource], MonadCancel[IO, Throwable]
+  ) : Use[OptionT[Resource, *], OptionT[IO, *]] with
+    override def useResource[T, B](value: OptionT[Resource, T])(f: T => OptionT[IO, B]): OptionT[IO, B] =
+      OptionT(
+        value.value.use:
+          case None => None.pure
+          case Some(t) =>
+            f(t).value
+      )
+    end useResource
+  end useOptionT
+
+  given useEitherT[
+    IO[_] : Applicative,
+    Resource[_],
+    E
+  ](
+    using use: Use[Resource, IO]
+  ): Use[EitherT[Resource, E, *], EitherT[IO, E, *]] with
+    override def useResource[T, B](value: EitherT[Resource, E, T])(f: T => EitherT[IO, E, B]): EitherT[IO, E, B] =
+      EitherT(
+        value.value.use:
+          case Left(e) => e.asLeft[B].pure[IO]
+          case Right(t) => f(t).value
+      )
+    end useResource
+  end useEitherT
+
+  given useStateT[
+    IO[_] : Monad,
+    Resource[_] : FlatMap,
+    S
+  ](
+    using use: Use[Resource, IO]
+  ): Use[StateT[Resource, S, *], StateT[IO, S, *]] with
+
+    override def useResource[T, B](value: StateT[Resource, S, T])(f: T => StateT[IO, S, B]): StateT[IO, S, B] =
+      StateT { (s: S) =>
+        value.run(s).use:
+          case (sNext, t) => f(t).run(sNext)
+      }
+    end useResource
+
+  end useStateT
+
+  given useWriterT[
+    IO[_],
+    Resource[_],
+    L
+  ](
+    using use: Use[Resource, IO]
+  )(
+    using Functor[IO], Semigroup[L]
+  ): Use[WriterT[Resource, L, *], WriterT[IO, L, *]] with
+
+    override def useResource[T, B](value: WriterT[Resource, L, T])(f: T => WriterT[IO, L, B]): WriterT[IO, L, B] =
+      WriterT(
+        value.run.use:
+          case (l1, t) =>
+            f(t).run.map:
+              case (l2, b) => (l1 |+| l2, b)
+      )
+    end useResource
+
+  end useWriterT
+
+  given useReaderT[
+    IO[_],
+    Resource[_],
+    R
+  ](
+    using use: Use[Resource, IO]
+  ): Use[ReaderT[Resource, R, *], ReaderT[IO, R, *]] with
+
+    override def useResource[T, B](value: ReaderT[Resource, R, T])(f: T => ReaderT[IO, R, B]): ReaderT[IO, R, B] =
+      ReaderT { (r: R) =>
+        value.run(r).use { t =>
+          f(t).run(r)
+        }
+      }
+    end useResource
+
+  end useReaderT
+
+  export SyncResource.given
 end resource

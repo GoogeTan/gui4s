@@ -2,8 +2,8 @@ package catnip.transformer
 
 import catnip.syntax.transformer.<>
 import cats.arrow.FunctionK
-import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.*
+import cats.{Applicative, Monad, ~>}
 
 type ReaderTransformer[Context] = [IO[_], T] =>> ReaderT[IO, Context, T]
 
@@ -31,7 +31,8 @@ object ReaderTransformer:
   end withValueK_
 
   def withValue[
-    F[_[_], _] : MonadTransformer as FMT,
+    F[_[_], _],
+    Inner[_],
     IO[_] : Monad,
     C1,
     C2,
@@ -39,27 +40,26 @@ object ReaderTransformer:
   ](
      original :  (F <> ReaderTransformer[C2])[IO, T],
      f :  C1 => C2,
-  ) :  (F <> ReaderTransformer[C1])[IO, T] =
-    FMT.innerTransform(
+  )(using IT : InnerTransform[F, Inner]) :  (F <> ReaderTransformer[C1])[IO, T] =
+    IT.innerTransform(
       original,
-      [Inner[_] : Functor] => (readerOriginal : ReaderT[IO, C2, Inner[T]]) =>
+      (readerOriginal : ReaderT[IO, C2, Inner[T]]) =>
         withValue_[IO, C1, C2, Inner[T]](readerOriginal, f)
     )
   end withValue
 
   def withValueK[
-    F[_[_], _] : MonadTransformer as FMT,
+    F[_[_], _],
+    Inner[_],
     IO[_] : Monad,
     C1,
     C2,
     T
   ](
     f: C1 => C2,
-  ): (F <> ReaderTransformer[C2])[IO, *] ~> (F <> ReaderTransformer[C1])[IO, *] =
-    new ((F <> ReaderTransformer[C2])[IO, *] ~> (F <> ReaderTransformer[C1])[IO, *]):
-      override def apply[A](fa: (F <> ReaderTransformer[C2])[IO, A]): (F <> ReaderTransformer[C1])[IO, A] =
-        withValue(fa, f)
-      end apply
-    end new
+  )(using IT : InnerTransform[F, Inner]): (F <> ReaderTransformer[C2])[IO, *] ~> (F <> ReaderTransformer[C1])[IO, *] =
+    FunctionK.lift(
+      [_] => fa => withValue(fa, f)
+    )
   end withValueK
 end ReaderTransformer

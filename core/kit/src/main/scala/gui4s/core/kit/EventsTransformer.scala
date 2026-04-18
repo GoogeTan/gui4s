@@ -1,10 +1,10 @@
 package gui4s.core.kit
 
-import catnip.syntax.transformer.{_, given}
-import catnip.transformer._
-import cats.Monad
+import catnip.syntax.transformer.{*, given}
+import catnip.transformer.*
+import cats.{Functor, Monad}
 import cats.kernel.Monoid
-import cats.syntax.all._
+import cats.syntax.all.*
 
 type EventsTransformer[Events] = WriterTransformer[Events]
 
@@ -40,15 +40,16 @@ object EventsTransformer:
   end catchEvents_
 
   def catchEvents[
-    F[_[_], _] : MonadTransformer,
+    F[_[_], _] : MonadTransformer as FMT,
+    Inner[_],
     IO[_] : Monad,
     Events : Monoid,
     NewEvents : Monoid,
     Value
   ](
     original: (F <> EventsTransformer[Events])[IO, Value]
-  ): (F <> EventsTransformer[NewEvents])[IO, (Value, Events)] =
-    WriterTransformer.extract[F, IO, Events, NewEvents, Value](original)
+  )(using InnerTransform[F, Inner], Functor[Inner]): (F <> EventsTransformer[NewEvents])[IO, (Value, Events)] =
+    WriterTransformer.extract[F, Inner, IO, Events, NewEvents, Value](original)
   end catchEvents
 
   def mapEvents_[
@@ -68,7 +69,8 @@ object EventsTransformer:
   end mapEvents_
   
   def mapEvents[
-    F[_[_], _] : MonadTransformer,
+    F[_[_], _] : MonadTransformer as FMT,
+    Inner[_],
     IO[_] : Monad,
     Events : Monoid,
     NewEvents : Monoid,
@@ -76,9 +78,9 @@ object EventsTransformer:
   ](
      original: (F <> EventsTransformer[Events])[IO, Value],
      f : Events => NewEvents
-  ): (F <> EventsTransformer[NewEvents])[IO, Value] =
+  )(using InnerTransform[F, Inner], Functor[Inner]): (F <> EventsTransformer[NewEvents])[IO, Value] =
     for
-      tmp <- catchEvents[F, IO, Events, NewEvents, Value](original)
+      tmp <- catchEvents[F, Inner, IO, Events, NewEvents, Value](original)
       (value, events) = tmp
       _ <- raiseEvents(f(events))
     yield value  

@@ -21,14 +21,21 @@ object WriterTransformer:
   end listen_
 
   def listen[
-    F[_[_], _] : MonadTransformer as FMT,
+    F[_[_], _],
+    Inner[_],
     IO[_] : Monad,
     L: Monoid,
     T
-  ](original : (F <> WriterTransformer[L])[IO, T]) : (F <> WriterTransformer[L])[IO, (T, L)] =
-    FMT.innerTransform(
+  ](
+    original : (F <> WriterTransformer[L])[IO, T]
+  )(
+    using FIT : InnerTransform[F, Inner]
+  )(
+    using Functor[Inner]
+  ) : (F <> WriterTransformer[L])[IO, (T, L)] =
+    FIT.innerTransform(
       original,
-      [Inner[_] : Functor] => (writerOriginal : WriterT[IO, L, Inner[T]]) =>
+      (writerOriginal : WriterT[IO, L, Inner[T]]) =>
         listen_(writerOriginal).map((innerT, l) => innerT.map(t => (t, l)))
     )
   end listen
@@ -38,15 +45,18 @@ object WriterTransformer:
   end drop_
 
   def drop[
-    F[_[_], _] : MonadTransformer as FMT,
+    F[_[_], _],
+    Inner[_],
     IO[_] : Monad,
     OldL : Monoid,
     NewL : Monoid,
     Value
-  ](original : (F <> WriterTransformer[OldL])[IO, Value]) : (F <> WriterTransformer[NewL])[IO, Value] =
-    FMT.innerTransform(
+  ](
+    original : (F <> WriterTransformer[OldL])[IO, Value]
+  )(using FIT : InnerTransform[F, Inner], fi : Functor[Inner]) : (F <> WriterTransformer[NewL])[IO, Value] =
+    FIT.innerTransform(
       original,
-      [Inner[_] : Functor] => (writerOriginal : WriterT[IO, OldL, Inner[Value]]) =>
+      (writerOriginal : WriterT[IO, OldL, Inner[Value]]) =>
         drop_(writerOriginal)
     )
   end drop
@@ -56,12 +66,17 @@ object WriterTransformer:
   end extract_
 
   def extract[
-    F[_[_], _] : MonadTransformer as FMT,
+    F[_[_], _],
+    Inner[_],
     IO[_] : Monad,
     OldL: Monoid,
     NewL : Monoid,
     Value
-  ](original : (F <> WriterTransformer[OldL])[IO, Value]) : (F <> WriterTransformer[NewL])[IO, (Value, OldL)] =
-    drop[F, IO, OldL, NewL, (Value, OldL)](listen(original))
+  ](
+    original : (F <> WriterTransformer[OldL])[IO, Value]
+  )(
+    using FIT : InnerTransform[F, Inner], fi : Functor[Inner]
+  ) : (F <> WriterTransformer[NewL])[IO, (Value, OldL)] =
+    drop[F, Inner, IO, OldL, NewL, (Value, OldL)](listen(original))
   end extract
 end WriterTransformer
