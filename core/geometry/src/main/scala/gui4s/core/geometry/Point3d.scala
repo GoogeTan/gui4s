@@ -28,6 +28,12 @@ final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
   def unary_-[NewMeasurementUnit >: MeasurementUnit](using N : Numeric[NewMeasurementUnit]): Point3d[NewMeasurementUnit] =
     Point3d(N.negate(x), N.negate(y), N.negate(z))
   end unary_-
+
+  def map[NewMeasurementUnit](
+    f: MeasurementUnit => NewMeasurementUnit
+  ): Point3d[NewMeasurementUnit] =
+    Point3d(f(x), f(y), f(z))
+  end map
 end Point3d
 
 object Point3d:

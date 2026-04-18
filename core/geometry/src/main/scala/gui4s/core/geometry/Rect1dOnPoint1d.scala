@@ -2,6 +2,7 @@ package gui4s.core.geometry
 
 import scala.math.Numeric.Implicits._
 
+//TODO replace me with sized
 final case class Rect1dOnPoint1d[T](length: T, coordinateOfTheBeginning: T):
   def coordinateOfTheEnd(using n : Numeric[T]): T = length + coordinateOfTheBeginning
   
