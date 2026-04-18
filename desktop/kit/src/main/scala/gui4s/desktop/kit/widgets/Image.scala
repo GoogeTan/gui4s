@@ -1,14 +1,49 @@
 package gui4s.desktop.kit
 package widgets
 
+import catnip.syntax.all.{*, given}
+import catnip.syntax.transformer.given
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
+import gui4s.desktop.kit.asset.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.skija.Image
 import io.github.humbleui.skija.svg.{SVGDOM, SVGLength, SVGLengthContext, SVGLengthUnit}
+
+def svgImageFromJavaResourcesWidget[Event](
+  name : String,
+  path : String,
+  resourceWidget: ResourceWidget,
+  onLoad : DesktopWidget[Event],
+  onError : DesktopWidget[Event]
+) : DesktopWidget[Event] =
+  resourceWidget(
+    name,
+    svgFromJavaResources[IO, Resource[IO, *]](path)
+  ):
+    case Some(Some(value)) => imageWidget(value)
+    case Some(None) => onError
+    case None        => onLoad
+end svgImageFromJavaResourcesWidget
+
+def imageFromJavaResourcesWidget[Event](
+  name : String,
+  path : String,
+  resourceWidget: ResourceWidget,
+  onLoad : DesktopWidget[Event],
+  onError : DesktopWidget[Event]
+) : DesktopWidget[Event] =
+  resourceWidget(
+    name,
+    imageFromJavaResources[IO, Resource[IO, *]](path)
+  ):
+    case Some(Some(value)) => imageWidget(value)
+    case Some(None) => onError
+    case None        => onLoad
+end imageFromJavaResourcesWidget
 
 def imageWidget[Event](image: Image): DesktopWidget[Event] =
   drawOnlyWidget(

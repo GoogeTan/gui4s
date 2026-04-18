@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.effect.IO
 import cats.effect.std.Queue
+import gui4s.core.geometry.Rect
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.desktop.kit.effects.{DownEvent, Init, LinearContainerPlacementStrategy, Shape, UpdateC}
@@ -39,8 +40,26 @@ def scenedExample[ScrollEvent](
             body = state =>
               sceneController(
                 loadedScenes.toList(state).mapEvent(identity),
-                button(text("Далее", basicStyle), 1),
-                button(text("Назад", basicStyle), -1)
+                button(
+                  svgImageFromJavaResourcesWidget(
+                    "next",
+                    "left.svg",
+                    resourceWidget,
+                    text("Далее", basicStyle),
+                    text("Ошибка загрузки иконки", basicStyle)
+                  ).fixedSize(Rect(50f, 50f)),
+                  1
+                ),
+                button(
+                  svgImageFromJavaResourcesWidget(
+                    "prev",
+                    "right.svg",
+                    resourceWidget,
+                    text("Назад", basicStyle),
+                    text("Ошибка загрузки иконки", basicStyle)
+                  ).fixedSize(Rect(50f, 50f)),
+                  -1
+                )
               )
           )
         )
