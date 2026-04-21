@@ -100,7 +100,6 @@ trait UIApp extends IOApp:
         (_ : GLFWwindow, w : Int, h : Int) =>
           IO.delay(assert(Thread.currentThread().getId == 1))
           surface.recreateRenderTarget(Rect(w, h))
-            *> eventBus.offer(DownEvent.WindowShouldBeRedrawn)
       ).eval
 
       runPlaceK : (Place ~> IO) = Place.run(Path(Nil), windowBounds(window, glfw))
