@@ -1,33 +1,20 @@
 package build.desktop.kit
 
-import build.WartRemoverScalaModule
-import coursier.Repository
+import build.*
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.SbtModule
 import build.dependencies.catsEffect
-import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule with ScalafixModule with WartRemoverScalaModule:
-  def artifactName = "desktop-kit"
+object `package` extends SbtModule with Gui4sPackage:
+  override def artifactName = "desktop-kit"
 
-  def scalaVersion = build.versions.scala
+  override def pomDescription = "desktop-kit"
 
-  def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
-    "-Wunused:imports",
-    "-Xkind-projector",
-    //"-Vprofile",
-  )
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffect ++ build.dependencies.scalaCache
 
-  def repositoriesTask: Task[Seq[Repository]] = Task.Anon:
-    super.repositoriesTask() ++ Seq(
-      build.myMavenRepository
-    )
-
-  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ catsEffect ++ build.dependencies.scalaCache
-
-  def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
+  override def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
     build.catnip,
     build.core.kit,
     build.core.layout,
@@ -37,8 +24,4 @@ object `package` extends SbtModule with PublishModule with ScalafixModule with W
     build.desktop.skija,
     build.desktop.widgetLibrary
   )
-
-  def pomSettings: T[PomSettings] = build.pomSettings("desktop-kit")
-
-  def publishVersion = build.publishVersion
 end `package`

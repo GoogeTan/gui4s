@@ -2,6 +2,7 @@
 //| - com.goyeau::mill-scalafix::0.6.0
 package build
 
+import com.goyeau.mill.scalafix.ScalafixModule
 import coursier.maven.MavenRepository
 import mill.*
 import mill.scalalib.*
@@ -167,4 +168,28 @@ object `package` extends Module:
     "Var",
     "While",
   )
+
+  trait Gui4sPackage extends ScalaModule with WartRemoverScalaModule with ScalafixModule with PublishModule:
+    final override def scalaVersion = build.versions.scala
+
+    override def scalacOptions: T[Seq[String]] =
+      super.scalacOptions() ++ Seq(
+        "-Wunused:imports",
+        "-Xkind-projector",
+        //s"-Yimports:${build.imports.default},${build.imports.cats},${build.imports.catsEffect}"
+      )
+    end scalacOptions
+
+    override def repositoriesTask = Task.Anon:
+      super.repositoriesTask() ++ Seq(
+        build.myMavenRepository
+      )
+    end repositoriesTask
+
+    def pomDescription : String
+
+    final override def pomSettings: T[PomSettings] = build.pomSettings(pomDescription)
+
+    final override def publishVersion = build.publishVersion
+  end Gui4sPackage
 end `package`

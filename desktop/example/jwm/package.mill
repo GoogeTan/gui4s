@@ -1,39 +1,27 @@
 package build.desktop.example.jwm
 
-import build.WartRemoverScalaModule
+import build.*
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.{AssemblyModule, SbtModule}
 import mill.util.JarManifest
-import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule  with AssemblyModule with ScalafixModule with WartRemoverScalaModule:
+object `package` extends SbtModule with Gui4sPackage with AssemblyModule:
   override def artifactName = "desktop-example-jwm"
 
-  override def scalaVersion = build.versions.scala
+  def pomDescription = "desktop-example-jwm"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
-    "-Wunused:imports",
-    "-Xkind-projector",
-    //"-Ximplicit-search-limit", "10",
-    "-Vprofile",
-  )
+  override def scalacOptions = super.scalacOptions() ++ Seq("-Vprofile")
 
   override def mvnDeps = super.mvnDeps() ++ build.dependencies.http4s ++ build.dependencies.logging
 
-  override def forkArgs = Seq(
-    "-XstartOnFirstThread"
-  )
+  override def forkArgs = Seq("-XstartOnFirstThread")
 
-  override def moduleDeps = super.moduleDeps ++ Seq(build.desktop.example.shared) ++ Seq(build.desktop.windowing.jwm)
-
-  override def pomSettings = build.pomSettings("desktop-example-jwm")
-
-  override def publishVersion = build.publishVersion
+  override def moduleDeps = super.moduleDeps ++ Seq(build.desktop.example.shared, build.desktop.windowing.jwm)
 
   override def mainClass = Some("gui4s.desktop.example.jwm.ScenedExample")
 
-  override def manifest : T[JarManifest] = Task:
+  override def manifest: T[JarManifest] = Task:
     super.manifest().add(("Multi-Release" -> "true"))
 end `package`

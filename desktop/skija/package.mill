@@ -6,26 +6,16 @@ import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.{AssemblyModule, SbtModule}
 import build.dependencies.catsEffect
-import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule with AssemblyModule with ScalafixModule with WartRemoverScalaModule:
+object `package` extends SbtModule with Gui4sPackage with AssemblyModule:
+  override def artifactName = "desktop-skija-bindings"
+
+  override def pomDescription = "desktop-skija-bindings"
+
   override def repositoriesTask = Task.Anon:
     super.repositoriesTask() ++ Seq(coursier.LocalRepositories.ivy2Local)
 
-  def artifactName = "desktop-skija-bindings"
+  override def mvnDeps = super.mvnDeps() ++ build.dependencies.skija ++ catsEffect
 
-  def scalaVersion = build.versions.scala
-
-  def scalacOptions = super.scalacOptions() ++ Seq(
-    "-Wunused:imports",
-    "-Xkind-projector"
-  )
-
-  def mvnDeps = super.mvnDeps() ++ build.dependencies.skija ++ catsEffect
-
-  def moduleDeps = super.moduleDeps ++ Seq(build.catnip, build.core.layout)
-
-  def pomSettings = build.pomSettings("desktop-skija-bindings")
-
-  def publishVersion = build.publishVersion
+  override def moduleDeps = super.moduleDeps ++ Seq(build.catnip, build.core.layout)
 end `package`

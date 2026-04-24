@@ -7,37 +7,21 @@ import mill.javalib.publish.*
 import mill.scalalib.SbtModule
 import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule with ScalafixModule with WartRemoverScalaModule:
+object `package` extends Gui4sPackage:
+  override def artifactName = "desktop-widget-library"
 
-  def artifactName = "desktop-widget-library"
+  override def mvnDeps =
+    build.dependencies.cats
+  end mvnDeps
 
-  def scalaVersion = build.versions.scala 
+  override def moduleDeps: Seq[PublishModule] =
+    super.moduleDeps ++ Seq(
+      build.core.loop,
+      build.core.widgetLibrary
+    )
+  end moduleDeps
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
-    "-Wunused:imports",
-    "-Xkind-projector"
-  )
-
-  def mvnDeps = super.mvnDeps() ++ build.dependencies.cats
-
-  def moduleDeps: Seq[PublishModule] = super.moduleDeps ++ Seq(
-    build.catnip,
-    build.core.geometry,
-    build.core.layout,
-    build.core.loop,
-    build.core.widget,
-    build.core.kit,
-    build.core.widgetLibrary
-  )
-
-  def pomSettings: T[PomSettings] = build.pomSettings("desktop-widget-library")
-
-  def publishVersion = build.publishVersion
-
-  object test extends SbtTests with TestModule.ScalaTest:
-
-    def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ build.dependencies.test
-
-    def testSandboxWorkingDir = false
-  end test
+  override def pomDescription: String =
+    "Library of widgets for Gui4s"
+  end pomDescription
 end `package`
