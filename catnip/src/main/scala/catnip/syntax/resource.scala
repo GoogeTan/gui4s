@@ -35,9 +35,9 @@ object resource:
   end allocate
 
   given eval[F[_]] : Eval[Resource[F, *], F] with
-    override def evalK: F ~> Resource[F, *] =
+    override def liftToResource: F ~> Resource[F, *] =
       Resource.liftK
-    end evalK
+    end liftToResource
   end eval
 
   given evalRMT[
@@ -45,9 +45,9 @@ object resource:
     F[_],
     MT[_[_], _] : MonadTransformer as MT
   ]: Eval[MT[Resource, *], F] with
-    override def evalK: F ~> MT[Resource, *] =
-      E.evalK.andThen(MT.liftK)
-    end evalK
+    override def liftToResource: F ~> MT[Resource, *] =
+      E.liftToResource.andThen(MT.liftK)
+    end liftToResource
   end evalRMT
 
   given evalMT[
@@ -55,19 +55,19 @@ object resource:
     F[_],
     MT[_[_], _] : MonadTransformer as MT
   ](using Monad[F]): Eval[MT[Resource, *], MT[F, *]] with
-    override def evalK: MT[F, *] ~> MT[Resource, *] =
-      MT.liftFunctionK(E.evalK)
-    end evalK
+    override def liftToResource: MT[F, *] ~> MT[Resource, *] =
+      MT.liftFunctionK(E.liftToResource)
+    end liftToResource
   end evalMT
 
   given liftEval[F[_] : LiftIO as L]: Eval[Resource[F, *], IO] with
-    override def evalK: IO ~> Resource[F, *] =
+    override def liftToResource: IO ~> Resource[F, *] =
       new ~>[IO, Resource[F, *]]:
         override def apply[A](fa: IO[A]): Resource[F, A] =
           Resource.eval(L.liftIO(fa))
         end apply
       end new
-    end evalK
+    end liftToResource
   end liftEval
 
   given use[IO[_]](using MonadCancel[IO, Throwable]) : Use[Resource[IO, *], IO] with
