@@ -22,16 +22,16 @@ object Sized:
     Eq.by(x => (x.value, x.size))
   end sizedEq
 
-  given[MeasurementUnit]: Comonad[SizedC[MeasurementUnit]] with
-    override def coflatMap[A, B](fa: Sized[MeasurementUnit, A])(f: Sized[MeasurementUnit, A] => B): Sized[MeasurementUnit, B] =
+  given[Size]: Comonad[SizedC[Size]] with
+    override def coflatMap[A, B](fa: Sized[Size, A])(f: Sized[Size, A] => B): Sized[Size, B] =
       fa.mapValue(_ => f(fa))
     end coflatMap
 
-    override def extract[A](x: Sized[MeasurementUnit, A]): A =
+    override def extract[A](x: Sized[Size, A]): A =
       x.value
     end extract
 
-    override def map[A, B](fa: Sized[MeasurementUnit, A])(f: A => B): Sized[MeasurementUnit, B] =
+    override def map[A, B](fa: Sized[Size, A])(f: A => B): Sized[Size, B] =
       fa.mapValue(f)
     end map
   end given
