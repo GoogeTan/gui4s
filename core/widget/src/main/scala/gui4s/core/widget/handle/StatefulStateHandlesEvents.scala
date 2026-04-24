@@ -2,7 +2,7 @@ package gui4s.core.widget
 package handle
 
 import cats.Functor
-import cats.syntax.functor._
+import cats.syntax.functor.*
 
 def statefulStateHandlesEvents[
   Update[_] : Functor,

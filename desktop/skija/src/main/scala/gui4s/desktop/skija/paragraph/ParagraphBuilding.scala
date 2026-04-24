@@ -6,8 +6,8 @@ import cats.Monoid
 import cats.arrow.Arrow
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.syntax.all._
-import io.github.humbleui.skija.paragraph._
+import cats.syntax.all.*
+import io.github.humbleui.skija.paragraph.*
 
 type ParagraphBuilding[F[_]] = Kleisli[F, ParagraphBuilder, ParagraphBuilder]
 

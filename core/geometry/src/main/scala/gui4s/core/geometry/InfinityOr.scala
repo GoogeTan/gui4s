@@ -1,6 +1,9 @@
 package gui4s.core.geometry
 
-final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
+import cats.Eq
+import cats.derived.*
+
+final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]) derives Eq:
   def this(value : MeasurementUnit) =
     this(Some(value))
   end this
@@ -41,6 +44,7 @@ final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
     this * InfinityOr(Some(amount))
   end *
 
+  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def getUnsafe : MeasurementUnit = value.get
   
   def valueOr[T >: MeasurementUnit](default : T) : T =

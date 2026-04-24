@@ -1,13 +1,21 @@
 package gui4s.desktop.example.shared
 
+import java.util.concurrent.TimeUnit
+
+import scala.concurrent.duration.*
+
+import gui4s.core.widget.library.animation.Animation
+import gui4s.core.widget.library.animation.Easing
 import gui4s.core.widget.library.animation.NormedVectorSpace.floatNormedVectorSpace
-import gui4s.core.widget.library.animation.{Animation, AnimationWidget, Easing, TweenAnimation}
+import gui4s.core.widget.library.animation.TweenAnimation
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.skija.{Font, Image, Paint, SkijaTextStyle, Typeface}
-
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.*
+import gui4s.desktop.skija.Font
+import gui4s.desktop.skija.Image
+import gui4s.desktop.skija.Paint
+import gui4s.desktop.skija.SkijaTextStyle
+import gui4s.desktop.skija.Typeface
 
 def animationExample[Event](
   initialization: InitializationWidget,

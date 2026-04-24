@@ -1,16 +1,15 @@
 package gui4s.desktop.kit.asset
 
-import catnip.resource.WrapStrategy.Blocking
+import java.io.InputStream
+
 import catnip.resource.*
-import catnip.syntax.all.{*, given}
-import catnip.syntax.transformer.{*, given}
-import catnip.syntax.resource.{*, given}
+import catnip.resource.WrapStrategy.Blocking
+import catnip.syntax.resource.given
 import cats.Monad
 import cats.data.*
 import cats.effect.Sync
 
-import java.io.InputStream
-
+@SuppressWarnings(Array("org.wartremover.warts.Equals"))
 def javaResourcesInputStream[Resource[_] : {SyncResource as S}](fileName: String): Resource[Option[InputStream]] =
   S.make(
     {

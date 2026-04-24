@@ -2,7 +2,6 @@ package gui4s.android.kit
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.effect.kernel.Sync
 
 final class ScalacacheCache[K, V](cache : scalacache.Cache[IO, K, V]) extends Cache[IO, K, V]:
   override def get(key: K): IO[Option[V]] =

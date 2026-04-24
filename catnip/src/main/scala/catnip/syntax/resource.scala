@@ -2,12 +2,19 @@ package catnip
 package syntax
 
 import catnip.resource.*
-import catnip.syntax.transformer.given
 import catnip.transformer.MonadTransformer
+import cats.Applicative
+import cats.FlatMap
+import cats.Functor
+import cats.Monad
+import cats.Semigroup
 import cats.data.*
-import cats.effect.{IO, LiftIO, MonadCancel, Resource}
+import cats.effect.IO
+import cats.effect.LiftIO
+import cats.effect.MonadCancel
+import cats.effect.Resource
 import cats.syntax.all.*
-import cats.{Applicative, FlatMap, Functor, Monad, Semigroup, ~>}
+import cats.~>
 
 object resource:
   extension [IO[_], Resource[_] : {FlatMap, EvalC[IO]}, A](value: Resource[A])

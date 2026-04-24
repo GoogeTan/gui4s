@@ -4,14 +4,10 @@ package effects
 import scala.util.NotGiven
 
 import catnip.Get
-import catnip.Set
-import catnip.syntax.transformer.{_, given}
-import catnip.transformer._
-import cats._
-import cats.syntax.all._
-
-import gui4s.core.widget.Path
-
+import catnip.syntax.transformer.given
+import catnip.transformer.*
+import cats.*
+import cats.syntax.all.*
 
 type PlacementEffectMonadTransformer[Context] = ReaderTransformer[Context]
 
@@ -33,7 +29,7 @@ object PlacementEffect:
   end liftK
 
   def liftF[IO[_] : Monad, Context, Value](value : IO[Value]) : PlacementEffect[IO, Context, Value] =
-    liftK(value)
+    liftK[IO, Context](value)
   end liftF
 
   def getContext[IO[_] : Monad, Context]: Get[PlacementEffect[IO, Context, *], Context] =
@@ -44,9 +40,9 @@ object PlacementEffect:
     ReaderTransformer.withValue_(original, f)
   end withContext
 
-  def withContextK[IO[_] : Monad, C1, C2, T](
-                                               f: C1 => C2
-                                             ): PlacementEffect[IO, C2, *] ~> PlacementEffect[IO, C1, *] =
+  def withContextK[IO[_] : Monad, C1, C2](
+                                           f: C1 => C2
+                                         ): PlacementEffect[IO, C2, *] ~> PlacementEffect[IO, C1, *] =
     ReaderTransformer.withValueK_(f)
   end withContextK
 

@@ -1,9 +1,9 @@
 package gui4s.desktop.skija
 package canvas
 
-import cats._
+import cats.*
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import gui4s.desktop.skija.canvas.Canvased.applyCanvasFFI
 

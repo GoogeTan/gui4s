@@ -4,9 +4,9 @@ package linear
 import scala.math.Numeric.Implicits.infixNumericOps
 
 import cats.Traverse
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import gui4s.core.geometry._
+import gui4s.core.geometry.*
 
 def placeEnd[MeasurementUnit : Numeric](size : MeasurementUnit, space : MeasurementUnit) : MeasurementUnit = space - size
 

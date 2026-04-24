@@ -1,13 +1,14 @@
 package gui4s.core.geometry
 
-import scala.math.Numeric.Implicits._
+import scala.math.Numeric.Implicits.*
 import scala.math.Ordered.orderingToOrdered
 
-import cats._
-import cats.syntax.all._
+import cats.*
+import cats.derived.*
+import cats.syntax.all.*
 
 @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : MeasurementUnit):
+final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : MeasurementUnit) derives Eq:
   def this(mainAxis : Axis, mainAxisLength : MeasurementUnit, additionalAxisLength : MeasurementUnit) =
     this(
       if mainAxis === Axis.Horizontal then mainAxisLength else additionalAxisLength, 
@@ -80,7 +81,3 @@ extension[MeasurementUnit : Numeric](value : Rect[MeasurementUnit])
     (-value) + another
   end -
 end extension
-
-object Rect:
-  given rectEq[MeasurementUnit : Eq] : Eq[Rect[MeasurementUnit]] = Eq.by(r => (r.width, r.height))
-end Rect

@@ -2,9 +2,13 @@ package gui4s.core.widget.library.textfield
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
-final case class TextRange(start : TextPosition, end : TextPosition):
+import cats.Eq
+import cats.derived.*
+import cats.syntax.all.*
+
+final case class TextRange(start : TextPosition, end : TextPosition) derives Eq:
   def isCursor  : Boolean =
-    start == end
+    start === end
   end isCursor
 
   def min : TextPosition =

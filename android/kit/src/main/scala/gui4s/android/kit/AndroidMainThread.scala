@@ -6,6 +6,7 @@ import scala.concurrent.ExecutionContext
 object AndroidMainThread extends ExecutionContext {
   private val handler = new Handler(Looper.getMainLooper)
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   override def execute(runnable: Runnable): Unit = {
     if (Looper.myLooper() == Looper.getMainLooper) {
       runnable.run()

@@ -1,14 +1,13 @@
 package gui4s.desktop.kit
 
 import catnip.ResourceCell
-import cats.data.Kleisli
-import cats.effect._
+import cats.effect.*
 import cats.~>
 
 import gui4s.core.geometry.Rect
 
+import gui4s.desktop.skija.*
 import gui4s.desktop.skija.DirectContext.createDirectContext
-import gui4s.desktop.skija._
 
 final case class SkijaSurface[
   IO[_]

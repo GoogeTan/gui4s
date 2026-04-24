@@ -1,15 +1,16 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
+import scala.annotation.targetName
+
 import cats.effect.*
 import cats.syntax.all.*
-import gui4s.core.geometry.Rect
-import gui4s.core.layout.Sized
-import gui4s.desktop.kit.effects.Clip.given
-import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.widgets.DesktopWidget
 
-import scala.annotation.targetName
+import gui4s.core.layout.Sized
+
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.effects.Clip.given
+import gui4s.desktop.kit.widgets.DesktopWidget
 
 def clipWidget[Event](value : DesktopWidget[Event], shape : ShapeInBounds) : DesktopWidget[Event] =
   gui4s.desktop.widget.library.decorator.clipWidget[

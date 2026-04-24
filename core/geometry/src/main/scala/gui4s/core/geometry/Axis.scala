@@ -1,8 +1,9 @@
 package gui4s.core.geometry
 
+import cats.derived.*
 import cats.kernel.Eq
 
-enum Axis:
+enum Axis derives Eq:
   case Vertical
   case Horizontal
   
@@ -11,5 +12,3 @@ enum Axis:
     case Axis.Horizontal => Vertical
   end another
 end Axis
-
-given Eq[Axis] = Eq.fromUniversalEquals

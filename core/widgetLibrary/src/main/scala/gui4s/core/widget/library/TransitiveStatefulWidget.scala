@@ -1,13 +1,14 @@
 package gui4s.core.widget.library
 
+import scala.reflect.Typeable
+
 import catnip.BiMonad
 import catnip.syntax.all.*
 import cats.Monad
 import cats.syntax.all.*
+
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.StatefulWidget
-
-import scala.reflect.Typeable
 
 trait TransitiveStatefulWidget[Widget[_], -Update[Event, Value], -Destructor[_], -MergeStates[_]]:
   def apply[State: Typeable, TransitiveEvent, OwnEvent](

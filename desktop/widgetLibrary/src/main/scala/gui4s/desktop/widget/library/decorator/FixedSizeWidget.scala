@@ -1,12 +1,12 @@
 package gui4s.desktop.widget.library.decorator
 
-import cats._
+import cats.*
 
-import gui4s.core.layout._
+import gui4s.core.layout.*
 import gui4s.core.widget.library.LinearContainer
 import gui4s.core.widget.library.decorator.Decorator
 
-import gui4s.desktop.widget.library._
+import gui4s.desktop.widget.library.*
 
 def fixedSizeWidget[
   Update[_] : Functor,

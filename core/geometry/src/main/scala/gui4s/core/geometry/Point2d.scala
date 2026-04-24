@@ -3,7 +3,7 @@ package gui4s.core.geometry
 import scala.reflect.Typeable
 
 import cats.kernel.Group
-import cats.syntax.all._
+import cats.syntax.all.*
 
 final case class Point2d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementUnit):
   def this(mainAxis : Axis, alongMain : MeasurementUnit, alongAdditional : MeasurementUnit) =

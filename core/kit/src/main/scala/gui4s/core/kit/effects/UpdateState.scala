@@ -2,9 +2,10 @@ package gui4s.core.kit
 package effects
 
 import cats.Monoid
-import gui4s.core.widget.Path
 import cats.kernel.Semigroup
 import cats.syntax.all.*
+
+import gui4s.core.widget.Path
 
 final case class UpdateContext[Point, Clip](
   widgetCornerCoordinates : Point,

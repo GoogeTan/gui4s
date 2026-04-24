@@ -1,12 +1,12 @@
 package gui4s.core.layout
 package linear
 
-import scala.math.Fractional.Implicits._
+import scala.math.Fractional.Implicits.*
 
 import cats.Traverse
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import gui4s.core.geometry._
+import gui4s.core.geometry.*
 
 def placeSpaceBetween[Collection[_] : Traverse, MeasurementUnit: Fractional](sizes: Collection[MeasurementUnit], space: MeasurementUnit): Collection[Rect1dOnPoint1d[MeasurementUnit]] =
   val gap = spaceBetween(sizes, space)

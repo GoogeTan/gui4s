@@ -5,7 +5,7 @@ import catnip.Zip
 import catnip.Zip.zip
 import cats.Foldable
 import cats.Functor
-import cats.syntax.all._
+import cats.syntax.all.*
 
 def containerMergesWithOldStates[
   Place[_] : Functor,

@@ -1,8 +1,8 @@
 package gui4s.desktop.skija
 package canvas
 
-import cats.effect._
-import cats.syntax.all._
+import cats.effect.*
+import cats.syntax.all.*
 
 def transition[F[_] : {Sync, Canvased}](x: Float, y: Float): F[Unit] =
   Canvased.applyCanvasFFI(_.translate(x, y))

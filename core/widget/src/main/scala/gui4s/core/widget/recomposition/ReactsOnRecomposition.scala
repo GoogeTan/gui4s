@@ -4,7 +4,7 @@ package recomposition
 import cats.Contravariant
 import cats.ContravariantMonoidal
 import cats.Monoid
-import cats.syntax.all._
+import cats.syntax.all.*
 
 type ReactsOnRecomposition[-Self, Recomposition] =
   (self : Self, pathToParent : Path, states : Map[String, StateTree[Recomposition]]) => Recomposition

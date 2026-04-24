@@ -6,7 +6,7 @@ import cats.effect.kernel.Sync
 import gui4s.core.geometry.Point3d
 
 import gui4s.desktop.kit.effects.Draw.given
-import gui4s.desktop.skija._
+import gui4s.desktop.skija.*
 import gui4s.desktop.skija.canvas.withClipedPath
 
 type Clip = Path

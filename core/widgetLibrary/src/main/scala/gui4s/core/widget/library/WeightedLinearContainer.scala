@@ -3,7 +3,10 @@ package gui4s.core.widget.library
 import catnip.syntax.all.given
 import cats.Monad
 import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, Point3d, Rect}
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
 import gui4s.core.layout.*
 
 /**

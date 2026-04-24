@@ -6,11 +6,13 @@ import catnip.syntax.transformer.given
 import cats.Monad
 import cats.data.OptionT
 import cats.effect.Sync
-import gui4s.desktop.skija.image.*
-import gui4s.desktop.skija.svg.*
-import gui4s.desktop.skija.{Image, makeDataFromBytes}
 import io.github.humbleui.skija.Data
 import io.github.humbleui.skija.svg.SVGDOM
+
+import gui4s.desktop.skija.Image
+import gui4s.desktop.skija.image.*
+import gui4s.desktop.skija.makeDataFromBytes
+import gui4s.desktop.skija.svg.*
 
 def skijaDataFromJavaResourcesT[
   IO[_] : Sync,

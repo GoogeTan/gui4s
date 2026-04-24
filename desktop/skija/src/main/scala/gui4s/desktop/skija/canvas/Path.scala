@@ -2,7 +2,7 @@ package gui4s.desktop.skija
 package canvas
 
 import cats.effect.kernel.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import io.github.humbleui.skija.Path
 
 def clipPath[IO[_] : {Sync, Canvased}](path: Path): IO[Unit] =

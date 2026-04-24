@@ -1,12 +1,12 @@
 package gui4s.core.layout
 
-import catnip.Set.update
 import cats.Applicative
 import cats.Foldable
 import cats.Monad
 import cats.Traverse
 import cats.data.StateT
 import cats.syntax.all.*
+
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Rect
 
@@ -155,6 +155,7 @@ object MeasurementStrategy:
       case Weighted.Weight(item, weight) => Right((item, weight))
   end splitChildren
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.Throw"))
   def zipByBoolean[T](a: List[T], b: List[T], predicates: List[Boolean]): List[T] =
     assert((a.size + b.size) == predicates.size, s"Lists length must add up to ${a.size + b.size}")
     assert(a.size == predicates.count(_ == true), s"True predicates count must be equal to ${a.size}")

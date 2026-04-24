@@ -4,16 +4,21 @@ import cats.*
 import cats.effect.*
 import cats.effect.std.Queue
 import cats.effect.unsafe.IORuntime
-import gui4s.core.geometry.{InfinityOr, Rect}
+import io.github.humbleui.jwm.*
+import io.github.humbleui.jwm.skija.EventFrameSkija
+import io.github.humbleui.jwm.skija.LayerMetalSkija
+
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Rect
 import gui4s.core.loop.*
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.processEvent
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
-import gui4s.desktop.kit.widgets.{DesktopPlacedWidget, DesktopWidget}
+import gui4s.desktop.kit.widgets.DesktopPlacedWidget
+import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.widget.library.*
-import io.github.humbleui.jwm.*
-import io.github.humbleui.jwm.skija.{EventFrameSkija, LayerMetalSkija}
 
 trait UIApp:
   given runtime: IORuntime = IORuntime.global

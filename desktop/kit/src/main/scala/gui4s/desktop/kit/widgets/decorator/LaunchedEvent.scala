@@ -3,15 +3,15 @@ package widgets.decorator
 
 import scala.reflect.Typeable
 
-import cats._
-import cats.effect._
+import cats.*
+import cats.effect.*
 import cats.effect.std.Supervisor
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import gui4s.core.widget.library.LaunchedEffectWidget
-import gui4s.core.widget.library.{launchedEvent => genericLaunchedEvent}
+import gui4s.core.widget.library.launchedEvent as genericLaunchedEvent
 
-import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopPlacedWidget
 import gui4s.desktop.kit.widgets.DesktopWidget
 

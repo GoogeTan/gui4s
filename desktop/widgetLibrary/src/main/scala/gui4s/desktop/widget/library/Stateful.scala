@@ -1,17 +1,17 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all._
+import catnip.syntax.all.*
 import cats.Functor
 import cats.Monad
 import cats.Monoid
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.~>
 
 import gui4s.core.widget
-import gui4s.core.widget._
+import gui4s.core.widget.*
 import gui4s.core.widget.draw.statefulIsDrawable
 import gui4s.core.widget.draw.statefulStateDrawsIntoWidget
-import gui4s.core.widget.handle._
+import gui4s.core.widget.handle.*
 import gui4s.core.widget.library.MergeStates
 import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
 import gui4s.core.widget.merge.statefulMergesWithOldStates

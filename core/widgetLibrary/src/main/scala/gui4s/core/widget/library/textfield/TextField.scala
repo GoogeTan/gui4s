@@ -2,8 +2,8 @@ package gui4s.core.widget.library.textfield
 
 import catnip.BiMonad
 import cats.*
-import cats.data.*
 import cats.syntax.all.*
+
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.StatefulWidget
 

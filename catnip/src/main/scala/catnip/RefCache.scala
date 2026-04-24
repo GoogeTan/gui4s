@@ -3,7 +3,7 @@ package catnip
 import cats.effect.Concurrent
 import cats.effect.Deferred
 import cats.effect.Ref
-import cats.syntax.all._
+import cats.syntax.all.*
 
 // Implementation using Ref and Deferred for atomic "getOrPut"
 class RefCache[F[_], K, V](

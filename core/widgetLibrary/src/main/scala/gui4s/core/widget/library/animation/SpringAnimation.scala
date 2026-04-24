@@ -1,7 +1,7 @@
 package gui4s.core.widget.library.animation
 
-import scala.concurrent.duration._
-import scala.math._
+import scala.concurrent.duration.*
+import scala.math.*
 
 class SpringAnimation[A](
   dampingRatio: Double = 1.0,
@@ -54,6 +54,7 @@ class SpringAnimation[A](
     space.times(space.minus(v2, v1), 1.0 / deltaTSec)
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Return", "org.wartremover.warts.While"))
   def duration(initialValue: A, targetValue: A, initialVelocity: A): Duration = {
     var currentTime = 0.0
     val deltaTSec = 0.001

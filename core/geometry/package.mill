@@ -1,24 +1,25 @@
 package build.core.geometry
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import build.WartRemoverScalaModule
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
 import mill.scalalib.SbtModule
 import build.dependencies.cats
 import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule with ScalafixModule:
+object `package` extends SbtModule with PublishModule with ScalafixModule with WartRemoverScalaModule:
 
-  def scalaVersion = build.versions.scala
+  override def scalaVersion = build.versions.scala
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  override def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector"
   )
 
-  def mvnDeps = super.mvnDeps() ++ cats
+  override def mvnDeps = super.mvnDeps() ++ cats
 
-  def pomSettings = build.pomSettings("geometry")
+  override def pomSettings = build.pomSettings("geometry")
 
-  def publishVersion = build.publishVersion
+  override def publishVersion = build.publishVersion
 end `package`

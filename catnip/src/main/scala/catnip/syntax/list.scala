@@ -13,7 +13,7 @@ import cats.SemigroupK
 import cats.Traverse
 import cats.data.NonEmptyList
 import cats.data.StateT
-import cats.syntax.all._
+import cats.syntax.all.*
 
 object list:
   

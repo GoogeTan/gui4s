@@ -1,12 +1,12 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats.effect._
+import cats.effect.*
 
 import gui4s.core.widget.library.MapEvent
 
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.widget.library.decorator.{mapUpdate => genericMapUpdate}
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.widget.library.decorator.mapUpdate as genericMapUpdate
 
 def mapEventWidget : MapEvent[DesktopWidget] =
   [Event, NewEvent] => f => original =>

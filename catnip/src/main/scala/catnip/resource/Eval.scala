@@ -2,7 +2,8 @@ package catnip
 package resource
 
 import catnip.transformer.MonadTransformer
-import cats.{Monad, ~>}
+import cats.Monad
+import cats.~>
 
 type EvalC[IO[_]] = [R[_]] =>> Eval[R, IO]
 

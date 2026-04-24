@@ -1,8 +1,10 @@
 package gui4s.core.widget.library.animation
 
 import catnip.BiMonad
+import cats.Eq
+import cats.Group
 import cats.syntax.all.*
-import cats.{Eq, Group}
+
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.MergeStates
@@ -27,7 +29,7 @@ type AnimationWidget[Widget[_], AnimatedValue, Time] =
 //TODO Удалить событие для времени .Теперь обработчик виджета состояния вызывается на каждое обновление, даже без событий.
 def animationWidget[
   Widget[_],
-  Time : {Group, Ordering},
+  Time : {Group, Ordering, Eq},
   Update[_, _] : BiMonad as UBM,
   Place[_],
   Destructor[_],
@@ -62,12 +64,12 @@ def animationWidget[
 end animationWidget
 
 
-def mergeStates[AnimatedValue : {Eq as AVEQ}, Time : Group as TG](
+def mergeStates[AnimatedValue : {Eq as AVEQ}, Time : {Eq, Group as TG}](
   oldState : StatefulState[AnimationWidgetState[AnimatedValue, Time]],
   newState: StatefulState[AnimationWidgetState[AnimatedValue, Time]],
   time : Time
 ) : StatefulState[AnimationWidgetState[AnimatedValue, Time]] =
-  if oldState.initialState == newState.initialState then
+  if oldState.initialState === newState.initialState then
     newState
   else
     StatefulState(
@@ -77,7 +79,7 @@ def mergeStates[AnimatedValue : {Eq as AVEQ}, Time : Group as TG](
         animation = newState.currentState.animation,
         playingAnimation = newState.currentState match
           case AnimationWidgetState(newStartValue, newAnimation, None) =>
-            if oldState.currentState.startValue == newStartValue then
+            if oldState.currentState.startValue === newStartValue then
               None
             else
               Some(

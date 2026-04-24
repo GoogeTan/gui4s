@@ -1,10 +1,11 @@
 package gui4s.desktop.windowing.glfw
 
-import cats.syntax.all.*
 import cats.effect.IO
 import cats.effect.std.Queue
+import cats.syntax.all.*
 import glfw4s.core.pure.PurePostInit
-import gui4s.desktop.kit.effects.{*, given}
+
+import gui4s.desktop.kit.effects. *
 import gui4s.desktop.kit.widgets.decorator.ClickCatcher
 
 def clickCatcher[

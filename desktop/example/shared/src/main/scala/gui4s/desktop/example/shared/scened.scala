@@ -1,17 +1,26 @@
 package gui4s.desktop.example.shared
 
 import cats.data.NonEmptyList
-import cats.syntax.all.*
 import cats.effect.IO
 import cats.effect.std.Queue
+import cats.syntax.all.*
+import io.github.humbleui.skija.Font
+
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.Paddings
-import gui4s.desktop.kit.effects.{DownEvent, Init, LinearContainerPlacementStrategy, Shape, UpdateC}
+
+import gui4s.desktop.kit.effects.DownEvent
+import gui4s.desktop.kit.effects.Init
+import gui4s.desktop.kit.effects.LinearContainerPlacementStrategy
+import gui4s.desktop.kit.effects.Shape
+import gui4s.desktop.kit.effects.UpdateC
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.skija.{Brush, Paint, SkijaTextStyle, StrokeOptions}
-import io.github.humbleui.skija.Font
+import gui4s.desktop.skija.Brush
+import gui4s.desktop.skija.Paint
+import gui4s.desktop.skija.SkijaTextStyle
+import gui4s.desktop.skija.StrokeOptions
 import gui4s.desktop.skija.typeface.defaultTypeface
 
 def scenedExample[ScrollEvent](

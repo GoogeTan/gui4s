@@ -1,14 +1,19 @@
 package gui4s.desktop.windowing.jwm
 
 import cats.syntax.all.*
+import io.github.humbleui.jwm.EventMouseScroll
+
+import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Axis.Horizontal
-import gui4s.core.geometry.{Axis, Rect}
+import gui4s.core.geometry.Rect
+
+import gui4s.desktop.kit.effects.DownEvent
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
-import gui4s.desktop.kit.effects.{DownEvent, Situated, Update}
+import gui4s.desktop.kit.effects.Situated
+import gui4s.desktop.kit.effects.Update
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.widget.library.*
 import gui4s.desktop.widget.library.decorator.trueUpdateDecoratorWithRect
-import io.github.humbleui.jwm.EventMouseScroll
 
 final case class InnerEvent(event : EventMouseScroll, childSize: Rect[Float])
 
@@ -56,7 +61,7 @@ def scrollEventSource: ScrollEventSource[EventMouseScroll] =
 
     extension (event: EventMouseScroll)
       override def shiftAlong(axis: Axis): Float =
-        if axis == Horizontal then
+        if axis === Horizontal then
           event._deltaX
         else
           event._deltaY
@@ -64,7 +69,7 @@ def scrollEventSource: ScrollEventSource[EventMouseScroll] =
       end shiftAlong
       
       override def withShiftAlong(axis: Axis, value: Float): EventMouseScroll =
-        if axis == Horizontal then
+        if axis === Horizontal then
           EventMouseScroll(
             value,
             event._deltaY,

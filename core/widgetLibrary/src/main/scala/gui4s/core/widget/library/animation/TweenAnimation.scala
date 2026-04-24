@@ -1,6 +1,6 @@
 package gui4s.core.widget.library.animation
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class TweenAnimation[A](
   duration: Duration,

@@ -2,6 +2,7 @@ package gui4s.desktop.example.shared
 
 import cats.effect.IO
 import io.github.humbleui.skija.Image
+
 import org.http4s.Uri
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.log4cats.*

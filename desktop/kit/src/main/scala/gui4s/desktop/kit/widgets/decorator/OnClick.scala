@@ -2,12 +2,13 @@ package gui4s.desktop.kit
 package widgets.decorator
 
 import cats.effect.*
-import cats.effect.std.Queue
 import cats.syntax.all.*
+
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.RectAtPoint2d
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.clickCatcher as genericClickCatcher
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 

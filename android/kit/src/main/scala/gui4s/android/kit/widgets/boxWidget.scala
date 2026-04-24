@@ -2,7 +2,6 @@ package gui4s.android.kit.widgets
 
 import catnip.syntax.all.given
 import cats.Id
-import cats.effect.IO
 import gui4s.core.geometry.Axis
 import gui4s.core.kit.ContainerPlacementError
 import gui4s.android.kit.effects.{LinearContainerPlacementStrategy, OneElementLinearContainerPlacementStrategy}

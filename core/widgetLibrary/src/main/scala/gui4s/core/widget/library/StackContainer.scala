@@ -1,14 +1,14 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.all.{_, given}
+import catnip.syntax.all.{*, given}
 import catnip.syntax.functor.nestedFunctorsAreFunctors
-import cats._
-import cats.syntax.all._
+import cats.*
+import cats.syntax.all.*
 
-import gui4s.core.geometry._
+import gui4s.core.geometry.*
+import gui4s.core.layout.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.SizedC
-import gui4s.core.layout._
 import gui4s.core.widget.free.AsFreeF
 import gui4s.core.widget.library.ContainerWidget
 

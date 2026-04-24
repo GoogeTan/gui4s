@@ -6,7 +6,6 @@ import cats.*
 import cats.effect.IO
 import gui4s.core.geometry.Rect
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
-import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 

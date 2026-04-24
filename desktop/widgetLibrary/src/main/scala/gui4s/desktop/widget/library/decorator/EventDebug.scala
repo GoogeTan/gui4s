@@ -1,7 +1,10 @@
 package gui4s.desktop.widget.library.decorator
 
-import cats.{Apply, Comonad, Functor}
+import cats.Apply
+import cats.Comonad
+import cats.Functor
 import cats.syntax.all.*
+
 import gui4s.desktop.widget.library.widgetHandlesEvent
 
 def eventDebug[

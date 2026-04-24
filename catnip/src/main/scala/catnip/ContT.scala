@@ -1,6 +1,5 @@
 package catnip
 
-import catnip.resource.{EvalC, Use}
 import cats.Applicative
 import cats.FlatMap
 import cats.Monad

@@ -4,21 +4,20 @@ import catnip.syntax.all.given
 import catnip.syntax.list.foldOrdered
 import catnip.syntax.list.traverseOrdered
 import cats.Order
-import cats.effect._
+import cats.effect.*
 
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Measured
-import gui4s.core.layout.Sized
 import gui4s.core.layout.Weighted
-import gui4s.core.widget.library._
+import gui4s.core.widget.library.*
 
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.drawAt
 import gui4s.desktop.kit.effects.Place.given
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.widget.library._
+import gui4s.desktop.widget.library.*
 
 def weightedLinearContainer[
   Event
@@ -100,8 +99,7 @@ def weightedLinearContainer[
                 PlacementEffect,
                 DesktopPlacedWidget[Event],
                 Rect[Float],
-                Bounds,
-                Point3d[Float]
+                Bounds
               ](PlacementEffect.getBounds, widgetAsFree, oldWidget.map(_._1)), oldWidget.value._2)
             ),
       ),

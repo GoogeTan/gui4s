@@ -1,6 +1,6 @@
 package gui4s.core.widget.library.decorator
 
-import scala.math.Numeric.Implicits._
+import scala.math.Numeric.Implicits.*
 
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect

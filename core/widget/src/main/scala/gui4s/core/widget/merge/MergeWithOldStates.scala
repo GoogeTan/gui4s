@@ -4,7 +4,7 @@ package merge
 import cats.Functor
 import cats.arrow.CommutativeArrow
 import cats.arrow.Strong
-import cats.syntax.all._
+import cats.syntax.all.*
 
 type MergesWithOldStates[-Self, -RecompositionAction, +UpdatedSelf] =
   (self : Self, oldInnerStates : Map[String, StateTree[RecompositionAction]]) => UpdatedSelf

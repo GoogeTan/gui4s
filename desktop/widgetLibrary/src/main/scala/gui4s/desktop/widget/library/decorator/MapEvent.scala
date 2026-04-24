@@ -3,7 +3,7 @@ package decorator
 
 import cats.Comonad
 import cats.Functor
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.~>
 
 

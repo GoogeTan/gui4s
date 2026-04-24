@@ -41,6 +41,7 @@ extension (drawable: Drawable)
     Image.Companion.makeRaster(imageInfo, buffer.array(), width * 4)
 
 extension (bitmap: Bitmap)
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
   def toSkiaImage(): Image =
     val width = bitmap.getWidth
     val height = bitmap.getHeight

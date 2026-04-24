@@ -1,6 +1,5 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.nestedFunctorsAreFunctors
 import cats.Functor
 import cats.data.{Reader, ReaderT}
 import gui4s.core.geometry.{Point3d, Rect}
@@ -13,7 +12,7 @@ class ContainerTest extends AnyFlatSpec:
   type Update[T] = T
   type PlacementEffect[T] = Reader[Rect[Float], T]
   type Place[T] = PlacementEffect[Sized[Rect[Float], T]]
-  given Functor[Place] = nestedFunctorsAreFunctors[PlacementEffect, Sized[Rect[Float], *]]
+  given Functor[Place] = catnip.syntax.all.nestedFunctorsAreFunctors[PlacementEffect, Sized[Rect[Float], *]]
   type Draw = List[Any]// Запоминаем порядок вызова
   type RecompositionReaction = Unit
 

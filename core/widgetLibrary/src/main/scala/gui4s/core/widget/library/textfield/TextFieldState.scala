@@ -1,5 +1,9 @@
 package gui4s.core.widget.library.textfield
 
+import cats.Eq
+import cats.derived.*
+import cats.syntax.all.*
+
 import gui4s.core.widget.Path
 
 final case class TextFieldState(
@@ -7,7 +11,7 @@ final case class TextFieldState(
   anchor: TextPosition = TextPosition.Zero,
   cursor: TextPosition = TextPosition.Zero,
   focusedTextField: Option[Path] = None
-):
+) derives Eq:
   def this(lines : String, anchor : TextPosition, cursor : TextPosition, focusedTextField : Option[Path]) =
     this(lines.split("\n", -1).toList, anchor, cursor)
   end this
@@ -73,7 +77,7 @@ final case class TextFieldState(
   end insertAtCursor
 
   def backspace(): TextFieldState =
-    if (anchor == cursor)
+    if (anchor === cursor)
       if cursor.column > 0 then
         val column = math.min(cursor.column, lines(cursor.line).length)
         val newLine = lines(cursor.line).patch(column - 1, "", 1)
@@ -95,7 +99,7 @@ final case class TextFieldState(
   end backspace
 
   def delete(): TextFieldState =
-    if (anchor == cursor)
+    if (anchor === cursor)
       if (cursor.column < lines(cursor.line).length)
         val newLine = lines(cursor.line).patch(cursor.column, "", 1)
         copy(lines = lines.updated(cursor.line, newLine))
@@ -162,7 +166,7 @@ final case class TextFieldState(
 
   private def updatePositions(shift: Boolean, newCursor: TextPosition): TextFieldState =
     if (shift)
-      if (anchor == cursor)
+      if (anchor === cursor)
         copy(cursor = newCursor, anchor = cursor)
       else
         copy(cursor = newCursor)
@@ -183,7 +187,7 @@ final case class TextFieldState(
 
   def getSelected: String =
     val (start, end) = normalize
-    if (start == end)
+    if (start === end)
       ""
     else if (start.line == end.line)
       lines(start.line).substring(start.column, end.column)
@@ -205,14 +209,6 @@ final case class TextFieldState(
   def getText : String =
     lines.mkString("\n")
   end getText
-
-  override def equals(obj: Any): Boolean =
-    obj match
-      case other : TextFieldState =>
-        this.lines == other.lines && this.anchor == other.anchor && this.cursor == other.cursor && this.focusedTextField == other.focusedTextField
-      case _ => false
-    end match
-  end equals
 
   def putWholeCursorTo(pos : TextPosition) : TextFieldState =
     copy(cursor = pos, anchor = pos)

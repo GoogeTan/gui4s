@@ -3,7 +3,7 @@ package recomposition
 
 import cats.Foldable
 import cats.Monoid
-import cats.syntax.all._
+import cats.syntax.all.*
 
 def containerReactsOnRecomposition[
   Widget, 

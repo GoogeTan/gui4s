@@ -2,13 +2,15 @@ package gui4s.desktop.widget.library
 
 import cats.Functor
 import cats.syntax.all.*
+
+import gui4s.core.widget.Path
+import gui4s.core.widget.StateTree
 import gui4s.core.widget.draw.Drawable
 import gui4s.core.widget.free.AsFree
 import gui4s.core.widget.handle.HandlesEvent_
 import gui4s.core.widget.merge.MergesWithOldStates
 import gui4s.core.widget.recomposition.ReactsOnRecomposition
 import gui4s.core.widget.state.HasInnerStates
-import gui4s.core.widget.{Path, StateTree}
 
 /**
  * Представляет собой общее представление любого (возможно, только десктопного) размещенного на экране виджета.

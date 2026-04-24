@@ -3,30 +3,29 @@ package widgets
 
 import catnip.Sortable
 import catnip.Zip
-import catnip.syntax.all.{_, given}
-import cats._
-import cats.data._
-import cats.effect._
-import cats.syntax.all._
+import catnip.syntax.all.{*, given}
+import cats.*
+import cats.data.*
+import cats.effect.*
+import cats.syntax.all.*
 
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Measured
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.layout.PlacementStrategy
-import gui4s.core.layout.Sized
-import gui4s.core.widget.library._
+import gui4s.core.widget.library.*
 
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.Draw.monoidInstance
 import gui4s.desktop.kit.effects.Place.given
-import gui4s.desktop.kit.effects._
 import gui4s.desktop.skija.canvas.drawAt
 import gui4s.desktop.widget.library.Layout2
+import gui4s.desktop.widget.library.container as genericContainer
 import gui4s.desktop.widget.library.widgetAsFree
 import gui4s.desktop.widget.library.widgetHandlesEvent
 import gui4s.desktop.widget.library.widgetIsDrawable
-import gui4s.desktop.widget.library.{container => genericContainer}
 
 
 def containerWidget[

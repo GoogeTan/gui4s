@@ -2,12 +2,11 @@ package gui4s.desktop.kit
 package effects
 
 import catnip.Get
-import catnip.Set
-import cats._
-import cats.effect._
+import cats.*
+import cats.effect.*
 
 import gui4s.core.geometry.Rect
-import gui4s.core.kit.effects.{PlacementEffect => GenericPlacementEffect}
+import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
 
@@ -67,7 +66,7 @@ object PlacementEffect:
   end withBoundsKF
 
   def raiseError[Error, Value](error: => Error)(using ME : MonadError[IO, Error]): PlacementEffect[Value] =
-    GenericPlacementEffect.liftF(ME.raiseError(error))
+    GenericPlacementEffect.liftF[IO, (Bounds, Path), Value](ME.raiseError(error))
   end raiseError
 
   def run(path : Path, bounds: IO[Bounds]): PlacementEffect ~> IO =

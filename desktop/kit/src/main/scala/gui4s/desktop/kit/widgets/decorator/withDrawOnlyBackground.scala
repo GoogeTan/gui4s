@@ -2,7 +2,7 @@ package gui4s.desktop.kit.widgets.decorator
 
 import catnip.syntax.all.given
 import cats.Id
-import cats.effect._
+import cats.effect.*
 
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect

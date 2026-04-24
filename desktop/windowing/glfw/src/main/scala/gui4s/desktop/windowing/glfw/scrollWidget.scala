@@ -4,13 +4,9 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import glfw4s.core.pure.PureInput
-import gui4s.core.geometry.{Axis, Point2d, Point3d, Rect}
-import gui4s.core.widget.library.animation.{Animation, AnimationWidget}
-import gui4s.desktop.kit.effects.{*, given}
-import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.kit.widgets.decorator.*
 
-import scala.concurrent.duration.Duration
+import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.widgets.*
 
 def scrollWidget[
   Window,

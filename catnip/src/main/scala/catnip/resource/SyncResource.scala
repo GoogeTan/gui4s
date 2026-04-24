@@ -6,6 +6,7 @@ import cats.Monad
 import cats.effect.*
 
 trait SyncResource[Resource[_]]:
+  @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
   def make[T](
     f : => (T, () => Unit),
     allocateStrategy : WrapStrategy = WrapStrategy.Delay,

@@ -3,7 +3,7 @@ package gui4s.android.kit.effects
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
 
-@SuppressWarnings(Array("org.wartremover.warts.Any"))
+@SuppressWarnings(Array("org.remover.warts.Any"))
 enum DownEvent:
   case WindowShouldBeRedrawn
   @SuppressWarnings(Array("org.wartremover.warts.Any"))

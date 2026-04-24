@@ -1,6 +1,6 @@
 package gui4s.desktop.skija
 
-import io.github.humbleui.skija._
+import io.github.humbleui.skija.*
 
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect

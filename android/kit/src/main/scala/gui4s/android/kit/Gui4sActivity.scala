@@ -5,7 +5,6 @@ import cats.effect.IO
 import cats.effect.std.{Dispatcher, Queue, Supervisor}
 import cats.effect.kernel.{Ref, Resource}
 import cats.~>
-import catnip.syntax.all.*
 import gui4s.core.kit.effects.RecompositionReaction
 import gui4s.android.kit.widgets.*
 import gui4s.android.kit.effects.*
@@ -18,8 +17,6 @@ import org.jetbrains.skiko.*
 import org.jetbrains.skia.*
 import gui4s.desktop.widget.library.*
 
-import scala.reflect.Typeable
-
 final case class AppState(
   dispatcher: Dispatcher[IO],
   eventBus : Queue[IO, DownEvent],
@@ -28,15 +25,8 @@ final case class AppState(
 )
 
 trait Gui4sActivity extends Activity:
-  final given Typeable[IO[Unit]] = (a : Any) =>
-    a match
-      case _ : IO[t] =>
-        Some(a.asInstanceOf[IO[Unit] & a.type])
-      case _ => None
-    end match
-  end given
-
   final val liftCallbackIOToAppIO : IO ~> IO = FunctionK.id
+  @SuppressWarnings(Array("org.wartremover.warts.Var"))
   final var state : Option[(AppState, IO[Unit])] = None
 
   override def onCreate(savedInstanceState: android.os.Bundle): Unit =

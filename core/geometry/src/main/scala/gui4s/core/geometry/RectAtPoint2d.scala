@@ -1,7 +1,7 @@
 package gui4s.core.geometry
 
-import scala.math.Numeric.Implicits._
-import scala.math.Ordering.Implicits._
+import scala.math.Numeric.Implicits.*
+import scala.math.Ordering.Implicits.*
 
 //TODO replace me with sized
 final case class RectAtPoint2d[MeasurementUnit](rect: Rect[MeasurementUnit], point: Point2d[MeasurementUnit]):

@@ -4,7 +4,11 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import glfw4s.core.pure.PureInput
-import gui4s.core.geometry.{Axis, Point2d, Rect}
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
 import gui4s.desktop.kit.widgets.*

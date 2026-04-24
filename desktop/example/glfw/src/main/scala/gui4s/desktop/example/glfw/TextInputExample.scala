@@ -1,16 +1,16 @@
 package gui4s.desktop.example.glfw
 
-import scala.math._
+import scala.math.*
 
-import catnip.syntax.all._
-import cats._
-import cats.effect._
-import cats.effect.std._
-import cats.syntax.all._
+import catnip.syntax.all.*
+import cats.*
+import cats.effect.*
+import cats.effect.std.*
+import cats.syntax.all.*
 import glfw4s.core.GlfwConstants
 import glfw4s.core.KeyAction
 import glfw4s.core.WindowCreationSettings
-import glfw4s.core.pure._
+import glfw4s.core.pure.*
 import glfw4s.jna.bindings.types.GLFWcursor
 import glfw4s.jna.bindings.types.GLFWmonitor
 import glfw4s.jna.bindings.types.GLFWwindow
@@ -30,14 +30,14 @@ import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.widget.library.textfield.TextFieldEvent
 
-import gui4s.desktop.windowing.glfw.UIApp
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
-import gui4s.desktop.kit.effects._
 import gui4s.desktop.kit.widgets
-import gui4s.desktop.kit.widgets._
-import gui4s.desktop.kit.widgets.decorator._
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.kit.widgets.decorator.*
 import gui4s.desktop.skija.Brush
 import gui4s.desktop.skija.StrokeOptions
+import gui4s.desktop.windowing.glfw.UIApp
 
 enum TextInputOuterEvent:
   case CharInputEvent(key : Int)
@@ -172,6 +172,7 @@ object TextInputExample extends UIApp:
   )(name, text, update)
   end textField
 
+  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def textFieldEventSource(
                             glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
                             window: GLFWwindow,
@@ -181,7 +182,7 @@ object TextInputExample extends UIApp:
       eventBus.offer(DownEvent.UserEvent(TextInputOuterEvent.CharInputEvent(key)))
     ) *>
       glfw.addKeyCallback(window, (window, key, scancode, action, mods) =>
-        if action != KeyAction.Press then
+        if action =!= KeyAction.Press then
           IO.unit
         else
           key match
@@ -210,14 +211,14 @@ object TextInputExample extends UIApp:
           end match
         end if
       ) *> glfw.addMouseButtonCallback(window, (window, button, action, mods) =>
-        if button == GlfwConstants.GLFW_MOUSE_BUTTON_LEFT && action != KeyAction.Repeat then
+        if button == GlfwConstants.GLFW_MOUSE_BUTTON_LEFT && action =!= KeyAction.Repeat then
             for
               monitor <- glfw.getPrimaryMonitor
               (scaleX, scaleY) <- glfw.getMonitorContentScale(monitor.get)
               (x, y) <- glfw.getCursorPos(window)
               _ <- eventBus.offer(
                 DownEvent.UserEvent(
-                  TextInputOuterEvent.LeftMouseClick((x * scaleX).toFloat, (y * scaleY).toFloat, action == KeyAction.Press)
+                  TextInputOuterEvent.LeftMouseClick((x * scaleX).toFloat, (y * scaleY).toFloat, action === KeyAction.Press)
                 )
               )
             yield ()
@@ -266,7 +267,7 @@ object TextInputExample extends UIApp:
         )(
           cornerCoords =>
             val paragraphHeightShift =
-              if textFieldTextAreaSize == minimalClickableAreaSize then
+              if textFieldTextAreaSize === minimalClickableAreaSize then
                 (textFieldTextAreaSize.height - sizedParagraph.size.height) / 2f
               else
                 0f

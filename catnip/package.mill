@@ -5,20 +5,20 @@ import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 import build.dependencies.catsEffect
+import build.*
 import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule with ScalafixModule:
+object `package` extends SbtModule with PublishModule with ScalafixModule with WartRemoverScalaModule:
+  override def scalaVersion = build.versions.scala
 
-  def scalaVersion = build.versions.scala
-
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  override def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector"
   )
 
-  def mvnDeps = super.mvnDeps() ++ catsEffect
+  override def mvnDeps = super.mvnDeps() ++ catsEffect
 
-  def pomSettings = build.pomSettings("catnip")
+  override def pomSettings = build.pomSettings("catnip")
 
-  def publishVersion = build.publishVersion
+  override def publishVersion = build.publishVersion
 end `package`

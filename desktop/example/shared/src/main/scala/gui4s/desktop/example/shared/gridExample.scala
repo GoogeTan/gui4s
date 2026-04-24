@@ -1,8 +1,10 @@
 package gui4s.desktop.example.shared
 
 import cats.Id
+
 import gui4s.core.geometry.Point2d
 import gui4s.core.kit.ContainerPlacementError
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*

@@ -1,13 +1,19 @@
 package gui4s.core.widget.library.decorator
 
+import scala.math.Fractional.Implicits.*
+
 import catnip.syntax.all.{*, given}
 import cats.*
 import cats.syntax.all.*
-import gui4s.core.geometry.{InfinityOr, Point2d, Rect}
-import gui4s.core.layout.{ContainerStrategy, OneElementPlacementStrategy, PlacementStrategy, Sized}
-import gui4s.core.widget.library.ContainerWidget
 
-import scala.math.Fractional.Implicits.*
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
+import gui4s.core.layout.ContainerStrategy
+import gui4s.core.layout.OneElementPlacementStrategy
+import gui4s.core.layout.PlacementStrategy
+import gui4s.core.layout.Sized
+import gui4s.core.widget.library.ContainerWidget
 
 type PaddingWidget[Widget, Padding] = Padding => Decorator[Widget]
 

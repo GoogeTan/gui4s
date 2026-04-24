@@ -6,7 +6,7 @@ import cats.FlatMap
 import cats.Functor
 import cats.data.EitherT
 import cats.data.StateT
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.~>
 
 object functionk:

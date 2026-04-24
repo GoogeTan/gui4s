@@ -1,6 +1,6 @@
 package gui4s.core.geometry
 
-import scala.math.Numeric.Implicits._
+import scala.math.Numeric.Implicits.*
 
 //TODO replace me with sized
 final case class Rect1dOnPoint1d[T](length: T, coordinateOfTheBeginning: T):

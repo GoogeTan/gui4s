@@ -1,11 +1,11 @@
 package gui4s.desktop.widget.library
 package decorator
 
-import catnip.syntax.all._
+import catnip.syntax.all.*
 import cats.Comonad
 import cats.Functor
 import cats.Monad
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import gui4s.core.widget.library.decorator.Decorator
 

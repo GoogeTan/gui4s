@@ -3,7 +3,7 @@ package decorator
 
 import catnip.syntax.function.andThen
 import cats.Functor
-import cats.syntax.all._
+import cats.syntax.all.*
 
 def placementDecorator[
   Update[_] : Functor,

@@ -4,8 +4,11 @@ import cats.*
 import cats.data.*
 import cats.effect.*
 import cats.syntax.all.*
+
+import gui4s.desktop.kit.widgets.DesktopWidget
+import gui4s.desktop.kit.widgets.TextWidget
 import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.kit.widgets.{DesktopWidget, TextWidget, statefulWidget}
+import gui4s.desktop.kit.widgets.statefulWidget
 import gui4s.desktop.skija.*
 
 def statefulExample(

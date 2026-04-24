@@ -2,9 +2,10 @@ package gui4s.core.widget.library
 
 import catnip.syntax.all.given
 import cats.*
-import cats.syntax.all.*
-import gui4s.core.layout.{ContainerStrategy, Measured, MeasurementStrategy, PlacementStrategy, Sized}
-import gui4s.core.widget.library.decorator.Decorator
+
+import gui4s.core.layout.ContainerStrategy
+import gui4s.core.layout.Measured
+import gui4s.core.layout.PlacementStrategy
 
 /**
  * Виджет прокрутки. Позволяет просматривать невидимые части дочернего виджета посредством прокрутки.

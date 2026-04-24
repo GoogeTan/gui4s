@@ -2,10 +2,10 @@ package gui4s.core.loop
 
 import scala.concurrent.ExecutionContext
 
-import cats._
-import cats.effect._
-import cats.effect.syntax.all._
-import cats.syntax.all._
+import cats.*
+import cats.effect.*
+import cats.effect.syntax.all.*
+import cats.syntax.all.*
 
 /**
  * Принимает изначальный виджет, способ послать его обновлённую версию и способ получить следующее событие для обновления(может приостановить поток).

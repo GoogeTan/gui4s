@@ -189,7 +189,7 @@ object AndroidConfiguration {
 }
 
 
-case class AndroidConfiguration[Bounds](
+final case class AndroidConfiguration[Bounds](
   fontScale: Float = 0.0f,
   mcc: Int = 0,
   mnc: Int = Configuration.MNC_ZERO,
@@ -216,15 +216,20 @@ case class AndroidConfiguration[Bounds](
   fontWeightAdjustment: Int = Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED,
 ):
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   def isScreenRound: Boolean = screenRound == AndroidConfiguration.ScreenRound.Yes
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   def isScreenWideColorGamut: Boolean = wideColorGamut == AndroidConfiguration.WideColorGamut.Yes
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   def isScreenHdr: Boolean = hdr == AndroidConfiguration.Hdr.Yes
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   def isNightModeActive: Boolean = uiModeNight == AndroidConfiguration.UiModeNight.Yes
 
   def isLayoutSizeAtLeast(size: AndroidConfiguration.ScreenSize): Boolean =
     screenSize.id >= size.id
   end isLayoutSizeAtLeast
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals", "org.wartremover.warts.Null"))
   def withLayoutDirection(loc: Locale): AndroidConfiguration[Bounds] =
     val dir = if (loc != null && TextUtils.getLayoutDirectionFromLocale(loc) == View.LAYOUT_DIRECTION_RTL) AndroidConfiguration.LayoutDirection.Rtl else AndroidConfiguration.LayoutDirection.Ltr
     this.copy(layoutDirection = dir)

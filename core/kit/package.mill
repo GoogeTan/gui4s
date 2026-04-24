@@ -1,34 +1,36 @@
 package build.core.kit
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import build.WartRemoverScalaModule
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
 import mill.scalalib.SbtModule
 import build.dependencies.catsEffect
 import com.goyeau.mill.scalafix.ScalafixModule
+import mill.api.Task.Simple.create
 
-object `package` extends SbtModule with PublishModule with ScalafixModule:
+object `package` extends SbtModule with PublishModule with ScalafixModule with WartRemoverScalaModule:
+  override def artifactName = "core-kit"
 
-  def artifactName = "core-kit"
+  override def scalaVersion = build.versions.scala
 
-  def scalaVersion = build.versions.scala
-
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  override def scalacOptions = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector"
   )
 
-  def mvnDeps = super.mvnDeps() ++ catsEffect
+  override def mvnDeps = super.mvnDeps() ++ catsEffect
 
-  def moduleDeps = super.moduleDeps ++
+  override def moduleDeps = super.moduleDeps ++
     Seq(
       build.catnip,
       build.core.layout,
       build.core.loop,
       build.core.widget,
     )
+  end moduleDeps
 
-  def pomSettings = build.pomSettings("core-kit")
+  override def pomSettings = build.pomSettings("core-kit")
 
-  def publishVersion = build.publishVersion
+  override def publishVersion = build.publishVersion
 end `package`

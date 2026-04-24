@@ -1,7 +1,9 @@
 package gui4s.core.widget.library.animation
 
-import scala.concurrent.duration._
-import scala.math._
+import scala.concurrent.duration.*
+import scala.math.*
+
+import cats.syntax.all.*
 
 class InfiniteRepeatable[A](
   animation: Animation[A, Duration],
@@ -20,10 +22,9 @@ class InfiniteRepeatable[A](
       val singleS = toSeconds(singleDuration)
       val playS = toSeconds(playTime)
       val currentIteration = floor(playS / singleS).toInt
-      var playTimeInIterationS = playS % singleS
-      if (playTimeInIterationS < 0) playTimeInIterationS += singleS
+      val playTimeInIterationS = (playS + 500 * singleS) % singleS
       val playTimeInIteration = fromSeconds(playTimeInIterationS)
-      val playForward = if repeatMode == RepeatMode.Restart then true else currentIteration % 2 == 0
+      val playForward = if repeatMode === RepeatMode.Restart then true else currentIteration % 2 == 0
       if playForward then
         animation.valueAtGivenMoment(playTimeInIteration, initialValue, targetValue, initialVelocity)
       else
@@ -38,10 +39,10 @@ class InfiniteRepeatable[A](
       val singleS = toSeconds(singleDuration)
       val playS = toSeconds(playTime)
       val currentIteration = floor(playS / singleS).toInt
-      var playTimeInIterationS = playS % singleS
-      if (playTimeInIterationS < 0) playTimeInIterationS += singleS
+      //TODO может здесь есть решщение умнее, чем просто 500(это написано не выспавшись, но оно работает)
+      val playTimeInIterationS = (playS + singleS * 500) % singleS
       val playTimeInIteration = fromSeconds(playTimeInIterationS)
-      val playForward = if repeatMode == RepeatMode.Restart then true else currentIteration % 2 == 0
+      val playForward = if repeatMode === RepeatMode.Restart then true else currentIteration % 2 == 0
       if playForward then
         animation.velocityAtGivenMoment(playTimeInIteration, initialValue, targetValue, initialVelocity)
       else

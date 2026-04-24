@@ -7,7 +7,7 @@ import cats.data.OptionT
 type OptionTransformer[IO[_], T] = OptionT[IO, T]
 
 object OptionTransformer:
-  def none_[IO[_] : Monad, Error, T] : OptionTransformer[IO, T] =
+  def none_[IO[_] : Monad, T] : OptionTransformer[IO, T] =
     OptionT.none
   end none_
 

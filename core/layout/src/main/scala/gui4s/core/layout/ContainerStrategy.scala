@@ -4,7 +4,7 @@ import catnip.Zip
 import catnip.Zip.zip
 import cats.FlatMap
 import cats.Functor
-import cats.syntax.all._
+import cats.syntax.all.*
 
 object ContainerStrategy:
   def combine[

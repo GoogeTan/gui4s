@@ -1,7 +1,7 @@
 package gui4s.core.widget.library
 
 import cats.Monad
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import gui4s.core.widget.Path
 import gui4s.core.widget.library.decorator.EventCatcherWithRect

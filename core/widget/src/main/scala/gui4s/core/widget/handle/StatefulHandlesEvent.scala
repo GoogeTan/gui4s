@@ -1,12 +1,13 @@
 package gui4s.core.widget
 package handle
 
+import scala.collection.immutable.List
+
 import cats.*
 import cats.syntax.all.*
+
 import gui4s.core.widget.draw.Drawable
 import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
-
-import scala.collection.immutable.List
 
 // TODO добавить тесты на добавление имен
 def statefulHandlesEvent[

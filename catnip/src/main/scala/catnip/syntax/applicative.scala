@@ -6,7 +6,7 @@ import cats.ApplicativeError
 import cats.Functor
 import cats.arrow.Strong
 import cats.kernel.Monoid
-import cats.syntax.all._
+import cats.syntax.all.*
 
 object applicative:
   type ApplicativeErrorC[Error] = [F[_]] =>> ApplicativeError[F, Error]

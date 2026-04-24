@@ -3,14 +3,14 @@ package gui4s.core.layout
 import catnip.Zip
 import catnip.Zip.zip
 import catnip.syntax.all.given
-import cats._
-import cats.syntax.all._
+import cats.*
+import cats.syntax.all.*
 
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
-import gui4s.core.layout.linear._
+import gui4s.core.layout.linear.*
 
 /**
  * Функция, описывающая расстановку элементов в контейнере. Принимает множество
@@ -194,7 +194,7 @@ object PlacementStrategy:
     mainAxis : PlacementStrategy[Place, OneDimensionalSize, OneDimensionalSize, BoundsUnit, Collection, MeasurementUnit],
     crossAxis : PlacementStrategy[Place, OneDimensionalSize, OneDimensionalSize, BoundsUnit, Collection, MeasurementUnit],
   ) : PlacementStrategy[Place, Rect[OneDimensionalSize], Rect[OneDimensionalSize], Rect[BoundsUnit], Collection, Point2d[MeasurementUnit]] =
-    if axis == Axis.Horizontal then
+    if axis === Axis.Horizontal then
       Zip(mainAxis, crossAxis)
     else 
       Zip(crossAxis, mainAxis)    
@@ -204,7 +204,6 @@ object PlacementStrategy:
   def MaybeInInfiniteSpace[
     Place[_],
     Collection[_],
-    Size,
     MeasurementUnit,
   ](
     original: PlacementStrategy[Place, MeasurementUnit, MeasurementUnit, MeasurementUnit, Collection, MeasurementUnit],

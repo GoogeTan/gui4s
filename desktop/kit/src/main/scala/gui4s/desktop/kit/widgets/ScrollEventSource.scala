@@ -1,15 +1,8 @@
 package gui4s.desktop.kit.widgets
 
-import cats.effect.*
-import cats.effect.std.Queue
-import cats.syntax.all.*
 import gui4s.core.geometry.*
-import gui4s.core.widget.Path
-import gui4s.core.widget.library.decorator.Decorator
+
 import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.DownEvent.UserEvent
-import gui4s.desktop.widget.library.decorator.trueUpdateDecoratorWithRect
-import gui4s.desktop.widget.library.widgetHandlesEvent
 
 final case class ScrollEvent(dx: Float, dy: Float)
 

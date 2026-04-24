@@ -1,35 +1,32 @@
 package gui4s.desktop.windowing.glfw
 
 import scala.concurrent.duration.FiniteDuration
-import scala.reflect.Typeable
 
 import catnip.syntax.all.given
-import cats._
+import cats.*
 import cats.arrow.FunctionK
-import cats.data.ReaderT
-import cats.effect._
-import cats.effect.std._
+import cats.effect.*
+import cats.effect.std.*
 import cats.effect.unsafe.IORuntime
-import glfw4s.core.GlfwConstants._
+import glfw4s.core.GlfwConstants.*
 import glfw4s.core.WindowCreationSettings
-import glfw4s.core.pure._
+import glfw4s.core.pure.*
 import glfw4s.core.types.GlfwError
 import glfw4s.jna.bindings.structs.GLFWcursor
 import glfw4s.jna.bindings.types.GLFWmonitor
 import glfw4s.jna.bindings.types.GLFWwindow
 import glfw4s.jvm.CatsJvmPostInit
-import io.github.humbleui.skija.Canvas
 
-import gui4s.core.geometry._
-import gui4s.core.widget._
+import gui4s.core.geometry.*
+import gui4s.core.widget.*
 
-import gui4s.desktop.kit._
+import gui4s.desktop.kit.*
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Draw.given
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
-import gui4s.desktop.skija.DirectContext._
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.skija.DirectContext.*
 import gui4s.desktop.skija.canvas.clear
-import gui4s.desktop.widget.library._
+import gui4s.desktop.widget.library.*
 
 enum UIAppError:
   case InitError(glfwError : GlfwError)
@@ -61,14 +58,6 @@ def tryTakeTimed(max : FiniteDuration, queue : Queue[IO, DownEvent]) : IO[Option
 end tryTakeTimed
 
 trait UIApp extends IOApp:
-  final given Typeable[IO[Unit]] = (a : Any) =>
-    a match
-      case _ : IO[c] =>
-        Some(a.asInstanceOf[IO[Unit] & a.type])
-      case _ => None
-    end match
-  end given
-
   val settings : WindowCreationSettings[GLFWmonitor, GLFWwindow]
 
   final override def run(args: List[String]): IO[ExitCode] =

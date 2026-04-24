@@ -1,15 +1,19 @@
 package gui4s.desktop.kit
 package widgets.decorator
 
+import scala.annotation.targetName
+
 import cats.*
 import cats.effect.*
-import gui4s.core.geometry.{InfinityOr, Point3d}
+
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point3d
 import gui4s.core.layout.Measured
-import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
+import gui4s.core.widget.library.decorator.PaddingWidget
+import gui4s.core.widget.library.decorator.Paddings
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
-
-import scala.annotation.targetName
 
 /**
  * Одноместный контейнер, добавляющий отступы вокруг виджета.

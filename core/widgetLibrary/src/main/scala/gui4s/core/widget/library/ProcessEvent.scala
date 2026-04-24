@@ -2,7 +2,9 @@ package gui4s.core.widget.library
 
 import cats.*
 import cats.syntax.all.given
-import gui4s.core.widget.{Path, collectQuitCompositionReactions}
+
+import gui4s.core.widget.Path
+import gui4s.core.widget.collectQuitCompositionReactions
 import gui4s.core.widget.free.AsFreeF
 import gui4s.core.widget.handle.HandlesEvent_
 import gui4s.core.widget.recomposition.ReactsOnRecomposition

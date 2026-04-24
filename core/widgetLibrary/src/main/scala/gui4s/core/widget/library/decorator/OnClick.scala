@@ -2,7 +2,9 @@ package gui4s.core.widget.library.decorator
 
 import cats.*
 import cats.syntax.all.*
-import gui4s.core.widget.library.decorator.{Decorator, EventCatcherWithRect}
+
+import gui4s.core.widget.library.decorator.Decorator
+import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
 /**
  * Виджет, позволяющий ловить событий мышки. Если событие произошло, пока мышь находится за пределами виджета,

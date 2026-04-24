@@ -3,15 +3,18 @@ package gui4s.desktop.windowing.glfw
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
-import glfw4s.core.{KeyAction, KeyModes}
-import glfw4s.core.pure.{PureInput, PurePostInit}
+import glfw4s.core.KeyAction
+import glfw4s.core.pure.PurePostInit
+
 import gui4s.core.geometry.Point2d
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.decorator.*
 
 
 final case class ClickCatcherEvent(mousePosition : Point2d[Float])
 
+@SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 def clickEventSource[
   Monitor,
   Window,
@@ -25,7 +28,7 @@ def clickEventSource[
   glfw.addMouseButtonCallback(
     window,
     (window, button, action, mods) =>
-      if action == KeyAction.Press then
+      if action === KeyAction.Press then
         for
           monitor <- glfw.getPrimaryMonitor
           (scaleX, scaleY) <- glfw.getMonitorContentScale(monitor.get)

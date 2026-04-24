@@ -2,15 +2,16 @@ package gui4s.desktop.kit
 package effects
 
 import scala.reflect.Typeable
+
 import catnip.MapKCache
 import catnip.syntax.functor.nestedFunctorsAreFunctors
 import cats.Functor
 import cats.MonadError
 import cats.effect.*
 import cats.~>
-import gui4s.core.geometry.Rect
-import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
+
 import gui4s.core.widget.Path
+
 import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects.Situated.given
 import gui4s.desktop.skija.shaper.Shaper
@@ -46,7 +47,7 @@ object Place:
   end sizeText
 
   def typecheck[TypeToCheck : Typeable](error : (Any, Path) => Throwable) : [Res] => (Any, TypeToCheck => Option[Place[Res]]) => Option[Place[Res]] =
-    [Res] => (valueToCheck, callback) =>
+    [Res] => (valueToCheck : Any, callback : TypeToCheck => Option[Place[Res]]) =>
       valueToCheck match
         case v : TypeToCheck =>
           callback(v)
@@ -72,13 +73,10 @@ object Place:
   end addNameToPath
 
   def raiseError[Error, Value](error: => Error)(using ME: MonadError[IO, Error]): Place[Value] =
-    GenericPlacementEffect.liftF(ME.raiseError(error))
+    PlacementEffect.liftF(ME.raiseError(error))
   end raiseError
 
-  def raiseError[Error, Value](error: Path => Error)(using ME: MonadError[IO, Error]): Place[Value] =
-    for
-      path <- PlacementEffect.currentPath
-      res <- GenericPlacementEffect.liftF(ME.raiseError[Situated[Value]](error(path)))
-    yield res
+  def raiseError[Error, Value](error: Path => Error)(using MonadError[IO, Error]): Place[Value] =
+    PlacementEffect.currentPath.map(error(_)).flatMap(raiseError)
   end raiseError
 end Place

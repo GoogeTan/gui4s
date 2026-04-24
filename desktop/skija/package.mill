@@ -1,13 +1,16 @@
 package build.desktop.skija
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import build.*
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
 import mill.scalalib.{AssemblyModule, SbtModule}
 import build.dependencies.catsEffect
 import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule with AssemblyModule with ScalafixModule:
+object `package` extends SbtModule with PublishModule with AssemblyModule with ScalafixModule with WartRemoverScalaModule:
+  override def repositoriesTask = Task.Anon:
+    super.repositoriesTask() ++ Seq(coursier.LocalRepositories.ivy2Local)
 
   def artifactName = "desktop-skija-bindings"
 

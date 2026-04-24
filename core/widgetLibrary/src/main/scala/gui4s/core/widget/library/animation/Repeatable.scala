@@ -1,7 +1,8 @@
 package gui4s.core.widget.library.animation
 
-import gui4s.core.widget.library.animation.RepeatMode.Restart
+import cats.syntax.all.*
 
+import gui4s.core.widget.library.animation.RepeatMode.Restart
 
 /**
  * Repeatable animation: finite repeats of another animation.
@@ -20,7 +21,7 @@ class Repeatable[A](iterations: Int, animation: Animation[A, Double], repeatMode
       else
         val currentIteration = math.floor(playTime / singleDuration).toInt
         val playTimeInIteration = playTime % singleDuration
-        val playForward = if (repeatMode == Restart) true else (currentIteration % 2 == 0)
+        val playForward = if (repeatMode === Restart) true else (currentIteration % 2 == 0)
         if playForward then
           animation.valueAtGivenMoment(playTimeInIteration, initialValue, targetValue, initialVelocity)
         else
@@ -40,7 +41,7 @@ class Repeatable[A](iterations: Int, animation: Animation[A, Double], repeatMode
 
         val playTimeInIteration = playTime % singleDuration
 
-        val playForward = if (repeatMode == Restart) true else (currentIteration % 2 == 0)
+        val playForward = if (repeatMode === Restart) true else (currentIteration % 2 == 0)
 
         if playForward then
           animation.velocityAtGivenMoment(playTimeInIteration, initialValue, targetValue, initialVelocity)

@@ -1,7 +1,7 @@
 package gui4s.core.geometry
 
-import cats.kernel._
-import cats.syntax.all._
+import cats.kernel.*
+import cats.syntax.all.*
 
 @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
 final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementUnit, z : MeasurementUnit):

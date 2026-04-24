@@ -1,6 +1,8 @@
 package gui4s.desktop.kit
 package effects
 
+import scala.reflect.Typeable
+
 import catnip.BiMonad
 import catnip.syntax.transformer as stateT2Instance
 import catnip.syntax.transformer.{*, given}
@@ -10,15 +12,15 @@ import cats.arrow.FunctionK
 import cats.data.NonEmptyList
 import cats.effect.*
 import cats.syntax.all.*
+
 import gui4s.core.geometry.Point3d
 import gui4s.core.kit.EventsTransformer
-import gui4s.core.kit.effects.{UpdateContext, UpdateState}
+import gui4s.core.kit.effects.UpdateContext
+import gui4s.core.kit.effects.UpdateState
 import gui4s.core.widget.Path
+
 import gui4s.desktop.kit.effects.Clip.given
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
-
-import scala.reflect.Typeable
-import cats.data.ReaderT
 
 type UpdateTransformer[Event] =
   ReaderTransformer[UpdateContext[Point3d[Float], Clip]]
@@ -232,7 +234,7 @@ object Update:
       handleEnvironmentalEvents(event =>
         DownEvent.catchExternalEvent(path, event).fold(
           (Nil, false).pure[UpdateC[Event]]
-        )(value => f(value).map((result, isConsumed) => (List(result), isConsumed)))
+        )((value : Any) => f(value).map((result, isConsumed) => (List(result), isConsumed)))
       ).map(_.flatten)
     )
   end handleExternalEvents

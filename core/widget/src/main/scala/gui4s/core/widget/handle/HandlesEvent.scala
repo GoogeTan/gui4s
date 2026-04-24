@@ -4,7 +4,7 @@ package handle
 import cats.Functor
 import cats.arrow.Arrow
 import cats.arrow.Strong
-import cats.syntax.all._
+import cats.syntax.all.*
 
 type HandlesEvent[-T, -EnvironmentalEvent, +UpdatedWidget] = (self : T, event : EnvironmentalEvent) => UpdatedWidget
 

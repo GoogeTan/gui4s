@@ -1,17 +1,22 @@
 package gui4s.desktop.kit
 package widgets
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.given
 import catnip.syntax.transformer.given
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
+import io.github.humbleui.skija.svg.SVGDOM
+import io.github.humbleui.skija.svg.SVGLength
+import io.github.humbleui.skija.svg.SVGLengthContext
+import io.github.humbleui.skija.svg.SVGLengthUnit
+
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
+
 import gui4s.desktop.kit.asset.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.skija.Image
-import io.github.humbleui.skija.svg.{SVGDOM, SVGLength, SVGLengthContext, SVGLengthUnit}
 
 def svgImageFromJavaResourcesWidget[Event](
   name : String,
@@ -70,14 +75,12 @@ def sizeSVG(dom : SVGDOM) : Place[SVGDOM] =
           availableHeight
         )
       )
-      var svgWidth = intrinsic.getX
-      var svgHeight = intrinsic.getY
-  
-      if (svgWidth <= 0 || svgHeight <= 0) {
+      val (svgWidth, svgHeight) = if intrinsic.getX <= 0 || intrinsic.getY <= 0 then
         // Fallback for SVGs without explicit size (rare; intrinsicSize should handle viewBox)
-        svgWidth = availableWidth//TODO
-        svgHeight = availableHeight
-      }
+        (availableWidth, availableHeight)
+      else
+        (intrinsic.getX, intrinsic.getY)
+
       val scale = Math.min(availableWidth / svgWidth, availableHeight / svgHeight)
       val targetWidth = svgWidth * scale
       val targetHeight = svgHeight * scale

@@ -3,12 +3,15 @@ package build.android
 
 import mill.*
 import androidlib.*
+import build.WartRemoverScalaModule
 import mill.api.Task
 import scalalib.*
 import build.android.*
+import com.goyeau.mill.scalafix.ScalafixModule
 import mill.javalib.publish.*
 
-trait Gui4sAndroidModule extends AndroidModule with ScalaModule:
+//TOOD scala fix can not see AAR dependencies so it is absent
+trait Gui4sAndroidModule extends AndroidModule with ScalaModule with WartRemoverScalaModule:
   final override def scalaVersion = build.versions.scala
   final override def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   final override def androidMinSdk = build.androidConfig.minSdk

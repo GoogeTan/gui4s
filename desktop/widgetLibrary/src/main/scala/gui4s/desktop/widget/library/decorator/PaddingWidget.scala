@@ -2,11 +2,15 @@ package gui4s.desktop.widget.library
 package decorator
 
 import catnip.syntax.monad.MonadErrorC
-import cats.{Id, ~>}
-import gui4s.core.geometry.{InfinityOr, Point2d, Rect}
+import cats.Id
+import cats.~>
+
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point2d
+import gui4s.core.geometry.Rect
 import gui4s.core.layout.PlacementStrategy
 import gui4s.core.widget.library.ContainerWidget
-import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
+import gui4s.core.widget.library.decorator.Paddings
 
 /**
  * Одноместный контейнер, добавляющий отступы вокруг виджета.

@@ -2,12 +2,14 @@ package gui4s.desktop.kit
 package effects
 
 import cats.syntax.all.*
-import gui4s.core.geometry.Point2d
+
 import gui4s.core.widget.Path
 import gui4s.core.widget.Path.given
 
 enum DownEvent:
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   case ExternalEventForWidget(destination: Path, event: Any)
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   case UserEvent(event: Any)
 end DownEvent
 

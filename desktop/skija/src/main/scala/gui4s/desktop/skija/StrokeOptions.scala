@@ -3,7 +3,7 @@ package gui4s.desktop.skija
 import io.github.humbleui.skija.PaintStrokeCap
 import io.github.humbleui.skija.PaintStrokeJoin
 
-case class StrokeOptions(
+final case class StrokeOptions(
   width: Float = 0.0f, // 0.0f = "Hairline" (always 1px wide)
   miterLimit: Float = 4.0f,
   cap: PaintStrokeCap = PaintStrokeCap.BUTT,

@@ -1,12 +1,12 @@
 package gui4s.desktop.kit
 package effects
 
-import cats._
+import cats.*
 
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.kit.ContainerPlacementError
-import gui4s.core.layout.{OneElementPlacementStrategy => GenericOneElementPlacementStrategy}
-import gui4s.core.layout.{PlacementStrategy => GenericPlacementStrategy}
+import gui4s.core.layout.OneElementPlacementStrategy as GenericOneElementPlacementStrategy
+import gui4s.core.layout.PlacementStrategy as GenericPlacementStrategy
 
 import gui4s.desktop.kit.effects.PlacementEffect.given
 

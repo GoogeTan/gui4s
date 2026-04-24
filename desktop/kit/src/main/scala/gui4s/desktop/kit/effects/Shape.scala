@@ -1,19 +1,20 @@
 package gui4s.desktop.kit
 package effects
 
+import cats.syntax.all.*
 import io.github.humbleui.skija.*
 import io.github.humbleui.types.RRect as SkijaRounedRect
 import io.github.humbleui.types.Rect as SkijaRect
+
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
-import cats.syntax.all.*
 
 type ShapeInBounds = Rect[Float] => PlacementEffect[Situated[Clip]]
 type Shape = Rect[Float] => Situated[Clip]
 
 extension(shape : Shape)
   def withBounds : ShapeInBounds =
-    rect => shape(rect).pure
+    rect => shape(rect).pure[PlacementEffect]
   end withBounds
 end extension
 

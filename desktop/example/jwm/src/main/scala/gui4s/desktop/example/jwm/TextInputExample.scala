@@ -1,19 +1,20 @@
 package gui4s.desktop.example.jwm
 
 import scala.math.*
+
 import catnip.syntax.all.*
 import cats.*
 import cats.effect.*
 import cats.effect.std.*
 import cats.syntax.all.*
-import cats.effect.unsafe.implicits.global // Required to run IO effects in JWM's listener callbacks
+import io.github.humbleui.jwm.*
 import io.github.humbleui.skija.FontMgr
 import io.github.humbleui.skija.Paint
 import io.github.humbleui.skija.paragraph.FontCollection
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.paragraph.ParagraphStyle
 import io.github.humbleui.skija.paragraph.TextStyle
-import io.github.humbleui.jwm.* // JWM specific imports
+
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 import gui4s.core.kit.ContainerPlacementError
@@ -22,14 +23,15 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.widget.library.textfield.TextFieldEvent
-import gui4s.desktop.windowing.jwm.UIApp
-import gui4s.desktop.kit.effects.DownEvent.UserEvent
+
 import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.effects.DownEvent.UserEvent
 import gui4s.desktop.kit.widgets
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*
 import gui4s.desktop.skija.Brush
 import gui4s.desktop.skija.StrokeOptions
+import gui4s.desktop.windowing.jwm.UIApp
 
 enum TextInputOuterEvent:
   case CharInputEvent(key : Int)
@@ -156,6 +158,7 @@ object TextInputExample extends UIApp:
     )(name, text, update)
   end textField
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   def textFieldEventSource(
     window: Window,
     eventBus: Queue[IO, DownEvent]
@@ -214,6 +217,7 @@ object TextInputExample extends UIApp:
   }
   end textFieldEventSource
 
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
   def textFieldEventCatcher(
     window: Window,
     minimalClickableAreaSize : Rect[Float],
@@ -224,6 +228,7 @@ object TextInputExample extends UIApp:
     val emitEvent : List[TextFieldEvent] => Update[TextFieldEvent, Boolean] = events =>
       Update.emitEvents[TextFieldEvent](events).as(true)
 
+    @SuppressWarnings(Array("org.wartremover.warts.Null"))
     def convertFocusedEvent(textFieldTextAreaSize : Rect[Float], currentPath : Path) : TextInputOuterEvent => Update[TextFieldEvent, List[TextFieldEvent]] = {
       case TextInputOuterEvent.CharInputEvent(key) => TextFieldEvent.CharInput(key.toChar).one.pure
       case TextInputOuterEvent.Backspace => TextFieldEvent.Backspace.one.pure
@@ -236,7 +241,7 @@ object TextInputExample extends UIApp:
         Update.liftK[TextFieldEvent](
           IO.delay {
             val entry = Clipboard.get(ClipboardFormat.TEXT)
-            if (entry != null && entry.getString != null)
+            if (entry != null && entry.getString =!= null)
               List(TextFieldEvent.ClipboardPaste(entry.getString))
             else
               Nil

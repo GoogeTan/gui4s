@@ -1,10 +1,9 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all._
-import cats._
-import cats.syntax.all._
+import catnip.syntax.all.*
+import cats.*
+import cats.syntax.all.*
 
-import gui4s.core.widget.Path
 import gui4s.core.widget.merge.MergesWithOldStatesF
 import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
 import gui4s.core.widget.state.HasInnerStates

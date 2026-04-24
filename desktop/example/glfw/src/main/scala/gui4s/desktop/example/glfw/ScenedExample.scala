@@ -6,7 +6,9 @@ import cats.effect.std.Queue
 import glfw4s.core.WindowCreationSettings
 import glfw4s.core.pure.PurePostInit
 import glfw4s.jna.bindings.structs
-import glfw4s.jna.bindings.types.{GLFWmonitor, GLFWwindow}
+import glfw4s.jna.bindings.types.GLFWmonitor
+import glfw4s.jna.bindings.types.GLFWwindow
+
 import gui4s.desktop.example.shared.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*

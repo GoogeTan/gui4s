@@ -1,9 +1,9 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats._
-import cats.effect._
-import cats.syntax.all._
+import cats.*
+import cats.effect.*
+import cats.syntax.all.*
 
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
@@ -11,10 +11,10 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.library.textfield.TextFieldEvent
 import gui4s.core.widget.library.textfield.TextFieldState
 
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Update.given
-import gui4s.desktop.kit.effects._
-import gui4s.desktop.kit.widgets._
-import gui4s.desktop.skija.paragraph._
+import gui4s.desktop.kit.widgets.*
+import gui4s.desktop.skija.paragraph.*
 
 def textField[
   Event

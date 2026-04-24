@@ -4,14 +4,19 @@ import catnip.syntax.all.given
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
+
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
-import gui4s.core.layout.{Measured, OneElementPlacementStrategy, PlacementStrategy, Sized}
+import gui4s.core.layout.Measured
+import gui4s.core.layout.OneElementPlacementStrategy
+import gui4s.core.layout.PlacementStrategy
+import gui4s.core.layout.Sized
 import gui4s.core.widget.library.decorator.Decorator
-import gui4s.desktop.kit.effects.PlacementEffect.given
+
 import gui4s.desktop.kit.effects.*
+import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.widgets.*
 
 def minSizeWidget[Event](

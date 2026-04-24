@@ -1,5 +1,6 @@
 package build.desktop.example.shared
 
+import build.WartRemoverScalaModule
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
@@ -7,7 +8,7 @@ import mill.scalalib.{AssemblyModule, SbtModule}
 import mill.util.JarManifest
 import com.goyeau.mill.scalafix.ScalafixModule
 
-object `package` extends SbtModule with PublishModule  with AssemblyModule with ScalafixModule:
+object `package` extends SbtModule with PublishModule  with AssemblyModule with ScalafixModule with WartRemoverScalaModule:
   override def artifactName = "desktop-example-shared"
 
   override def scalaVersion = build.versions.scala

@@ -1,10 +1,12 @@
 package gui4s.core.widget.library
 
+import scala.reflect.Typeable
+
 import catnip.BiMonad
 import cats.Functor
-import gui4s.core.widget.library.{TransitiveStatefulWidget, WithContext}
 
-import scala.reflect.Typeable
+import gui4s.core.widget.library.TransitiveStatefulWidget
+import gui4s.core.widget.library.WithContext
 
 /**
  * Тип виджета, позволяющего безопасно создавать ресурсы.

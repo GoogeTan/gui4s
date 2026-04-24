@@ -1,12 +1,12 @@
 package gui4s.core.widget.library
 
-import catnip.syntax.additional._
+import catnip.syntax.additional.*
 import catnip.syntax.all.given
-import cats._
-import cats.syntax.all._
+import cats.*
+import cats.syntax.all.*
 
-import gui4s.core.geometry._
-import gui4s.core.layout._
+import gui4s.core.geometry.*
+import gui4s.core.layout.*
 import gui4s.core.widget.free.AsFreeF
 import gui4s.core.widget.library.ContainerWidget
 import gui4s.core.widget.library.decorator.Decorator
@@ -117,8 +117,7 @@ def measureIncrementally[
   PlacementEffect[_] : Monad,
   Widget,
   Size,
-  Bounds,
-  Point
+  Bounds : Eq
 ](
   getBounds : PlacementEffect[Bounds],
   widgetAsFree : AsFreeF[Widget, PlacementEffect * SizedC[Size]],
@@ -126,7 +125,7 @@ def measureIncrementally[
 ): PlacementEffect[Sized[Size, Widget]] =
   getBounds.flatMap:
     bounds =>
-      if widget.bounds == bounds then
+      if widget.bounds === bounds then
         Sized(widget.value, widget.size).pure[PlacementEffect]
       else
         widgetAsFree(widget.value)

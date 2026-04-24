@@ -1,17 +1,15 @@
 package gui4s.core.widget.library
 
-import catnip.Get
-import catnip.Set
 import catnip.Zip
-import catnip.syntax.additional._
+import catnip.syntax.additional.*
 import cats.Monad
 import cats.Traverse
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
-import gui4s.core.layout._
+import gui4s.core.layout.*
 import gui4s.core.widget.free.AsFreeF
 
 /**

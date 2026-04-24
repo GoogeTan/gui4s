@@ -1,8 +1,8 @@
 package gui4s.desktop.kit.effects
 
-import cats._
+import cats.*
 import cats.arrow.FunctionK
-import cats.effect._
+import cats.effect.*
 
 import gui4s.core.widget.library.decorator.Decorator
 

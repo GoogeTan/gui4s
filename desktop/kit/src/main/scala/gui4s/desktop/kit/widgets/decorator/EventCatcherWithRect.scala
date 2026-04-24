@@ -5,9 +5,9 @@ import cats.effect.IO
 
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
 
-import gui4s.desktop.kit.effects._
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
-import gui4s.desktop.widget.library._
+import gui4s.desktop.widget.library.*
 import gui4s.desktop.widget.library.decorator.eventCatcherWithRect
 
 def eventCatcher[Event]: EventCatcherWithRect[

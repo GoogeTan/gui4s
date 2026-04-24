@@ -4,8 +4,11 @@ package handle
 import catnip.Zip
 import catnip.Zip.zip
 import catnip.syntax.all.*
+import cats.Foldable
+import cats.Functor
+import cats.Monad
+import cats.Traverse
 import cats.syntax.all.*
-import cats.{Foldable, Functor, Monad, Traverse}
 
 def containerHandlesEvent[
   Update[_] : Monad,

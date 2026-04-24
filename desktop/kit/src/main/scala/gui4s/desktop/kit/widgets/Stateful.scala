@@ -3,21 +3,22 @@ package widgets
 
 import scala.reflect.Typeable
 
-import catnip.syntax.all.{_, given}
-import cats._
-import cats.data._
-import cats.effect._
+import catnip.syntax.all.{*, given}
+import cats.*
+import cats.data.*
+import cats.effect.*
 
 import gui4s.core.layout.Sized.given
+import gui4s.core.widget.Path
 import gui4s.core.widget.StatefulState
 import gui4s.core.widget.handle.HandlesEventF
+import gui4s.core.widget.library.*
 import gui4s.core.widget.library.StatefulWidget
-import gui4s.core.widget.library._
 
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Place.given
-import gui4s.desktop.kit.effects._
 import gui4s.desktop.widget.library
-import gui4s.desktop.widget.library._
+import gui4s.desktop.widget.library.*
 
 
 def statefulWidget: StatefulWidget[
@@ -93,7 +94,7 @@ def statefulWidget: StatefulWidget[
           widgetHasInnerStates
         ),
         typeCheckState = Place.typecheck[StatefulState[State]](
-          (valueToTypeCheck, path) =>  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
+          (valueToTypeCheck : Any, path : Path) =>  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
         ),
         liftUpdate = Update.catchEvents[ChildEvent, Event],
         addNameToPlacePath = Place.addNameToPath,

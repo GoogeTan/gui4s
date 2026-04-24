@@ -4,6 +4,7 @@ package build
 
 import coursier.maven.MavenRepository
 import mill.*
+import mill.scalalib.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.SbtModule
@@ -11,6 +12,7 @@ import mill.scalalib.SbtModule
 object `package` extends Module:
   object versions:
     def cats = "2.13.0"
+    def kittens = "3.5.0"
     def catsEffect = "3.7.0"
     def scala = "3.8.1"
     def http4s = "1.0.0-M45"
@@ -35,7 +37,9 @@ object `package` extends Module:
   end versions
 
   object dependencies:
-    def cats = Seq(mvn"org.typelevel::cats-core:${versions.cats}")
+    def catsCore = Seq(mvn"org.typelevel::cats-core:${versions.cats}")
+    def kittens = Seq(mvn"org.typelevel::kittens:${versions.kittens}")
+    def cats = catsCore ++ kittens
     def catsEffectModule = Seq(mvn"org.typelevel::cats-effect:${versions.catsEffect}")
     def catsEffect = cats ++ catsEffectModule
     
@@ -92,7 +96,9 @@ object `package` extends Module:
   end dependencies
 
   object imports:
-    def cats = "cats,cats.data,cats.arrow,cats.effect,cats.syntax.all,catnip,catnip.syntax.all"
+    def catsCore = "cats,cats.data,cats.arrow,cats.effect,cats.syntax.all,catnip,catnip.syntax.all"
+    def kittens = "cats.derived"
+    def cats = catsCore + "," + kittens
     def catsEffect = cats ++ ",cats.effect,cats.effect.syntax.all,cats.effect.std"
     def catnip = "catnip,catnip.syntax.all"
     def default = "java.lang,scala,scala.Predef"
@@ -121,3 +127,44 @@ object `package` extends Module:
   )
 
   def publishVersion : String = "0.1.0-SNAPSHOT"
+
+  trait WartRemoverScalaModule extends ScalaModule:
+    def wartremoverRules: T[Seq[String]] = defaultWarts
+
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = Task:
+      super.scalacPluginMvnDeps() ++ Seq(mvn"org.wartremover::wartremover:3.5.0")
+
+    def scalacOptions: T[Seq[String]] = Task:
+      super.scalacOptions() ++ wartremoverRules().map("-P:wartremover:traverser:org.wartremover.warts." + _)
+  end WartRemoverScalaModule
+
+  val defaultWarts: Seq[String] = Seq(
+    "ArrayEquals",
+    //"Any",
+    "AnyVal",
+    "AsInstanceOf",
+    "EitherProjectionPartial",
+    "Enumeration",
+    "Equals",
+    "FinalCaseClass",
+    "ImplicitConversion",
+    "IsInstanceOf",
+    "JavaConversions",
+    "JavaSerializable",
+    "LeakingSealed",
+    "MutableDataStructures",
+    "NonUnitStatements",
+    //"Nothing",
+    "Null",
+    "Option2Iterable",
+    "OptionPartial",
+    "Product",
+    "Return",
+    "Serializable",
+    "Throw",
+    "JavaSerializable",
+    "TryPartial",
+    "Var",
+    "While",
+  )
+end `package`

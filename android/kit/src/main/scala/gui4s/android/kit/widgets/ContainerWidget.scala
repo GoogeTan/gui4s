@@ -8,8 +8,7 @@ import gui4s.android.kit.effects.Place.given
 import gui4s.android.kit.widgets.{AndroidPlacedWidget, AndroidWidget}
 import gui4s.android.skia.canvas.drawAt
 import gui4s.core.geometry.{InfinityOr, Point3d, Rect}
-import gui4s.core.layout.{Measured, OneElementPlacementStrategy, PlacementStrategy, Sized}
-import gui4s.core.widget.library.{Layout, LayoutIncrementalWidget}
+import gui4s.core.layout.{Measured, PlacementStrategy}
 import gui4s.desktop.widget.library.{Layout2, widgetAsFree, widgetHandlesEvent, widgetIsDrawable, container as genericContainer}
 import gui4s.core.widget.library.*
 

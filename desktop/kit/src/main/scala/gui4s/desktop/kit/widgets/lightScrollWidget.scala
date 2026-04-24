@@ -1,8 +1,13 @@
 package gui4s.desktop.kit.widgets
 
 import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, InfinityOr, Point3d, Rect}
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.InfinityOr
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.decorator.clipWidget
 

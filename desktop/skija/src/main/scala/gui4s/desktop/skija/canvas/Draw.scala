@@ -6,8 +6,9 @@ import io.github.humbleui.skija.Image
 import io.github.humbleui.skija.Paint
 import io.github.humbleui.skija.Path
 import io.github.humbleui.skija.paragraph.Paragraph
-import gui4s.desktop.skija.canvas.Canvased.applyCanvasFFI
 import io.github.humbleui.skija.svg.SVGDOM
+
+import gui4s.desktop.skija.canvas.Canvased.applyCanvasFFI
 
 def clear[F[_]: {Sync, Canvased}](color : Int) : F[Unit] =
   applyCanvasFFI(_.clear(color))

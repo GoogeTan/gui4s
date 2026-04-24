@@ -1,6 +1,5 @@
 package gui4s.core.widget.library.animation
 
-import scala.Numeric.Implicits.given
 import scala.math.abs 
 
 trait NormedVectorSpace[A]:
@@ -13,13 +12,17 @@ trait NormedVectorSpace[A]:
 end NormedVectorSpace
 
 object NormedVectorSpace:
-  given numericNormedVectorSpace[T : Numeric as N] : NormedVectorSpace[T] with
-    def zero: T = N.zero
-    def plus(a: T, b: T): T = a + b
-    def minus(a: T, b: T): T = a - b
-    def times(a: T, scalar: Double): T = a * N.parseString(scalar.toString).get//TODO remove this thing
-    def magnitude(a: T): Double = abs(a.toDouble)
-  end numericNormedVectorSpace
+  given doubleNormedVectorSpace: NormedVectorSpace[Double] with
+    def zero: Double = 0f
+
+    def plus(a: Double, b: Double): Double = a + b
+
+    def minus(a: Double, b: Double): Double = a - b
+
+    def times(a: Double, scalar: Double): Double = a * scalar
+
+    def magnitude(a: Double): Double = abs(a.toDouble)
+  end doubleNormedVectorSpace
 
   given floatNormedVectorSpace : NormedVectorSpace[Float] with
     def zero: Float = 0.0

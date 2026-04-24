@@ -1,10 +1,11 @@
 package gui4s.core.widget.library
 
+import scala.reflect.Typeable
+
 import catnip.BiMonad
+
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.decorator.EventCatcherWithRect
-
-import scala.reflect.Typeable
 
 /**
  * Виджет, помнящий последнее событие заданного типа
@@ -80,9 +81,10 @@ def rememberLastEventOfTheType[
     mapEvent,
     name,
     None,
-    (_, events) => UBM().pure(Some(events.last)),
+    (state, events) => UBM().pure(events.lastOption.orElse(state)),
     catchEvent
   )
+end rememberLastEventOfTheType
 
 @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
 given[T : Typeable] : Typeable[Option[T]] = (value : Any) => value match

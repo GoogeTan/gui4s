@@ -1,8 +1,8 @@
 package gui4s.core.widget.library.decorator
 
 import catnip.syntax.all.given
-import cats._
-import cats.syntax.all._
+import cats.*
+import cats.syntax.all.*
 
 import gui4s.core.layout.ContainerStrategy
 import gui4s.core.layout.OneElementPlacementStrategy

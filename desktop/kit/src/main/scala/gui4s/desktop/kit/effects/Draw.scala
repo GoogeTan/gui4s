@@ -1,25 +1,21 @@
 package gui4s.desktop.kit
 package effects
 
-import cats._
+import cats.*
 import cats.data.ReaderT
-import cats.effect._
-import io.github.humbleui.skija._
-import io.github.humbleui.skija.paragraph._
+import cats.effect.*
+import io.github.humbleui.skija.*
+import io.github.humbleui.skija.paragraph.*
+import io.github.humbleui.skija.svg.SVGDOM
+import io.github.humbleui.types.Point
 import io.github.humbleui.types.Rect.makeWH
 
 import gui4s.core.geometry.Rect
-
 import gui4s.core.layout.Sized
-import io.github.humbleui.skija.*
-import io.github.humbleui.skija.paragraph.*
+
 import gui4s.desktop.skija
 import gui4s.desktop.skija.SkPaint
 import gui4s.desktop.skija.canvas.*
-import gui4s.desktop.skija.canvas._
-import gui4s.desktop.skija.canvas.*
-import io.github.humbleui.skija.svg.SVGDOM
-import io.github.humbleui.types.Point
 
 
 type DrawM[T] = ReaderT[SyncIO, Canvas, T]

@@ -1,14 +1,14 @@
 package gui4s.core.layout
 package linear
 
-import scala.math.Fractional.Implicits._
+import scala.math.Fractional.Implicits.*
 
 import cats.Applicative
 import cats.SemigroupK
 import cats.Traverse
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import gui4s.core.geometry._
+import gui4s.core.geometry.*
 
 //TODO Удалить слишком много тайпклассов у контейнера.
 def placeSpaceAround[Collection[_] : {Applicative as A, Traverse, SemigroupK}, MeasurementUnit : Fractional](sizes : Collection[MeasurementUnit], space : MeasurementUnit) : Collection[Rect1dOnPoint1d[MeasurementUnit]] =

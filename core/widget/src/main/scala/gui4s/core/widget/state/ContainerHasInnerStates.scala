@@ -2,7 +2,7 @@ package gui4s.core.widget
 package state
 
 import cats.Foldable
-import cats.syntax.all._
+import cats.syntax.all.*
 
 def containerHasInnerStates[
   Widget,

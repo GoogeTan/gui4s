@@ -2,7 +2,7 @@ package gui4s.desktop.widget.library
 
 import cats.Functor
 import cats.Monad
-import cats.syntax.all._
+import cats.syntax.all.*
 
 def text[
   Update[_] : Monad,

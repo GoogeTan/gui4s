@@ -1,13 +1,17 @@
 package gui4s.desktop.kit.widgets
 
-import cats.effect.IO
-import cats.effect.std.Queue
-import cats.syntax.all.*
-import gui4s.core.geometry.{Axis, Point2d, Point3d, Rect}
-import gui4s.core.widget.library.animation.{Animation, AnimationWidget}
-import gui4s.desktop.kit.effects.*
-
 import scala.concurrent.duration.Duration
+
+import cats.effect.IO
+import cats.syntax.all.*
+
+import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point3d
+import gui4s.core.geometry.Rect
+import gui4s.core.widget.library.animation.Animation
+import gui4s.core.widget.library.animation.AnimationWidget
+
+import gui4s.desktop.kit.effects.*
 
 final case class RichInnerEvent[MouseEvent](scrollChange: MouseEvent, childSize: Rect[Float], ownSize: Rect[Float])
 

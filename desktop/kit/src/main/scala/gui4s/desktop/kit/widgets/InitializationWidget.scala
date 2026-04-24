@@ -2,7 +2,7 @@ package gui4s.desktop.kit.widgets
 
 import scala.reflect.Typeable
 
-import cats.effect._
+import cats.effect.*
 
 import gui4s.core.widget.library.WithContext
 

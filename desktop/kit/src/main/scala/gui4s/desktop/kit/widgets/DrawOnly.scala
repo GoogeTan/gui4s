@@ -1,14 +1,14 @@
 package gui4s.desktop.kit
 package widgets
 
-import cats._
-import cats.effect._
+import cats.*
+import cats.effect.*
 
 import gui4s.core.geometry.Rect
-import gui4s.core.layout._
+import gui4s.core.layout.*
 
+import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Place.given
-import gui4s.desktop.kit.effects._
 
 def drawOnlyWidget[Event](
   draw : Place[Draw]

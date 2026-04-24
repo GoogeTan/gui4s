@@ -1,7 +1,9 @@
 package gui4s.desktop.kit.widgets.decorator
 
 import cats.effect.*
+
 import gui4s.core.layout.Sized
+
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.skija.Brush

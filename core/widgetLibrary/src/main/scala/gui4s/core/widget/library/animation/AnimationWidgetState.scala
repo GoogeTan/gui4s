@@ -1,8 +1,8 @@
 package gui4s.core.widget.library.animation
 
+import cats.Eq
 import cats.Group
-import cats.Order
-import cats.syntax.all._
+import cats.syntax.all.*
 
 final case class AnimationWidgetState[
   AnimatedValue,
@@ -76,3 +76,13 @@ final case class AnimationWidgetState[
   end isAnimationFinished
 end AnimationWidgetState
 
+object AnimationWidgetState:
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))//Мы хотим здесь сравнение по ссылке считай
+  given[AnimatedValue : Eq, Time : Eq]: Eq[AnimationWidgetState[AnimatedValue, Time]] with
+    override def eqv(x: AnimationWidgetState[AnimatedValue, Time], y: AnimationWidgetState[AnimatedValue, Time]): Boolean =
+      x.startValue === y.startValue
+        && x.animation == y.animation
+        && x.playingAnimation === y.playingAnimation
+    end eqv
+  end given
+end AnimationWidgetState

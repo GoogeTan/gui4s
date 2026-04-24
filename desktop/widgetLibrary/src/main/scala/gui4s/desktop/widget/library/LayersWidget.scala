@@ -1,9 +1,9 @@
 package gui4s.desktop.widget.library
 
-import catnip.syntax.all.{_, given}
-import cats._
+import catnip.syntax.all.{*, given}
+import cats.*
 
-import gui4s.core.geometry._
+import gui4s.core.geometry.*
 import gui4s.core.layout.Measured
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.layout.PlacementStrategy

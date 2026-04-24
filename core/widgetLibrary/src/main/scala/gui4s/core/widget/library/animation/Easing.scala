@@ -17,6 +17,7 @@ object Easing:
       3 * (1 - t) * (1 - t) * t * p1y + 3 * (1 - t) * t * t * p2y + t * t * t
     end evaluateY
 
+    @SuppressWarnings(Array("org.wartremover.warts.Var"))
     def binarySearch(x: Double, f : Double => Double, low: Double, high : Double): Double =
       var llow = low
       var hhigh = high

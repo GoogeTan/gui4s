@@ -1,9 +1,9 @@
 package gui4s.core.loop
 
-import cats._
-import cats.effect._
+import cats.*
+import cats.effect.*
 import cats.effect.std.Queue
-import cats.syntax.all._
+import cats.syntax.all.*
 
 def runApplicationLoopsWithBackend[
   IO[_] : Async,

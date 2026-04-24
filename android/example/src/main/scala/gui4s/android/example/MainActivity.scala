@@ -1,19 +1,6 @@
 package gui4s.android.example
 
 import android.app.Activity
-import cats.effect.IO
-import cats.effect.std.Supervisor
-import gui4s.android.kit.*
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.widgets.*
-import gui4s.android.kit.widgets.decorator.*
-import gui4s.android.skia.*
-import gui4s.android.skia.shaper.*
-import gui4s.core.layout.Sized
-import gui4s.core.widget.library.decorator.Paddings
-import org.jetbrains.skia.{Font, Paint, Typeface}
-import org.typelevel.log4cats.*
-import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import cats.effect.IO
 import cats.effect.std.Supervisor

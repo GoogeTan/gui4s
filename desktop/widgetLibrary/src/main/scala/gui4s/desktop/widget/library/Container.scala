@@ -5,7 +5,7 @@ import cats.Functor
 import cats.Monad
 import cats.Monoid
 import cats.Traverse
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import gui4s.core.widget.free.containerAsFree
 import gui4s.core.widget.handle.HandlesEvent_
