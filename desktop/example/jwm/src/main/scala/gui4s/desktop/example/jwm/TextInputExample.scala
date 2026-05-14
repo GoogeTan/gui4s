@@ -125,37 +125,24 @@ object TextInputExample extends UIApp:
     text : String,
     update : String => Event
   ) : DesktopWidget[Event] =
-    widgets.textField[Event](
-      basicTextFieldBody(
-        textFieldTextPlacement(
-          style = paragraphStyle,
-          fontCollection = fontCollection,
-          textStyle = textStyle,
-          selectionStyle = selectedTextStyle,
-        ),
-        textFieldEventCatcher(window, minimalClickableAreaSize, requestFocus),
-        (path, state, text) =>
-          minSizeWidget[TextFieldEvent](
-            minSize = minimalClickableAreaSize,
-            placeHorizontally = LinearContainerPlacementStrategy.Begin[Id](0f),
-            placeVertically = LinearContainerPlacementStrategy.Center[Id](0f, ContainerPlacementError.English),
-          )(
-            stackContainer(
-              List(
-                placedParagraph[TextFieldEvent](text),
-              ) ++ Option.when(state.isFocused(path))(
-                drawCursor[TextFieldEvent](text, state.cursorStartIndex, cursorPaint)
-              ),
-              LinearContainerPlacementStrategy.Begin[Id](0),
-              LinearContainerPlacementStrategy.Begin[Id](0)
-            )
-          ),
-      ),
-      text =>
+    gui4s.desktop.example.shared.textField(
+      systemEventCatcher = textFieldEventCatcher(window, minimalClickableAreaSize, requestFocus),
+      clipboardSet = text =>
         Update.liftK[Event](
           IO.delay(Clipboard.set(ClipboardEntry.makeString(ClipboardFormat.TEXT, text)))
         )
-    )(name, text, update)
+    )(
+      paragraphStyle, 
+      fontCollection, 
+      textStyle, 
+      selectedTextStyle,
+      cursorPaint, 
+      minimalClickableAreaSize
+    )(
+      name,
+      text,
+      update
+    )
   end textField
 
   @SuppressWarnings(Array("org.wartremover.warts.Equals"))

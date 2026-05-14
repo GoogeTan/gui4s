@@ -1,7 +1,6 @@
 package gui4s.desktop.example.glfw
 
 import scala.math.*
-
 import catnip.syntax.all.*
 import cats.*
 import cats.effect.*
@@ -20,7 +19,6 @@ import io.github.humbleui.skija.paragraph.FontCollection
 import io.github.humbleui.skija.paragraph.Paragraph
 import io.github.humbleui.skija.paragraph.ParagraphStyle
 import io.github.humbleui.skija.paragraph.TextStyle
-
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
 import gui4s.core.kit.ContainerPlacementError
@@ -29,7 +27,6 @@ import gui4s.core.widget.Path
 import gui4s.core.widget.library.decorator.Decorator
 import gui4s.core.widget.library.decorator.Paddings
 import gui4s.core.widget.library.textfield.TextFieldEvent
-
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.DownEvent.UserEvent
 import gui4s.desktop.kit.widgets
@@ -124,52 +121,39 @@ object TextInputExample extends UIApp:
   end main
 
   def textField[Event](
-                        glfw : PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
-                        window : GLFWwindow,
-                        requestFocus : Path => Update[TextFieldEvent, Unit]
-                      )(
-                        paragraphStyle: ParagraphStyle,
-                        fontCollection: FontCollection,
-                        textStyle: TextStyle,
-                        selectedTextStyle: TextStyle,
-                        cursorPaint: Paint = new Paint().setColor(0xFF000000).setStrokeWidth(3f),
-                        minimalClickableAreaSize : Rect[Float]
-                      )(
-                        name : String,
-                        text : String,
-                        update : String => Event
-                      ) : DesktopWidget[Event] =
-    widgets.textField[Event](
-      basicTextFieldBody(
-        textFieldTextPlacement(
-          style = paragraphStyle,
-          fontCollection = fontCollection,
-          textStyle = textStyle,
-          selectionStyle = selectedTextStyle,
-        ),
-        textFieldEventCatcher(glfw, window, minimalClickableAreaSize, requestFocus),
-        (path, state, text) =>
-          minSizeWidget[TextFieldEvent](
-            minSize = minimalClickableAreaSize,
-            placeHorizontally = LinearContainerPlacementStrategy.Begin[Id](0f),
-            placeVertically = LinearContainerPlacementStrategy.Center[Id](0f, ContainerPlacementError.English),
-          )(
-            stackContainer(
-              List(
-                placedParagraph[TextFieldEvent](text),
-              ) ++ Option.when(state.isFocused(path))(
-                drawCursor[TextFieldEvent](text, state.cursorStartIndex, cursorPaint)
-              ),
-              LinearContainerPlacementStrategy.Begin[Id](0),
-              LinearContainerPlacementStrategy.Begin[Id](0)
-            )
-          ),
-      ),
-      text =>
+    glfw : PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+    window : GLFWwindow,
+    requestFocus : Path => Update[TextFieldEvent, Unit]
+  )(
+    paragraphStyle: ParagraphStyle,
+    fontCollection: FontCollection,
+    textStyle: TextStyle,
+    selectedTextStyle: TextStyle,
+    cursorPaint: Paint = new Paint().setColor(0xFF000000).setStrokeWidth(3f),
+    minimalClickableAreaSize: Rect[Float]
+  )(
+    name: String,
+    text: String,
+    update: String => Event
+  ): DesktopWidget[Event] =
+    gui4s.desktop.example.shared.textField(
+      systemEventCatcher = textFieldEventCatcher(glfw, window, minimalClickableAreaSize, requestFocus),
+      clipboardSet = text =>
         Update.liftK[Event](
           glfw.setClipboardString(window, text)
         )
-  )(name, text, update)
+    )(
+      paragraphStyle,
+      fontCollection,
+      textStyle,
+      selectedTextStyle,
+      cursorPaint,
+      minimalClickableAreaSize
+    )(
+      name,
+      text,
+      update
+    )
   end textField
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
