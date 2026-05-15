@@ -174,7 +174,7 @@ object `package` extends Module:
 
     override def scalacOptions: T[Seq[String]] =
       super.scalacOptions() ++ Seq(
-        "-Wunused:imports",
+        "-Wunused:all",
         "-Xkind-projector",
         //s"-Yimports:${build.imports.default},${build.imports.cats},${build.imports.catsEffect}"
       )
