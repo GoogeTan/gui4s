@@ -44,7 +44,7 @@ object ContT:
       override def flatMap[A, B](fa: ContT[IO, A])(f: A => ContT[IO, B]): ContT[IO, B] =
         ContT(
           [T] => (ff : B => IO[T]) =>
-            fa.f((a : A) => f(a).f[T](ff(_)))
+            fa.f((a : A) => f(a).f[T](ff))
         )
       end flatMap
 
@@ -53,14 +53,9 @@ object ContT:
           [T] => (ff : B => IO[T]) =>
             IOM.tailRecM(a)(
               currentA =>
-                f(a).f(IOM.pure)
+                f(currentA).f(IOM.pure)
             ).flatMap(ff)
         )
     end new
   end contTisMonad
 end ContT
-
-
-
-
-
