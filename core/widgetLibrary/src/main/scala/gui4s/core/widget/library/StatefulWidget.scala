@@ -2,7 +2,7 @@ package gui4s.core.widget.library
 
 import scala.reflect.Typeable
 
-import catnip.ContT
+import catnip.CodensityT
 import catnip.syntax.all.*
 
 import gui4s.core.widget.StatefulState
@@ -10,7 +10,7 @@ import gui4s.core.widget.handle.HandlesEventF
 
 type MergeStates[Place[_], State] = [T] => (StatefulState[State], StatefulState[State], StatefulState[State] => Place[T]) => Option[Place[T]]
 type MergeStates2[Place[_], State] =
-  (StatefulState[State], StatefulState[State]) => ContT[Place, StatefulState[State]]
+  (StatefulState[State], StatefulState[State]) => CodensityT[Place, StatefulState[State]]
 
 
 // TODO remove me
