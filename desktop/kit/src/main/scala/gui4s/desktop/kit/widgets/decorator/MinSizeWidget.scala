@@ -21,7 +21,8 @@ import gui4s.desktop.kit.widgets.*
 
 def minSizeWidget[Event](
   minSize : Rect[Float],
-  placeIfSmaller : OneElementPlacementStrategy[PlacementEffect, Rect[Float], Rect[Float], Bounds, Point2d[Float]],
+  placeHorizontallyIfSmaller : OneElementPlacementStrategy[PlacementEffect, Float, Float, Float, Float],
+  placeVerticallyIfSmaller : OneElementPlacementStrategy[PlacementEffect, Float, Float, Float, Float],
 ) : Decorator[DesktopWidget[Event]] =
   gui4s.core.widget.library.decorator.minSizeWidget[
     DesktopWidget[Event],
@@ -36,27 +37,22 @@ def minSizeWidget[Event](
     oneElementContainerWidget,
     PlacementEffect.getBounds,
     (childSize, bounds) =>
-      if childSize.width < minSize.width || childSize.height < minSize.height then
-        PlacementEffect.getBounds
-          .flatMap(placeIfSmaller(childSize, _))
-          .map { case Sized(coordinatesOfStarts, _) =>
-            Sized(
-              new Point3d(coordinatesOfStarts, 0.0),
-              minSize,
-            )
+      for
+        horizontally <- if childSize.width < minSize.width then
+          placeHorizontallyIfSmaller(childSize.width, minSize.width).map {
+            case Sized(place, size) => Sized(place, minSize.width)
           }
-      else
-        Sized(Point3d.Zero[Float], minSize).pure[PlacementEffect],
+        else
+          Sized(0f, childSize.width).pure[PlacementEffect]
+        vertically <- if childSize.height < minSize.height then
+          placeVerticallyIfSmaller(childSize.height, minSize.height).map {
+            case Sized(place, size) => Sized(place, minSize.height)
+          }
+        else
+          Sized(0f, childSize.height).pure[PlacementEffect]
+      yield
+        Sized(Point3d(horizontally.value, vertically.value, 0f), Rect(horizontally.size, vertically.size)),
     makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
   )(minSize.map(new InfinityOr(_)))
-end minSizeWidget
-
-def minSizeWidget[Event](
-                          minSize : Rect[Float],
-                          placeHorizontally : OneElementLinearContainerPlacementStrategy,
-                          placeVertically : OneElementLinearContainerPlacementStrategy,
-                        )
-: Decorator[DesktopWidget[Event]] =
-    minSizeWidget(minSize, PlacementStrategy.Zip(placeHorizontally, placeVertically))
 end minSizeWidget
