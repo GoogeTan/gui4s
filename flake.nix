@@ -2,7 +2,7 @@
   description = "Gui4s development environment";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
     flake-utils.url = "github:numtide/flake-utils";
     mill-flake.url = "path:/Users/katze/nix/mill-flake";
   };
@@ -20,6 +20,7 @@
         mill = mill-flake.lib.${system}.mkMillFromFile ./.mill-version "sha256-3oNWgTuobsMQNV5dUZlC7khhwLQwVXpBOc2uyVWC2Q0=";
 
         androidComposition = pkgs.androidenv.composeAndroidPackages {
+          cmdLineToolsVersion = "19.0";  #At this point Mill expects 19 version and only it
           buildToolsVersions = [ "35.0.0" ];
           platformVersions = [ "33" "35" ];
           abiVersions = [ "arm64-v8a" "x86_64" ];
