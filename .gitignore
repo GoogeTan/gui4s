@@ -55,3 +55,4 @@ build/
 /project/**/.bloop
 project/**/metals.sbt
 ./failed_revisions.txt
+.direnv
