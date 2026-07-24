@@ -1,11 +1,10 @@
 package gui4s.desktop.example.shared
 
 import catnip.syntax.all.given
+import cats.Eq
 import cats.effect.*
 import io.github.humbleui.skija.BlendMode
-
 import gui4s.core.layout.*
-
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.kit.widgets.decorator.*
@@ -36,6 +35,8 @@ def imageExample(
   typeface: Typeface,
   initialization: InitializationWidget,
 ) : DesktopWidget[Nothing] =
+  //TODO use here actual image widget
+  given Eq[Image] = Eq.fromUniversalEquals[Image]
   val beginPlacement = OneElementPlacementStrategy.Begin[PlacementEffect, Float, Float]
   val textPlacement = PlacementStrategy.Zip(
     beginPlacement,

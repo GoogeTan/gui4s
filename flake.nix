@@ -17,15 +17,22 @@
             android_sdk.accept_license = true;
           };
         };
-        mill = mill-flake.lib.${system}.mkMillFromFile ./.mill-version "sha256-3oNWgTuobsMQNV5dUZlC7khhwLQwVXpBOc2uyVWC2Q0=";
-
+        jdk = pkgs.jdk21;
+        mill = mill-flake.lib.${system}.mkMillFromFile {
+            filePath = ./.mill-version;
+            hash = {
+                "aarch64-darwin" = "sha256-WvBjrpQIWnA1lswCuzkPjo+QHQQ9O7Vpz2bg2xzRSUM=";
+                "x86_64-linux" = "sha256-umDQNXc4CpBsInPMp2VoKHBeJf71GaHpJ2Vq4Wfo9kQ=";
+            };
+            inherit jdk;
+        };
         androidComposition = pkgs.androidenv.composeAndroidPackages {
           cmdLineToolsVersion = "19.0";  #At this point Mill expects 19 version and only it
           buildToolsVersions = [ "35.0.0" ];
           platformVersions = [ "33" "35" ];
           abiVersions = [ "arm64-v8a" "x86_64" ];
-          includeEmulator = true;
-          includeSystemImages = true;
+          includeEmulator = false;
+          includeSystemImages = false;
           systemImageTypes = [ "google_apis_playstore" ];
         };
 
@@ -36,7 +43,7 @@
         devShells.default = pkgs.mkShell {
           buildInputs = [
             mill
-            pkgs.jdk21
+            jdk
             androidSdk
             pkgs.glfw
           ];

@@ -63,7 +63,7 @@ object Update:
     EventsTransformer.raiseEvents(events.toList)
   end emitEvents
 
-  def catchEvents[Event, NewEvent]: [T] => Update[Event, T] => Update[NewEvent, (T, List[Event])] =
+  def catchEvents[Event, NewEvent]: [T] => Update[Event, T] => Update[NewEvent, (List[Event], T)] =
     [T] => update =>
       EventsTransformer.catchEvents(update)
   end catchEvents

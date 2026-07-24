@@ -1,7 +1,7 @@
 package build.android.example
 
 import mill.*
-import androidlib.*
+import mill.androidlib.*
 import mill.api.Task
 import scalalib.*
 import build.android.*
@@ -33,14 +33,19 @@ object `package` extends AndroidAppScalaModule with Gui4sAndroidModule:
 
   //override def androidEmulatorArchitecture = "arm64-v8a"
 
-  def jniFiles = Task.Input:
-    val jniLibsDir = millSourcePath0 / "src" / "main" / "jniLibs"
-    val soFiles = os.walk(jniLibsDir).filter(_.toString.endsWith("so"))
+  def jnaDir = os.pwd / "src" / "main" / "jniLibs"
+
+  def jnaSources =
+    Task.Sources(jnaDir)
+
+  def jniFiles = Task://TODO test if this correctly packs the files
+    val jniLibsDir = jnaSources()
+    val soFiles = jniLibsDir.filter(_.toString.endsWith("so"))
     soFiles.map {
       path =>
         AndroidPackageableExtraFile(
-          source = PathRef(path),
-          destination = os.RelPath("lib") / path.relativeTo(jniLibsDir)
+          source = path,
+          destination = os.RelPath("lib") / path.path.relativeTo(jnaDir)
         )
     }
 

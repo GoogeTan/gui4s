@@ -2,6 +2,7 @@ package gui4s.desktop.kit.widgets
 
 import scala.reflect.Typeable
 
+import cats.Eq
 import cats.effect.*
 
 import gui4s.core.widget.library.WithContext
@@ -9,7 +10,7 @@ import gui4s.core.widget.library.WithContext
 
 trait InitializationWidget:
   final def apply[
-    Value: Typeable,
+    Value: {Eq, Typeable},
     Event,
   ](
     name : String,
@@ -26,10 +27,10 @@ trait InitializationWidget:
     }
   end apply
 
-  def apply[Value: Typeable, Event](
-                                     name: String,
-                                     init: IO[Value]
-                                   ) : WithContext[DesktopWidget[Event], Option[Value]]
+  def apply[Value: {Eq, Typeable}, Event](
+                                           name: String,
+                                           init: IO[Value]
+                                         ) : WithContext[DesktopWidget[Event], Option[Value]]
 end InitializationWidget
 
 object InitializationWidget:
@@ -37,7 +38,7 @@ object InitializationWidget:
     resourceWidget: ResourceWidget
   ) : InitializationWidget =
     new InitializationWidget:
-      override def apply[Value: Typeable, Event](name: String, init: IO[Value]): WithContext[DesktopWidget[Event], Option[Value]] =
+      override def apply[Value: {Eq, Typeable}, Event](name: String, init: IO[Value]): WithContext[DesktopWidget[Event], Option[Value]] =
         resourceWidget(name, Resource.eval(init))
       end apply
     end new

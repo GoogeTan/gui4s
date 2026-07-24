@@ -1,14 +1,13 @@
 package gui4s.desktop.example.shared
 
+import cats.Eq
+
 import java.util.concurrent.TimeUnit
-
 import scala.concurrent.duration.*
-
 import gui4s.core.widget.library.animation.Animation
 import gui4s.core.widget.library.animation.Easing
 import gui4s.core.widget.library.animation.NormedVectorSpace.floatNormedVectorSpace
 import gui4s.core.widget.library.animation.TweenAnimation
-
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.skija.Font
@@ -22,6 +21,8 @@ def animationExample[Event](
   text: TextWidget,
   typeface: Typeface,
 )(using ScrollWidget): DesktopWidget[Event] =
+  //TODO use here actual image widget
+  given Eq[Image] = Eq.fromUniversalEquals[Image]
 
   val floatAnimation: Animation[Float, Duration] = TweenAnimation(
     easing = Easing.FastOutSlowIn,

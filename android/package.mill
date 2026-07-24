@@ -6,5 +6,6 @@ import mill.androidlib.AndroidSdkModule
 object `package` extends Module:
   object androidSdkModule0 extends AndroidSdkModule:
     def buildToolsVersion = build.versions.androidBuildTools
+    override def installPlatformSources = Task { false }
   end androidSdkModule0
 end `package`

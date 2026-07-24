@@ -3,10 +3,11 @@ package build.android.kit
 import mill.*
 import mill.scalalib.*
 import build.android.*
+import mill.androidlib.AndroidLibModule
 import mill.javalib.Dep
 
-object `package` extends AndroidLibScalaModule with Gui4sAndroidPublishModule:
-  override def androidLibPackage : String = "gui4s.android.kit"
+object `package` extends AndroidLibModule with Gui4sAndroidPublishModule:
+  override def androidLibPackage : T[String] = "gui4s.android.kit"
   override def publishVersion = build.publishVersion
 
   def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(

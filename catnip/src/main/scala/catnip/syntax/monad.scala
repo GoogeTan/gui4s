@@ -1,9 +1,7 @@
 package catnip
 package syntax
 
-import cats.FlatMap
-import cats.Monad
-import cats.MonadError
+import cats.{FlatMap, Functor, Monad, MonadError}
 import cats.effect.*
 import cats.syntax.all.*
 
@@ -21,10 +19,19 @@ object monad:
       FM.flatTap(value)(f)
     end <*<
 
-    def sigmaProduct[B](f: A => F[B]): F[(A, B)] =
+    def sigmaFlatProduct[B](f: A => F[B]): F[(A, B)] =
       for
         a <- value
         b <- f(a)
+      yield (a, b)
+    end sigmaFlatProduct
+  end extension
+
+  extension[F[_]: Functor, A] (value: F[A])
+    def sigmaProduct[B](f: A => B): F[(A, B)] =
+      for
+        a <- value
+        b = f(a)
       yield (a, b)
     end sigmaProduct
   end extension

@@ -1,19 +1,17 @@
 package gui4s.desktop.widget.library
 
+import catnip.CodensityT
 import catnip.syntax.all.*
 import cats.Functor
 import cats.Monad
 import cats.syntax.all.*
-import cats.~>
-
+import cats.*
 import gui4s.core.widget
 import gui4s.core.widget.*
-import gui4s.core.widget.draw.statefulIsDrawable
-import gui4s.core.widget.draw.statefulStateDrawsIntoWidget
+import gui4s.core.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import gui4s.core.widget.handle.*
 import gui4s.core.widget.library.MergeStates
-import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
-import gui4s.core.widget.merge.statefulMergesWithOldStates
+import gui4s.core.widget.merge.{UpdateWidgetStateFromTheOldOne, statefulMergesWithOldStates}
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates
 
@@ -52,10 +50,11 @@ import gui4s.core.widget.state.statefulHasInnerStates
  * Когда состояние изменилось, строится новое дочерние дерево и оно перенимает состояния из старого дерева при помощи widgetsAreMergable.
  * Если изменилось родительское состояние, слияние происходит по следующему правилу: если initialState изменилось, то берется новое значение, иначе старое.(TODO написать, как деструктор действует в этом случае).
  * Когда виджет покидает композицию, вызывается destructor для отчистки ресурсов, которые могут быть частью состояния.
+ * TODO обновить доку с новыми параметрами
  */
 def stateful[
   Update[_] : Monad,
-  ChildUpdate[_] : Functor,
+  ChildUpdate[_],
   Place[_] : Functor as PF,
   Draw,
   RecompositionReaction,
@@ -66,16 +65,16 @@ def stateful[
     Place,
     Widget[ChildUpdate, Place, Draw, RecompositionReaction]
   ],
-  typeCheckState : [T] => (Any, StatefulState[State] => Option[Place[T]]) => Option[Place[T]],
-  liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])],
+  liftUpdate : [T] => ChildUpdate[T] => Update[(ChildEvent, T)],
   addNameToUpdatePath : String => Update ~> Update,
   addNameToPlacePath : String => Place ~> Place,
+  noRecomposition : RecompositionReaction,
 )(
   name : String,
-  initialState : State,
-  handleEvent : HandlesEventF[State, List[ChildEvent], Update * Option],
+  initialState : CodensityT[Place, State],
+  stateAsFree : State => CodensityT[Place, Option[State]],
+  handleEvent : HandlesEventF[State, ChildEvent, Update * Option],
   render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction]],
-  destructor : State => RecompositionReaction,
   mergeStates : MergeStates[Place, State]
 ) : Place[
   Widget[
@@ -85,21 +84,23 @@ def stateful[
     RecompositionReaction
   ]
 ] =
-  given Functor[Update * Option] = nestedFunctorsAreFunctors()
-
-  addNameToPlacePath(name)(render(initialState)).map(initialChild =>
-    type ChildWidget = Widget[
-      ChildUpdate,
-      Place,
-      Draw,
-      RecompositionReaction
-    ]
-    type StState = StatefulBehaviour[
-      State,
-      State => Place[ChildWidget],
-      HandlesEventF[State, List[ChildEvent], Update * Option],
-      State => RecompositionReaction
-    ]
+  given completeUpdateFunctor : Functor[Update * Option] = nestedFunctorsAreFunctors[Update, Option]()
+  type ChildWidget = Widget[
+    ChildUpdate,
+    Place,
+    Draw,
+    RecompositionReaction
+  ]
+  type StState = StatefulBehaviour[
+    State,
+    State => Place[ChildWidget],
+    HandlesEventF[State, ChildEvent, Update * Option]
+  ]
+  addNameToPlacePath(name)[(ChildWidget, State)](
+    initialState.f(state =>
+      render(state).map((_, state))
+    )
+  ).map((initialChild, initialState) =>
     val stateful = Stateful[ChildWidget, StState](
       name = name,
       stateBehaviour = StatefulBehaviour(
@@ -109,12 +110,19 @@ def stateful[
           currentState = initialState,
         ),
         draw = (state : State) => addNameToPlacePath(name)(render(state)),
-        handleEvents = handleEvent,
-        destructor = destructor
+        handleEvents = handleEvent
       ),
       child = initialChild
     )
-    val statefulAsFree = widget.free.statefulAsFree[Place, ChildWidget, StState](widgetAsFree)
+    val statefulAsFree = widget.free.statefulAsFree[Place, ChildWidget, StState](
+      widgetAsFree,
+      currentBehaviour =>
+        stateAsFree(currentBehaviour.state.currentState)
+          .map(_.map(
+            newState => (currentBehaviour.withNewState(newState), render(newState)))
+          ),
+      widgetsAreMergeable
+    )
     Widget.ValueWrapper[
       Stateful[ChildWidget, StState],
       Update,
@@ -126,17 +134,16 @@ def stateful[
       valueAsFree = statefulAsFree,
       valueIsDrawable = statefulIsDrawable(widgetIsDrawable),
       valueHandlesEvent = statefulHandlesEvent(
-        stateHandlesEvents = statefulStateHandlesEvents,
+        stateHandlesEvents = statefulStateHandlesEvents[Update * Option, State, State => Place[ChildWidget], ChildEvent],
         drawStateIntoWidget = statefulStateDrawsIntoWidget,
         childWidgetHandlesEvent =
-          mapEventHandle_(
-            widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction]
-          )(
-            _.map(_.map(addNameToPlacePath(name)[ChildWidget](_)))
-          ).andThen(liftUpdate(_)),
+          widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction]
+            .andThen(liftUpdate(_)),
         widgetsAreMergable = widgetsAreMergeable,
-        addNameToPlacePath = addNameToPlacePath,
-        addNameToUpdatePath = addNameToUpdatePath,
+      ).andThen(resultingEffect =>
+        addNameToUpdatePath(name)(
+          resultingEffect
+        ).map(_.map(addNameToPlacePath(name)(_)))
       ),
       valueMergesWithOldState = statefulMergesWithOldStates[
         Place,
@@ -147,10 +154,9 @@ def stateful[
         StatefulState[State],
         RecompositionReaction
       ](
-        typeCheckState = typeCheckState,
-        mergeStates = (savedState, newState) =>
+        mergeStates = (savedStateAny, newState) =>
           mergeStates(
-            savedState,
+            savedStateAny,
             newState.stateBehaviour.state,
             newStState =>
               widgetsAreMergeable.mergeUpdatedAndRerenderedWidgets(
@@ -165,13 +171,13 @@ def stateful[
                     child = newChild
                   )
               )
-          ),
+          ).map(addNameToPlacePath(name)(_)),
         stateName = _.name
       ),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
         widgetReactsOnRecomposition[ChildUpdate, Place, Draw, RecompositionReaction]
       ),
-      valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
+      valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates, noRecomposition)
     )
   )
 end stateful

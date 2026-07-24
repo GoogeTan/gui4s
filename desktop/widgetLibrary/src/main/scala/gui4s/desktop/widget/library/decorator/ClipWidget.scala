@@ -6,7 +6,6 @@ import cats.Comonad
 import cats.Functor
 import cats.Monad
 import cats.syntax.all.*
-
 import gui4s.core.widget.library.decorator.Decorator
 
 /**
@@ -26,9 +25,9 @@ def clipWidget[
   RecompositionReaction,
   Shape,
 ](
-    withClip : [T] => (Shape, Update[T]) => Update[T],
-    drawModifier : (Shape, Draw) => Draw,
-    shapeFabric : Situated[WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction]] => PlacementEffect[Situated[Shape]]
+  withClip : [T] => (Shape, Update[T]) => Update[T],
+  drawModifier : (Shape, Draw) => Draw,
+  shapeFabric : Situated[WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction]] => PlacementEffect[Situated[Shape]]
 ) : Decorator[FreeWidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction]] =
   given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
 
@@ -39,7 +38,7 @@ def clipWidget[
     Draw,
     RecompositionReaction
   ]((freeWidget : PlacementEffect[Situated[WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction]]]) =>
-    freeWidget.sigmaProduct(shapeFabric).flatMap((placement, shape) =>
+    freeWidget.sigmaFlatProduct(shapeFabric).flatMap((placement, shape) =>
       drawDecorator[
         Update,
         PlacementEffect,

@@ -49,7 +49,7 @@ object EventsTransformer:
     Value
   ](
     original: (F <> EventsTransformer[Events])[IO, Value]
-  )(using InnerTransform[F, Inner], Functor[Inner]): (F <> EventsTransformer[NewEvents])[IO, (Value, Events)] =
+  )(using InnerTransform[F, Inner], Functor[Inner]): (F <> EventsTransformer[NewEvents])[IO, (Events, Value)] =
     WriterTransformer.extract[F, Inner, IO, Events, NewEvents, Value](original)
   end catchEvents
 
@@ -82,7 +82,7 @@ object EventsTransformer:
   )(using InnerTransform[F, Inner], Functor[Inner]): (F <> EventsTransformer[NewEvents])[IO, Value] =
     for
       tmp <- catchEvents[F, Inner, IO, Events, NewEvents, Value](original)
-      (value, events) = tmp
+      (events, value) = tmp
       _ <- raiseEvents(f(events))
     yield value  
   end mapEvents

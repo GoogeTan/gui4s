@@ -16,18 +16,18 @@ import gui4s.desktop.kit.widgets.DesktopPlacedWidget
 import gui4s.desktop.kit.widgets.DesktopWidget
 
 trait LaunchedEvent:
-  def apply[Key : Typeable, Event](
-                                     name : String,
-                                     key: Key,
-                                     task : IO[Event],
-                                     body : DesktopWidget[Event]
-                                   ) : DesktopWidget[Event]
+  def apply[Key : {Eq, Typeable}, Event](
+                                           name : String,
+                                           key: Key,
+                                           task : IO[Event],
+                                           body : DesktopWidget[Event]
+                                         ) : DesktopWidget[Event]
 end LaunchedEvent
 
 object LaunchedEvent:
   def apply[
     Event,
-    Key : Typeable
+    Key : {Eq, Typeable}
   ](
     supervisor: Supervisor[IO],
     raiseExternalEvent : DownEvent => IO[Unit],

@@ -2,13 +2,14 @@ package build.android.skia
 
 import mill.*
 import mill.scalalib.*
+import mill.androidlib.*
 import build.android.*
 import coursier.maven.MavenRepository
 import build.dependencies.catsEffect
 import build.versions.skikoAndroid
 
-object `package` extends AndroidLibScalaModule with Gui4sAndroidPublishModule:
-  override def androidLibPackage : String = "gui4s.android.skia"
+object `package` extends AndroidLibModule with Gui4sAndroidPublishModule:
+  override def androidLibPackage : T[String] = "gui4s.android.skia"
   override def publishVersion = build.publishVersion
 
   override def repositoriesTask = Task.Anon:

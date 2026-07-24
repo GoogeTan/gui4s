@@ -10,7 +10,7 @@ import gui4s.desktop.widget.library.{launchedEffect as genericLaunchedEffect, *}
 import scala.reflect.Typeable
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[AndroidWidget[Event], Key, Path => IO[Unit]] =
+def launchedEffect[Event, Key : {Eq, Typeable}](supervisor : Supervisor[IO]) : LaunchedEffectWidget[AndroidWidget[Event], Key, Path => IO[Unit]] =
   val lew : LaunchedEffectWidget[
     AndroidWidget[Event],
     Key,

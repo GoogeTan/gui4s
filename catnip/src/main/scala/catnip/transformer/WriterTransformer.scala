@@ -32,11 +32,11 @@ object WriterTransformer:
     using FIT : InnerTransform[F, Inner]
   )(
     using Functor[Inner]
-  ) : (F <> WriterTransformer[L])[IO, (T, L)] =
+  ) : (F <> WriterTransformer[L])[IO, (L, T)] =
     FIT.innerTransform(
       original,
       (writerOriginal : WriterT[IO, L, Inner[T]]) =>
-        listen_(writerOriginal).map((innerT, l) => innerT.map(t => (t, l)))
+        listen_(writerOriginal).map((innerT, l) => innerT.map((l, _)))
     )
   end listen
 
@@ -76,7 +76,7 @@ object WriterTransformer:
     original : (F <> WriterTransformer[OldL])[IO, Value]
   )(
     using FIT : InnerTransform[F, Inner], fi : Functor[Inner]
-  ) : (F <> WriterTransformer[NewL])[IO, (Value, OldL)] =
-    drop[F, Inner, IO, OldL, NewL, (Value, OldL)](listen(original))
+  ) : (F <> WriterTransformer[NewL])[IO, (OldL, Value)] =
+    drop[F, Inner, IO, OldL, NewL, (OldL, Value)](listen(original))
   end extract
 end WriterTransformer

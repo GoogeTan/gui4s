@@ -27,6 +27,7 @@ type AnimationWidget[Widget[_], AnimatedValue, Time] =
   [Event] => (name : String, targetValue : AnimatedValue, animation : Animation[AnimatedValue, Time], body : AnimatedValue => Widget[Event]) => Widget[Event]
 
 //TODO Удалить событие для времени .Теперь обработчик виджета состояния вызывается на каждое обновление, даже без событий.
+@SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
 def animationWidget[
   Widget[_],
   Time : {Group, Ordering, Eq},
@@ -52,10 +53,11 @@ def animationWidget[
       (state, events) => UBM().pure(events.maxOption.map(state.withTime).getOrElse(state)),
       state => timeSourceWidget(body(state.valueNow)),
       [T] => (
-        oldState : StatefulState[AnimationWidgetState[AnimatedValue, Time]],
+        oldStateAny : Any,
         newState: StatefulState[AnimationWidgetState[AnimatedValue, Time]],
         callback : StatefulState[AnimationWidgetState[AnimatedValue, Time]] => Place[T]
       ) =>
+        val oldState = oldStateAny.asInstanceOf[StatefulState[AnimationWidgetState[AnimatedValue, Time]]]//TODO add test and error
         currentTime(
           time =>
             callback(mergeStates(oldState, newState, time))

@@ -24,12 +24,11 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
         currentState = 0,
       ),
       draw = (),
-      handleEvents = handler,
-      destructor = ()
+      handleEvents = handler
     )
 
     val event = "event1"
-    val result = statefulStateHandlesEvents[Id, TestState, Unit, String, Unit](initial, event)
+    val result = statefulStateHandlesEvents[Id, TestState, Unit, String](initial, event)
     result.state should be(StatefulState(0, 6))
   }
 
@@ -44,15 +43,13 @@ final class statefulStateHandlesEventsTest extends AnyFlatSpec with Matchers:
       "test",
       StatefulState(TestState(0), TestState(0)),
       "gui4s/core/widget/draw",
-      handler,
-      "destructor"
+      handler
     )
 
     val events = "event1"
     statefulStateHandlesEvents[
       Id,
       TestState,
-      String,
       String,
       String
     ](initial, events) should be(initial.copy(state = StatefulState(TestState(0), TestState(6))))

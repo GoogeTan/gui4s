@@ -2,30 +2,28 @@ package gui4s.desktop.kit
 package widgets
 
 import scala.reflect.Typeable
-
 import cats.*
 import cats.effect.*
 import cats.effect.std.QueueSink
 import cats.effect.std.Supervisor
-
+import cats.syntax.all.*
 import gui4s.core.widget.library.WithContext
 import gui4s.core.widget.library.destructibleResourceWidget as genericResourceWidget
-
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Update.given
-import gui4s.desktop.kit.widgets.decorator.LaunchedEvent
+import gui4s.desktop.kit.widgets.decorator.{LaunchedEvent, destructorWidget}
 
 trait ResourceWidget:
-  def apply[T : Typeable, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
+  def apply[T : {Eq, Typeable}, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
 end ResourceWidget
 
 object ResourceWidget:
   def apply(
-             supervisor : Supervisor[IO],
-             raiseExternalEvent : DownEvent => IO[Unit],
-           ) : ResourceWidget =
+    supervisor : Supervisor[IO],
+    raiseExternalEvent : DownEvent => IO[Unit],
+  ) : ResourceWidget =
     new ResourceWidget:
-      override def apply[T : Typeable, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
+      override def apply[T : {Eq, Typeable}, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
         body => genericResourceWidget[
           DesktopWidget,
           Update,
@@ -34,7 +32,27 @@ object ResourceWidget:
           IO,
           Event
         ](
-          transitiveStatefulWidget = transitiveStatefulWidget,
+          transitiveStatefulWidget = [State : Typeable] => (
+            name,
+            initialState,
+            eventHandler,
+            body
+          ) =>
+            transitiveStatefulWidget[
+              Option[(State, RecompositionReaction)],
+              Event,
+              (State, RecompositionReaction)
+            ](
+              name,
+              initialState.pure,
+              _ => None.pure,
+              (state, events) =>
+                eventHandler(state, events).map(_.some),
+              body,
+              Place.mergeStatesWithConstInitialState
+            ),
+          destructorWidget = [_] => destructor =>
+            destructorWidget(name + "_destructor", destructor),
           launchedEvent =
             [TaskEvent : Typeable as TET] => (name : String, child : DesktopWidget[Event], task : IO[TaskEvent]) =>
               LaunchedEvent[Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
@@ -50,7 +68,6 @@ object ResourceWidget:
                 task.map(Left(_))
               ),
           doubleAllocError = [T] => () => Update.raiseError(path => new Exception("Double resource alloc at " + path.toString)),
-          emptyDesctructor = RecompositionReaction.empty
         )(name, init.allocated)(body)
       end apply
     end new
