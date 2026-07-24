@@ -39,7 +39,7 @@ def container[
   Update[_] : Monad,
   Place[_] : Functor as PF,
   Collection[_] : {Traverse, Zip},
-  Draw : Monoid,
+  Draw,
   RecompositionReaction : Monoid,
   FreeWidget,
   PositionedWidget
@@ -107,7 +107,7 @@ def container[
   Update[_] : Monad,
   Place[_] : Functor as PF,
   Collection[_] : {Traverse, Zip},
-  Draw : Monoid,
+  Draw,
   RecompositionReaction : Monoid,
   PositionedChild
 ](

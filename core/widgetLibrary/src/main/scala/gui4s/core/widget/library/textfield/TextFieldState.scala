@@ -13,7 +13,7 @@ final case class TextFieldState(
   focusedTextField: Option[Path] = None
 ) derives Eq:
   def this(lines : String, anchor : TextPosition, cursor : TextPosition, focusedTextField : Option[Path]) =
-    this(lines.split("\n", -1).toList, anchor, cursor)
+    this(lines.split("\n", -1).toList, anchor, cursor, focusedTextField)
   end this
 
   def this(lines : String, anchor : TextPosition, cursor : TextPosition) =

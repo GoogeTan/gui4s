@@ -8,5 +8,5 @@ def anyHasNothingToMerge[A, B](asFree : AsFree[A, B]) : MergesWithOldStates[A, A
 end anyHasNothingToMerge
 
 def anyHasNothingToMerge[A, B] : MergesWithOldStates[A, Any, Option[B]] =
-  (self, _) => None 
+  (_, _) => None
 end anyHasNothingToMerge

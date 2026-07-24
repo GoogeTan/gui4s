@@ -8,7 +8,6 @@ import cats.{Functor, MonadError, ~>}
 import gui4s.android.kit.effects.PlacementEffect.given
 import gui4s.android.kit.effects.Situated.given
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
-import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.widget.Path
 import org.jetbrains.skia.shaper.Shaper
 

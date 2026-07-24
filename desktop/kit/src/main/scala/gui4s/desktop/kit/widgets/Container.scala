@@ -42,7 +42,6 @@ def containerWidget[
     Measured[Rect[Float], Bounds, (DesktopPlacedWidget[Event], Point3d[Float])]
   ]
 ) : DesktopWidget[Event] =
-  given Order[Point3d[Float]] = Order.by(_.z)
   containerWidget2[
     Collection,
     Event

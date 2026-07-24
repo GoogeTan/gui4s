@@ -1,6 +1,7 @@
 package gui4s.desktop.kit
 package widgets
 
+import catnip.optionTypeable
 import catnip.syntax.all.given
 import catnip.syntax.transformer.given
 import cats.*
@@ -10,13 +11,13 @@ import io.github.humbleui.skija.svg.SVGDOM
 import io.github.humbleui.skija.svg.SVGLength
 import io.github.humbleui.skija.svg.SVGLengthContext
 import io.github.humbleui.skija.svg.SVGLengthUnit
-
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
-
 import gui4s.desktop.kit.asset.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.skija.Image
+
+import scala.reflect.Typeable
 
 def svgImageFromJavaResourcesWidget[Event](
   name : String,
@@ -25,6 +26,7 @@ def svgImageFromJavaResourcesWidget[Event](
   onLoad : DesktopWidget[Event],
   onError : DesktopWidget[Event]
 ) : DesktopWidget[Event] =
+  given Typeable[Option[SVGDOM]] = optionTypeable
   resourceWidget(
     name,
     svgFromJavaResources[IO, Resource[IO, *]](path)
@@ -40,7 +42,8 @@ def imageFromJavaResourcesWidget[Event](
   resourceWidget: ResourceWidget,
   onLoad : DesktopWidget[Event],
   onError : DesktopWidget[Event]
-) : DesktopWidget[Event] =
+) : DesktopWidget[Event] = {
+  given Typeable[Option[Image]] = optionTypeable
   resourceWidget(
     name,
     imageFromJavaResources[IO, Resource[IO, *]](path)
@@ -48,6 +51,7 @@ def imageFromJavaResourcesWidget[Event](
     case Some(Some(value)) => imageWidget(value)
     case Some(None) => onError
     case None        => onLoad
+}
 end imageFromJavaResourcesWidget
 
 def imageWidget[Event](image: Image): DesktopWidget[Event] =

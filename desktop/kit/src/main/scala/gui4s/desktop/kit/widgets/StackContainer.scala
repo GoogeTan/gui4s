@@ -15,7 +15,6 @@ def stackContainer[Event](
                            verticalPlacement : OneElementLinearContainerPlacementStrategy,
                            horizontalPlacement : OneElementLinearContainerPlacementStrategy
 ) : DesktopWidget[Event] =
-  given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.height))
   gui4s.core.widget.library.stackContainer[
     DesktopPlacedWidget[Event],
     PlacementEffect,
@@ -23,9 +22,7 @@ def stackContainer[Event](
     Bounds,
     Float,
   ](
-    getBounds = PlacementEffect.getBounds,
-    container = listContainerWidget[Event],
-    widgetAsFree = gui4s.desktop.widget.library.widgetAsFree,
+    container = listContainerWidget[Event]
   )(
     children,
     GenericPlacementStrategy.Stack(

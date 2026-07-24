@@ -89,7 +89,7 @@ trait UIApp:
           window.close()
           App.terminate()
 
-        case resize: EventWindowResize =>
+        case _: EventWindowResize =>
         case event: EventFrameSkija =>
           val surface = event.getSurface
           val canvas = surface.getCanvas

@@ -8,7 +8,6 @@ import cats.effect.IO
 import gui4s.android.kit.effects.*
 import gui4s.core.geometry.{Axis, InfinityOr}
 import gui4s.core.widget.library.{LinearContainer, linearContainer as genericLinearContainer}
-import gui4s.desktop.widget.library.widgetAsFree
 
 def linearContainerWidget[
   Event,
@@ -24,8 +23,7 @@ def linearContainerWidget[
     container = containerWidget[Collection, Event],
     getBounds = PlacementEffect.getBounds,
     withBounds = (rect, effect) => PlacementEffect.withBounds(effect, _ => rect),
-    cut = _.minus(_),
-    widgetAsFree = widgetAsFree
+    cut = _.minus(_)
   )
 end linearContainerWidget
 

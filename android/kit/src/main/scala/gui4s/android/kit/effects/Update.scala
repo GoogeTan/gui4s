@@ -1,6 +1,5 @@
 package gui4s.android.kit.effects
 
-import catnip.syntax.all.{*, given}
 import catnip.syntax.transformer.{*, given}
 import catnip.transformer.{MonadTransformer, StateTransformer, ReaderTransformer}
 import cats.effect.IO

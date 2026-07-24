@@ -3,8 +3,8 @@ package gui4s.android.kit.widgets.decorator
 import cats.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
-import gui4s.core.geometry.{InfinityOr, Point3d, Rect}
-import gui4s.core.layout.{Measured, Sized}
+import gui4s.core.geometry.{InfinityOr, Point3d}
+import gui4s.core.layout.Measured
 import gui4s.core.widget.library.decorator.{PaddingWidget, Paddings}
 
 import scala.annotation.targetName

@@ -40,7 +40,7 @@ trait StatefulWidget[Widget[_], Update[Event, Value], -Destructor[_], -MergeStat
 
 
   def apply[
-    State,
+    State : Typeable,
     Event,
     ChildEvent
   ](

@@ -15,7 +15,6 @@ def gridExample(
                 typeface : Typeface
 ) : DesktopWidget[Nothing] =
   val textStyle = SkijaTextStyle(new Font(typeface, 28), new Paint().setColor(0xFF8484A4))
-  val numbers = (1 to 10).toList
   grid((1 to 10).toList, ('a' to 'f').toList)(
     gridCell(text[Nothing](_, textStyle))
   )

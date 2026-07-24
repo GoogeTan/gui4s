@@ -89,7 +89,7 @@ object resource:
   ](
     using use: Use[Resource, IO]
   )(
-    using Monad[Resource], MonadCancel[IO, Throwable]
+    using MonadCancel[IO, Throwable]
   ) : Use[OptionT[Resource, *], OptionT[IO, *]] with
     override def useResource[T, B](value: OptionT[Resource, T])(f: T => OptionT[IO, B]): OptionT[IO, B] =
       OptionT(

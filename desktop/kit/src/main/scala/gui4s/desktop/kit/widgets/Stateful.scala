@@ -3,7 +3,7 @@ package widgets
 
 import scala.reflect.Typeable
 
-import catnip.syntax.all.{*, given}
+import catnip.syntax.all.*
 import cats.*
 import cats.data.*
 import cats.effect.*
@@ -72,14 +72,14 @@ def statefulWidget: StatefulWidget[
       )
     end apply
 
-    override def apply[State, Event, ChildEvent](
-                                                  name: String,
-                                                  initialState: State,
-                                                  eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event] * Option],
-                                                  body: State => DesktopWidget[ChildEvent],
-                                                  destructor: State => RecompositionReaction,
-                                                  mergeStates: MergeStates[Place, State]
-                                                ): DesktopWidget[Event] =
+    override def apply[State : Typeable, Event, ChildEvent](
+                                                              name: String,
+                                                              initialState: State,
+                                                              eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event] * Option],
+                                                              body: State => DesktopWidget[ChildEvent],
+                                                              destructor: State => RecompositionReaction,
+                                                              mergeStates: MergeStates[Place, State]
+                                                            ): DesktopWidget[Event] =
       library.stateful[
         UpdateC[Event],
         UpdateC[ChildEvent],

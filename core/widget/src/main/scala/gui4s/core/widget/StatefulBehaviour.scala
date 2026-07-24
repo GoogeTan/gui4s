@@ -14,13 +14,15 @@ final case class StatefulState[State](initialState : State, currentState : State
   end withNewState
 end StatefulState
 
-@SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
-given[State : Typeable] : Typeable[StatefulState[State]] = (a : Any) => a match
-  case StatefulState(_: State, _: State) =>
-    a.asInstanceOf[a.type & StatefulState[State]].some
-  case _ =>
-    None
-end given
+object StatefulState:
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+  given[State : Typeable] : Typeable[StatefulState[State]] = (a : Any) => a match
+    case StatefulState(_: State, _: State) =>
+      a.asInstanceOf[a.type & StatefulState[State]].some
+    case _ =>
+      None
+  end given
+end StatefulState
 
 final case class StatefulBehaviour[
   State,

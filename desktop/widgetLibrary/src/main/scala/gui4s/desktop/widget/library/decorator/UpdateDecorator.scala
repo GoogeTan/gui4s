@@ -66,7 +66,6 @@ def updateDecoratorWithRect[
   PlacementEffect,
   Situated[Widget[Update, PlacementEffect * Situated, Draw, RecompositionReaction]]
 ] =
-  given Functor[PlacementEffect * Situated] = nestedFunctorsAreFunctors[PlacementEffect, Situated]
   decorator => original =>
     trueUpdateDecoratorWithRect(
       original,

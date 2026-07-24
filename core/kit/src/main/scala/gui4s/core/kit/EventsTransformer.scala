@@ -12,7 +12,7 @@ type EventsTransformer[Events] = WriterTransformer[Events]
 object EventsTransformer:
   def raiseEvents_[
     IO[_] : Monad,
-    Events : Monoid
+    Events
   ](
     events: Events
   ): EventsTransformer[Events][IO, Unit] =
@@ -31,7 +31,7 @@ object EventsTransformer:
 
   def catchEvents_[
     IO[_] : Monad,
-    Events : Monoid,
+    Events,
     NewEvents : Monoid,
     Value
   ](
@@ -41,7 +41,7 @@ object EventsTransformer:
   end catchEvents_
 
   def catchEvents[
-    F[_[_], _] : MonadTransformer as FMT,
+    F[_[_], _],
     Inner[_],
     IO[_] : Monad,
     Events : Monoid,
@@ -55,7 +55,7 @@ object EventsTransformer:
 
   def mapEvents_[
     IO[_] : Monad,
-    Events : Monoid,
+    Events,
     NewEvents : Monoid,
     Value
   ](

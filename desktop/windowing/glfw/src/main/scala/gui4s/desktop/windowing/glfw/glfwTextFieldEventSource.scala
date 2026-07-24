@@ -42,10 +42,10 @@ def textFieldEventSource(
   window: GLFWwindow,
   eventBus: Queue[IO, DownEvent]
 ): IO[Unit] =
-  glfw.addCharCallback(window, (window, key) =>
+  glfw.addCharCallback(window, (_, key) =>
     eventBus.offer(DownEvent.UserEvent(TextInputOuterEvent.CharInputEvent(key)))
   ) *>
-    glfw.addKeyCallback(window, (window, key, scancode, action, mods) =>
+    glfw.addKeyCallback(window, (_, key, _, action, mods) =>//TODO add scancode to the event
       if action =!= KeyAction.Press then
         IO.unit
       else
@@ -74,7 +74,7 @@ def textFieldEventSource(
             IO.unit
         end match
       end if
-    ) *> glfw.addMouseButtonCallback(window, (window, button, action, mods) =>
+    ) *> glfw.addMouseButtonCallback(window, (_, button, action, _) =>
     if button == GlfwConstants.GLFW_MOUSE_BUTTON_LEFT && action =!= KeyAction.Repeat then
       for
         monitor <- glfw.getPrimaryMonitor

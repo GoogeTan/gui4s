@@ -4,7 +4,6 @@ import catnip.syntax.all.given
 import cats.effect.*
 import io.github.humbleui.skija.BlendMode
 
-import gui4s.core.geometry.*
 import gui4s.core.layout.*
 
 import gui4s.desktop.kit.effects.*
@@ -37,9 +36,6 @@ def imageExample(
   typeface: Typeface,
   initialization: InitializationWidget,
 ) : DesktopWidget[Nothing] =
-  given Ordering[Rect[Float]] = Ordering.by(point => math.max(point.width, point.width))
-
-  val centerPlacement = OneElementPlacementStrategy.Center[PlacementEffect, Float]
   val beginPlacement = OneElementPlacementStrategy.Begin[PlacementEffect, Float, Float]
   val textPlacement = PlacementStrategy.Zip(
     beginPlacement,

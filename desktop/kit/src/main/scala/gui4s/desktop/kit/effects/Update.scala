@@ -246,7 +246,7 @@ object Update:
         UpdateState.empty[List[DownEvent]].withEnvironmentalEvents(events)
       )(update)
         .map {
-        case (_, (state, widget)) => Right(widget)
+        case (_, (_, widget)) => Right(widget)
       }
   end runUpdate
 

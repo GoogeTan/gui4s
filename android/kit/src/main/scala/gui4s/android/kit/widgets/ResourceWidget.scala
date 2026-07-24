@@ -1,23 +1,9 @@
 package gui4s.android.kit.widgets
 
-import cats.*
-import cats.effect.std.Supervisor
-import cats.syntax.all.*
-import cats.effect.*
-import gui4s.core.widget.Path
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.effects.Update.given
-import gui4s.android.kit.widgets.decorator.LaunchedEvent
-import gui4s.core.widget.library.{WithContext, destructibleResourceWidget as genericResourceWidget}
-
-import scala.reflect.Typeable
-
 import cats.effect.IO
 import cats.*
 import cats.effect.std.Supervisor
-import cats.syntax.all.*
 import cats.effect.*
-import gui4s.core.widget.Path
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.LaunchedEvent
@@ -26,18 +12,18 @@ import gui4s.core.widget.library.{WithContext, destructibleResourceWidget as gen
 import scala.reflect.Typeable
 
 trait ResourceWidget:
-  def apply[T, Event](
-                    name : String, init : Resource[IO, T]
-                  ) : WithContext[AndroidWidget[Event], Option[T]]
+  def apply[T : Typeable, Event](
+                                  name : String, init : Resource[IO, T]
+                                ) : WithContext[AndroidWidget[Event], Option[T]]
 end ResourceWidget
 
 object ResourceWidget:
   def apply(
-                    supervisor : Supervisor[IO],
-                    raiseExternalEvent : DownEvent => IO[Unit],
-                   )(using Typeable[IO[Unit]], MonadCancel[IO, Throwable]) : ResourceWidget =
+              supervisor : Supervisor[IO],
+              raiseExternalEvent : DownEvent => IO[Unit],
+             ) : ResourceWidget =
     new ResourceWidget:
-      override def apply[T, Event](name: String, init: Resource[IO, T]) : WithContext[AndroidWidget[Event], Option[T]] =
+      override def apply[T : Typeable, Event](name: String, init: Resource[IO, T]) : WithContext[AndroidWidget[Event], Option[T]] =
         body => genericResourceWidget[
           AndroidWidget,
           Update[*, *],

@@ -7,7 +7,6 @@ import cats.data.*
 import cats.effect.*
 
 import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Place.given
 import gui4s.desktop.kit.widgets.DesktopPlacedWidget
 import gui4s.desktop.widget.library.widgetLoops
 

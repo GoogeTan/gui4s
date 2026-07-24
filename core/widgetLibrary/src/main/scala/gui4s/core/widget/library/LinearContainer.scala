@@ -1,7 +1,6 @@
 package gui4s.core.widget.library
 
 import catnip.Zip
-import catnip.syntax.additional.*
 import cats.Monad
 import cats.Traverse
 import cats.syntax.all.*
@@ -10,7 +9,6 @@ import gui4s.core.geometry.Axis
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.*
-import gui4s.core.widget.free.AsFreeF
 
 /**
  * Линейный контейнер - это контейнер, который располагает свои дочерние виджеты вдоль одной из осей.
@@ -89,8 +87,7 @@ def linearContainer[
   getBounds: PlacementEffect[Rect[BoundUnit]],
   withBounds: (Rect[BoundUnit], PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], Widget]]) =>
     PlacementEffect[Measured[Rect[MeasurementUnit], Rect[BoundUnit], Widget]],
-  cut : (BoundUnit, MeasurementUnit) => BoundUnit,
-  widgetAsFree : AsFreeF[Widget, PlacementEffect * Sized[Rect[MeasurementUnit], *]]
+  cut : (BoundUnit, MeasurementUnit) => BoundUnit
 ) : LinearContainer[PlacementEffect[Sized[Rect[MeasurementUnit], Widget]], PlacementEffect, Collection, MeasurementUnit, BoundUnit, Axis] =
   (children, mainAxis, mainAxisStrategy, additionalAxisStrategy) =>
     container(

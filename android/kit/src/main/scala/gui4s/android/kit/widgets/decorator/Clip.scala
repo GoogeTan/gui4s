@@ -1,6 +1,5 @@
 package gui4s.android.kit.widgets.decorator
 
-import gui4s.core.geometry.Rect
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Clip.given
 import gui4s.android.kit.widgets.AndroidWidget

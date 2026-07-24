@@ -39,7 +39,7 @@ object list:
       f(sortedValues).map(res => CS.sortBy(res.zip(indexes), _._2).map(_._1))
   end traverseOrdered
 
-  def traverseUnordered[F[_] : Functor, C[_] : {Traverse as CT}, A] : TraverseOrdered[F, C, A] =
+  def traverseUnordered[F[_], C[_], A] : TraverseOrdered[F, C, A] =
     [B] => list => f => f(list)
   end traverseUnordered
 

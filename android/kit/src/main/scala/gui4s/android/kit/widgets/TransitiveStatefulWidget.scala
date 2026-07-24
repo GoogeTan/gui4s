@@ -1,6 +1,5 @@
 package gui4s.android.kit.widgets
 
-import cats.effect.IO
 import gui4s.core.widget.library.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Update.given

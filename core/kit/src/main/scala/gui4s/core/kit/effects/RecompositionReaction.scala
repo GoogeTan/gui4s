@@ -10,11 +10,11 @@ type RecompositionReaction[F[_]] = F[Unit]
 object RecompositionReaction:
   def empty[F[_] : Applicative] : RecompositionReaction[F] = ().pure[F]
 
-  def run[F[_] : Applicative](recomposition : RecompositionReaction[F]) : F[Unit] = recomposition
+  def run[F[_]](recomposition : RecompositionReaction[F]) : F[Unit] = recomposition
 
   def lift[F[_] : Applicative, Value](value : F[Value]) : RecompositionReaction[F] = value.as(())
 
-  def raiseError[F[_] : Applicative, Error](using M : MonadError[F, Error])(error : Error) : RecompositionReaction[F] =
+  def raiseError[F[_], Error](using M : MonadError[F, Error])(error : Error) : RecompositionReaction[F] =
     M.raiseError(error)
   end raiseError
   

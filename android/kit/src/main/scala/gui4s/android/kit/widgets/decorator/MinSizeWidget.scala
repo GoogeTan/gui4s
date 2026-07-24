@@ -42,7 +42,7 @@ def minSizeWidget[Event](
         Sized[Rect[Float], Point3d[Float]](Point3d.Zero[Float], minSize).pure[PlacementEffect],
     makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
-  )(minSize.map(new InfinityOr(_)))
+  )
 end minSizeWidget
 
 def minSizeWidget[Event](

@@ -145,7 +145,7 @@ object PlacementStrategy:
     Size : Numeric as N,
     BoundsUnit,
     Collection[_] : Traverse,
-    MeasurementUnit : Numeric,
+    MeasurementUnit,
   ](
     axis : Axis,
     mainAxis : OneElementPlacementStrategy[Place, Size, Size, BoundsUnit, MeasurementUnit],

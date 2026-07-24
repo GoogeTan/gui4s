@@ -23,15 +23,14 @@ def textField[
   copyTextToClipboard : String => Update[Event, Unit],
 )(
   name : String,
-  text : String,
-  onChange : String => Event
+  text : String
 ) : DesktopWidget[Event] =
   gui4s.core.widget.library.textfield.textField(
     statefulWidget,
     body,
     Update.currentPath,
     copyTextToClipboard
-  )(name, text, onChange)
+  )(name, text)
 end textField
 
 def basicTextFieldBody[

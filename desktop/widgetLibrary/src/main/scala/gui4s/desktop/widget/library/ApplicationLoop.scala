@@ -4,7 +4,6 @@ import scala.concurrent.ExecutionContext
 
 import cats.*
 import cats.effect.*
-import cats.effect.kernel.Concurrent
 import cats.syntax.all.*
 
 import gui4s.core.loop.*
@@ -14,9 +13,9 @@ import gui4s.core.widget.library.processEvent
 
 def widgetLoops[
   IO[_] : Async,
-  CallbackIO[_] : Concurrent,
+  CallbackIO[_],
   Update[_] : Monad,
-  Place[_] : Functor,
+  Place[_],
   Draw,
   RecompositionReaction,
   DownEvent,

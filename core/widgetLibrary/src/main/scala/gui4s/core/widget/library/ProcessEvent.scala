@@ -88,7 +88,7 @@ def processEvent[
         ).traverse_(runRecomposition)
       yield newPlacedWidget
     case None =>
-      runPlacement(
+      runPlacement(//TODO make it run placement if and only if the placement context has changed
         widgetAsFree(placedWidget)
       )
 end processEvent

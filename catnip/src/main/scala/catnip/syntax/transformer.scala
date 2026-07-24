@@ -118,7 +118,7 @@ object transformer:
   end composedMonadTransformerInstance
 
   given composedMonadTransControl[
-    MT1[_[_], _]: MonadTransformer,
+    MT1[_[_], _],
     MT2[_[_], _]: MonadTransformer,
     Inner1[_],
     Inner2[_]

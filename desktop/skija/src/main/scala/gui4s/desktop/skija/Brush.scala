@@ -19,7 +19,7 @@ object Brush:
   def shader(
     shader : Shader
   ) : Brush =
-    (size, paint, alpha) =>
+    (_, paint, _) =>
       paint.copy(shader = Some(shader))
   end shader
 

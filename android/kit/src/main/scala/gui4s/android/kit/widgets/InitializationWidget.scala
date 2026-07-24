@@ -1,14 +1,6 @@
 package gui4s.android.kit.widgets
 
-import cats.*
-import cats.effect.Resource
-import gui4s.core.widget.library.WithContext
-
-import scala.reflect.Typeable
-
-
 import cats.effect.IO
-import cats.*
 import cats.effect.Resource
 import gui4s.core.widget.library.WithContext
 

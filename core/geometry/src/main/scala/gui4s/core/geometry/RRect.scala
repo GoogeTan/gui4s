@@ -42,7 +42,7 @@ object RRect:
     )
   end rect
 
-  def roundedRect[MeasurementUnit : Numeric](rect: Rect[MeasurementUnit], radius : MeasurementUnit) : RRect[MeasurementUnit] =
+  def roundedRect[MeasurementUnit](rect: Rect[MeasurementUnit], radius : MeasurementUnit) : RRect[MeasurementUnit] =
     RRect(
       rect,
       CornerRounding.withRadius(radius),

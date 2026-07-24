@@ -7,7 +7,7 @@ import cats.syntax.all.*
 
 def placementDecorator[
   Update[_] : Functor,
-  OldPlace[_] : Functor,
+  OldPlace[_],
   NewPlace[_] : Functor,
   Draw,
   RecompositionReaction

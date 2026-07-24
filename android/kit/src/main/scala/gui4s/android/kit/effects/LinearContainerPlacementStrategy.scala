@@ -1,11 +1,5 @@
 package gui4s.android.kit.effects
 
-import gui4s.core.geometry.InfinityOr
-import gui4s.core.kit.ContainerPlacementError
-import gui4s.core.layout.{OneElementPlacementStrategy as GenericOneElementPlacementStrategy, PlacementStrategy as GenericPlacementStrategy}
-import gui4s.android.kit.effects.PlacementEffect.given
-
-import cats.effect.IO
 import cats.*
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.kit.ContainerPlacementError

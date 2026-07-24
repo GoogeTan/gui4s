@@ -3,7 +3,7 @@ package state
 
 def statefulHasInnerStates[
   PlacedWidget,
-  State : Equiv as EQ,
+  State,
   Draw,
   EventHandler,
   RecompositionReaction

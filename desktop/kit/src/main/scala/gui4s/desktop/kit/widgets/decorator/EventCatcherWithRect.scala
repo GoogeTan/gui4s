@@ -21,6 +21,5 @@ def eventCatcher[Event]: EventCatcherWithRect[
   Situated
 ](
   updateDecorator[Event],
-  widgetAsFree[UpdateC[Event], Place, Draw, RecompositionReaction],
   widgetHandlesEvent[UpdateC[Event], Place, Draw, RecompositionReaction]
 )

@@ -1,17 +1,13 @@
 package gui4s.desktop.kit.widgets.decorator
 
-import catnip.syntax.all.given
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
 
-import gui4s.core.geometry.InfinityOr
-import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Point3d
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Measured
 import gui4s.core.layout.OneElementPlacementStrategy
-import gui4s.core.layout.PlacementStrategy
 import gui4s.core.layout.Sized
 import gui4s.core.widget.library.decorator.Decorator
 
@@ -36,7 +32,7 @@ def minSizeWidget[Event](
   ](
     oneElementContainerWidget,
     PlacementEffect.getBounds,
-    (childSize, bounds) =>
+    (childSize, _) =>//TODO why are bounds unused?? seems a bit old
       for
         horizontally <- if childSize.width < minSize.width then
           placeHorizontallyIfSmaller(childSize.width, minSize.width).map {
@@ -54,5 +50,5 @@ def minSizeWidget[Event](
         Sized(Point3d(horizontally.value, vertically.value, 0f), Rect(horizontally.size, vertically.size)),
     makeMeta = (sizedWidget, bounds, point) => Measured((sizedWidget.value, point), sizedWidget.size, bounds),
     itemSize = _.size
-  )(minSize.map(new InfinityOr(_)))
+  )
 end minSizeWidget

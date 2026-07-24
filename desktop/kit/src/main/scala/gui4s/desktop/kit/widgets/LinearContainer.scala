@@ -13,7 +13,6 @@ import gui4s.core.widget.library.LinearContainer
 import gui4s.core.widget.library.linearContainer as genericLinearContainer
 
 import gui4s.desktop.kit.effects.*
-import gui4s.desktop.widget.library.widgetAsFree
 
 
 def linearContainerWidget[
@@ -30,8 +29,7 @@ def linearContainerWidget[
     container = containerWidget[Collection, Event],
     getBounds = PlacementEffect.getBounds,
     withBounds = (newBounds, effect) => PlacementEffect.withBounds(effect, _ => newBounds),
-    cut = _.minus(_),
-    widgetAsFree = widgetAsFree
+    cut = _.minus(_)
   )
 end linearContainerWidget
 

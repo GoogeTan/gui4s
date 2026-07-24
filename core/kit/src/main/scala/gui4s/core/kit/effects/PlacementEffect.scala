@@ -36,13 +36,13 @@ object PlacementEffect:
     ReaderTransformer.ask_
   end getContext
   
-  def withContext[IO[_] : Monad, C1, C2, T](original : PlacementEffect[IO, C2, T], f : C1 => C2) : PlacementEffect[IO, C1, T] =
+  def withContext[IO[_], C1, C2, T](original : PlacementEffect[IO, C2, T], f : C1 => C2) : PlacementEffect[IO, C1, T] =
     ReaderTransformer.withValue_(original, f)
   end withContext
 
-  def withContextK[IO[_] : Monad, C1, C2](
-                                           f: C1 => C2
-                                         ): PlacementEffect[IO, C2, *] ~> PlacementEffect[IO, C1, *] =
+  def withContextK[IO[_], C1, C2](
+                                   f: C1 => C2
+                                 ): PlacementEffect[IO, C2, *] ~> PlacementEffect[IO, C1, *] =
     ReaderTransformer.withValueK_(f)
   end withContextK
 

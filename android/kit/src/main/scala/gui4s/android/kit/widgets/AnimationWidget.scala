@@ -1,28 +1,14 @@
 package gui4s.android.kit.widgets
 
-import cats.*
-import cats.data.NonEmptyList
-import cats.effect.*
-import cats.effect.std.{QueueSink, Supervisor}
-import cats.syntax.all.*
-import gui4s.core.widget.library.animation.*
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.widgets.decorator.eventCatcher
-
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.{Duration, FiniteDuration}
 import cats.effect.IO
 import cats.*
 import cats.data.NonEmptyList
 import cats.effect.*
-import cats.effect.std.{QueueSink, Supervisor}
-import cats.syntax.all.*
 import gui4s.core.widget.library.animation.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.eventCatcher
 
-import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 def loopEach(

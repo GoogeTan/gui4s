@@ -125,7 +125,7 @@ object MeasurementStrategy:
     Collection[_] : {Traverse, Foldable},
     Widget,
     BoundUnit,
-    MeasurementUnit: Numeric as MUN
+    MeasurementUnit
   ](
     getBounds: Place[Rect[BoundUnit]],
     withBounds: (Rect[BoundUnit], Place[Widget]) => Place[Widget],

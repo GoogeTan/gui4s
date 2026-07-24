@@ -10,7 +10,6 @@ import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 def downloadImage(uri: String): IO[Image] =
   given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
-  given logger: SelfAwareStructuredLogger[IO] = logging.getLogger
   EmberClientBuilder
     .default[IO]
     .build

@@ -1,20 +1,8 @@
 package gui4s.android.kit
 package widgets
 
-import cats.*
-import cats.effect.*
-import cats.syntax.all.*
-import gui4s.core.layout.Sized
-import gui4s.core.widget.Path
-import gui4s.android.kit.effects.Update.given
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.widgets.*
-import gui4s.android.skia.paragraph.*
-import gui4s.core.widget.library.textfield.{TextFieldEvent, TextFieldState}
-import org.jetbrains.skia.paragraph.*
 import cats.effect.IO
 import cats.*
-import cats.effect.*
 import cats.syntax.all.*
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
@@ -33,15 +21,14 @@ def textField[
   copyTextToClipboard : String => Update[Event, Unit],
 )(
   name : String,
-  text : String,
-  onChange : String => Event
+  text : String
 ) : AndroidWidget[Event] =
   gui4s.core.widget.library.textfield.textField(
     statefulWidget,
     body,
     Update.currentPath,
     copyTextToClipboard
-  )(name, text, onChange)
+  )(name, text)
 end textField
 
 def basicTextFieldBody[

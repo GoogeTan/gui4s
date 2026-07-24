@@ -14,8 +14,7 @@ import gui4s.core.widget.library.decorator.Decorator
  * Виджет, позволяющий установить минимальные размеры для виджета.
  * @param containerWidget Обобщенный виджет контейнера
  * @param ensureMinimalSize Функция, гарантирующая минимальный размер. Она принимает измеренный виджет,
- *                          доступные границы и возвращает его с иформцией о том, как он расположе.
- * @param minSize Минимальные размеры виджета
+ *                          доступные границы и возвращает его с информацией о том, как он расположен.
  * @tparam PlacedWidget Размещенный виджет
  * @tparam OuterPlace Эффект установки виджета
  * @tparam InnerPlace Результат установки виджета. В частности, вероятно, это его размер.
@@ -49,7 +48,7 @@ def minSizeWidget[
   ensureMinimalSize : OneElementPlacementStrategy[PlacementEffect, Size, Size, Bounds, Point],
   makeMeta : (MeasuredWidget, Bounds, Point) => PositionedWidget,
   itemSize : MeasuredWidget => Size
-)(minSize : Bounds) : Decorator[Widget] =
+) : Decorator[Widget] =
   containerWidget(
     _,
     ContainerStrategy.combine(

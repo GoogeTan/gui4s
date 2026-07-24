@@ -2,7 +2,6 @@ package gui4s.desktop.kit.widgets.decorator
 
 import catnip.syntax.all.{*, given}
 import cats.*
-import cats.effect.*
 
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.geometry.Point2d
@@ -12,9 +11,7 @@ import gui4s.core.layout.PlacementStrategy
 import gui4s.core.widget.library.decorator.Decorator
 
 import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Draw.given
 import gui4s.desktop.kit.effects.PlacementEffect.given
-import gui4s.desktop.kit.effects.RecompositionReaction.given
 import gui4s.desktop.kit.widgets.*
 
 def layersWidget[Event](

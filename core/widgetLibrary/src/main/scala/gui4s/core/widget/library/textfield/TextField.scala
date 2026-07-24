@@ -18,8 +18,7 @@ def textField[
   copyTextToClipboard : String => Update[Event, Unit],
 )(
    name : String,
-   text : String,
-   onChange : String => Event
+   text : String
  ) : Widget[Event] =
   given Monad[Update[Event, *]] = UBM()
   stateful[TextFieldState, Event, TextFieldEvent](

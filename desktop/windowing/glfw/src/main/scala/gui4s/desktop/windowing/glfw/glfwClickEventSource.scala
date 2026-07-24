@@ -27,7 +27,7 @@ def clickEventSource[
 ) : IO[ClickEventSource] =
   glfw.addMouseButtonCallback(
     window,
-    (window, button, action, mods) =>
+    (window, _, action, _) =>//TODO capture mods in the event itself
       if action === KeyAction.Press then
         for
           monitor <- glfw.getPrimaryMonitor

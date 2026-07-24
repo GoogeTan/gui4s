@@ -2,8 +2,6 @@ package gui4s.android.kit.widgets.decorator
 
 import catnip.syntax.all.{_, given}
 import cats.*
-import cats.effect.*
-
 import gui4s.core.geometry.InfinityOr
 import gui4s.core.geometry.Point2d
 import gui4s.core.geometry.Rect
@@ -11,9 +9,7 @@ import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.layout.PlacementStrategy
 import gui4s.core.widget.library.decorator.Decorator
 
-import gui4s.android.kit.effects.Draw.given
 import gui4s.android.kit.effects.PlacementEffect.given
-import gui4s.android.kit.effects.RecompositionReaction.given
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
 

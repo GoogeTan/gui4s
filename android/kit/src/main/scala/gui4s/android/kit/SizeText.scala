@@ -1,10 +1,5 @@
 package gui4s.android.kit
 
-import catnip.Cache
-import gui4s.core.layout.{Sized, SizedC}
-import gui4s.android.skia.{SkijaPlacedText, SkijaTextStyle, placeText}
-import org.jetbrains.skia.shaper.Shaper
-import cats.effect.IO
 import cats.effect.Sync
 import catnip.Cache
 import gui4s.core.layout.{Sized, SizedC}

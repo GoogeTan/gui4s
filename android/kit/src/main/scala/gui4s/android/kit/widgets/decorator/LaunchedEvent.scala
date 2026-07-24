@@ -1,13 +1,5 @@
 package gui4s.android.kit.widgets.decorator
 
-import cats.*
-import cats.effect.std.Supervisor
-import cats.syntax.all.*
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.widgets.{AndroidPlacedWidget, AndroidWidget}
-import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as genericLaunchedEvent}
-
-import scala.reflect.Typeable
 import cats.effect.IO
 import cats.*
 import cats.effect.std.Supervisor

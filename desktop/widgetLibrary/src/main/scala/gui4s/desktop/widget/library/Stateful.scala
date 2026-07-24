@@ -3,7 +3,6 @@ package gui4s.desktop.widget.library
 import catnip.syntax.all.*
 import cats.Functor
 import cats.Monad
-import cats.Monoid
 import cats.syntax.all.*
 import cats.~>
 
@@ -59,7 +58,7 @@ def stateful[
   ChildUpdate[_] : Functor,
   Place[_] : Functor as PF,
   Draw,
-  RecompositionReaction : Monoid as M,
+  RecompositionReaction,
   State,
   ChildEvent
 ](
@@ -167,8 +166,7 @@ def stateful[
                   )
               )
           ),
-        stateName = _.name,
-        widgetStateAsFree = statefulAsFree
+        stateName = _.name
       ),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
         widgetReactsOnRecomposition[ChildUpdate, Place, Draw, RecompositionReaction]

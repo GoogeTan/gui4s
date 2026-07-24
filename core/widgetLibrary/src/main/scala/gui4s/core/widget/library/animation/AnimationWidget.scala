@@ -78,7 +78,7 @@ def mergeStates[AnimatedValue : {Eq as AVEQ}, Time : {Eq, Group as TG}](
         startValue = oldState.currentState.valueAtMoment(time),
         animation = newState.currentState.animation,
         playingAnimation = newState.currentState match
-          case AnimationWidgetState(newStartValue, newAnimation, None) =>
+          case AnimationWidgetState(newStartValue, _, None) =>
             if oldState.currentState.startValue === newStartValue then
               None
             else
@@ -90,7 +90,7 @@ def mergeStates[AnimatedValue : {Eq as AVEQ}, Time : {Eq, Group as TG}](
                   currentTime = time
                 )
               )
-          case AnimationWidgetState(newStartValue, newAnimation, Some(newAnimationState)) =>
+          case AnimationWidgetState(_, _, Some(newAnimationState)) =>
             Some(
               AnimationState(
                 targetValue = newAnimationState.targetValue,

@@ -27,14 +27,14 @@ trait TransitiveStatefulWidget[Widget[_], -Update[Event, Value], -Destructor[_],
                                                          destructor: Destructor[State],
                                                        ): Widget[TransitiveEvent]
 
-  def apply[State, TransitiveEvent, OwnEvent](
-                                                         name: String,
-                                                         initialState: State,
-                                                         eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
-                                                         body: State => Widget[Either[OwnEvent, TransitiveEvent]],
-                                                         destructor: Destructor[State],
-                                                         mergeStates : MergeStates[State]
-                                                       ): Widget[TransitiveEvent]
+  def apply[State : Typeable, TransitiveEvent, OwnEvent](
+                                                           name: String,
+                                                           initialState: State,
+                                                           eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
+                                                           body: State => Widget[Either[OwnEvent, TransitiveEvent]],
+                                                           destructor: Destructor[State],
+                                                           mergeStates : MergeStates[State]
+                                                         ): Widget[TransitiveEvent]
 end TransitiveStatefulWidget
 
 final class TransitiveStatefulWidgetFromStatefulWidget[
@@ -91,7 +91,7 @@ final class TransitiveStatefulWidgetFromStatefulWidget[
   end apply  
 
   override def apply[
-    State,
+    State : Typeable,
     TransitiveEvent,
     OwnEvent
   ](

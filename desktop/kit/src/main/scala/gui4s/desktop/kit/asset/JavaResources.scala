@@ -5,7 +5,6 @@ import java.io.InputStream
 import catnip.resource.*
 import catnip.resource.WrapStrategy.Blocking
 import catnip.syntax.resource.given
-import cats.Monad
 import cats.data.*
 import cats.effect.Sync
 
@@ -33,7 +32,7 @@ end javaResourcesInputStreamT
 
 def javaResourcesFileBytesT[
   IO[_] : Sync,
-  Resource[_] : {SyncResource, Monad, UseC[IO]}
+  Resource[_] : {SyncResource, UseC[IO]}
 ](fileName: String): OptionT[IO, Array[Byte]] =
   javaResourcesInputStreamT[Resource](fileName)
     .use(readStreamBytes[OptionT[IO, *]])
@@ -41,7 +40,7 @@ end javaResourcesFileBytesT
 
 def javaResourcesFileBytes[
   IO[_] : Sync,
-  Resource[_] : {SyncResource, Monad, UseC[IO]}
+  Resource[_] : {SyncResource, UseC[IO]}
 ](fileName: String): IO[Option[Array[Byte]]] =
   javaResourcesFileBytesT(fileName).value
 end javaResourcesFileBytes

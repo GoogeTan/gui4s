@@ -38,8 +38,8 @@ def clipWidget[
     PlacementEffect * Situated,
     Draw,
     RecompositionReaction
-  ]((test : PlacementEffect[Situated[WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction]]]) =>
-    test.sigmaProduct(shapeFabric).flatMap((placement, shape) =>
+  ]((freeWidget : PlacementEffect[Situated[WidgetWithSituated[Update, PlacementEffect, Situated, Draw, RecompositionReaction]]]) =>
+    freeWidget.sigmaProduct(shapeFabric).flatMap((placement, shape) =>
       drawDecorator[
         Update,
         PlacementEffect,

@@ -53,7 +53,7 @@ def weightedLinearContainer[
           // А рисуются вначале виджеты, лежащие ниже.
           given Order[WidgetWithMeta] = Order.by(_.value._3.z)
           foldOrdered[Draw, List](children) {
-            case Measured((widget, weight, point), _, _) =>
+            case Measured((widget, _, point), _, _) =>
               drawAt(widgetIsDrawable(widget), point.x, point.y)
           },
         positionedChildHandlesEvent = {
@@ -66,7 +66,7 @@ def weightedLinearContainer[
               )
         },
         positionedMergesWithOldStates = {
-          case (Measured((widget, weight, position), _, _), states) =>
+          case (Measured((widget, weight, _), _, _), states) =>
             widgetMergesWithOldState(widget, states)
               .map(
                   Weighted(_, weight)

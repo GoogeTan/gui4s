@@ -1,15 +1,7 @@
 package gui4s.android.kit.widgets
 
-import cats.*
-import cats.effect.*
-import gui4s.core.geometry.*
-import gui4s.core.layout.PlacementStrategy as GenericPlacementStrategy
-import gui4s.android.kit.effects.*
-import gui4s.android.kit.widgets.AndroidWidget
-
 import cats.effect.IO
 import cats.*
-import cats.effect.*
 import gui4s.core.geometry.*
 import gui4s.core.layout.PlacementStrategy as GenericPlacementStrategy
 import gui4s.android.kit.effects.*
@@ -28,9 +20,7 @@ def stackContainer[Event](
     Bounds,
     Float,
   ](
-    getBounds = PlacementEffect.getBounds,
-    container = listContainerWidget[Event],
-    widgetAsFree = gui4s.desktop.widget.library.widgetAsFree,
+    container = listContainerWidget[Event]
   )(
     children,
     GenericPlacementStrategy.Stack(

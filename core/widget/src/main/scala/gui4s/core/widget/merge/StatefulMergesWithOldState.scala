@@ -1,8 +1,6 @@
 package gui4s.core.widget
 package merge
 
-import gui4s.core.widget.free.AsFreeF
-
 //TODO дать более общее имя, соответсвующее сути дела
 //TODO На самом деле, тут можно обобщить. Option * Place везде встречаются вместе неразрывно.
 def statefulMergesWithOldStates[
@@ -14,7 +12,6 @@ def statefulMergesWithOldStates[
    typeCheckState: [T] => (Any, SavedState => Option[Place[T]]) =>  Option[Place[T]],
    mergeStates : (SavedState, WidgetState) => Option[Place[WidgetState]],
    stateName : WidgetState => String,
-   widgetStateAsFree : AsFreeF[WidgetState, Place]
 ) : MergesWithOldStates[
   WidgetState,
   RecompositionReaction,

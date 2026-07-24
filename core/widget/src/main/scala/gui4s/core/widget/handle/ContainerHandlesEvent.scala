@@ -5,15 +5,14 @@ import catnip.Zip
 import catnip.Zip.zip
 import catnip.syntax.all.*
 import cats.Foldable
-import cats.Functor
 import cats.Monad
 import cats.Traverse
 import cats.syntax.all.*
 
 def containerHandlesEvent[
   Update[_] : Monad,
-  Place[_] : Functor,
-  Collection[_] : {Foldable, Functor, Zip},
+  Place[_],
+  Collection[_] : {Foldable, Zip},
   FreeWidget,
   PositionedWidget
 ](
@@ -40,7 +39,7 @@ type TraverseChildrenOrdered[Update[_], Collection[_], FreeChild, PositionedWidg
       => Update[Collection[Option[FreeChild]]]
 
 def childrenHandleEvent[
-  Collection[_] : {Traverse, Zip as Z},
+  Collection[_] : Traverse,
   Update[_] : Monad as UM,
   FreeWidget,
   PositionedWidget,

@@ -1,11 +1,6 @@
 package gui4s.android.kit.widgets
 
-import gui4s.core.widget.library.MapEvent
-import gui4s.android.kit.effects.*
-import gui4s.desktop.widget.library.decorator.mapUpdate as genericMapUpdate
-
 import cats.effect.IO
-import cats.Monad
 import gui4s.core.widget.library.MapEvent
 import gui4s.android.kit.effects.*
 import gui4s.desktop.widget.library.decorator.mapUpdate as genericMapUpdate

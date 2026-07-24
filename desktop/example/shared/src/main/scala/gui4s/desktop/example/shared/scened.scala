@@ -125,14 +125,13 @@ def scenes[ScrollEvent](
 ) : Init[NonEmptyList[DesktopWidget[Nothing]]] =
   for
     initializationWidget = InitializationWidget(resourceWidget)
-    text <- TextWidget()
     typeface <- Init.evalResource(defaultTypeface[IO])
     scroll = scrollWidget(summon, animationWidget)
   yield NonEmptyList.of(
-    animationExample(initializationWidget, text, typeface)(using scroll),
-    imageExample(text, typeface, initializationWidget),
-    gridExample(text, typeface),
-    statefulExample(text, typeface)
+    animationExample(initializationWidget, textWidget, typeface)(using scroll),
+    imageExample(textWidget, typeface, initializationWidget),
+    gridExample(textWidget, typeface),
+    statefulExample(textWidget, typeface)
   )
 end scenes
 

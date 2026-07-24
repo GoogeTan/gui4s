@@ -8,7 +8,7 @@ import cats.syntax.all.*
 type WriterTransformer[L] = [IO[_], T] =>> WriterT[IO, L, T]
 
 object WriterTransformer:
-  def tell_[IO[_] : Monad, L : Monoid](value : L) : WriterTransformer[L][IO, Unit] =
+  def tell_[IO[_] : Monad, L](value : L) : WriterTransformer[L][IO, Unit] =
     WriterT.tell(value)
   end tell_
 
@@ -53,7 +53,7 @@ object WriterTransformer:
     Value
   ](
     original : (F <> WriterTransformer[OldL])[IO, Value]
-  )(using FIT : InnerTransform[F, Inner], fi : Functor[Inner]) : (F <> WriterTransformer[NewL])[IO, Value] =
+  )(using FIT : InnerTransform[F, Inner]) : (F <> WriterTransformer[NewL])[IO, Value] =
     FIT.innerTransform(
       original,
       (writerOriginal : WriterT[IO, OldL, Inner[Value]]) =>

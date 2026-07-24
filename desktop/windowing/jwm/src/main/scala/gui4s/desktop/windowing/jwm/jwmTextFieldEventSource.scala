@@ -96,7 +96,6 @@ end textFieldEventSource
 
 @SuppressWarnings(Array("org.wartremover.warts.Equals"))
 def textFieldEventCatcher(
-  window: Window,
   minimalClickableAreaSize: Rect[Float],
   requestFocus: Path => Update[TextFieldEvent, Unit]
 )(

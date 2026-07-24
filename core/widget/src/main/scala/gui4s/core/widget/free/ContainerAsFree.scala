@@ -1,9 +1,7 @@
 package gui4s.core.widget
 package free
 
-import cats.Functor
-
-def containerAsFree[Place[_] : Functor, Collection[_] : Functor, PositionedWidget](
+def containerAsFree[Place[_], Collection[_], PositionedWidget](
   placeIncrementally: Collection[PositionedWidget] => Place[Collection[PositionedWidget]],
 ) : AsFreeF[
   Collection[PositionedWidget],

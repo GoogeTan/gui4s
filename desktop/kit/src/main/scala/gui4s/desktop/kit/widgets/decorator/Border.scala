@@ -20,6 +20,8 @@ extension[Event](widget : DesktopWidget[Event])
     widget.withDrawOnlyBackground(
       PlacementEffect.getBounds.map:
         bounds =>
+          //TODO поправить то, что почему-то оно устанавливается каждый кадр
+          //println(s"Border measured ${bounds}")
           val finiteBounds = bounds.map(_.getUnsafe)
           Sized(
             Draw.drawBorder(shape(finiteBounds).value, finiteBounds, brush, style),

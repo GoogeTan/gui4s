@@ -2,7 +2,6 @@ package gui4s.desktop.example.shared
 
 import cats.Id
 import gui4s.core.geometry.Rect
-import gui4s.core.kit.ContainerPlacementError
 import gui4s.core.layout.Sized
 import gui4s.core.widget.library.textfield.TextFieldEvent
 import gui4s.desktop.kit.effects.{LinearContainerPlacementStrategy, Update}
@@ -25,8 +24,7 @@ def textField[Event](
   minimalClickableAreaSize: Rect[Float]
 )(
   name: String,
-  text: String,
-  update: String => Event
+  text: String
 ): DesktopWidget[Event] =
   widgets.textField[Event](
     basicTextFieldBody(
@@ -55,5 +53,5 @@ def textField[Event](
         ),
     ),
     clipboardSet
-  )(name, text, update)
+  )(name, text)
 end textField

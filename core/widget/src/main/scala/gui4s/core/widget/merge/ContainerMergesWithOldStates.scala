@@ -8,7 +8,7 @@ import cats.Functor
 import cats.syntax.all.*
 
 def containerMergesWithOldStates[
-  Place[_] : Functor,
+  Place[_],
   Collection[_] : {Functor, Foldable, Zip},
   FreeWidget,
   PositionedWidget,

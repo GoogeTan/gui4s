@@ -16,7 +16,7 @@ import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.widgets.decorator.LaunchedEvent
 
 trait ResourceWidget:
-  def apply[T, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
+  def apply[T : Typeable, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
 end ResourceWidget
 
 object ResourceWidget:
@@ -25,7 +25,7 @@ object ResourceWidget:
              raiseExternalEvent : DownEvent => IO[Unit],
            ) : ResourceWidget =
     new ResourceWidget:
-      override def apply[T, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
+      override def apply[T : Typeable, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
         body => genericResourceWidget[
           DesktopWidget,
           Update,

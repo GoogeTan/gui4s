@@ -3,7 +3,6 @@ package gui4s.core.widget.library
 import scala.reflect.Typeable
 
 import catnip.BiMonad
-import cats.Functor
 
 import gui4s.core.widget.library.TransitiveStatefulWidget
 import gui4s.core.widget.library.WithContext
@@ -45,7 +44,7 @@ def destructibleResourceWidget[
   Update[_, _] : BiMonad as updateBiMonad,
   Place[_],
   Destruction : Typeable,
-  IO[_] : Functor,
+  IO[_],
   Event,
 ](
   transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, [State] =>> State => Destruction, Nothing],
@@ -94,7 +93,7 @@ def initializeResourceWidget[
   Widget[_],
   Update[_, _] : BiMonad as updateBiMonad,
   Place[_],
-  IO[_] : Functor,
+  IO[_],
   Event,
 ](
   transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],

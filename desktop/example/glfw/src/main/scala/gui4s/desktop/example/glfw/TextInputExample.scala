@@ -47,10 +47,6 @@ object TextInputExample extends UIApp:
     val paragraphStyle = new ParagraphStyle().setTextStyle(textStyle)
     val cursorPaint = new Paint().setColor(0xFF000000).setStrokeWidth(3f)
     val stateful = statefulWidget
-    val beginMany: LinearContainerPlacementStrategy[List] =
-      LinearContainerPlacementStrategy.Begin[List](5f)
-    val begin : OneElementLinearContainerPlacementStrategy =
-      LinearContainerPlacementStrategy.Begin[Id](0f)
     for
       _ <- Init.eval(textFieldEventSource(glfw, window, eventBus))//TODO move into the widget
       textFieldWidget = textField[String](
@@ -67,7 +63,7 @@ object TextInputExample extends UIApp:
         selectedTextStyle,
         cursorPaint,
         Rect(100, 30)
-      )(_ : String, _ : String, identity)
+      )(_ : String, _ : String)
     yield
         columnWidget[Nothing](
           (0 until 2).toList.map(i =>
@@ -103,8 +99,7 @@ object TextInputExample extends UIApp:
     minimalClickableAreaSize: Rect[Float]
   )(
     name: String,
-    text: String,
-    update: String => Event
+    text: String
   ): DesktopWidget[Event] =
     gui4s.desktop.example.shared.textField(
       systemEventCatcher = textFieldEventCatcher(glfw, window, minimalClickableAreaSize, requestFocus),
@@ -121,8 +116,7 @@ object TextInputExample extends UIApp:
       minimalClickableAreaSize
     )(
       name,
-      text,
-      update
+      text
     )
   end textField
 end TextInputExample

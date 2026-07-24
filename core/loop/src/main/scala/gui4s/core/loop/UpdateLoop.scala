@@ -25,7 +25,7 @@ def runUpdateLoopOnExecutionContext[
 end runUpdateLoopOnExecutionContext
 
 def updateLoop[
-  F[_] : {Monad, Clock as C},
+  F[_] : Monad,
   PlacedWidget,
   DownEvent,
   ExitCode
@@ -38,9 +38,9 @@ def updateLoop[
   nextEvent: F[DownEvent],
   ) => Monad[F].tailRecM(initial)(currentWidget =>
     for
-      time <- C.realTime
+      //time <- C.realTime
       res <- updateStep(currentWidget, nextEvent, processEvent).flatTap(doIfRight(pushNew)).map(_.swap)
-      newTime <- C.realTime
+      //newTime <- C.realTime
       //TODO profile further _ = println((newTime - time).toMillis)
     yield res
   )

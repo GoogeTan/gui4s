@@ -17,10 +17,10 @@ import gui4s.desktop.widget.library.decorator.WidgetWithSituated
 
 //TODO document me
 def layersWidget[
-  Update[_] : Monad,
+  Update[_],
   PlacementEffect[_] : Monad as OPA,
-  Draw : Monoid,
-  RecompositionReaction : Monoid,
+  Draw,
+  RecompositionReaction,
   MeasurementUnit : Numeric,
   BoundUnit,
 ](

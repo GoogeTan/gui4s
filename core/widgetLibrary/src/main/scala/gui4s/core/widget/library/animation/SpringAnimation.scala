@@ -15,7 +15,6 @@ class SpringAnimation[A](
   private val gamma = dampingRatio * naturalFreq
   private val discr = gamma * gamma - naturalFreq * naturalFreq
   private val isUnderDamped = dampingRatio < 1.0
-  private val isOverDamped = dampingRatio > 1.0
   private val omega = if (isUnderDamped) sqrt(naturalFreq * naturalFreq - gamma * gamma) else 0.0
 
   def valueAtGivenMoment(playTime: Duration, initialValue: A, targetValue: A, initialVelocity: A): A = {
