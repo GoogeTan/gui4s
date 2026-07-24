@@ -56,3 +56,5 @@ build/
 project/**/metals.sbt
 ./failed_revisions.txt
 .direnv
+/.direnv
+./.direnv
