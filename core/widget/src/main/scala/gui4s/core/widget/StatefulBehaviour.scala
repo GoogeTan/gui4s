@@ -1,54 +1,29 @@
 package gui4s.core.widget
 
-import scala.reflect.Typeable
-
 import cats.syntax.all.*
-
-final case class StatefulState[State](initialState : State, currentState : State):
-  override def toString: String =
-    "StatefulState(initialState = " + initialState + ", currentState = " + currentState + ")"
-  end toString
-  
-  def withNewState(state : State) : StatefulState[State] =
-    copy(currentState = state)
-  end withNewState
-end StatefulState
-
-object StatefulState:
-  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
-  given[State : Typeable] : Typeable[StatefulState[State]] = (a : Any) => a match
-    case StatefulState(_: State, _: State) =>
-      a.asInstanceOf[a.type & StatefulState[State]].some
-    case _ =>
-      None
-  end given
-end StatefulState
 
 final case class StatefulBehaviour[
   State,
   Draw,
   EventHandler
 ](
-    name : String,
-    state: StatefulState[State],
-    draw : Draw,
-    handleEvents : EventHandler,
+  name : String,
+  state: StatefulState[State],
+  draw : Draw,
+  handleEvents : EventHandler,
 ):
   def withNewState(state: State) : StatefulBehaviour[State, Draw, EventHandler] =
     copy(state = this.state.withNewState(state))
   end withNewState
-  
+
   override def toString: String =
     "StatefulState(name = \"" + name + "\", state={" + state.toString + "})"
   end toString
 end StatefulBehaviour
 
-given[State : Equiv as sEq] : Equiv[StatefulState[State]] =
-  (a, b) =>
-    sEq.equiv(a.initialState, b.initialState) && sEq.equiv(a.currentState, b.currentState)
-end given
-
-given[State : Equiv as sEq, Draw, EventHandler] : Equiv[StatefulBehaviour[State, Draw, EventHandler]] =
-  (a, b) =>
-    a.name === b.name && Equiv[StatefulState[State]].equiv(a.state, b.state)
-end given
+object StatefulBehaviour:
+  given[State : Equiv as sEq, Draw, EventHandler] : Equiv[StatefulBehaviour[State, Draw, EventHandler]] =
+    (a, b) =>
+      a.name === b.name && Equiv[StatefulState[State]].equiv(a.state, b.state)
+  end given
+end StatefulBehaviour
