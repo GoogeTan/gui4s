@@ -175,3 +175,11 @@ def stateful[
     )
   )
 end stateful
+
+def defaultMergeStates[Place[_], State : Equiv as EQ] : MergeStates[Place, State] =
+  [T] => (oldState, newState, consumer) =>
+    if EQ.equiv(oldState.initialState, newState.initialState) then
+      Some(consumer(oldState)) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
+    else
+      None
+end defaultMergeStates

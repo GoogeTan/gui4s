@@ -41,11 +41,16 @@ def scenedExample[ScrollEvent](
     ):
       case Some(baseDecorations, loadedScenes) =>
         baseDecorations(
-          statefulWidget[Int, Nothing, Int](
+          simpleStatefulWidget[Int, Nothing, Int](
             name = "currentScene",
             initialState = 0,
             eventHandler = (state : Int, events : List[Int]) =>
-              ((state + events.sum + loadedScenes.length) % loadedScenes.length).pure[UpdateC[Nothing]],
+              if events.isEmpty then
+                None.pure[UpdateC[Nothing]]
+              else
+                (events.sum + state + loadedScenes.length)
+                  .some
+                  .pure[UpdateC[Nothing]],
             body = state =>
               sceneController(
                 loadedScenes.toList(state).mapEvent(identity),

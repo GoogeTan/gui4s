@@ -12,7 +12,6 @@ import gui4s.core.widget.library.textfield.TextFieldEvent
 import gui4s.core.widget.library.textfield.TextFieldState
 
 import gui4s.desktop.kit.effects.*
-import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.widgets.*
 import gui4s.desktop.skija.paragraph.*
 
@@ -26,7 +25,13 @@ def textField[
   text : String
 ) : DesktopWidget[Event] =
   gui4s.core.widget.library.textfield.textField(
-    statefulWidget,
+    (name : String, initialState : TextFieldState, eventHandler : (TextFieldState, List[TextFieldEvent]) => Update[Event, TextFieldState], body : TextFieldState => DesktopWidget[TextFieldEvent]) =>
+      simpleStatefulWidget(
+        name,
+        initialState,
+        (state : TextFieldState, events : List[TextFieldEvent]) => eventHandler(state, events).map(Some(_)),
+        body
+      ),
     body,
     Update.currentPath,
     copyTextToClipboard
@@ -36,9 +41,9 @@ end textField
 def basicTextFieldBody[
   Event
 ](
-    placeText : TextFieldState => Place[Paragraph],
-    systemEventCatcher : Sized[Rect[Float], Paragraph] => DesktopWidget[Event] => DesktopWidget[Event],
-    drawText : (Path, TextFieldState, Sized[Rect[Float], Paragraph]) => DesktopWidget[Event]
+  placeText : TextFieldState => Place[Paragraph],
+  systemEventCatcher : Sized[Rect[Float], Paragraph] => DesktopWidget[Event] => DesktopWidget[Event],
+  drawText : (Path, TextFieldState, Sized[Rect[Float], Paragraph]) => DesktopWidget[Event]
 ) : TextFieldState => DesktopWidget[Event] =
   state =>
     gui4s.core.widget.library.textfield.basicTextFieldBody[
@@ -61,7 +66,7 @@ def textFieldTextPlacement[
   textStyle : TextStyle,
   selectionStyle : TextStyle
 )(
-    state : TextFieldState
+  state : TextFieldState
 ) : Place[Paragraph] =
   PlacementEffect.liftFunction(
     bounds =>

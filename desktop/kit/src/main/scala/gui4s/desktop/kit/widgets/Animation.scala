@@ -23,7 +23,6 @@ end loopEach
 def animationWidget[
   AnimatedValue : Eq
 ] : AnimationWidget[DesktopWidget, AnimatedValue, Duration] =
-  val stateful = transitiveStatefulWidget
   gui4s.core.widget.library.animation.animationWidget[
     DesktopWidget,
     Duration,
@@ -40,7 +39,7 @@ def animationWidget[
         body,
         mergeStates
       ) =>
-        stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
+        transitiveStatefulWidget[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
           name,
           initialState,
           (state, events) => handleEvents(state, events).map(Some(_)),

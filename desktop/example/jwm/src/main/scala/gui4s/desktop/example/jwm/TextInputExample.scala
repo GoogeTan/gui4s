@@ -38,7 +38,6 @@ object TextInputExample extends UIApp:
       .setFontSize(32)
     val paragraphStyle = new ParagraphStyle().setTextStyle(textStyle)
     val cursorPaint = new Paint().setColor(0xFF000000).setStrokeWidth(3f)
-    val stateful = statefulWidget
     for
       _ <- Init.eval(textFieldEventSource(window, eventBus))
       textFieldWidget = textField[String](
@@ -57,11 +56,11 @@ object TextInputExample extends UIApp:
     yield
       columnWidget[Nothing](
         (0 until 2).toList.map(i =>
-          stateful[String, Nothing, String](
+          simpleStatefulWidget[String, Nothing, String](
             name = "basic-state-" + i.toString,
             initialState = "A",
-            eventHandler = (oldString, newString) =>
-              newString.lastOption.getOrElse(oldString).pure[UpdateC[Nothing]],
+            eventHandler = (_, newString) =>
+              newString.lastOption.pure[UpdateC[Nothing]],
             body =
               state =>
                 textFieldWidget("text-field", state)

@@ -7,9 +7,12 @@ import cats.*
 import cats.effect.*
 import cats.effect.std.QueueSink
 import cats.effect.std.Supervisor
+import cats.syntax.all.*
 
 import gui4s.core.widget.library.WithContext
 import gui4s.core.widget.library.destructibleResourceWidget as genericResourceWidget
+
+import gui4s.desktop.widget.library.defaultMergeStates
 
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Update.given
@@ -34,7 +37,26 @@ object ResourceWidget:
           IO,
           Event
         ](
-          transitiveStatefulWidget = transitiveStatefulWidget,
+          transitiveStatefulWidget = [State] => (
+            name,
+            initialState,
+            eventHandler,
+            body,
+            destructor
+          ) =>
+            transitiveStatefulWidget[
+              Option[(State, RecompositionReaction)],
+              Event,
+              (State, RecompositionReaction)
+            ](
+              name,
+              initialState,
+              (state, events) =>
+                eventHandler(state, events).map(_.some),
+              body,
+              destructor,
+              defaultMergeStates
+            ),
           launchedEvent =
             [TaskEvent : Typeable as TET] => (name : String, child : DesktopWidget[Event], task : IO[TaskEvent]) =>
               LaunchedEvent[Either[TaskEvent, Event], Unit]( // TODO remove direct dependency

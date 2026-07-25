@@ -9,30 +9,50 @@ import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.LaunchedEvent
 import gui4s.core.widget.library.{WithContext, destructibleResourceWidget as genericResourceWidget}
 
+import gui4s.desktop.widget.library.defaultMergeStates
 import scala.reflect.Typeable
 
 trait ResourceWidget:
   def apply[T : Typeable, Event](
-                                  name : String, init : Resource[IO, T]
-                                ) : WithContext[AndroidWidget[Event], Option[T]]
+    name : String, init : Resource[IO, T]
+  ) : WithContext[AndroidWidget[Event], Option[T]]
 end ResourceWidget
 
 object ResourceWidget:
   def apply(
-              supervisor : Supervisor[IO],
-              raiseExternalEvent : DownEvent => IO[Unit],
-             ) : ResourceWidget =
+    supervisor : Supervisor[IO],
+    raiseExternalEvent : DownEvent => IO[Unit],
+  ) : ResourceWidget =
     new ResourceWidget:
       override def apply[T : Typeable, Event](name: String, init: Resource[IO, T]) : WithContext[AndroidWidget[Event], Option[T]] =
         body => genericResourceWidget[
           AndroidWidget,
-          Update[*, *],
+          Update,
           Place,
           RecompositionReaction,
           IO,
           Event
         ](
-          transitiveStatefulWidget = transitiveStatefulWidget,
+          transitiveStatefulWidget = [State: Typeable] => (
+            name,
+            initialState,
+            eventHandler,
+            body,
+            destructor
+          ) =>
+            transitiveStatefulWidget[
+              Option[(State, RecompositionReaction)],
+              Event,
+              (State, RecompositionReaction)
+            ](
+              name,
+              initialState,
+              (state, events) =>
+                eventHandler(state, events).map(_.some),
+              body,
+              destructor,
+              defaultMergeStates
+            ),
           launchedEvent =
             [TaskEvent : Typeable as TET] => (name : String, child : AndroidWidget[Event], task : IO[TaskEvent]) =>
               LaunchedEvent[Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
@@ -54,7 +74,7 @@ object ResourceWidget:
     end new
   end apply
 
-  def apply(eventBus : cats.effect.std.QueueSink[IO, DownEvent]) : Init[ResourceWidget] = 
+  def apply(eventBus : QueueSink[IO, DownEvent]) : Init[ResourceWidget] =
     Init.evalResource(
       Supervisor[IO].map(apply(_, eventBus.offer))
     )

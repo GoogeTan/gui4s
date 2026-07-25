@@ -2,16 +2,68 @@ package gui4s.android.kit.widgets
 
 import gui4s.core.widget.library.*
 import gui4s.android.kit.effects.*
-import gui4s.android.kit.effects.Update.given
+import gui4s.core.widget.handle.HandlesEventF
+import gui4s.desktop.widget.library.defaultMergeStates
+import scala.reflect.Typeable
 
-def transitiveStatefulWidget: TransitiveStatefulWidget[
-  AndroidWidget[*],
-  Update[*, *],
-  * => RecompositionReaction,
-  MergeStates[Place, *]
-] =
-  TransitiveStatefulWidgetFromStatefulWidget(
-    statefulWidget,
-    [Event] => events => Update.emitEvents(events)
+def simpleTransitiveStatefulWidget[
+  State : {Equiv, Typeable},
+  TransitiveEvent,
+  OwnEvent
+](
+  name : String,
+  initialState : State,
+  eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
+  body : State => AndroidWidget[Either[OwnEvent, TransitiveEvent]],
+): AndroidWidget[TransitiveEvent] =
+  transitiveStatefulWidget[
+    State,
+    TransitiveEvent,
+    OwnEvent
+  ](
+    name = name,
+    initialState = initialState,
+    eventHandler = eventHandler,
+    body = body,
+    mergeStates = defaultMergeStates,
+    destructor = _ => RecompositionReaction.empty
+  )
+end simpleTransitiveStatefulWidget
+
+def transitiveStatefulWidget[
+  State : Typeable,
+  TransitiveEvent,
+  OwnEvent
+](
+  name : String,
+  initialState : State,
+  eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
+  body : State => AndroidWidget[Either[OwnEvent, TransitiveEvent]],
+  destructor : State => RecompositionReaction,
+  mergeStates: MergeStates[Place, State],
+): AndroidWidget[TransitiveEvent] =
+  gui4s.core.widget.library.transitiveStatefulWidget[
+    AndroidWidget,
+    Update[TransitiveEvent, *],
+    PlacementEffect,
+    State,
+    OwnEvent,
+    TransitiveEvent
+  ](
+    handler =>
+      statefulWidget[
+        State,
+        TransitiveEvent,
+        Either[OwnEvent, TransitiveEvent]
+      ](
+        name,
+        initialState,
+        handler,
+        body,
+        destructor,
+        mergeStates
+      ),
+    Update.emitEvents,
+    eventHandler
   )
 end transitiveStatefulWidget

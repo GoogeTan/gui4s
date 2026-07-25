@@ -1,10 +1,8 @@
 package gui4s.core.widget.library
 
 import scala.reflect.Typeable
-
 import catnip.BiMonad
-
-import gui4s.core.widget.library.TransitiveStatefulWidget
+import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.WithContext
 
 /**
@@ -47,18 +45,20 @@ def destructibleResourceWidget[
   IO[_],
   Event,
 ](
-  transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, [State] =>> State => Destruction, Nothing],
+  transitiveStatefulWidget: [State : Typeable] => (
+    name : String,
+    initialState : Option[(State, Destruction)],
+    eventHandler : HandlesEventF[Option[(State, Destruction)], List[(State, Destruction)], Update[Event, *]],
+    body : Option[(State, Destruction)] => Widget[Either[(State, Destruction), Event]],
+    destructor : Option[(State, Destruction)] => Destruction
+  ) => Widget[Event],
   launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
   doubleAllocError : [T] => () => Update[Event, T],
   emptyDesctructor : Destruction
 ) : ResourceWidget[Widget[Event], [T] =>> IO[(T, Destruction)]] =
   [Value : Typeable] => (name, resource) =>
     (widget : Option[Value] => Widget[Event]) =>
-      transitiveStatefulWidget[
-        Option[(Value, Destruction)],
-        Event,
-        (Value, Destruction)
-      ](
+      transitiveStatefulWidget[Value](
         name = name,
         initialState = None,
         eventHandler = {
@@ -73,10 +73,7 @@ def destructibleResourceWidget[
             widget(state.map(_._1)),
             resource
           ),
-        destructor = {
-          case Some((_, destructor)) => destructor
-          case None => emptyDesctructor
-        }
+        destructor = _.map(_._2).getOrElse(emptyDesctructor)
       )
 end destructibleResourceWidget
 
@@ -96,17 +93,18 @@ def initializeResourceWidget[
   IO[_],
   Event,
 ](
-  transitiveStatefulWidget: TransitiveStatefulWidget[Widget, Update, Nothing, Nothing],
+  transitiveStatefulWidget: [State] => (
+    name : String,
+    initialState : Option[State],
+    eventHandler : HandlesEventF[Option[State], List[State], Update[Event, *]],
+    body : Option[State] => Widget[Either[State, Event]]
+  ) => Widget[Event],
   launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
   doubleAllocError : [T] => () => Update[Event, T],
 ) : ResourceWidget[Widget[Event], IO] =
   [Value : Typeable] => (name, resource) =>
     (widget : Option[Value] => Widget[Event]) =>
-      transitiveStatefulWidget[
-        Option[Value],
-        Event,
-        Value
-      ](
+      transitiveStatefulWidget[Value](
         name = name,
         initialState = None,
         eventHandler = {

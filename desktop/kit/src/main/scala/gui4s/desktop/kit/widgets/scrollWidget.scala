@@ -65,7 +65,7 @@ def scrollWidget[ScrollEvent](
                                animationConfig: Animation[Float, Duration],
                                scrollSpeed : Float
                              ): DesktopWidget[Event] =
-      transitiveStatefulWidget[Float, Event, RichInnerEvent[ScrollEvent]](
+      simpleTransitiveStatefulWidget[Float, Event, RichInnerEvent[ScrollEvent]](
         name = stateName,
         initialState = 0f,
         eventHandler = (state, events) =>
@@ -79,7 +79,7 @@ def scrollWidget[ScrollEvent](
                 direction,
                 scrollSpeed
               )
-          },
+          }.map(_.some),
         body = count =>
           animation(
             name = "scroll_animation",

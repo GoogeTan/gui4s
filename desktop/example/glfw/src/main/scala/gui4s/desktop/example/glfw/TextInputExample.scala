@@ -24,16 +24,16 @@ import scala.math.*
 
 object TextInputExample extends UIApp:
   override val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
-      title = "Text input example",
-      width = 640,
-      height = 480
+    title = "Text input example",
+    width = 640,
+    height = 480
   )
 
   override def main(
-                     glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
-                     window: GLFWwindow,
-                     eventBus: Queue[IO, DownEvent]
-                   ): Init[DesktopWidget[Nothing]] =
+    glfw: PurePostInit[IO, IO[Unit], GLFWmonitor, GLFWwindow, GLFWcursor, Int],
+    window: GLFWwindow,
+    eventBus: Queue[IO, DownEvent]
+  ): Init[DesktopWidget[Nothing]] =
     val fontCollection = new FontCollection
     fontCollection.setDefaultFontManager(FontMgr.getDefault)
     val paint = new Paint().setColor(0xFF454649)
@@ -46,7 +46,6 @@ object TextInputExample extends UIApp:
       .setFontSize(32)
     val paragraphStyle = new ParagraphStyle().setTextStyle(textStyle)
     val cursorPaint = new Paint().setColor(0xFF000000).setStrokeWidth(3f)
-    val stateful = statefulWidget
     for
       _ <- Init.eval(textFieldEventSource(glfw, window, eventBus))//TODO move into the widget
       textFieldWidget = textField[String](
@@ -65,25 +64,25 @@ object TextInputExample extends UIApp:
         Rect(100, 30)
       )(_ : String, _ : String)
     yield
-        columnWidget[Nothing](
-          (0 until 2).toList.map(i =>
-              stateful[String, Nothing, String](
-                name = "basic-state-" + i.toString,
-                initialState = "A",
-                eventHandler = (_, newString) => newString.last.pure[UpdateC[Nothing]],
-                body =
-                  state =>
-                    textFieldWidget("text-field", state)
-                      .padding(Paddings(6f, 6f, 6f, 6f))
-                      .border(
-                        Shape.roundedCorners(50f),
-                        Brush.solid(0xFF454649),
-                        StrokeOptions()
-                      )
-                      .padding(Paddings(12f, 12f, 12f, 12f))
-              )
+      columnWidget[Nothing](
+        (0 until 2).toList.map(i =>
+          simpleStatefulWidget[String, Nothing, String](
+            name = "basic-state-" + i.toString,
+            initialState = "A",
+            eventHandler = (_, newString) => newString.lastOption.pure[UpdateC[Nothing]],
+            body =
+              state =>
+                textFieldWidget("text-field", state)
+                  .padding(Paddings(6f, 6f, 6f, 6f))
+                  .border(
+                    Shape.roundedCorners(50f),
+                    Brush.solid(0xFF454649),
+                    StrokeOptions()
+                  )
+                  .padding(Paddings(12f, 12f, 12f, 12f))
           )
         )
+      )
   end main
 
   def textField[Event](

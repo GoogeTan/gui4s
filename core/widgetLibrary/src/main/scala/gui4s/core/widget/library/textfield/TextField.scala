@@ -1,27 +1,29 @@
 package gui4s.core.widget.library.textfield
 
-import catnip.BiMonad
 import cats.*
 import cats.syntax.all.*
 
 import gui4s.core.widget.Path
-import gui4s.core.widget.library.StatefulWidget
 
 def textField[
   Widget[E],
-  Update[E, V] : BiMonad as UBM,
+  Update[E, V],
   Event
 ](
-  stateful : StatefulWidget[Widget, Update, Nothing, Nothing],
+  stateful : (
+    name : String,
+    initialState : TextFieldState,
+    eventHandler : (TextFieldState, List[TextFieldEvent]) => Update[Event, TextFieldState],
+    body : TextFieldState => Widget[TextFieldEvent],
+  ) => Widget[Event],
   body : TextFieldState => Widget[TextFieldEvent],
   currentPath : Update[Event, Path],
   copyTextToClipboard : String => Update[Event, Unit],
 )(
-   name : String,
-   text : String
- ) : Widget[Event] =
-  given Monad[Update[Event, *]] = UBM()
-  stateful[TextFieldState, Event, TextFieldEvent](
+  name : String,
+  text : String
+)(using Monad[Update[Event, *]]) : Widget[Event] =
+  stateful(
     name = name,
     initialState = TextFieldState(text.split("\n").toList, TextPosition(0, 0), TextPosition(0, 0)),
     eventHandler = { (stateDontTouch : TextFieldState, events : List[TextFieldEvent]) =>
@@ -72,12 +74,12 @@ def basicTextFieldBody[
   Widget,
   PlacedText
 ](
-   textPlacer : (state :TextFieldState, body : PlacedText => Widget) => Widget,
-   systemEventCatcher : PlacedText => Widget => Widget,
-   text : PlacedText => Widget,
- )(
-   state : TextFieldState
- ) : Widget =
+  textPlacer : (state :TextFieldState, body : PlacedText => Widget) => Widget,
+  systemEventCatcher : PlacedText => Widget => Widget,
+  text : PlacedText => Widget,
+)(
+  state : TextFieldState
+) : Widget =
   textPlacer(
     state,
     placedText =>
