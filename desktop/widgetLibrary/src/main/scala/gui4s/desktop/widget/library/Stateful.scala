@@ -67,7 +67,7 @@ def stateful[
     Widget[ChildUpdate, Place, Draw, RecompositionReaction]
   ],
   typeCheckState : [T] => (Any, StatefulState[State] => Option[Place[T]]) => Option[Place[T]],
-  liftUpdate : [T] => ChildUpdate[T] => Update[(T, List[ChildEvent])],
+  liftUpdate : [T] => ChildUpdate[T] => Update[(List[ChildEvent], T)],
   addNameToUpdatePath : String => Update ~> Update,
   addNameToPlacePath : String => Place ~> Place,
 )(

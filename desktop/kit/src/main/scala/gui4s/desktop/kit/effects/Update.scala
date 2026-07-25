@@ -85,15 +85,9 @@ object Update:
     EventsTransformer.raiseEvents(events.toList)
   end emitEvents
 
-  def catchEvents[Event, NewEvent]: [T] => Update[Event, T] => Update[NewEvent, (T, List[Event])] =
+  def catchEvents[Event, NewEvent]: [T] => Update[Event, T] => Update[NewEvent, (List[Event], T)] =
     [T] => update =>
-      for
-        context <- getContext
-        stateBefore <- getState[NewEvent]
-        resWithEventsAndState <- liftK[NewEvent](Update.run[Event](context, stateBefore)(update))
-        (events, (stateAfter, res)) = resWithEventsAndState
-        _ <- setState(stateAfter)
-      yield (res, events)
+      EventsTransformer.catchEvents(update)
   end catchEvents
 
   def mapEvents[Event, NewEvent](f: Event => NewEvent): UpdateC[Event] ~> UpdateC[NewEvent] =
@@ -101,7 +95,7 @@ object Update:
       [T] => update =>
         for
           tmp <- catchEvents[Event, NewEvent](update)
-          (res, events) = tmp
+          (events, res) = tmp
           _ <- emitEvents(events.map(f))
         yield res
     )

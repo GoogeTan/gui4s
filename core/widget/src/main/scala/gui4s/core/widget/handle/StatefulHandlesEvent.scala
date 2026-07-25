@@ -19,7 +19,7 @@ def statefulHandlesEvent[
 ](
     stateHandlesEvents  : HandlesEvent[State, List[ChildEvent], Update[Option[State]]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(Option[Place[Widget]], List[ChildEvent])]],
+    childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(List[ChildEvent], Option[Place[Widget]])]],
     widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place, Widget],
     addNameToPlacePath : String => Place ~> Place,
     addNameToUpdatePath : String => Update ~> Update,
@@ -31,7 +31,7 @@ def statefulHandlesEvent[
     self: Stateful[Widget, State]
   ) =>
     for
-      (newChildWidget, events) <- addNameToUpdatePath(self.name)(
+      (events, newChildWidget) <- addNameToUpdatePath(self.name)(
         childWidgetHandlesEvent(
           self.child
         )
