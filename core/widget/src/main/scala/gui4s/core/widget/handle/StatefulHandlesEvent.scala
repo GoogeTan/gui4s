@@ -10,7 +10,7 @@ import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
 // TODO добавить тесты на добавление имен
 def statefulHandlesEvent[
   Update[_] : Monad,
-  Place[_] : Functor,
+  Place[_] : Functor as PM,
   Widget,
   State,
   ChildEvent
@@ -19,8 +19,6 @@ def statefulHandlesEvent[
     drawStateIntoWidget: Drawable[State, Place[Widget]],
     childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(ChildEvent, Option[Place[Widget]])]],
     widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place, Widget],
-    addNameToPlacePath : String => Place ~> Place,
-    addNameToUpdatePath : String => Update ~> Update,
 ) : HandlesEvent_[
   Stateful[Widget, State],
   Update[Option[Place[Stateful[Widget, State]]]]
@@ -29,34 +27,30 @@ def statefulHandlesEvent[
     self: Stateful[Widget, State]
   ) =>
     for
-      (events, newChildWidget) <- addNameToUpdatePath(self.name)(
-        childWidgetHandlesEvent(
-          self.child
-        )
-      )
-      newState : Option[State] <- addNameToUpdatePath(self.name)(stateHandlesEvents(self.stateBehaviour, events))
+      (events, newChildWidget) <- childWidgetHandlesEvent(self.child)
+      newState : Option[State] <- stateHandlesEvents(self.stateBehaviour, events)
     yield (newState, newChildWidget) match
       case (Some(newState), Some(newChildWidget)) =>
-        addNameToPlacePath(self.name)(
+        PM.map(
           widgetsAreMergable.mergeUpdatedAndRerenderedWidgets(
             newChildWidget,
             drawStateIntoWidget(newState)
-          ).map(newChild =>
-            self.copy(stateBehaviour = newState, child = newChild)
           )
+        )(
+          newChild =>
+          self.copy(stateBehaviour = newState, child = newChild)
         ).some
       case (None, Some(newChildWidget)) =>
-        addNameToPlacePath(self.name)(
-          newChildWidget.map(newChildWidgetPlaced => self.copy(child = newChildWidgetPlaced))
-        ).some
+        newChildWidget.map(newChildWidgetPlaced => self.copy(child = newChildWidgetPlaced)).some
       case (Some(newState), None) =>
-        addNameToPlacePath(self.name)(
+        PM.map(
           widgetsAreMergable.mergeOldAndRerenderedWidgets(
             self.child,
             drawStateIntoWidget(newState)
-          ).map(newChild =>
-            self.copy(stateBehaviour = newState, child = newChild)
           )
+        )(
+          newChild =>
+            self.copy(stateBehaviour = newState, child = newChild)
         ).some
       case (None, None) =>
         None

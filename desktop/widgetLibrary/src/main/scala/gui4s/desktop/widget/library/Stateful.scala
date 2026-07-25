@@ -8,12 +8,10 @@ import cats.syntax.all.*
 import cats.*
 import gui4s.core.widget
 import gui4s.core.widget.*
-import gui4s.core.widget.draw.statefulIsDrawable
-import gui4s.core.widget.draw.statefulStateDrawsIntoWidget
+import gui4s.core.widget.draw.{statefulIsDrawable, statefulStateDrawsIntoWidget}
 import gui4s.core.widget.handle.*
 import gui4s.core.widget.library.MergeStates
-import gui4s.core.widget.merge.UpdateWidgetStateFromTheOldOne
-import gui4s.core.widget.merge.statefulMergesWithOldStates
+import gui4s.core.widget.merge.{UpdateWidgetStateFromTheOldOne, statefulMergesWithOldStates}
 import gui4s.core.widget.recomposition.statefulReactsOnRecomposition
 import gui4s.core.widget.state.statefulHasInnerStates
 
@@ -52,10 +50,11 @@ import gui4s.core.widget.state.statefulHasInnerStates
  * Когда состояние изменилось, строится новое дочерние дерево и оно перенимает состояния из старого дерева при помощи widgetsAreMergable.
  * Если изменилось родительское состояние, слияние происходит по следующему правилу: если initialState изменилось, то берется новое значение, иначе старое.(TODO написать, как деструктор действует в этом случае).
  * Когда виджет покидает композицию, вызывается destructor для отчистки ресурсов, которые могут быть частью состояния.
+ * TODO обновить доку с новыми параметрами
  */
 def stateful[
   Update[_] : Monad,
-  ChildUpdate[_] : Functor,
+  ChildUpdate[_],
   Place[_] : Functor as PF,
   Draw,
   RecompositionReaction,
@@ -136,17 +135,16 @@ def stateful[
       valueAsFree = statefulAsFree,
       valueIsDrawable = statefulIsDrawable(widgetIsDrawable),
       valueHandlesEvent = statefulHandlesEvent(
-        stateHandlesEvents = statefulStateHandlesEvents,
+        stateHandlesEvents = statefulStateHandlesEvents[Update * Option, State, State => Place[ChildWidget], ChildEvent],
         drawStateIntoWidget = statefulStateDrawsIntoWidget,
         childWidgetHandlesEvent =
-          mapEventHandle_(
-            widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction]
-          )(
-            _.map(_.map(addNameToPlacePath(name)[ChildWidget](_)))
-          ).andThen(liftUpdate(_)),
+          widgetHandlesEvent[ChildUpdate, Place, Draw, RecompositionReaction]
+            .andThen(liftUpdate(_)),
         widgetsAreMergable = widgetsAreMergeable,
-        addNameToPlacePath = addNameToPlacePath,
-        addNameToUpdatePath = addNameToUpdatePath,
+      ).andThen(resultingEffect =>
+        addNameToUpdatePath(name)(
+          resultingEffect
+        ).map(_.map(addNameToPlacePath(name)(_)))
       ),
       valueMergesWithOldState = statefulMergesWithOldStates[
         Place,
@@ -175,7 +173,7 @@ def stateful[
                     child = newChild
                   )
               )
-          ),
+          ).map(addNameToPlacePath(name)(_)),
         stateName = _.name
       ),
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
