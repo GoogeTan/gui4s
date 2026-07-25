@@ -1,5 +1,6 @@
 package gui4s.desktop.widget.library
 
+import catnip.CodensityT
 import catnip.syntax.all.*
 import cats.Functor
 import cats.Monad
@@ -72,7 +73,8 @@ def stateful[
   noRecomposition : RecompositionReaction,
 )(
   name : String,
-  initialState : State,
+  initialState : CodensityT[Place, State],
+  stateAsFree : State => CodensityT[Place, Option[State]],
   handleEvent : HandlesEventF[State, ChildEvent, Update * Option],
   render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction]],
   mergeStates : MergeStates[Place, State]
@@ -84,20 +86,23 @@ def stateful[
     RecompositionReaction
   ]
 ] =
-  given Functor[Update * Option] = nestedFunctorsAreFunctors()
-
-  addNameToPlacePath(name)(render(initialState)).map(initialChild =>
-    type ChildWidget = Widget[
-      ChildUpdate,
-      Place,
-      Draw,
-      RecompositionReaction
-    ]
-    type StState = StatefulBehaviour[
-      State,
-      State => Place[ChildWidget],
-      HandlesEventF[State, ChildEvent, Update * Option]
-    ]
+  given completeUpdateFunctor : Functor[Update * Option] = nestedFunctorsAreFunctors[Update, Option]()
+  type ChildWidget = Widget[
+    ChildUpdate,
+    Place,
+    Draw,
+    RecompositionReaction
+  ]
+  type StState = StatefulBehaviour[
+    State,
+    State => Place[ChildWidget],
+    HandlesEventF[State, ChildEvent, Update * Option]
+  ]
+  addNameToPlacePath(name)[(ChildWidget, State)](
+    initialState.f(state =>
+      render(state).map((_, state))
+    )
+  ).map((initialChild, initialState) =>
     val stateful = Stateful[ChildWidget, StState](
       name = name,
       stateBehaviour = StatefulBehaviour(
@@ -111,7 +116,15 @@ def stateful[
       ),
       child = initialChild
     )
-    val statefulAsFree = widget.free.statefulAsFree[Place, ChildWidget, StState](widgetAsFree)
+    val statefulAsFree = widget.free.statefulAsFree[Place, ChildWidget, StState](
+      widgetAsFree,
+      currentBehaviour =>
+        stateAsFree(currentBehaviour.state.currentState)
+          .map(_.map(
+            newState => (currentBehaviour.withNewState(newState), render(newState)))
+          ),
+      widgetsAreMergeable
+    )
     Widget.ValueWrapper[
       Stateful[ChildWidget, StState],
       Update,

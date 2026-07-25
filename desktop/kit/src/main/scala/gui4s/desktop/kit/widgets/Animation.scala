@@ -4,6 +4,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 
 import cats.*
+import cats.syntax.all.*
 import cats.data.NonEmptyList
 import cats.effect.*
 
@@ -41,7 +42,8 @@ def animationWidget[
       ) =>
         transitiveStatefulWidget[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
           name,
-          initialState,
+          initialState.pure,
+          _ => None.pure,
           (state, events) => handleEvents(state, events).map(Some(_)),
           body,
           mergeStates

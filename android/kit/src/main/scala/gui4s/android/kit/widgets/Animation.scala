@@ -42,7 +42,8 @@ def animationWidget[
       ) =>
         transitiveStatefulWidget[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
           name,
-          initialState,
+          initialState.pure,
+          _ => None.pure,
           (state, events) => handleEvents(state, events).map(_.pure[Option]),
           body,
           mergeStates

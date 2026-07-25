@@ -1,17 +1,17 @@
 package gui4s.core.widget
 package merge
 
-//TODO дать более общее имя, соответсвующее сути дела
-//TODO На самом деле, тут можно обобщить. Option * Place везде встречаются вместе неразрывно.
+//TODO дать более общее имя, соответствующее сути дела
+//TODO На самом деле, тут можно обобщить. Option * Place везде встречаются вместе неразрывно
 def statefulMergesWithOldStates[
   Place[_],
   WidgetState,
   SavedState,
   RecompositionReaction
 ](
-   typeCheckState: [T] => (Any, SavedState => Option[Place[T]]) =>  Option[Place[T]],
-   mergeStates : (SavedState, WidgetState) => Option[Place[WidgetState]],
-   stateName : WidgetState => String,
+  typeCheckState: [T] => (Any, SavedState => Option[Place[T]]) =>  Option[Place[T]],
+  mergeStates : (SavedState, WidgetState) => Option[Place[WidgetState]],
+  stateName : WidgetState => String
 ) : MergesWithOldStates[
   WidgetState,
   RecompositionReaction,

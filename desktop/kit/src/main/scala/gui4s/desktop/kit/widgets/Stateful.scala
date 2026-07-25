@@ -2,8 +2,10 @@ package gui4s.desktop.kit
 package widgets
 
 import catnip.syntax.all.*
+import catnip.CodensityT
 import cats.*
 import cats.data.*
+import cats.syntax.all.*
 import cats.effect.*
 import gui4s.core.layout.Sized
 import gui4s.core.layout.Sized.given
@@ -33,7 +35,8 @@ def simpleStatefulWidget[
     ChildEvent
   ](
     name = name,
-    initialState = initialState,
+    initialState = initialState.pure,
+    stateAsFree = _ => None.pure,
     eventHandler = eventHandler,
     body = body,
     mergeStates = defaultMergeStates
@@ -46,7 +49,8 @@ def statefulWidget[
   ChildEvent
 ](
   name: String,
-  initialState: State,
+  initialState: PlacementEffect[State],
+  stateAsFree : State => PlacementEffect[Option[State]],
   eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event] * Option],
   body: State => DesktopWidget[ChildEvent],
   mergeStates: MergeStates[Place, State],
@@ -73,7 +77,8 @@ def statefulWidget[
     noRecomposition = RecompositionReaction.empty
   )(
     name = name,
-    initialState = initialState,
+    initialState = CodensityT([T] => callback => initialState.flatMap(callback)),
+    stateAsFree = oldState => CodensityT([T] => callback => stateAsFree(oldState).flatMap(callback)),
     handleEvent = eventHandler,
     render = body,
     mergeStates = mergeStates

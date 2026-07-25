@@ -22,7 +22,8 @@ def simpleTransitiveStatefulWidget[
     OwnEvent
   ](
     name = name,
-    initialState = initialState,
+    initialState = initialState.pure,
+    stateAsFree = _ => None.pure,
     eventHandler = eventHandler,
     body = body,
     mergeStates = defaultMergeStates
@@ -35,7 +36,8 @@ def transitiveStatefulWidget[
   OwnEvent
 ](
   name : String,
-  initialState : State,
+  initialState: PlacementEffect[State],
+  stateAsFree : State => PlacementEffect[Option[State]],
   eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
   body : State => AndroidWidget[Either[OwnEvent, TransitiveEvent]],
   mergeStates: MergeStates[Place, State],
@@ -56,6 +58,7 @@ def transitiveStatefulWidget[
       ](
         name,
         initialState,
+        stateAsFree,
         handler,
         body,
         mergeStates
