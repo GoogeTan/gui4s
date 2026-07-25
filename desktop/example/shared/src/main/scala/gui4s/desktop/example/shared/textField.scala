@@ -40,8 +40,8 @@ def textField[Event](
       drawText = (path, state, text) =>
         minSizeWidget[TextFieldEvent](
           minSize = minimalClickableAreaSize,
-          placeHorizontally = LinearContainerPlacementStrategy.Begin[Id](0f),
-          placeVertically = LinearContainerPlacementStrategy.Center[Id](0f, ContainerPlacementError.English),
+          placeHorizontallyIfSmaller = gui4s.core.layout.OneElementPlacementStrategy.Begin,
+          placeVerticallyIfSmaller = gui4s.core.layout.OneElementPlacementStrategy.Center,
         )(
           stackContainer(
             List(
