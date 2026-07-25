@@ -55,7 +55,7 @@ def statefulWidget[
     Draw,
     RecompositionReaction,
     State,
-    ChildEvent
+    List[ChildEvent]
   ](
     widgetsAreMergeable = widgetsCanUpdateStateFromTheOldOnes(
       widgetMergesWithOldState,

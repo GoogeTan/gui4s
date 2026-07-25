@@ -1,8 +1,6 @@
 package gui4s.core.widget
 package handle
 
-import scala.collection.immutable.List
-
 import cats.*
 import cats.syntax.all.*
 
@@ -17,9 +15,9 @@ def statefulHandlesEvent[
   State,
   ChildEvent
 ](
-    stateHandlesEvents  : HandlesEvent[State, List[ChildEvent], Update[Option[State]]],
+    stateHandlesEvents  : HandlesEvent[State, ChildEvent, Update[Option[State]]],
     drawStateIntoWidget: Drawable[State, Place[Widget]],
-    childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(List[ChildEvent], Option[Place[Widget]])]],
+    childWidgetHandlesEvent  : HandlesEvent_[Widget, Update[(ChildEvent, Option[Place[Widget]])]],
     widgetsAreMergable  : UpdateWidgetStateFromTheOldOne[Place, Widget],
     addNameToPlacePath : String => Place ~> Place,
     addNameToUpdatePath : String => Update ~> Update,

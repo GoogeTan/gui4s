@@ -66,14 +66,14 @@ def stateful[
     Widget[ChildUpdate, Place, Draw, RecompositionReaction]
   ],
   typeCheckState : [T] => (Any, StatefulState[State] => Option[Place[T]]) => Option[Place[T]],
-  liftUpdate : [T] => ChildUpdate[T] => Update[(List[ChildEvent], T)],
+  liftUpdate : [T] => ChildUpdate[T] => Update[(ChildEvent, T)],
   addNameToUpdatePath : String => Update ~> Update,
   addNameToPlacePath : String => Place ~> Place,
   noRecomposition : RecompositionReaction,
 )(
   name : String,
   initialState : State,
-  handleEvent : HandlesEventF[State, List[ChildEvent], Update * Option],
+  handleEvent : HandlesEventF[State, ChildEvent, Update * Option],
   render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction]],
   mergeStates : MergeStates[Place, State]
 ) : Place[
@@ -96,7 +96,7 @@ def stateful[
     type StState = StatefulBehaviour[
       State,
       State => Place[ChildWidget],
-      HandlesEventF[State, List[ChildEvent], Update * Option]
+      HandlesEventF[State, ChildEvent, Update * Option]
     ]
     val stateful = Stateful[ChildWidget, StState](
       name = name,
