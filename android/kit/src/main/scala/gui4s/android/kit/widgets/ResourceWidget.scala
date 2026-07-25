@@ -5,11 +5,10 @@ import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.{LaunchedEvent, destructorWidget}
 import gui4s.core.widget.library.{WithContext, destructibleResourceWidget as genericResourceWidget}
 
-import gui4s.desktop.widget.library.defaultMergeStates
 import scala.reflect.Typeable
 
 trait ResourceWidget:
-  def apply[T : Typeable, Event](
+  def apply[T : {Eq, Typeable}, Event](
     name : String, init : Resource[IO, T]
   ) : WithContext[AndroidWidget[Event], Option[T]]
 end ResourceWidget
@@ -20,7 +19,7 @@ object ResourceWidget:
     raiseExternalEvent : DownEvent => IO[Unit],
   ) : ResourceWidget =
     new ResourceWidget:
-      override def apply[T : Typeable, Event](name: String, init: Resource[IO, T]) : WithContext[AndroidWidget[Event], Option[T]] =
+      override def apply[T : {Eq, Typeable}, Event](name: String, init: Resource[IO, T]) : WithContext[AndroidWidget[Event], Option[T]] =
         body => genericResourceWidget[
           AndroidWidget,
           Update,
@@ -29,13 +28,14 @@ object ResourceWidget:
           IO,
           Event
         ](
-          transitiveStatefulWidget = [State: Typeable] => (
+          transitiveStatefulWidget = [State : {Eq, Typeable}] => (
             name,
             initialState,
             eventHandler,
             body
           ) =>
-            transitiveStatefulWidget[
+            given Eq[Option[(State, RecompositionReaction)]] = ???
+            simpleTransitiveStatefulWidget[//TODO add custom error raising merge
               Option[(State, RecompositionReaction)],
               Event,
               (State, RecompositionReaction)
@@ -45,7 +45,6 @@ object ResourceWidget:
               (state, events) =>
                 eventHandler(state, events).map(_.some),
               body,
-              defaultMergeStates
             ),
           destructorWidget = [_] => destructor =>
             destructorWidget(name + "_destructor", destructor),

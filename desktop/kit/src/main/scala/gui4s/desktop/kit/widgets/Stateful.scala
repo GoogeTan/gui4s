@@ -18,7 +18,7 @@ import gui4s.desktop.widget.library.*
 import scala.reflect.Typeable
 
 def simpleStatefulWidget[
-  State : {Equiv, Typeable},
+  State : {Eq, Typeable},
   Event,
   ChildEvent
 ](

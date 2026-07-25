@@ -19,7 +19,6 @@ import io.github.humbleui.skija.{FontMgr, Paint}
 import io.github.humbleui.skija.paragraph.{FontCollection, ParagraphStyle, TextStyle}
 import main.scala.gui4s.desktop.windowing.jwm.{TextInputOuterEvent, textFieldEventCatcher, textFieldEventSource}
 
-import scala.math.*
 
 object TextInputExample extends UIApp:
   override def main(

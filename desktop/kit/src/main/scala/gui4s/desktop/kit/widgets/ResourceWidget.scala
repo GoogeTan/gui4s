@@ -14,16 +14,16 @@ import gui4s.desktop.kit.effects.Update.given
 import gui4s.desktop.kit.widgets.decorator.{LaunchedEvent, destructorWidget}
 
 trait ResourceWidget:
-  def apply[T : Typeable, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
+  def apply[T : {Eq, Typeable}, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
 end ResourceWidget
 
 object ResourceWidget:
   def apply(
-             supervisor : Supervisor[IO],
-             raiseExternalEvent : DownEvent => IO[Unit],
-           ) : ResourceWidget =
+    supervisor : Supervisor[IO],
+    raiseExternalEvent : DownEvent => IO[Unit],
+  ) : ResourceWidget =
     new ResourceWidget:
-      override def apply[T : Typeable, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
+      override def apply[T : {Eq, Typeable}, Event](name: String, init: Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]] =
         body => genericResourceWidget[
           DesktopWidget,
           Update,
@@ -38,7 +38,8 @@ object ResourceWidget:
             eventHandler,
             body
           ) =>
-            simpleTransitiveStatefulWidget[
+            given Eq[Option[(State, RecompositionReaction)]] = ???
+            simpleTransitiveStatefulWidget[//TODO add custom error raising merge
               Option[(State, RecompositionReaction)],
               Event,
               (State, RecompositionReaction)

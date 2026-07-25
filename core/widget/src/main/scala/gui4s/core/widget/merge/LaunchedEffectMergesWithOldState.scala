@@ -2,15 +2,13 @@ package gui4s.core.widget
 package merge
 
 import scala.reflect.Typeable
-
-import cats.Functor
+import cats.{Eq, Functor}
 import cats.syntax.all.*
-
 import gui4s.core.widget.free.AsFreeF
 
 // TODO Думается мне, что это можно как-то разделить, но я пока не понимаю как.
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
-def launchedEffectMergesWithOldState[Key : Equiv as KE, Place[_], Recomposition, Task, Widget](using Typeable[Key], Functor[Place])(
+def launchedEffectMergesWithOldState[Key : Eq as KE, Place[_], Recomposition, Task, Widget](using Typeable[Key], Functor[Place])(
   keyTypeError : [T] => Any => Place[T],//TODO add path
   widgetMergesWithOldState : MergesWithOldStates[Widget, Recomposition, Option[Place[Widget]]],
   widgetAsFree : AsFreeF[Widget, Place]
@@ -26,7 +24,7 @@ def launchedEffectMergesWithOldState[Key : Equiv as KE, Place[_], Recomposition,
           case Some(value) =>
             Some(value.map(placedWidget => (launchedEffectSelf.copy(key = key), placedWidget)))
           case None =>
-            if KE.equiv(launchedEffectSelf.key, key) then 
+            if KE.eqv(launchedEffectSelf.key, key) then 
               None
             else 
               Some(

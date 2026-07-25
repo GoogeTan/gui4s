@@ -7,7 +7,7 @@ import gui4s.desktop.widget.library.defaultMergeStates
 import scala.reflect.Typeable
 
 def simpleTransitiveStatefulWidget[
-  State : {Equiv, Typeable},
+  State : {Eq, Typeable},
   TransitiveEvent,
   OwnEvent
 ](

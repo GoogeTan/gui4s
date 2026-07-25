@@ -1,11 +1,5 @@
 package gui4s.android.example
 
-import android.app.Activity
-
-import cats.effect.IO
-import cats.effect.std.Supervisor
-import cats.effect.kernel.Resource
-import cats.effect.std.Queue
 import gui4s.android.kit.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
@@ -32,6 +26,7 @@ class MainActivity extends Gui4sActivity:
   end downloadImage
 
   override def main(eventBus: Queue[IO, DownEvent]): Resource[IO, AndroidWidget[Nothing]] =
+    given Eq[android.graphics.drawable.Drawable] = Eq.fromUniversalEquals[android.graphics.drawable.Drawable]
     for
       supervisor <- Supervisor[IO]
       shaper <- createShaper[IO]

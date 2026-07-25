@@ -9,7 +9,7 @@ import scala.reflect.Typeable
 
 trait InitializationWidget:
   final def apply[
-    Value: Typeable,
+    Value: {Eq, Typeable},
     Event,
   ](
     name : String,
@@ -26,10 +26,10 @@ trait InitializationWidget:
     }
   end apply
 
-  def apply[Value: Typeable, Event](
-                                     name: String,
-                                     init: IO[Value]
-                                   ) : WithContext[AndroidWidget[Event], Option[Value]]
+  def apply[Value: {Eq, Typeable}, Event](
+                                           name: String,
+                                           init: IO[Value]
+                                         ) : WithContext[AndroidWidget[Event], Option[Value]]
 end InitializationWidget
 
 object InitializationWidget:
@@ -40,7 +40,7 @@ object InitializationWidget:
     resourceWidget: ResourceWidget
   ) : InitializationWidget =
     new InitializationWidget:
-      override def apply[Value: Typeable, Event](name: String, init: IO[Value]): WithContext[AndroidWidget[Event], Option[Value]] =
+      override def apply[Value: {Eq, Typeable}, Event](name: String, init: IO[Value]): WithContext[AndroidWidget[Event], Option[Value]] =
         resourceWidget(name, Resource.eval(init))
       end apply
     end new

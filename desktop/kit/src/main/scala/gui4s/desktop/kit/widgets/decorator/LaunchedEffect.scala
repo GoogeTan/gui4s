@@ -16,7 +16,7 @@ import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.widget.library.{launchedEffect as genericLaunchedEffect, *}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-def launchedEffect[Event, Key : Typeable](supervisor : Supervisor[IO]) : LaunchedEffectWidget[DesktopWidget[Event], Key, Path => IO[Unit]] =
+def launchedEffect[Event, Key : {Eq, Typeable}](supervisor : Supervisor[IO]) : LaunchedEffectWidget[DesktopWidget[Event], Key, Path => IO[Unit]] =
   val lew : LaunchedEffectWidget[
     DesktopWidget[Event],
     Key,

@@ -1,6 +1,7 @@
 package gui4s.desktop.kit
 package widgets
 
+import cats.Eq
 import catnip.syntax.additional.*
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.*
@@ -10,7 +11,7 @@ import gui4s.desktop.widget.library.defaultMergeStates
 import scala.reflect.Typeable
 
 def simpleTransitiveStatefulWidget[
-  State : {Equiv, Typeable},
+  State : {Eq, Typeable},
   TransitiveEvent,
   OwnEvent
 ](

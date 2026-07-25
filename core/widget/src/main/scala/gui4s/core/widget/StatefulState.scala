@@ -1,5 +1,6 @@
 package gui4s.core.widget
 
+import cats.Eq
 import scala.reflect.Typeable
 import cats.syntax.all.*
 
@@ -22,9 +23,9 @@ object StatefulState:
       None
   end given
 
-  given[State : Equiv as sEq] : Equiv[StatefulState[State]] =
+  given statefulStateEqInstance[State: Eq as sEq]: Eq[StatefulState[State]] =
     (a, b) =>
-      sEq.equiv(a.initialState, b.initialState) && sEq.equiv(a.currentState, b.currentState)
-  end given
+      sEq.eqv(a.initialState, b.initialState) && sEq.eqv(a.currentState, b.currentState)
+  end statefulStateEqInstance
 end StatefulState
 

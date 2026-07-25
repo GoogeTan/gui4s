@@ -4,8 +4,7 @@ import catnip.syntax.all.*
 import cats.Functor
 import cats.Monad
 import cats.syntax.all.*
-import cats.~>
-
+import cats.*
 import gui4s.core.widget
 import gui4s.core.widget.*
 import gui4s.core.widget.draw.statefulIsDrawable
@@ -174,9 +173,9 @@ def stateful[
   )
 end stateful
 
-def defaultMergeStates[Place[_], State : Equiv as EQ] : MergeStates[Place, State] =
+def defaultMergeStates[Place[_], State : Eq as EQ] : MergeStates[Place, State] =
   [T] => (oldState, newState, consumer) =>
-    if EQ.equiv(oldState.initialState, newState.initialState) then
+    if EQ.eqv(oldState.initialState, newState.initialState) then
       Some(consumer(oldState)) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
     else
       None

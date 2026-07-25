@@ -1,6 +1,7 @@
 package gui4s.android.kit.widgets
 
 import catnip.syntax.all.*
+import cats.Eq
 import gui4s.core.layout.Sized
 import gui4s.core.layout.Sized.given
 import gui4s.core.widget.{Path, StatefulState}
@@ -14,7 +15,7 @@ import gui4s.desktop.widget.library.*
 import scala.reflect.Typeable
 
 def simpleStatefulWidget[
-  State : {Equiv, Typeable},
+  State : {Eq, Typeable},
   Event,
   ChildEvent
 ](

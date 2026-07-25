@@ -1,15 +1,14 @@
 package gui4s.desktop.example.shared
 
+import cats.Eq
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import io.github.humbleui.skija.Font
-
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.OneElementPlacementStrategy
-import gui4s.core.widget.library.decorator.Paddings
-
+import gui4s.core.widget.library.decorator.{Decorator, Paddings}
 import gui4s.desktop.kit.effects.DownEvent
 import gui4s.desktop.kit.effects.Init
 import gui4s.desktop.kit.effects.LinearContainerPlacementStrategy
@@ -28,7 +27,9 @@ def scenedExample[ScrollEvent](
     clickCatcher: ClickCatcher,
     scrollEventSource: ScrollEventSource[ScrollEvent],
     eventBus: Queue[IO, DownEvent]
-): Init[DesktopWidget[Nothing]] =
+): Init[DesktopWidget[Nothing]] = {
+  given Eq[Decorator[DesktopWidget[Nothing]]] = Eq.fromUniversalEquals
+  given Eq[DesktopWidget[Nothing]] = Eq.fromUniversalEquals
   for
     text <- TextWidget()
     resourceWidget <- ResourceWidget(eventBus)
@@ -79,6 +80,7 @@ def scenedExample[ScrollEvent](
         )
       case None =>
         text("Загрузка...", basicStyle)
+}
 end scenedExample
 
 def sceneController[Event](

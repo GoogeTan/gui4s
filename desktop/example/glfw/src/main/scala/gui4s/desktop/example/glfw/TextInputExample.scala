@@ -20,7 +20,6 @@ import gui4s.desktop.windowing.glfw.{TextInputOuterEvent, UIApp, textFieldEventC
 import io.github.humbleui.skija.{FontMgr, Paint}
 import io.github.humbleui.skija.paragraph.{FontCollection, ParagraphStyle, TextStyle}
 
-import scala.math.*
 
 object TextInputExample extends UIApp:
   override val settings: WindowCreationSettings[GLFWmonitor, GLFWwindow] = WindowCreationSettings(
