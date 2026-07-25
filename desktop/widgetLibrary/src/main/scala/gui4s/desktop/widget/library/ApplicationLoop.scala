@@ -7,9 +7,7 @@ import cats.effect.*
 import cats.syntax.all.*
 
 import gui4s.core.loop.*
-import gui4s.core.widget.Path
 import gui4s.core.widget.draw.Drawable
-import gui4s.core.widget.library.processEvent
 
 def widgetLoops[
   IO[_] : Async,
@@ -21,16 +19,16 @@ def widgetLoops[
   DownEvent,
   ExitCode
 ](
-   waitForTheNextEvent : IO[DownEvent],
-   widget : Ref[IO, Widget[Update, Place, Draw, RecompositionReaction]],
-   runUpdate : [T] => (Update[T], DownEvent) => IO[Either[ExitCode, T]],
-   runPlace : Place ~> IO,
-   runDraw : Draw => IO[Boolean],
-   runRecomposition : RecompositionReaction => IO[Unit],
-   drawLoopExecutionContext : ExecutionContext,
-   updateLoopExecutionContext : ExecutionContext,
-   successExitCode : ExitCode
- ) : IO[ExitCode] =
+  waitForTheNextEvent : IO[DownEvent],
+  widget : Ref[IO, Widget[Update, Place, Draw, RecompositionReaction]],
+  runUpdate : [T] => (Update[T], DownEvent) => IO[Either[ExitCode, T]],
+  runPlace : Place ~> IO,
+  runDraw : Draw => IO[Boolean],
+  runRecomposition : RecompositionReaction => IO[Unit],
+  drawLoopExecutionContext : ExecutionContext,
+  updateLoopExecutionContext : ExecutionContext,
+  successExitCode : ExitCode
+) : IO[ExitCode] =
   type PlacedWidget = Widget[Update, Place, Draw, RecompositionReaction]
   applicationLoop(
     waitForTheNextEvent,
@@ -49,13 +47,8 @@ def widgetLoops[
           flattenRight(
             runUpdate[IO[PlacedWidget]](
               processEvent(
-                Path(Nil),
-                runRecomposition,
-                widgetAsFree,
-                widgetHandlesEvent,
-                widgetReactsOnRecomposition,
-                widgetHasInnerStates,
                 runPlace,
+                runRecomposition,
                 widget
               ),
               event
@@ -80,10 +73,10 @@ def drawableBasedDrawLoop[
   Widget,
   ExitCode
 ](
-   widgetIsDrawable : Drawable[Widget, Draw],
-   drawFrame : Draw => F[Boolean],
-   success : ExitCode
- ) : DrawLoop[F, Widget, ExitCode] =
+  widgetIsDrawable : Drawable[Widget, Draw],
+  drawFrame : Draw => F[Boolean],
+  success : ExitCode
+) : DrawLoop[F, Widget, ExitCode] =
   currentWidget =>
     drawLoop(
       success

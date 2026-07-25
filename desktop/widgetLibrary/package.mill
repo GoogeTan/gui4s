@@ -24,4 +24,10 @@ object `package` extends Gui4sPackage:
   override def pomDescription: String =
     "Library of widgets for Gui4s"
   end pomDescription
+
+  object test extends ScalaTests with TestModule.ScalaTest:
+    override def mvnDeps = super.mvnDeps() ++ build.dependencies.test
+
+    override def moduleDeps = super.moduleDeps ++ Seq(build.core.kit)
+  end test
 end `package`
