@@ -45,7 +45,7 @@ class MainActivity extends Gui4sActivity:
         raiseExternalEvent = eventBus.offer.andThen(liftCallbackIOToAppIO(_))
       )
       initialization = InitializationWidget(resource)
-      text = textWidget(shaper, cache)
+      text = TextWidget(shaper, cache)
     yield
       initialization(
         name = "image",
