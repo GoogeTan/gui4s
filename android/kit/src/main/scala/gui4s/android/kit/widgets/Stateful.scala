@@ -65,13 +65,13 @@ def statefulWidget: StatefulWidget[
     end apply
 
     override def apply[State : Typeable, Event, ChildEvent](
-                                                             name: String,
-                                                             initialState: State,
-                                                             eventHandler: HandlesEventF[State, List[ChildEvent], Update[Event, *] * Option],
-                                                             body: State => AndroidWidget[ChildEvent],
-                                                             destructor: State => RecompositionReaction,
-                                                             mergeStates: MergeStates[Place, State]
-                                                            ): AndroidWidget[Event] =
+                                                            name: String,
+                                                            initialState: State,
+                                                            eventHandler: HandlesEventF[State, List[ChildEvent], Update[Event, *] * Option],
+                                                            body: State => AndroidWidget[ChildEvent],
+                                                            destructor: State => RecompositionReaction,
+                                                            mergeStates: MergeStates[Place, State]
+                                                          ): AndroidWidget[Event] =
       library.stateful[
         UpdateC[Event],
         UpdateC[ChildEvent],
