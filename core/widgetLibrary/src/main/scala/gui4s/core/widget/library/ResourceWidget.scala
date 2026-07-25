@@ -4,6 +4,7 @@ import scala.reflect.Typeable
 import catnip.BiMonad
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.WithContext
+import gui4s.core.widget.library.decorator.Decorator
 
 /**
  * Тип виджета, позволяющего безопасно создавать ресурсы.
@@ -49,12 +50,11 @@ def destructibleResourceWidget[
     name : String,
     initialState : Option[(State, Destruction)],
     eventHandler : HandlesEventF[Option[(State, Destruction)], List[(State, Destruction)], Update[Event, *]],
-    body : Option[(State, Destruction)] => Widget[Either[(State, Destruction), Event]],
-    destructor : Option[(State, Destruction)] => Destruction
+    body : Option[(State, Destruction)] => Widget[Either[(State, Destruction), Event]]
   ) => Widget[Event],
   launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
   doubleAllocError : [T] => () => Update[Event, T],
-  emptyDesctructor : Destruction
+  destructorWidget : [Event] => Destruction => Decorator[Widget[Event]]
 ) : ResourceWidget[Widget[Event], [T] =>> IO[(T, Destruction)]] =
   [Value : Typeable] => (name, resource) =>
     (widget : Option[Value] => Widget[Event]) =>
@@ -68,12 +68,12 @@ def destructibleResourceWidget[
           case (_, _) => doubleAllocError()
         },
         body = state =>
-          launchedEvent[(Value, Destruction)](
+          val body = launchedEvent[(Value, Destruction)](
             "effect_launcher",
             widget(state.map(_._1)),
             resource
-          ),
-        destructor = _.map(_._2).getOrElse(emptyDesctructor)
+          )
+          state.fold(body)((_, destructor) => destructorWidget(destructor)(body))
       )
 end destructibleResourceWidget
 

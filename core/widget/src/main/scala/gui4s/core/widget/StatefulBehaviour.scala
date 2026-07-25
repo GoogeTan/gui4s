@@ -27,16 +27,14 @@ end StatefulState
 final case class StatefulBehaviour[
   State,
   Draw,
-  EventHandler,
-  Destructor
+  EventHandler
 ](
     name : String,
     state: StatefulState[State],
     draw : Draw,
     handleEvents : EventHandler,
-    destructor: Destructor,
 ):
-  def withNewState(state: State) : StatefulBehaviour[State, Draw, EventHandler, Destructor] =
+  def withNewState(state: State) : StatefulBehaviour[State, Draw, EventHandler] =
     copy(state = this.state.withNewState(state))
   end withNewState
   
@@ -50,7 +48,7 @@ given[State : Equiv as sEq] : Equiv[StatefulState[State]] =
     sEq.equiv(a.initialState, b.initialState) && sEq.equiv(a.currentState, b.currentState)
 end given
 
-given[State : Equiv as sEq, Draw, EventHandler, Destructor] : Equiv[StatefulBehaviour[State, Draw, EventHandler, Destructor]] =
+given[State : Equiv as sEq, Draw, EventHandler] : Equiv[StatefulBehaviour[State, Draw, EventHandler]] =
   (a, b) =>
     a.name === b.name && Equiv[StatefulState[State]].equiv(a.state, b.state)
 end given

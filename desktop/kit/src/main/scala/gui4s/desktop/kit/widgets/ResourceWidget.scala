@@ -2,21 +2,16 @@ package gui4s.desktop.kit
 package widgets
 
 import scala.reflect.Typeable
-
 import cats.*
 import cats.effect.*
 import cats.effect.std.QueueSink
 import cats.effect.std.Supervisor
 import cats.syntax.all.*
-
 import gui4s.core.widget.library.WithContext
 import gui4s.core.widget.library.destructibleResourceWidget as genericResourceWidget
-
-import gui4s.desktop.widget.library.defaultMergeStates
-
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.effects.Update.given
-import gui4s.desktop.kit.widgets.decorator.LaunchedEvent
+import gui4s.desktop.kit.widgets.decorator.{LaunchedEvent, destructorWidget}
 
 trait ResourceWidget:
   def apply[T : Typeable, Event](name : String, init : Resource[IO, T]) : WithContext[DesktopWidget[Event], Option[T]]
@@ -41,10 +36,9 @@ object ResourceWidget:
             name,
             initialState,
             eventHandler,
-            body,
-            destructor
+            body
           ) =>
-            transitiveStatefulWidget[
+            simpleTransitiveStatefulWidget[
               Option[(State, RecompositionReaction)],
               Event,
               (State, RecompositionReaction)
@@ -54,9 +48,9 @@ object ResourceWidget:
               (state, events) =>
                 eventHandler(state, events).map(_.some),
               body,
-              destructor,
-              defaultMergeStates
             ),
+          destructorWidget = [_] => destructor =>
+            destructorWidget(name + "_destructor", destructor),
           launchedEvent =
             [TaskEvent : Typeable as TET] => (name : String, child : DesktopWidget[Event], task : IO[TaskEvent]) =>
               LaunchedEvent[Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
@@ -72,7 +66,6 @@ object ResourceWidget:
                 task.map(Left(_))
               ),
           doubleAllocError = [T] => () => Update.raiseError(path => new Exception("Double resource alloc at " + path.toString)),
-          emptyDesctructor = RecompositionReaction.empty
         )(name, init.allocated)(body)
       end apply
     end new

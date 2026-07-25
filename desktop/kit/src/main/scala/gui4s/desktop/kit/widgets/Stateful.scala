@@ -36,8 +36,7 @@ def simpleStatefulWidget[
     initialState = initialState,
     eventHandler = eventHandler,
     body = body,
-    mergeStates = defaultMergeStates,
-    destructor = _ => RecompositionReaction.empty
+    mergeStates = defaultMergeStates
   )
 end simpleStatefulWidget
 
@@ -50,7 +49,6 @@ def statefulWidget[
   initialState: State,
   eventHandler: HandlesEventF[State, List[ChildEvent], UpdateC[Event] * Option],
   body: State => DesktopWidget[ChildEvent],
-  destructor : State => RecompositionReaction,
   mergeStates: MergeStates[Place, State],
 ): DesktopWidget[Event] =
   library.stateful[
@@ -71,13 +69,13 @@ def statefulWidget[
     ),
     liftUpdate = Update.catchEvents[ChildEvent, Event],
     addNameToPlacePath = Place.addNameToPath,
-    addNameToUpdatePath = Update.addNameToPath
+    addNameToUpdatePath = Update.addNameToPath,
+    noRecomposition = RecompositionReaction.empty
   )(
     name = name,
     initialState = initialState,
     handleEvent = eventHandler,
     render = body,
-    mergeStates = mergeStates,
-    destructor = destructor
+    mergeStates = mergeStates
   )
 end statefulWidget

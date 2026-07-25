@@ -44,7 +44,6 @@ def animationWidget[
           initialState,
           (state, events) => handleEvents(state, events).map(Some(_)),
           body,
-          _ => RecompositionReaction.empty,
           mergeStates
         ),
     currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),

@@ -25,8 +25,7 @@ def simpleTransitiveStatefulWidget[
     initialState = initialState,
     eventHandler = eventHandler,
     body = body,
-    mergeStates = defaultMergeStates,
-    destructor = _ => RecompositionReaction.empty
+    mergeStates = defaultMergeStates
   )
 end simpleTransitiveStatefulWidget
 
@@ -39,7 +38,6 @@ def transitiveStatefulWidget[
   initialState : State,
   eventHandler: HandlesEventF[State, List[OwnEvent], Update[TransitiveEvent, *] * Option],
   body : State => AndroidWidget[Either[OwnEvent, TransitiveEvent]],
-  destructor : State => RecompositionReaction,
   mergeStates: MergeStates[Place, State],
 ): AndroidWidget[TransitiveEvent] =
   gui4s.core.widget.library.transitiveStatefulWidget[
@@ -60,7 +58,6 @@ def transitiveStatefulWidget[
         initialState,
         handler,
         body,
-        destructor,
         mergeStates
       ),
     Update.emitEvents,

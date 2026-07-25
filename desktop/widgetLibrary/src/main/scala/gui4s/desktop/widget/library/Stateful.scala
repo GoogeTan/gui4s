@@ -70,12 +70,12 @@ def stateful[
   liftUpdate : [T] => ChildUpdate[T] => Update[(List[ChildEvent], T)],
   addNameToUpdatePath : String => Update ~> Update,
   addNameToPlacePath : String => Place ~> Place,
+  noRecomposition : RecompositionReaction,
 )(
   name : String,
   initialState : State,
   handleEvent : HandlesEventF[State, List[ChildEvent], Update * Option],
   render : State => Place[Widget[ChildUpdate, Place, Draw, RecompositionReaction]],
-  destructor : State => RecompositionReaction,
   mergeStates : MergeStates[Place, State]
 ) : Place[
   Widget[
@@ -97,8 +97,7 @@ def stateful[
     type StState = StatefulBehaviour[
       State,
       State => Place[ChildWidget],
-      HandlesEventF[State, List[ChildEvent], Update * Option],
-      State => RecompositionReaction
+      HandlesEventF[State, List[ChildEvent], Update * Option]
     ]
     val stateful = Stateful[ChildWidget, StState](
       name = name,
@@ -109,8 +108,7 @@ def stateful[
           currentState = initialState,
         ),
         draw = (state : State) => addNameToPlacePath(name)(render(state)),
-        handleEvents = handleEvent,
-        destructor = destructor
+        handleEvents = handleEvent
       ),
       child = initialChild
     )
@@ -171,7 +169,7 @@ def stateful[
       valueReactsOnRecomposition = statefulReactsOnRecomposition(
         widgetReactsOnRecomposition[ChildUpdate, Place, Draw, RecompositionReaction]
       ),
-      valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates)
+      valueHasInnerState = statefulHasInnerStates(widgetHasInnerStates, noRecomposition)
     )
   )
 end stateful
