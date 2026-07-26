@@ -2,16 +2,12 @@ package gui4s.desktop.kit
 package effects
 
 import scala.reflect.Typeable
-
 import catnip.MapKCache
 import catnip.syntax.functor.nestedFunctorsAreFunctors
-import cats.Functor
-import cats.MonadError
+import cats.*
 import cats.effect.*
-import cats.~>
-
 import gui4s.core.widget.Path
-
+import gui4s.core.widget.library.MergeStates
 import gui4s.desktop.kit.effects.PlacementEffect.given
 import gui4s.desktop.kit.effects.Situated.given
 import gui4s.desktop.skija.shaper.Shaper
@@ -79,4 +75,20 @@ object Place:
   def raiseError[Error, Value](error: Path => Error)(using MonadError[IO, Error]): Place[Value] =
     PlacementEffect.currentPath.map(error(_)).flatMap(raiseError)
   end raiseError
+
+  def defaultMergeStates[State : {Eq, Typeable}]: MergeStates[Place, State] =
+    MergeStates.default(
+      [T] => (mistypedValue : Any) => raiseError[Throwable, T](
+        (path : Path) => new Exception("Error in stateful typechecking at " + path.toString + " with value [" + mistypedValue.toString + "]")
+      ),
+    )
+  end defaultMergeStates
+
+  def mergeStatesWithConstInitialState[State: Typeable]: MergeStates[Place, State] =
+    MergeStates.withConstInitialState(
+      [T] => (mistypedValue: Any) => raiseError[Throwable, T](
+        (path: Path) => new Exception("Error in stateful typechecking at " + path.toString + " with value [" + mistypedValue.toString + "]")
+      ),
+    )
+  end mergeStatesWithConstInitialState
 end Place

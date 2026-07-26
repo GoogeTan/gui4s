@@ -9,8 +9,7 @@ def statefulMergesWithOldStates[
   SavedState,
   RecompositionReaction
 ](
-  typeCheckState: [T] => (Any, SavedState => Option[Place[T]]) =>  Option[Place[T]],
-  mergeStates : (SavedState, WidgetState) => Option[Place[WidgetState]],
+  mergeStates : (Any, WidgetState) => Option[Place[WidgetState]],
   stateName : WidgetState => String
 ) : MergesWithOldStates[
   WidgetState,
@@ -21,9 +20,6 @@ def statefulMergesWithOldStates[
     innerStates.get(stateName(self)).fold(
       None
     )(oldState =>
-      typeCheckState(
-        oldState.state,//TODO проверить, что происходит, если раньше состояния не было.
-        mergeStates(_, self)
-      )
+      mergeStates(oldState.state, self)//TODO проверить, что происходит, если раньше состояния не было.
     )
 end statefulMergesWithOldStates

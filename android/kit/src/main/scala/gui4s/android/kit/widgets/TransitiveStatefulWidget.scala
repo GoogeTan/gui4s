@@ -3,7 +3,6 @@ package gui4s.android.kit.widgets
 import gui4s.core.widget.library.*
 import gui4s.android.kit.effects.*
 import gui4s.core.widget.handle.HandlesEventF
-import gui4s.desktop.widget.library.defaultMergeStates
 import scala.reflect.Typeable
 
 def simpleTransitiveStatefulWidget[
@@ -26,12 +25,12 @@ def simpleTransitiveStatefulWidget[
     stateAsFree = _ => None.pure,
     eventHandler = eventHandler,
     body = body,
-    mergeStates = defaultMergeStates
+    mergeStates = Place.defaultMergeStates
   )
 end simpleTransitiveStatefulWidget
 
 def transitiveStatefulWidget[
-  State : Typeable,
+  State,
   TransitiveEvent,
   OwnEvent
 ](

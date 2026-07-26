@@ -9,6 +9,7 @@ import gui4s.android.kit.effects.PlacementEffect.given
 import gui4s.android.kit.effects.Situated.given
 import gui4s.core.kit.effects.PlacementEffect as GenericPlacementEffect
 import gui4s.core.widget.Path
+import gui4s.core.widget.library.MergeStates
 import org.jetbrains.skia.shaper.Shaper
 
 import scala.reflect.Typeable
@@ -79,4 +80,20 @@ object Place:
       res <- GenericPlacementEffect.liftF(ME.raiseError[Situated[Value]](error(path)))
     yield res  
   end raiseError
+
+  def defaultMergeStates[State: {Eq, Typeable}]: MergeStates[Place, State] =
+    MergeStates.default(
+      [T] => (mistypedValue: Any) => raiseError[Throwable, T](
+        (path: Path) => new Exception("Error in stateful typechecking at " + path.toString + " with value [" + mistypedValue.toString + "]")
+      ),
+    )
+  end defaultMergeStates
+
+  def mergeStatesWithConstInitialState[State: Typeable]: MergeStates[Place, State] =
+    MergeStates.withConstInitialState(
+      [T] => (mistypedValue: Any) => raiseError[Throwable, T](
+        (path: Path) => new Exception("Error in stateful typechecking at " + path.toString + " with value [" + mistypedValue.toString + "]")
+      ),
+    )
+  end mergeStatesWithConstInitialState
 end Place

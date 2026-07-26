@@ -2,7 +2,6 @@ package gui4s.core.widget.library
 
 import scala.reflect.Typeable
 import catnip.BiMonad
-import cats.Eq
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.WithContext
 import gui4s.core.widget.library.decorator.Decorator
@@ -15,7 +14,7 @@ import gui4s.core.widget.library.decorator.Decorator
  * @param resource Эффект, создающий ресурс
  * @returns Виджет с контекстом ресурса(пока ресурс не закончил инициализацию, будет передано None). С момента, как передано Some, всегда будет передано Some
  */
-type ResourceWidget[Widget, Resource[_]] = [T : {Eq, Typeable}] => (name : String, resource : Resource[T]) => WithContext[Widget, Option[T]]
+type ResourceWidget[Widget, Resource[_]] = [T : Typeable] => (name : String, resource : Resource[T]) => WithContext[Widget, Option[T]]
 
 @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
 given destructableIsTypeable[T: Typeable, IO: Typeable]: Typeable[(T, IO)] = x => x match {
@@ -47,7 +46,7 @@ def destructibleResourceWidget[
   IO[_],
   Event,
 ](
-  transitiveStatefulWidget: [State : {Eq, Typeable}] => (
+  transitiveStatefulWidget: [State : Typeable] => (
     name : String,
     initialState : Option[(State, Destruction)],
     eventHandler : HandlesEventF[Option[(State, Destruction)], List[(State, Destruction)], Update[Event, *]],
@@ -57,7 +56,7 @@ def destructibleResourceWidget[
   doubleAllocError : [T] => () => Update[Event, T],
   destructorWidget : [Event] => Destruction => Decorator[Widget[Event]]
 ) : ResourceWidget[Widget[Event], [T] =>> IO[(T, Destruction)]] =
-  [Value : {Eq, Typeable}] => (name, resource) =>
+  [Value : Typeable] => (name, resource) =>
     (widget : Option[Value] => Widget[Event]) =>
       transitiveStatefulWidget[Value](
         name = name,
@@ -94,7 +93,7 @@ def initializeResourceWidget[
   IO[_],
   Event,
 ](
-  transitiveStatefulWidget: [State : {Eq, Typeable}] => (
+  transitiveStatefulWidget: [State : Typeable] => (
     name : String,
     initialState : Option[State],
     eventHandler : HandlesEventF[Option[State], List[State], Update[Event, *]],
@@ -103,7 +102,7 @@ def initializeResourceWidget[
   launchedEvent : [TaskEvent : Typeable] => (name : String, child : Widget[Event], task : IO[TaskEvent]) => Widget[Either[TaskEvent, Event]],
   doubleAllocError : [T] => () => Update[Event, T],
 ) : ResourceWidget[Widget[Event], IO] =
-  [Value : {Eq, Typeable}] => (name, resource) =>
+  [Value : Typeable] => (name, resource) =>
     (widget : Option[Value] => Widget[Event]) =>
       transitiveStatefulWidget[Value](
         name = name,
@@ -118,6 +117,6 @@ def initializeResourceWidget[
             "effect_launcher",
             widget(state),
             resource
-          ),
+          )
       )
 end initializeResourceWidget

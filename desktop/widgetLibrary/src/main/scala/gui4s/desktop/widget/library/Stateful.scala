@@ -65,7 +65,6 @@ def stateful[
     Place,
     Widget[ChildUpdate, Place, Draw, RecompositionReaction]
   ],
-  typeCheckState : [T] => (Any, StatefulState[State] => Option[Place[T]]) => Option[Place[T]],
   liftUpdate : [T] => ChildUpdate[T] => Update[(ChildEvent, T)],
   addNameToUpdatePath : String => Update ~> Update,
   addNameToPlacePath : String => Place ~> Place,
@@ -155,10 +154,9 @@ def stateful[
         StatefulState[State],
         RecompositionReaction
       ](
-        typeCheckState = typeCheckState,
-        mergeStates = (savedState, newState) =>
+        mergeStates = (savedStateAny, newState) =>
           mergeStates(
-            savedState,
+            savedStateAny,
             newState.stateBehaviour.state,
             newStState =>
               widgetsAreMergeable.mergeUpdatedAndRerenderedWidgets(
@@ -183,11 +181,3 @@ def stateful[
     )
   )
 end stateful
-
-def defaultMergeStates[Place[_], State : Eq as EQ] : MergeStates[Place, State] =
-  [T] => (oldState, newState, consumer) =>
-    if EQ.eqv(oldState.initialState, newState.initialState) then
-      Some(consumer(oldState)) // TODO Это какое-то тонкое место, надо проверить, что оно работает как ожидатся
-    else
-      None
-end defaultMergeStates

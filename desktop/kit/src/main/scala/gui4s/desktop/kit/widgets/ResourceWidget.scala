@@ -32,23 +32,24 @@ object ResourceWidget:
           IO,
           Event
         ](
-          transitiveStatefulWidget = [State] => (
+          transitiveStatefulWidget = [State : Typeable] => (
             name,
             initialState,
             eventHandler,
             body
           ) =>
-            given Eq[Option[(State, RecompositionReaction)]] = ???
-            simpleTransitiveStatefulWidget[//TODO add custom error raising merge
+            transitiveStatefulWidget[
               Option[(State, RecompositionReaction)],
               Event,
               (State, RecompositionReaction)
             ](
               name,
-              initialState,
+              initialState.pure,
+              _ => None.pure,
               (state, events) =>
                 eventHandler(state, events).map(_.some),
               body,
+              Place.mergeStatesWithConstInitialState
             ),
           destructorWidget = [_] => destructor =>
             destructorWidget(name + "_destructor", destructor),

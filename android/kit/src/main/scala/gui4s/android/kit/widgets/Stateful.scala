@@ -4,7 +4,6 @@ import catnip.syntax.all.*
 import cats.Eq
 import gui4s.core.layout.Sized
 import gui4s.core.layout.Sized.given
-import gui4s.core.widget.{Path, StatefulState}
 import gui4s.core.widget.handle.HandlesEventF
 import gui4s.core.widget.library.*
 import gui4s.android.kit.effects.*
@@ -34,12 +33,12 @@ def simpleStatefulWidget[
     stateAsFree = _ => None.pure,
     eventHandler = eventHandler,
     body = body,
-    mergeStates = defaultMergeStates
+    mergeStates = Place.defaultMergeStates
   )
 end simpleStatefulWidget
 
 def statefulWidget[
-  State : Typeable,
+  State,
   Event,
   ChildEvent
 ](
@@ -62,9 +61,6 @@ def statefulWidget[
     widgetsAreMergeable = widgetsCanUpdateStateFromTheOldOnes(
       widgetMergesWithOldState,
       widgetHasInnerStates
-    ),
-    typeCheckState = Place.typecheck[StatefulState[State]](
-      (valueToTypeCheck : Any, path : Path) =>  new Exception("Error in stateful typechecking at " + path.toString + " with value [" + valueToTypeCheck.toString + "]")
     ),
     liftUpdate = Update.catchEvents[ChildEvent, Event],
     addNameToPlacePath = Place.addNameToPath,
