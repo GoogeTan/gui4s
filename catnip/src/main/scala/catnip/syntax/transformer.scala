@@ -139,7 +139,7 @@ object transformer:
 
   given optionTransformerInstance : InnerTransform[OptionTransformer, Option] with MonadTransformer[OptionTransformer] with
     override def monadInstance[IO[_] : Monad]: Monad[OptionTransformer[IO, *]] =
-      summon
+      OptionT.catsDataMonadForOptionT
     end monadInstance
 
     override def liftK[G[_] : Monad]: G ~> OptionT[G, *] = OptionT.liftK
