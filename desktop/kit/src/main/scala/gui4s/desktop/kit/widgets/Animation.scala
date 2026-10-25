@@ -4,6 +4,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 
 import cats.*
+import cats.syntax.all.*
 import cats.data.NonEmptyList
 import cats.effect.*
 
@@ -23,7 +24,6 @@ end loopEach
 def animationWidget[
   AnimatedValue : Eq
 ] : AnimationWidget[DesktopWidget, AnimatedValue, Duration] =
-  val stateful = transitiveStatefulWidget
   gui4s.core.widget.library.animation.animationWidget[
     DesktopWidget,
     Duration,
@@ -40,12 +40,12 @@ def animationWidget[
         body,
         mergeStates
       ) =>
-        stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
+        transitiveStatefulWidget[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
           name,
-          initialState,
+          initialState.pure,
+          _ => None.pure,
           (state, events) => handleEvents(state, events).map(Some(_)),
           body,
-          _ => RecompositionReaction.empty,
           mergeStates
         ),
     currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),

@@ -1,38 +1,54 @@
 package gui4s.android.kit.widgets
 
-import cats.effect.IO
-import cats.*
-import cats.effect.std.Supervisor
-import cats.effect.*
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Update.given
-import gui4s.android.kit.widgets.decorator.LaunchedEvent
+import gui4s.android.kit.widgets.decorator.{LaunchedEvent, destructorWidget}
 import gui4s.core.widget.library.{WithContext, destructibleResourceWidget as genericResourceWidget}
 
 import scala.reflect.Typeable
 
 trait ResourceWidget:
-  def apply[T : Typeable, Event](
-                                  name : String, init : Resource[IO, T]
-                                ) : WithContext[AndroidWidget[Event], Option[T]]
+  def apply[T : {Eq, Typeable}, Event](
+    name : String, init : Resource[IO, T]
+  ) : WithContext[AndroidWidget[Event], Option[T]]
 end ResourceWidget
 
 object ResourceWidget:
   def apply(
-              supervisor : Supervisor[IO],
-              raiseExternalEvent : DownEvent => IO[Unit],
-             ) : ResourceWidget =
+    supervisor : Supervisor[IO],
+    raiseExternalEvent : DownEvent => IO[Unit],
+  ) : ResourceWidget =
     new ResourceWidget:
-      override def apply[T : Typeable, Event](name: String, init: Resource[IO, T]) : WithContext[AndroidWidget[Event], Option[T]] =
+      override def apply[T : {Eq, Typeable}, Event](name: String, init: Resource[IO, T]) : WithContext[AndroidWidget[Event], Option[T]] =
         body => genericResourceWidget[
           AndroidWidget,
-          Update[*, *],
+          Update,
           Place,
           RecompositionReaction,
           IO,
           Event
         ](
-          transitiveStatefulWidget = transitiveStatefulWidget,
+          transitiveStatefulWidget = [State : Typeable] => (
+            name,
+            initialState,
+            eventHandler,
+            body
+          ) =>
+            transitiveStatefulWidget[
+              Option[(State, RecompositionReaction)],
+              Event,
+              (State, RecompositionReaction)
+            ](
+              name,
+              initialState.pure,
+              _ => None.pure,
+              (state, events) =>
+                eventHandler(state, events).map(_.some),
+              body,
+              Place.mergeStatesWithConstInitialState
+            ),
+          destructorWidget = [_] => destructor =>
+            destructorWidget(name + "_destructor", destructor),
           launchedEvent =
             [TaskEvent : Typeable as TET] => (name : String, child : AndroidWidget[Event], task : IO[TaskEvent]) =>
               LaunchedEvent[Either[TaskEvent, Event], Unit]( // TODO remove direct dependency
@@ -48,13 +64,12 @@ object ResourceWidget:
                 task.map(Left(_))
               ),
           doubleAllocError = [T] => () => Update.raiseError(path => new Exception("Double resource alloc at " + path.toString)),
-          emptyDesctructor = RecompositionReaction.empty
         )(name, init.allocated)(body)
       end apply
     end new
   end apply
 
-  def apply(eventBus : cats.effect.std.QueueSink[IO, DownEvent]) : Init[ResourceWidget] = 
+  def apply(eventBus : QueueSink[IO, DownEvent]) : Init[ResourceWidget] =
     Init.evalResource(
       Supervisor[IO].map(apply(_, eventBus.offer))
     )

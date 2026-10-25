@@ -8,10 +8,9 @@ def statefulStateHandlesEvents[
   Update[_] : Functor,
   State,
   Draw,
-  Event,
-  Destructor
+  Event
 ] : HandlesEventF[
-  StatefulBehaviour[State, Draw, HandlesEventF[State, Event, Update], Destructor],
+  StatefulBehaviour[State, Draw, HandlesEventF[State, Event, Update]],
   Event,
   Update,
 ] =

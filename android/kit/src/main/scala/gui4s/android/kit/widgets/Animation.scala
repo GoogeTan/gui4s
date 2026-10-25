@@ -1,15 +1,17 @@
 package gui4s.android.kit.widgets
 
-import cats.effect.IO
+import scala.concurrent.duration.{Duration, FiniteDuration}
+
 import cats.*
 import cats.data.NonEmptyList
 import cats.effect.*
+import cats.syntax.all.*
+
 import gui4s.core.widget.library.animation.*
+
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.widgets.decorator.eventCatcher
-
-import scala.concurrent.duration.{Duration, FiniteDuration}
 
 def loopEach(
             calc : IO[Unit],
@@ -22,7 +24,6 @@ end loopEach
 def animationWidget[
   AnimatedValue : Eq
 ] : AnimationWidget[AndroidWidget, AnimatedValue, Duration] =
-  val stateful = transitiveStatefulWidget
   gui4s.core.widget.library.animation.animationWidget[
     AndroidWidget,
     Duration,
@@ -39,12 +40,12 @@ def animationWidget[
         body,
         mergeStates
       ) =>
-        stateful[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
+        transitiveStatefulWidget[AnimationWidgetState[AnimatedValue, Duration], Event, Duration](
           name,
-          initialState,
-          (a, b) => handleEvents(a, b).map(Some(_)),
+          initialState.pure,
+          _ => None.pure,
+          (state, events) => handleEvents(state, events).map(_.pure[Option]),
           body,
-          _ => RecompositionReaction.empty,
           mergeStates
         ),
     currentTime = [T] => callback => PlacementEffect.liftF(Clock[IO].monotonic).flatMap(callback),
@@ -61,4 +62,3 @@ def animationWidget[
       )
   )
 end animationWidget
-

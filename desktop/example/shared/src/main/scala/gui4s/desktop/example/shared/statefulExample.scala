@@ -8,17 +8,21 @@ import cats.syntax.all.*
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.kit.widgets.TextWidget
 import gui4s.desktop.kit.widgets.decorator.*
-import gui4s.desktop.kit.widgets.statefulWidget
+import gui4s.desktop.kit.widgets.simpleStatefulWidget
 import gui4s.desktop.skija.*
 
 def statefulExample(
   text: TextWidget,
   typeface : Typeface,
 )(using ClickCatcher) : DesktopWidget[Nothing] =
-  statefulWidget(
+  simpleStatefulWidget(
     name = "state",
     initialState = 0,
-    eventHandler = (state, events) => (state + events.length).pure,
+    eventHandler = (state, events) => 
+      if events.isEmpty then
+        (state + events.length).some.pure
+      else
+        None.pure,
     body = state =>
       text(
         "test text " + state.toString,

@@ -64,7 +64,7 @@ def scrollWidget[ScrollEvent](
                                animationConfig: Animation[Float, Duration],
                                scrollSpeed : Float
                              ): AndroidWidget[Event] =
-      transitiveStatefulWidget[Float, Event, RichInnerEvent[ScrollEvent]](
+      simpleTransitiveStatefulWidget[Float, Event, RichInnerEvent[ScrollEvent]](
         name = stateName,
         initialState = 0f,
         eventHandler = (state, events) =>
@@ -78,7 +78,7 @@ def scrollWidget[ScrollEvent](
                 direction,
                 scrollSpeed
               )
-          } : Update[Event, Float]),
+          } : Update[Event, Float]).map(_.some),
         body = count =>
           animation(
             name = "scroll_animation",

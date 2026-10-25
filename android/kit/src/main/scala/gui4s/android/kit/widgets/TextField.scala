@@ -6,7 +6,6 @@ import cats.*
 import cats.syntax.all.*
 import gui4s.core.layout.Sized
 import gui4s.core.widget.Path
-import gui4s.android.kit.effects.Update.given
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.widgets.*
 import gui4s.android.skia.paragraph.*
@@ -24,7 +23,13 @@ def textField[
   text : String
 ) : AndroidWidget[Event] =
   gui4s.core.widget.library.textfield.textField(
-    statefulWidget,
+    (name : String, initialState : TextFieldState, eventHandler : (TextFieldState, List[TextFieldEvent]) => Update[Event, TextFieldState], body : TextFieldState => AndroidWidget[TextFieldEvent]) =>
+      simpleStatefulWidget(
+        name,
+        initialState,
+        (state : TextFieldState, events : List[TextFieldEvent]) => eventHandler(state, events).map(Some(_)),
+        body
+      ),
     body,
     Update.currentPath,
     copyTextToClipboard

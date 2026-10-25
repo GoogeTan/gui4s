@@ -35,3 +35,26 @@ final def runWidgetForTheFirstTime[
     runPlace,
   )
 end runWidgetForTheFirstTime
+
+def processEvent[
+  IO[_] : Monad,
+  Update[_] : Monad,
+  Place[_],
+  Draw,
+  RecompositionReaction,
+](
+  runPlace : Place ~> IO,
+  runRecomposition : RecompositionReaction => IO[Unit],
+  widget : Widget[Update, Place, Draw, RecompositionReaction],
+): Update[IO[Widget[Update, Place, Draw, RecompositionReaction]]] =
+  gui4s.core.widget.library.processEvent(
+    Path(Nil),
+    runRecomposition,
+    widgetAsFree,
+    widgetHandlesEvent,
+    widgetReactsOnRecomposition,
+    widgetHasInnerStates,
+    runPlace,
+    widget
+  )
+end processEvent

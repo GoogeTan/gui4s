@@ -1,12 +1,14 @@
 package gui4s.core.widget
 package recomposition
 
+import cats.Eq
+
 import scala.reflect.Typeable
 
 @SuppressWarnings(Array("org.wartremover.warts.Any"))
 def launchedEffectReactsOnRecomposition[
   Recomposition,
-  Key : {Typeable, Equiv as eq},
+  Key : {Typeable, Eq as eq},
 ](
   emptyRecomposition : Recomposition,
   keysTypeMismatchError : Any => Recomposition,
@@ -14,7 +16,7 @@ def launchedEffectReactsOnRecomposition[
   (self, pathToParent, states) =>
     states.get(self.name).map(_.state) match
       case Some(key : Key) =>
-        if eq.equiv(key, self.key) then
+        if eq.eqv(key, self.key) then
           emptyRecomposition
         else
           self.taskOnChange(pathToParent)

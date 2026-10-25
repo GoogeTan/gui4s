@@ -4,8 +4,7 @@ package draw
 def statefulStateDrawsIntoWidget[
   State,
   Widget,
-  EventHandler,
-  Destructor
-] : Drawable[StatefulBehaviour[State, State => Widget, EventHandler, Destructor], Widget] =
+  EventHandler
+] : Drawable[StatefulBehaviour[State, State => Widget, EventHandler], Widget] =
   self => self.draw(self.state.currentState)
 end statefulStateDrawsIntoWidget

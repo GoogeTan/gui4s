@@ -23,7 +23,7 @@ def launchedEffect[
   Place[_] : Functor as PF,
   Draw,
   RecompositionReaction : Monoid as M,
-  Key : {Typeable as KT, Equiv}
+  Key : {Typeable as KT, Eq}
 ](
   keyTypeError : [T] => Any => Place[T],
   keysTypeMismatchError : Any => RecompositionReaction,

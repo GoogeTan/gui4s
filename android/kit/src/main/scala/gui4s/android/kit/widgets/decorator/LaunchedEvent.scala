@@ -11,18 +11,18 @@ import gui4s.core.widget.library.{LaunchedEffectWidget, launchedEvent as generic
 import scala.reflect.Typeable
 
 trait LaunchedEvent:
-  def apply[Key : Typeable, Event](
-                                     name : String,
-                                     key: Key,
-                                     task : IO[Event],
-                                     body : AndroidWidget[Event]
-                                   ) : AndroidWidget[Event]
+  def apply[Key : {Eq, Typeable}, Event](
+                                           name : String,
+                                           key: Key,
+                                           task : IO[Event],
+                                           body : AndroidWidget[Event]
+                                         ) : AndroidWidget[Event]
 end LaunchedEvent
 
 object LaunchedEvent:
   def apply[
     Event,
-    Key : Typeable
+    Key : {Eq, Typeable}
   ](
     supervisor: Supervisor[IO],
     raiseExternalEvent : DownEvent => IO[Unit],
