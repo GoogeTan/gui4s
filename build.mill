@@ -9,7 +9,6 @@ import mill.*
 import mill.scalalib.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import mill.scalalib.SbtModule
 
 object `package` extends Module:
   object versions:

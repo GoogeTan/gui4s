@@ -4,16 +4,15 @@ import build.*
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import mill.scalalib.SbtModule
 
-object `package` extends SbtModule with Gui4sPackage:
+object `package` extends Gui4sPackage:
   def pomDescription = "widget"
 
   def mvnDeps = super.mvnDeps() ++ build.dependencies.cats
 
   def moduleDeps = super.moduleDeps ++ Seq(build.catnip)
 
-  object test extends SbtTests with TestModule.ScalaTest:
+  object test extends ScalaTests with TestModule.ScalaTest:
     def mvnDeps = super.mvnDeps() ++ build.dependencies.test
     def testSandboxWorkingDir = false
   end test

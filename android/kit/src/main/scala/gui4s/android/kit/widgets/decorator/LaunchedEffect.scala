@@ -1,5 +1,6 @@
 package gui4s.android.kit.widgets.decorator
 
+import cats.effect.*
 import gui4s.core.widget.Path
 import gui4s.android.kit.effects.*
 import gui4s.android.kit.effects.Place.given

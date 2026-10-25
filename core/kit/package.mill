@@ -4,10 +4,9 @@ import build.*
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import mill.scalalib.SbtModule
 import build.dependencies.catsEffect
 
-object `package` extends SbtModule with Gui4sPackage:
+object `package` extends Gui4sPackage:
   override def artifactName = "core-kit"
 
   def pomDescription = "core-kit"

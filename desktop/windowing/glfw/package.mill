@@ -5,7 +5,6 @@ import coursier.Repository
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import mill.scalalib.SbtModule
 import build.dependencies.catsEffect
 import com.goyeau.mill.scalafix.ScalafixModule
 

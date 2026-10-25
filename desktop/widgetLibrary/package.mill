@@ -4,7 +4,6 @@ import build.*
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import mill.scalalib.SbtModule
 import com.goyeau.mill.scalafix.ScalafixModule
 
 object `package` extends Gui4sPackage:
