@@ -108,7 +108,7 @@ def linearContainer[
           mainAxisStrategy,
           PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
         ),
-        someMap = _.mapWithIndex:
+        placeItem = _.mapWithIndex:
           case ((measuredWidget, point), index) =>
             measuredWidget.map(widget => (widget, new Point3d(point, N.fromInt(index)))),
         sizeOfItem = _.size

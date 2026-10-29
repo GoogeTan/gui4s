@@ -54,7 +54,7 @@ def minSizeWidget[
     ContainerStrategy.combine(
       measurementStrategy = child => getBounds.flatMap(bounds => child.map(childPlaced => (childPlaced, bounds))),
       placementStrategy = ensureMinimalSize,
-      someMap = {
+      placeItem = {
         case ((widget, bounds), point) => makeMeta(widget, bounds, point)
       },
       sizeOfItem = (item, _) => itemSize(item)

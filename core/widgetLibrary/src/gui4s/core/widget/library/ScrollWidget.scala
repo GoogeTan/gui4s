@@ -56,7 +56,7 @@ def scrollWidget[
       ContainerStrategy.combine(
         measurementStrategy = withInfiniteBounds(_),
         placementStrategy = placementStrategy,
-        someMap = {
+        placeItem = {
           case (Measured(widget, size, bounds), point: Point) =>
             Measured((widget, combinePoints(point, scrollAmount)), size, bounds)
         },

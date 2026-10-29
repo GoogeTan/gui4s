@@ -50,7 +50,7 @@ def stackContainer[
     ContainerStrategy.combine(
       measurementStrategy = MeasurementStrategy.independentMeasurementStrategy,
       placementStrategy = xyPlacementStrategy,
-      someMap = _.mapWithIndex:
+      placeItem = _.mapWithIndex:
         case ((measuredWidget, point), index) =>
           Measured(
             (measuredWidget.value, new Point3d(point, MUN.fromInt(index))),

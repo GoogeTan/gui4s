@@ -83,7 +83,7 @@ def layersWidget[
           masterPlacementStrategy,
           background.size
         ),
-        someMap = _.mapWithIndex:
+        placeItem = _.mapWithIndex:
           case ((measuredWidget, point), index) =>
             Measured(
               (

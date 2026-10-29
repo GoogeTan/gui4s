@@ -85,7 +85,7 @@ def weightedLinearContainer[
           mainAxisStrategy,
           PlacementStrategy.PlaceListIndependently(additionalAxisStrategy)
         ),
-        someMap = _.mapWithIndex:
+        placeItem = _.mapWithIndex:
           case ((measuredWidget, point), index) =>
             (
               measuredWidget.value,
