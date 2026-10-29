@@ -35,7 +35,7 @@ def containerWidget[
     children,
     freeChildren =>
       PlacementEffect.getBounds.flatMap(bounds =>
-        placementStrategy(freeChildren.map(_.map(new Measured(_, bounds))), bounds)
+        placementStrategy(freeChildren.map(measure(PlacementEffect.getBounds, _)), bounds)
       )
   )
 end containerWidget

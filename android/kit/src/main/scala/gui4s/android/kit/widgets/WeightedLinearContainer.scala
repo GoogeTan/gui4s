@@ -7,7 +7,7 @@ import gui4s.android.kit.effects.Draw.drawAt
 import gui4s.android.kit.effects.Place.given
 import gui4s.core.geometry.{Axis, InfinityOr, Point3d, Rect}
 import gui4s.core.layout.{Measured, Weighted}
-import gui4s.core.widget.library.{WeightedLinearContainer, measureIncrementally}
+import gui4s.core.widget.library.{WeightedLinearContainer, measure, measureIncrementally}
 import gui4s.desktop.widget.library.*
 
 def weightedLinearContainer[
@@ -75,7 +75,7 @@ def weightedLinearContainer[
         layout = freeChildren =>
           for
             bounds <- PlacementEffect.getBounds
-            placed <- placement(freeChildren.map(_.map(_.map(new Measured(_, bounds)))), bounds)
+            placed <- placement(freeChildren.map(_.map(measure(PlacementEffect.getBounds, _))), bounds)
           yield placed
             .mapValue(
               _.map {

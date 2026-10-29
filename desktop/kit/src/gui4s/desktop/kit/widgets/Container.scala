@@ -50,7 +50,7 @@ def containerWidget[
     currentChildren =>
       for
         bounds <- PlacementEffect.getBounds
-        measuredChildren = currentChildren.map(_.map(new Measured(_, bounds)))
+        measuredChildren = currentChildren.map(measure(PlacementEffect.getBounds, _))
         res <- placementStrategy(measuredChildren, bounds)
       yield res
   )

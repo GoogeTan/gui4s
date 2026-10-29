@@ -84,7 +84,7 @@ def weightedLinearContainer[
         layout = freeChildren =>
           for
             bounds <- PlacementEffect.getBounds
-            placed <- placement(freeChildren.map(_.map(_.map(new Measured(_, bounds)))), bounds)
+            placed <- placement(freeChildren.map(_.map(measure(PlacementEffect.getBounds, _))), bounds)
           yield placed
             .mapValue(
               _.map {
