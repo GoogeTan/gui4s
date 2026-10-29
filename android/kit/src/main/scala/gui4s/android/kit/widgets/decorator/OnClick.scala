@@ -39,8 +39,8 @@ def clickCatcher(
           Update.emitEvents[Event](List(eventOnClick)).as(true),
         isMouseIn = (shape, mousePosition) =>
           Update.getCornerCoordinates.map(
-            coordinatesOfTopLeftCornet =>
-              RectAtPoint2d(shape.size, coordinatesOfTopLeftCornet.projectToXY)
+            coordinatesOfTopLeftCorner =>
+              RectAtPoint2d(shape.size, coordinatesOfTopLeftCorner.projectToXY)
                 .containsPoint(mousePosition)
           )
       )
