@@ -78,6 +78,6 @@ extension[MeasurementUnit : Numeric](value : Rect[MeasurementUnit])
   end unary_-
 
   def -(another : Rect[MeasurementUnit]) : Rect[MeasurementUnit] =
-    (-value) + another
+    value + (-another)
   end -
 end extension
