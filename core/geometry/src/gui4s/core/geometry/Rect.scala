@@ -4,11 +4,10 @@ import scala.math.Numeric.Implicits.*
 import scala.math.Ordered.orderingToOrdered
 
 import cats.*
-import cats.derived.*
 import cats.syntax.all.*
 
 @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : MeasurementUnit) derives Eq:
+final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : MeasurementUnit):
   def this(mainAxis : Axis, mainAxisLength : MeasurementUnit, additionalAxisLength : MeasurementUnit) =
     this(
       if mainAxis === Axis.Horizontal then mainAxisLength else additionalAxisLength, 
@@ -68,10 +67,15 @@ final case class Rect[+MeasurementUnit](width : MeasurementUnit, height : Measur
   end withLengthAlong
 end Rect
 
+object Rect:
+  given [MeasurementUnit : Eq] : Eq[Rect[MeasurementUnit]] =
+    (x, y) => x.width === y.width && x.height === y.height
+end Rect
+
 extension[MeasurementUnit : Numeric](value : Rect[MeasurementUnit])
-  def +(another : Rect[MeasurementUnit]) : Rect[MeasurementUnit] =
+  def add(another : Rect[MeasurementUnit]) : Rect[MeasurementUnit] =
     Rect(value.width + another.width, value.height + another.height)
-  end +
+  end add
 
   def unary_- : Rect[MeasurementUnit] =
     Rect(-value.width, -value.height)

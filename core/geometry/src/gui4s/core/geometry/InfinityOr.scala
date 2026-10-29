@@ -1,9 +1,9 @@
 package gui4s.core.geometry
 
 import cats.Eq
-import cats.derived.*
+import cats.syntax.all.*
 
-final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]) derives Eq:
+final case class InfinityOr[+MeasurementUnit](value: Option[MeasurementUnit]):
   def this(value : MeasurementUnit) =
     this(Some(value))
   end this
@@ -67,4 +67,7 @@ object InfinityOr:
       value.value
     end unapply
   end FiniteValue
+
+  given [MeasurementUnit : Eq] : Eq[InfinityOr[MeasurementUnit]] =
+    (x, y) => x.value === y.value
 end InfinityOr
