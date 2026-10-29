@@ -163,9 +163,13 @@ object Update:
     )
   end handleEnvironmentalEvents
 
-  def handleEnvironmentalEvents_[Event](consumed: DownEvent => Update[Event, Boolean]): Update[Event, Unit] =
+  def handleEnvironmentalEvents_[Event](consumed: => (DownEvent => Update[Event, Boolean])): Update[Event, Unit] =
     updateEnvironmentalEventsM_(events =>
-      events.filterA(event => consumed(event).map(!_))
+      if events.isEmpty then
+        Nil.pure[UpdateC[Event]]
+      else
+        val c = consumed
+        events.filterA(event => c(event).map(!_))
     )
   end handleEnvironmentalEvents_
 
