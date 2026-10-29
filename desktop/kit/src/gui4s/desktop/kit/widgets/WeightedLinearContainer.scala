@@ -58,7 +58,7 @@ def weightedLinearContainer[
           },
         positionedChildHandlesEvent = {
           case Measured((widget, weight, position), _, _) =>
-            Update.withCornerCoordinates(widgetHandlesEvent(widget), _ + position)
+            Update.withCornerCoordinates(widgetHandlesEvent(widget), _.add(position))
               .map(
                 _.map(
                   Weighted(_, weight)

@@ -42,7 +42,7 @@ def lightScrollWidget[Event](
           bounds.height.value.fold(childSize.height)(childSize.height.min(_)),
         )
       ).pure,
-    combinePoints = _ + _
+    combinePoints = _.add(_)
   )
 end lightScrollWidget
 

@@ -17,14 +17,6 @@ final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
     Point2d(x, y)
   end projectToXY
 
-  def +[NewMeasurementUnit >: MeasurementUnit](using S : Numeric[NewMeasurementUnit])(that : Point3d[NewMeasurementUnit]) : Point3d[NewMeasurementUnit] =
-    Point3d(S.plus(x, that.x), S.plus(y, that.y), S.plus(z, that.z))
-  end +
-
-  def -[NewMeasurementUnit >: MeasurementUnit : Numeric](that : Point3d[NewMeasurementUnit]) : Point3d[NewMeasurementUnit] =
-    this + (-that)
-  end -
-
   def unary_-[NewMeasurementUnit >: MeasurementUnit](using N : Numeric[NewMeasurementUnit]): Point3d[NewMeasurementUnit] =
     Point3d(N.negate(x), N.negate(y), N.negate(z))
   end unary_-
@@ -37,6 +29,12 @@ final case class Point3d[+MeasurementUnit](x : MeasurementUnit, y : MeasurementU
 end Point3d
 
 object Point3d:
+  extension(self : Point3d[Float])
+    def add(that: Point3d[Float]): Point3d[Float] =
+      Point3d(self.x + that.x, self.y + that.y, self.z + that.z)
+    end add
+  end extension
+
   def Zero[MeasurementUnit : Numeric as N] : Point3d[MeasurementUnit] =
     Point3d(N.zero, N.zero, N.zero)
   end Zero

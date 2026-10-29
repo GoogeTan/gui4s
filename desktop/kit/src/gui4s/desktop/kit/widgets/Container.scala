@@ -84,7 +84,7 @@ def containerWidget2[
     WidgetAndItsPositionInContainer
   ](
     positionedChildHandlesEvent = { case Measured((widget, position), _, _) =>
-      Update.withCornerCoordinates(widgetHandlesEvent(widget), _ + position)
+      Update.withCornerCoordinates(widgetHandlesEvent(widget), _.add(position))
     },
     updateContainerOrdered = children => updateFunction =>
       //Обновляются сначала виджеты, лежащие выше.
