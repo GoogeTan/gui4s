@@ -2,9 +2,10 @@ package gui4s.android.kit.widgets
 
 import catnip.syntax.all.given
 import cats.Id
-import gui4s.core.geometry.Axis
+import gui4s.core.geometry.Point3d
 import gui4s.core.kit.ContainerPlacementError
-import gui4s.android.kit.effects.{LinearContainerPlacementStrategy, OneElementLinearContainerPlacementStrategy}
+import gui4s.core.layout.{PlacementStrategy, Sized}
+import gui4s.android.kit.effects.*
 
 def boxWidget[Event](
                       child : AndroidWidget[Event],
@@ -21,10 +22,16 @@ def boxWidget[Event](
                       horizontalPlacementStrategy : OneElementLinearContainerPlacementStrategy,
                       verticalPlacementStrategy   : OneElementLinearContainerPlacementStrategy
                     ) : AndroidWidget[Event] =
-  linearContainerWidget[Event, Id](
+  val xyPlacement = PlacementStrategy.Zip(horizontalPlacementStrategy, verticalPlacementStrategy)
+  oneElementContainerWidget[Event](
     child,
-    Axis.Vertical,
-    verticalPlacementStrategy,
-    horizontalPlacementStrategy
+    (measuredChildEffect, bounds) =>
+      for
+        measuredChild <- measuredChildEffect
+        placed <- xyPlacement(measuredChild.size, bounds)
+      yield Sized(
+        measuredChild.map((_, new Point3d(placed.value, 0f))),
+        placed.size
+      )
   )
 end boxWidget
