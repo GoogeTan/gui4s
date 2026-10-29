@@ -13,7 +13,7 @@ object `package` extends AndroidLibModule with Gui4sAndroidPublishModule:
   def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq(
     "-Wunused:imports",
     "-Xkind-projector",
-    s"-Yimports:${build.imports.cats},${build.imports.catsEffect},${build.imports.catnip},${build.imports.default}"
+    s"-Yimports:${build.imports.default},${build.imports.cats},${build.imports.catsEffect},${build.imports.catnip}"
   )
 
   override def mvnDeps: T[Seq[Dep]] = build.dependencies.scalaCache

@@ -17,7 +17,7 @@
             android_sdk.accept_license = true;
           };
         };
-        jdk = pkgs.jdk21;
+        jdk = pkgs.jdk25;
         mill = mill-flake.lib.${system}.mkMillFromFile {
             filePath = ./.mill-version;
             hash = {
