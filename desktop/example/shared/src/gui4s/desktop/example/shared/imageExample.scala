@@ -3,7 +3,7 @@ package gui4s.desktop.example.shared
 import catnip.syntax.all.given
 import cats.Eq
 import cats.effect.*
-import io.github.humbleui.skija.BlendMode
+import gui4s.desktop.skija.BlendMode
 import gui4s.core.layout.*
 import gui4s.desktop.kit.effects.*
 import gui4s.desktop.kit.widgets.*

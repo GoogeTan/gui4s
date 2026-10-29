@@ -7,10 +7,10 @@ import catnip.syntax.transformer.given
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
-import io.github.humbleui.skija.svg.SVGDOM
-import io.github.humbleui.skija.svg.SVGLength
-import io.github.humbleui.skija.svg.SVGLengthContext
-import io.github.humbleui.skija.svg.SVGLengthUnit
+import gui4s.desktop.skija.svg.SVGDOM
+import gui4s.desktop.skija.svg.SVGLength
+import gui4s.desktop.skija.svg.SVGLengthContext
+import gui4s.desktop.skija.svg.SVGLengthUnit
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
 import gui4s.desktop.kit.asset.*
@@ -75,7 +75,7 @@ def sizeSVG(dom : SVGDOM) : Place[SVGDOM] =
       val availableWidth = bounds.width.valueOr(Float.PositiveInfinity)
       val availableHeight = bounds.height.valueOr(Float.PositiveInfinity)
       val intrinsic = root.getIntrinsicSize(
-        SVGLengthContext(
+        new SVGLengthContext(
           availableWidth,
           availableHeight
         )

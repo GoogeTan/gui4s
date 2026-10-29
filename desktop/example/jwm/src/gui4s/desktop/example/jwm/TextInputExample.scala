@@ -15,10 +15,9 @@ import gui4s.desktop.kit.widgets.decorator.*
 import gui4s.desktop.skija.{Brush, StrokeOptions}
 import gui4s.desktop.windowing.jwm.UIApp
 import io.github.humbleui.jwm.*
-import io.github.humbleui.skija.{FontMgr, Paint}
-import io.github.humbleui.skija.paragraph.{FontCollection, ParagraphStyle, TextStyle}
+import gui4s.desktop.skija.paragraph.{FontCollection, ParagraphStyle, TextStyle}
+import gui4s.desktop.skija.{FontMgr, Paint}
 import gui4s.desktop.windowing.jwm.{TextInputOuterEvent, textFieldEventCatcher, textFieldEventSource}
-
 
 object TextInputExample extends UIApp:
   override def main(

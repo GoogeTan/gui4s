@@ -2,9 +2,9 @@ package gui4s.desktop.kit
 package effects
 
 import cats.syntax.all.*
-import io.github.humbleui.skija.*
-import io.github.humbleui.types.RRect as SkijaRounedRect
-import io.github.humbleui.types.Rect as SkijaRect
+import gui4s.desktop.skija.*
+import gui4s.desktop.skija.RRect as SkijaRounedRect
+import gui4s.desktop.skija.Rect as SkijaRect
 
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized
@@ -20,7 +20,7 @@ end extension
 
 object Shape:
   val round : Shape = (rect : Rect[Float]) =>
-    Sized(Path.makeOval(SkijaRect(0f, 0f, rect.width, rect.height)), rect)
+    Sized(Path.makeOval(SkijaRect.makeLTRB(0f, 0f, rect.width, rect.height)), rect)
   end round
 
   def roundedCorners(radius : Float) : Shape =

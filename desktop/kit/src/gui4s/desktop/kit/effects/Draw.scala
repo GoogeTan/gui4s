@@ -4,11 +4,11 @@ package effects
 import cats.*
 import cats.data.ReaderT
 import cats.effect.*
-import io.github.humbleui.skija.*
-import io.github.humbleui.skija.paragraph.*
-import io.github.humbleui.skija.svg.SVGDOM
-import io.github.humbleui.types.Point
-import io.github.humbleui.types.Rect.makeWH
+import gui4s.desktop.skija.*
+import gui4s.desktop.skija.paragraph.*
+import gui4s.desktop.skija.svg.SVGDOM
+import gui4s.desktop.skija.Point
+import gui4s.desktop.skija.Rect.makeWH
 
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.Sized

@@ -1,7 +1,6 @@
 package gui4s.desktop.skija.image
 
 import catnip.resource.SyncResource
-import io.github.humbleui.skija.Image
 
 import gui4s.desktop.skija.Image
 

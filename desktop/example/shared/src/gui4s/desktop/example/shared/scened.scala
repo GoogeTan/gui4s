@@ -5,7 +5,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
-import io.github.humbleui.skija.Font
+import gui4s.desktop.skija.Font
 import gui4s.core.geometry.Rect
 import gui4s.core.layout.OneElementPlacementStrategy
 import gui4s.core.widget.library.decorator.{Decorator, Paddings}

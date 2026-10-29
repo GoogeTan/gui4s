@@ -1,7 +1,7 @@
 package gui4s.desktop.kit.widgets.decorator
 
 import cats.effect.*
-import io.github.humbleui.skija.PaintMode
+import gui4s.desktop.skija.PaintMode
 
 import gui4s.core.layout.Sized
 

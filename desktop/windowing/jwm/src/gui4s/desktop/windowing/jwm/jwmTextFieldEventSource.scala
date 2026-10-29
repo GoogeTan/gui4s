@@ -15,7 +15,7 @@ import gui4s.desktop.kit.effects.{DownEvent, Update, UpdateC}
 import gui4s.desktop.kit.widgets.DesktopWidget
 import gui4s.desktop.kit.widgets.decorator.eventCatcher
 import io.github.humbleui.jwm.{Clipboard, ClipboardFormat, EventKey, EventMouseButton, EventTextInput, Key, KeyModifier, MouseButton, Window}
-import io.github.humbleui.skija.paragraph.Paragraph
+import gui4s.desktop.skija.paragraph.Paragraph
 
 import scala.math.min
 

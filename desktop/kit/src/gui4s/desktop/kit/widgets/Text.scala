@@ -3,9 +3,9 @@ package widgets
 
 import cats.*
 import cats.effect.*
-import io.github.humbleui.skija.Paint
-import io.github.humbleui.skija.paragraph.Paragraph
-import io.github.humbleui.skija.shaper.Shaper
+import gui4s.desktop.skija.Paint
+import gui4s.desktop.skija.paragraph.Paragraph
+import gui4s.desktop.skija.shaper.Shaper
 
 import gui4s.core.layout.*
 
