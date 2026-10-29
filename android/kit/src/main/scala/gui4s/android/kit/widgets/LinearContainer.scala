@@ -1,6 +1,6 @@
 package gui4s.android.kit.widgets
 
-import catnip.syntax.all.given
+import catnip.syntax.all.{*, given}
 import catnip.{Sortable, Zip}
 import cats.*
 import cats.data.*
@@ -20,7 +20,7 @@ def linearContainerWidget[
     Float,
     InfinityOr[Float],
   ](
-    container = containerWidget[Collection, Event],
+    container = containerWidget[Collection, Event](_, _, [T] => _ ?=> traverseOrdered),
     getBounds = PlacementEffect.getBounds,
     withBounds = (rect, effect) => PlacementEffect.withBounds(effect, _ => rect),
     cut = _.minus(_)

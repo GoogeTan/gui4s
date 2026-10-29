@@ -3,6 +3,7 @@ package gui4s.desktop.kit.widgets
 import catnip.Sortable
 import catnip.Zip
 import catnip.syntax.all.given
+import catnip.syntax.all.{*, given}
 import cats.*
 import cats.data.*
 import cats.effect.*
@@ -26,7 +27,7 @@ def linearContainerWidget[
     Float,
     InfinityOr[Float],
   ](
-    container = containerWidget[Collection, Event],
+    container = containerWidget[Collection, Event](_, _, [T] => _ ?=> traverseOrdered),
     getBounds = PlacementEffect.getBounds,
     withBounds = (newBounds, effect) => PlacementEffect.withBounds(effect, _ => newBounds),
     cut = _.minus(_)

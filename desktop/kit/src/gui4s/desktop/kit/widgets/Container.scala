@@ -40,7 +40,8 @@ def containerWidget[
     Bounds,
     Collection,
     Measured[Rect[Float], Bounds, (DesktopPlacedWidget[Event], Point3d[Float])]
-  ]
+  ],
+  traverseOrdered : [T] => Order[T] ?=> TraverseOrdered[UpdateC[Event], Collection, T]
 ) : DesktopWidget[Event] =
   containerWidget2[
     Collection,
@@ -52,7 +53,8 @@ def containerWidget[
         bounds <- PlacementEffect.getBounds
         measuredChildren = currentChildren.map(measure(PlacementEffect.getBounds, _))
         res <- placementStrategy(measuredChildren, bounds)
-      yield res
+      yield res,
+    traverseOrdered
   )
 end containerWidget
 
@@ -68,8 +70,11 @@ def containerWidget2[
     DesktopPlacedWidget[Event],
     Measured[Rect[Float], Bounds, (DesktopPlacedWidget[Event], Point3d[Float])]
   ],
+  traverseOrdered : [T] => Order[T] ?=> TraverseOrdered[UpdateC[Event], Collection, T]
 ) : DesktopWidget[Event] =
   type WidgetAndItsPositionInContainer = Measured[Rect[Float], Bounds, (DesktopPlacedWidget[Event], Point3d[Float])]
+  //TODO rename me
+  given o : Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by(_.value._2.z))
   genericContainer[
     UpdateC[Event],
     Place,
@@ -83,12 +88,7 @@ def containerWidget2[
     },
     updateContainerOrdered = children => updateFunction =>
       //Обновляются сначала виджеты, лежащие выше.
-      given Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by(_.value._2.z))
-      traverseOrdered[
-        UpdateC[Event],
-        Collection,
-        WidgetAndItsPositionInContainer
-      ](children)(updateFunction),
+      traverseOrdered[WidgetAndItsPositionInContainer](using o)(children)(updateFunction),
     drawOrdered = children =>
       // А рисуются вначале виджеты, лежащие ниже.
       given Order[WidgetAndItsPositionInContainer] = Order.by(_.value._2.z)
@@ -119,7 +119,8 @@ def oneElementContainerWidget[Event](
                                     ) : DesktopWidget[Event]  =
   containerWidget[Id, Event](
     child,
-    placementStrategy
+    placementStrategy,
+    [T] => _ ?=> traverseOne
   )
 end oneElementContainerWidget
 
@@ -138,6 +139,7 @@ def listContainerWidget[
 ) : DesktopWidget[Event]  =
   containerWidget[List, Event](
     children,
-    placementStrategy
+    placementStrategy,
+    [T] => _ ?=> traverseOrdered
   )
 end listContainerWidget

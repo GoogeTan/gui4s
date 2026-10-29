@@ -25,7 +25,8 @@ def containerWidget[
     Bounds,
     Collection,
     Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
-  ]
+  ],
+  traverseOrdered : [T] => Order[T] ?=> TraverseOrdered[UpdateC[Event], Collection, T]
 ) : AndroidWidget[Event] =
   given Order[Point3d[Float]] = Order.by(_.z)
   containerWidget2[
@@ -36,7 +37,8 @@ def containerWidget[
     freeChildren =>
       PlacementEffect.getBounds.flatMap(bounds =>
         placementStrategy(freeChildren.map(measure(PlacementEffect.getBounds, _)), bounds)
-      )
+      ),
+    traverseOrdered
   )
 end containerWidget
 
@@ -51,6 +53,7 @@ def containerWidget2[
     AndroidPlacedWidget[Event],
     Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
   ],
+  traverseOrdered : [T] => Order[T] ?=> TraverseOrdered[UpdateC[Event], Collection, T]
 ) : AndroidWidget[Event] =
   type WidgetAndItsPositionInContainer = Measured[Rect[Float], Bounds, (AndroidPlacedWidget[Event], Point3d[Float])]
   genericContainer[
@@ -66,12 +69,8 @@ def containerWidget2[
     },
     updateContainerOrdered = children => updateFunction =>
       //Обновляются сначала виджеты, лежащие выше.
-      given Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by(_.value._2.z))
-      traverseOrdered[
-        UpdateC[Event],
-        Collection,
-        WidgetAndItsPositionInContainer
-      ](children)(updateFunction),
+      given o : Order[WidgetAndItsPositionInContainer] = Order.reverse(Order.by(_.value._2.z))
+      traverseOrdered[WidgetAndItsPositionInContainer](using o)(children)(updateFunction),
     drawOrdered = children =>
       // А рисуются вначале виджеты, лежащие ниже.
       given Order[WidgetAndItsPositionInContainer] = Order.by(_.value._2.z)
@@ -103,7 +102,8 @@ def oneElementContainerWidget[Event](
                                     ) : AndroidWidget[Event]  =
   containerWidget[Id, Event](
     child,
-    placementStrategy
+    placementStrategy,
+    [T] => _ ?=> traverseOne
   )
 end oneElementContainerWidget
 
@@ -122,6 +122,7 @@ def listContainerWidget[
 ) : AndroidWidget[Event]  =
   containerWidget[List, Event](
     children,
-    placementStrategy
+    placementStrategy,
+    [T] => _ ?=> traverseOrdered
   )
 end listContainerWidget
