@@ -26,7 +26,8 @@ def containerHandlesEvent[
   children =>
     childrenHandleEvent(children)
       .map(childrenUnplaced =>
-        if childrenUnplaced.forall(_.isEmpty) then
+        // It used to be .forall(_.isEmpty) but it allocates extra memory in Id case.
+        if childrenUnplaced.foldLeft(true)(_ && _.isEmpty) then
           None
         else
           Some(placeIncrementally(children.zip(childrenUnplaced)))
